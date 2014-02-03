@@ -6,7 +6,7 @@ setup(
     name='django-is-core',
     version=get_version(),
     description="Information systems core.",
-    keywords='django, admin, infromation systems, REST',
+    keywords='django, admin, information systems, REST',
     author='Lubos Matl',
     author_email='matllubos@gmail.com',
     url='https://github.com/matllubos/django-is-core',
