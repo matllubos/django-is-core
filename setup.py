@@ -27,5 +27,9 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Internet :: WWW/HTTP :: Site Management',
     ],
+    install_requires=[
+        'django==1.6',
+        'django-class-based-auth-views==0.2'
+    ],
     zip_safe=False
 )
