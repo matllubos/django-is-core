@@ -1,0 +1,57 @@
+# Documentation #
+#################
+doc/
+
+# Virtualenv #
+##############
+ve/
+
+# Compiled source #
+###################
+*.pyc
+
+# Cache #
+#########
+.sass-cache/
+CACHE/
+
+# IDE files #
+#############
+.project
+.pydevproject
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+thumbs.db
+Thumbs.db
+
+# CoffeeScript & Closure #
+##########################
+node_modules/
+bower_components/
+var/
+dj/static/js/bower_components
+dj/static/js/goog
+dj/static/js/var
+dj/static/js/start.js
+dj/static/js/deps.js
+dj/static/js/app.js
+
+# Coverage #
+############
+.coverage
+
+# Makefile config #
+###################
+build/config

@@ -1,0 +1,3 @@
+
+class SaveObjectException(Exception):
+    pass

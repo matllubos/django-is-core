@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from is_core.form import RestModelForm
 from is_core.actions import WebAction, RestAction
+from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
+from is_core.generic_views.table_views import TableView
 
 
 class ISCore(object):
