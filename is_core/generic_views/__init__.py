@@ -1,18 +1,19 @@
 from django.views.generic.base import TemplateView
+from django.utils.translation import ugettext_lazy as _
 
 class DefaultViewMixin(object):
 
-    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None):
-        self.core = core
-        self.site_name = site_name or core.site_name
-        self.menu_group = site_name or core.menu_group
-        self.menu_subgroup = site_name or core.menu_subgroup
-        self.model = site_name or core.model
+    site_name = None
+    menu_group = None
+    menu_subgroup = None
+
+    def __init__(self, site_name=None, menu_group=None, menu_subgroup=None):
         super(DefaultViewMixin, self).__init__()
+        self.site_name = site_name
+        self.menu_group = menu_group
+        self.menu_subgroup = menu_subgroup
 
     def get_title(self):
-        if self.model:
-            return self.model._meta.verbose_name
         return None
 
     def get_context_data(self, **kwargs):
@@ -30,12 +31,22 @@ class DefaultViewMixin(object):
 class HomeView(DefaultViewMixin, TemplateView):
     template_name = 'home.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        user = self.request.user
-
-        if not user.is_superuser and not user.user_access.filter(account__pk=request.account_pk):
-            raise PermissionDenied
-        return super(HomeView, self).dispatch(request, *args, **kwargs)
-
     def get_title(self):
         return _('Home')
+
+
+class DefaultCoreViewMixin(DefaultViewMixin):
+
+    core = None
+    model = None
+
+    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None):
+        self.core = core
+        self.model = model or core.model
+        site_name = site_name or core.site_name
+        menu_group = menu_group or core.menu_group
+        menu_subgroup = menu_subgroup or core.menu_subgroup
+        super(DefaultCoreViewMixin, self).__init__(site_name, menu_group, menu_subgroup, menu_subgroup)
+
+    def get_title(self):
+        return self.model._meta.verbose_name

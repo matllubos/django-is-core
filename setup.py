@@ -29,7 +29,11 @@ setup(
     ],
     install_requires=[
         'django==1.6',
-        'django-class-based-auth-views==0.2'
+        'django-class-based-auth-views==0.2',
+        'django-piston==0.3.3',
+    ],
+    dependency_links=[
+        'https://github.com/matllubos/django-piston/tarball/master#egg=django-piston-0.3.3',
     ],
     zip_safe=False
 )

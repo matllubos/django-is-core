@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% load forms static i18n %}
+
+{% block title %}{% trans 'Login' %}{% endblock %}
+
+{% block body %}
+	{% form_renderer form template="forms/login_form.html" class_attr='login-form' id_attr='login-form' %}
+{% endblock %}

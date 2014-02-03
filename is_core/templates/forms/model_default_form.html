@@ -1,0 +1,14 @@
+{% extends "forms/default_form.html" %}
+
+{% load i18n %}
+
+{% block submit-button %}
+	<div class="pull-left">
+		{{ block.super }}
+		{% if show_save_and_continue %}<button type="submit" name="save-and-continue" class="btn-save-and-continue">{% trans "Save and continue" %}</button>{% endif %}
+
+		{% if cancel_url %}
+			<a href="{{ cancel_url }}" class="button btn-cancel">{% trans "Cancel" %}</a>
+		{% endif %}
+	</div>
+{% endblock %}

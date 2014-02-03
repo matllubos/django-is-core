@@ -2,11 +2,15 @@ from django.conf.urls import patterns, url
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
+from django.template.defaultfilters import capfirst
 
 from is_core.form import RestModelForm
-from is_core.actions import WebAction, RestAction
+from is_core.actions import WebAction, RestAction, WebActionPattern, RestActionPattern
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
+from is_core.rest.handler import RestModelHandler
+from is_core.rest.resource import RestModelResource
+from django.contrib.auth.decorators import login_required
 
 
 class ISCore(object):
@@ -38,9 +42,8 @@ class ISCore(object):
     def get_views(self):
         return {}
 
-    def menu_url(self, account, environment):
-        return reverse(('%(site_name)s:' + self.menu_url_name) % {'site_name': self.site_name},
-                args=(account, environment))
+    def menu_url(self):
+        return reverse(('%(site_name)s:' + self.menu_url_name) % {'site_name': self.site_name})
 
 
 class ModelISCore(ISCore):
@@ -68,7 +71,7 @@ class ModelISCore(ISCore):
         return get_object_or_404(self.model, pk=pk)
 
 
-class UIISCore(ModelISCore):
+class UIModelISCore(ModelISCore):
     list_display = ()
     inline_form_views = ()
     add_view = AddModelFormView
@@ -108,7 +111,6 @@ class UIISCore(ModelISCore):
         bread_crumbs_url_names = [
                                     (_('List %s') % self.model._meta.verbose_name,
                                      'list' in self.allowed_views and \
-                                     self.has_read_permission(request.user, request.account_pk) and \
                                      '%s:list-%s-%s' % (self.site_name, self.menu_group, self.menu_subgroup) or None)
                                   ]
         if view_type == 'add':
@@ -118,31 +120,96 @@ class UIISCore(ModelISCore):
         return bread_crumbs_url_names
 
     def get_views(self):
-        views = super(UIISCore, self).get_views()
+        views = super(UIModelISCore, self).get_views()
 
         if 'list' in self.allowed_views:
             views['list-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                        (r'^/?$', self.table_view.as_view(persoo_view=self))
+                        login_required((r'^/?$', self.table_view.as_view(persoo_view=self)),
+                                       login_url='%s:login' % self.site_name)
 
         if 'add' in self.allowed_views:
             views['add-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                        (r'^/add/$', self.add_view.as_view(persoo_view=self))
+                        login_required((r'^/add/$', self.add_view.as_view(persoo_view=self)),
+                                       login_url='%s:login' % self.site_name)
 
         if 'edit' in self.allowed_views:
             views['edit-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                        (r'^/(?P<pk>\d+)/$', self.edit_view.as_view(persoo_view=self))
+                        login_required((r'^/(?P<pk>\d+)/$', self.edit_view.as_view(persoo_view=self)),
+                                       login_url='%s:login' % self.site_name)
         return views
 
-    def default_list_actions(self, user, account_pk):
+    def default_list_actions(self, user):
         self._default_list_actions = []
         self._default_list_actions.append(WebAction('edit-%s-%s' % (self.menu_group, self.menu_subgroup),
                                                             _('Edit'), 'edit'))
         self._default_list_actions.append(RestAction('delete', _('Delete')))
         return self._default_list_actions
 
-    def get_list_actions(self, user, account_pk):
-        list_actions = list(self.list_actions) + list(self.default_list_actions(user, account_pk))
+    def get_list_actions(self, user):
+        list_actions = list(self.list_actions) + list(self.default_list_actions(user))
         return list_actions
 
     def gel_api_url_name(self):
         return self.api_url_name
+
+
+class RestModelISCore(ModelISCore):
+    show_in_menu = False
+
+    rest_list_fields = ()
+    rest_obj_fields = ()
+    form_class = RestModelForm
+    rest_allowed_methods = ('GET', 'DELETE', 'POST', 'PUT')
+    rest_handler = RestModelHandler
+
+    def __init__(self, site_name):
+        super(RestModelISCore, self).__init__(site_name)
+        self.rest_resources = self.get_rest_resources()
+
+    def get_rest_list_fields(self):
+        return list(self.rest_list_fields)
+
+    def get_rest_obj_fields(self):
+        return list(self.rest_obj_fields)
+
+    def get_rest_resources(self):
+        info = self.menu_group, self.menu_subgroup
+        rest_resource = RestModelResource(name='Api%s%sHandler' % tuple([capfirst(name) for name in info]), core=self)
+        rest_resources = {
+                           'api-resource-%s-%s' % (self.menu_group, self.menu_subgroup):
+                                (r'^/api/(?P<pk>\d+)/?$', rest_resource, ('GET', 'PUT', 'DELETE')),
+                           'api-%s-%s' % (self.menu_group, self.menu_subgroup):
+                                (r'^/api/?$', rest_resource, ('GET', 'POST'))
+                           }
+        return rest_resources
+
+    def get_urls(self, root_views=False):
+        urls = []
+        if not root_views:
+            urls = self.get_urlpatterns(self.rest_resources)
+        return urls + super(RestModelISCore, self).get_urls(root_views)
+
+    def get_list_actions_patterns(self, obj=None):
+        list_actions_patterns = []
+        for key in self.views.keys():
+            list_actions_patterns.append(WebActionPattern(key, self.site_name))
+        return list_actions_patterns
+
+    def get_list_resources_patterns(self, user, obj=None):
+        list_resources_patterns = []
+        for key, resource in self.rest_resources.items():
+            methods = resource[1].handler.get_allowed_methods(user, obj.pk)
+            if len(resource) > 2:
+                methods = set(methods) & set(resource[2])
+            list_resources_patterns.append(RestActionPattern(key, self.site_name, methods))
+        return list_resources_patterns
+
+
+class UIRestModelISCore(UIModelISCore, RestModelISCore):
+
+    def get_rest_list_fields(self):
+        return list(self.rest_list_fields) or list(self.list_display)
+
+    def gel_api_url_name(self):
+        info = self.site_name, self.menu_group, self.menu_subgroup
+        return self.api_url_name or '%s:api-%s-%s' % info

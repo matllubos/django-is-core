@@ -38,12 +38,10 @@ class WrapperWidget(forms.Widget):
 # TODO: It may seem unnecessarily complicated, but will use it elsewhere
 class RelatedFieldWidgetWrapper(WrapperWidget):
 
-    def __init__(self, widget, model, site_name, account, environment):
+    def __init__(self, widget, model, site_name):
         super(RelatedFieldWidgetWrapper, self).__init__(widget)
         self.model = model
         self.site_name = site_name
-        self.account = account
-        self.environment = environment
         self.choices = self.widget.choices
 
     def render(self, name, value, attrs):
@@ -55,10 +53,10 @@ class RelatedFieldWidgetWrapper(WrapperWidget):
         if model_view:
 
             info = model_view.site_name, model_view.menu_group, model_view.menu_subgroup
-            attrs['data-resource'] = reverse('%s:api-%s-%s' % info, args=(self.account, self.environment))
+            attrs['data-resource'] = reverse('%s:api-%s-%s' % info)
             attrs['data-model'] = model_name
 
-            resource_add = ''.join((reverse('%s:add-%s-%s' % info, args=(self.account, self.environment)), '?popup=1'))
+            resource_add = ''.join((reverse('%s:add-%s-%s' % info), '?popup=1'))
 
             if hasattr(self.widget, 'limit_choices_to'):
                 attrs['data-resource'] = '%s?%s' % (attrs['data-resource'],

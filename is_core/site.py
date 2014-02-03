@@ -63,7 +63,8 @@ class ISSite(object):
         urlpatterns = patterns('',
                                     # TODO: environment must exist
                                     url(r'^/?$',
-                                        login_required(HomeView.as_view(site_name=self.name)), name="index"),
+                                        login_required(HomeView.as_view(site_name=self.name),
+                                                       login_url='%s:login' % self.name), name="index"),
                                     url(r'^login/$', LoginView.as_view(), name="login"),
                                     url(r'^logout/$', LogoutView.as_view(), name="logout"),
                                )
