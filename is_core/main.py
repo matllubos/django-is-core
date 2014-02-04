@@ -11,6 +11,7 @@ from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
+from is_core.auth.main import UIMiddleware
 
 
 class ISCore(object):
@@ -70,7 +71,7 @@ class ModelISCore(ISCore):
         return get_object_or_404(self.model, pk=pk)
 
 
-class UIModelISCore(ModelISCore):
+class UIModelISCore(UIMiddleware, ModelISCore):
     list_display = ()
     inline_form_views = ()
     add_view = AddModelFormView
