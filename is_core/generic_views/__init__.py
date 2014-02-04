@@ -9,9 +9,9 @@ class DefaultViewMixin(object):
 
     def __init__(self, site_name=None, menu_group=None, menu_subgroup=None):
         super(DefaultViewMixin, self).__init__()
-        self.site_name = site_name
-        self.menu_group = menu_group
-        self.menu_subgroup = menu_subgroup
+        self.site_name = self.site_name or site_name
+        self.menu_group = self.menu_group or menu_group
+        self.menu_subgroup = self.menu_subgroup or menu_subgroup
 
     def get_title(self):
         return None
@@ -42,10 +42,10 @@ class DefaultCoreViewMixin(DefaultViewMixin):
 
     def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None):
         self.core = core
-        self.model = model or core.model
-        site_name = site_name or core.site_name
-        menu_group = menu_group or core.menu_group
-        menu_subgroup = menu_subgroup or core.menu_subgroup
+        self.model = self.model or model or core.model
+        site_name = self.site_name or site_name or core.site_name
+        menu_group = self.menu_group or menu_group or core.menu_group
+        menu_subgroup = self.menu_subgroup or menu_subgroup or core.menu_subgroup
         super(DefaultCoreViewMixin, self).__init__(site_name, menu_group, menu_subgroup)
 
     def get_title(self):
