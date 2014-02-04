@@ -192,6 +192,20 @@ class RestHandler(BaseHandler):
         return 'DELETE' in cls.allowed_methods
 
     @classmethod
+    def get_permission_validators(cls):
+        all_permissions_validators = {
+                                        'GET': cls.has_read_permission,
+                                        'PUT': cls.has_update_permission,
+                                        'POST': cls.has_create_permission,
+                                        'DELETE': cls.has_delete_permission,
+                                    }
+
+        permissions_validators = {}
+        for allowed_method in cls.allowed_methods:
+            permissions_validators[allowed_method] = all_permissions_validators[allowed_method]
+        return permissions_validators
+
+    @classmethod
     def get_allowed_methods(cls, user, obj_pk):
         allowed_methods = []
         for method, validator in cls.get_permission_validators().items():

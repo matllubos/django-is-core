@@ -1,0 +1,7 @@
+{% extends 'generic_views/default_form.html' %}
+{% load forms i18n %}
+
+{% block form %}
+	{% form_renderer form fieldsets=fieldsets inline_form_views=inline_form_views template=form_template class_attr=form_name %}
+{% endblock %}
+

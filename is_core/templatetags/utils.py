@@ -1,3 +1,5 @@
+import json as serializer
+
 from django.template.base import Library
 
 register = Library()
@@ -9,3 +11,8 @@ def to_list(value):
         return value
 
     return [value]
+
+
+@register.filter
+def json(value):
+    return serializer.dumps(value)

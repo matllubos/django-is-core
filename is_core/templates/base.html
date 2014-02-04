@@ -1,12 +1,21 @@
+{% load menu %}
 <!DOCTYPE HTML>
 <html lang="en">
-<head>
-	<title>{% block title %}{{ title }}{% endblock %}</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	{% block head %}{% endblock %}
-</head>
-
-<body>
-	{% block body %}{% endblock %}
-</body>
+	<head>
+		<title>{% block title %}{{ title }}{% endblock %}</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		{% block head %}{% endblock %}
+	</head>
+	<body>
+		{% block body %}
+			{% block menu %}
+				{% if request.user.is_authenticated %}
+					{% block left-menu %}
+						{% menu 'IS' %}
+					{% endblock %}
+				{% endif %}
+			{% endblock %}
+			{% block content %}{% endblock %}
+		{% endblock %}
+	</body>
 </html>

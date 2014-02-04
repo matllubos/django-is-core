@@ -1,0 +1,13 @@
+<ul class="bread-crumbs">
+	{% for menu_item in menu_items %}
+		{% if not menu_item.active %}
+			<li><a href="{{ menu_item.url }}">{{ menu_item.title }}</a></li>
+		{% else %}
+			<li class="active">{{ menu_item.title }}</li>
+		{% endif %}
+		
+		{% if not forloop.last %}
+			<li><span class="divider">/</span></li>
+		{% endif %}
+	{% endfor %}
+</ul>

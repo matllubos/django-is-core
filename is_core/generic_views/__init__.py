@@ -46,7 +46,7 @@ class DefaultCoreViewMixin(DefaultViewMixin):
         site_name = site_name or core.site_name
         menu_group = menu_group or core.menu_group
         menu_subgroup = menu_subgroup or core.menu_subgroup
-        super(DefaultCoreViewMixin, self).__init__(site_name, menu_group, menu_subgroup, menu_subgroup)
+        super(DefaultCoreViewMixin, self).__init__(site_name, menu_group, menu_subgroup)
 
     def get_title(self):
         return self.model._meta.verbose_name

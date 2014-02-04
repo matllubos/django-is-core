@@ -23,6 +23,10 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
     messages = {'success': _('Object was saved successfully.'),
                 'error': _('Please correct the error below.')}
 
+    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, form_class=None):
+        super(DefaultFormView, self).__init__(core, site_name, menu_group, menu_subgroup, model)
+        self.form_class = form_class or core.form_class
+
     def get_success_url(self, obj):
         return ''
 

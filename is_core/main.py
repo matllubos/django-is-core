@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import capfirst
+from django.contrib.auth.decorators import login_required
 
 from is_core.form import RestModelForm
 from is_core.actions import WebAction, RestAction, WebActionPattern, RestActionPattern
@@ -10,7 +11,6 @@ from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
-from django.contrib.auth.decorators import login_required
 
 
 class ISCore(object):
@@ -28,8 +28,7 @@ class ISCore(object):
         urls = []
         for key, view_data in views.items():
             url_pattern, view = view_data[0:2]
-            pattern_name = '%s-%s-%s' % (key, self.menu_group, self.menu_subgroup)
-            urls.append(url(url_pattern, view, name=pattern_name))
+            urls.append(url(url_pattern, view, name=key))
         urlpatterns = patterns('', *urls)
         return urlpatterns
 
@@ -83,6 +82,7 @@ class UIModelISCore(ModelISCore):
     api_url_name = None
     list_actions = ()
     form_class = RestModelForm
+    allowed_views = ('add', 'edit', 'list')
 
     def get_show_in_menu(self, request):
         return 'list' in self.allowed_views and self.show_in_menu;
@@ -124,18 +124,18 @@ class UIModelISCore(ModelISCore):
 
         if 'list' in self.allowed_views:
             views['list-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                        login_required((r'^/?$', self.table_view.as_view(persoo_view=self)),
-                                       login_url='%s:login' % self.site_name)
+                     (r'^/?$', login_required(self.table_view.as_view(core=self),
+                                              login_url='%s:login' % self.site_name))
 
         if 'add' in self.allowed_views:
             views['add-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                        login_required((r'^/add/$', self.add_view.as_view(persoo_view=self)),
-                                       login_url='%s:login' % self.site_name)
+                     (r'^/add/$', login_required(self.add_view.as_view(core=self),
+                                                 login_url='%s:login' % self.site_name))
 
         if 'edit' in self.allowed_views:
             views['edit-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                        login_required((r'^/(?P<pk>\d+)/$', self.edit_view.as_view(persoo_view=self)),
-                                       login_url='%s:login' % self.site_name)
+                     (r'^/(?P<pk>\d+)/$', login_required(self.edit_view.as_view(core=self),
+                                                         login_url='%s:login' % self.site_name))
         return views
 
     def default_list_actions(self, user):
@@ -183,11 +183,9 @@ class RestModelISCore(ModelISCore):
                            }
         return rest_resources
 
-    def get_urls(self, root_views=False):
-        urls = []
-        if not root_views:
-            urls = self.get_urlpatterns(self.rest_resources)
-        return urls + super(RestModelISCore, self).get_urls(root_views)
+    def get_urls(self):
+        urls = self.get_urlpatterns(self.rest_resources)
+        return urls + super(RestModelISCore, self).get_urls()
 
     def get_list_actions_patterns(self, obj=None):
         list_actions_patterns = []
