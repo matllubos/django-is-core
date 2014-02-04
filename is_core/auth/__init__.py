@@ -24,7 +24,7 @@ class Auth(object):
             validators = [validators]
 
         for validator in validators:
-            if validator(request.user, request.account_pk, request.obj_pk):
+            if validator(request.user, request.obj_pk):
                 return True
         return False
 
