@@ -24,7 +24,7 @@ class Auth(object):
             validators = [validators]
 
         for validator in validators:
-            if validator(request.user, request.obj_pk):
+            if validator(request):
                 return True
         return False
 
@@ -38,8 +38,7 @@ class AuthWrapper(Auth):
 
         def wrapper(request, *args, **kwargs):
             if request.user.is_authenticated() and not self.is_authenticated(request):
-                return HttpResponseForbidden(render_to_string('403.html', {'site_name': self.persoo_view.site_name},
-                                                              context_instance=RequestContext(request)))
+                return HttpResponseForbidden(render_to_string('403.html', context_instance=RequestContext(request)))
 
             return login_required(func)(request, *args, **kwargs)
 
