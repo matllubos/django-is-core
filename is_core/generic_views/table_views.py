@@ -23,6 +23,10 @@ class TableView(DefaultCoreViewMixin, TemplateView):
     template_name = 'generic_views/table.html'
     view_type = 'list'
 
+    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, list_display=None):
+        super(TableView, self).__init__(core, site_name, menu_group, menu_subgroup, model)
+        self.list_display = self.list_display or list_display or core.list_display
+
     def get_title(self):
         return _('List %s') % self.model._meta.verbose_name
 
