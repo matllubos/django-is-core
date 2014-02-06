@@ -137,10 +137,11 @@ class DefaultModelFormView(DefaultFormView):
         return list(self.exclude)
 
     def get_form_class(self):
+        form_class = self.form_class or self.core.get_form_class(self.request, obj=self.get_obj())
         exclude = self.get_exclude()
-        if hasattr(self.form_class, '_meta') and self.form_class._meta.exclude:
-            exclude.extend(self.form_class._meta.exclude)
-        return modelform_factory(self.model, form=self.form_class, exclude=exclude)
+        if hasattr(form_class, '_meta') and form_class._meta.exclude:
+            exclude.extend(form_class._meta.exclude)
+        return modelform_factory(self.model, form=form_class, exclude=exclude)
 
     def get_context_data(self, form=None, **kwargs):
         context_data = super(DefaultModelFormView, self).get_context_data(form=form, **kwargs)
