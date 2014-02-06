@@ -62,7 +62,6 @@ class ISSite(object):
         return self.get_urls(), self.app_name, self.name
 
     def get_urls(self):
-        print config.AUTH_FORM_CLASS
         urlpatterns = patterns('',
                                     # TODO: environment must exist
                                     url(r'^/?$',
