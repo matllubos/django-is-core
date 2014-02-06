@@ -105,6 +105,9 @@ class UIModelISCore(UIMiddleware, ModelISCore):
     def get_fieldsets(self, form):
         return list(self.fieldsets)
 
+    def get_form_class(self, request, obj=None, **kwargs):
+        return self.form_class
+
     def bread_crumbs_url_names(self, context):
         request = context.get('request')
         view_type = context.get('view_type')
