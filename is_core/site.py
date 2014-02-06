@@ -8,6 +8,8 @@ from class_based_auth_views.views import LoginView
 
 from is_core.generic_views import HomeView
 from is_core.generic_views.auth_views import LogoutView
+from is_core.utils import str_to_class
+from is_core import config
 
 
 sites = {}
@@ -63,8 +65,10 @@ class ISSite(object):
         urlpatterns = patterns('',
                                     # TODO: environment must exist
                                     url(r'^/?$',
-                                        login_required(HomeView.as_view(site_name=self.name)), name="index"),
-                                    url(r'^login/$', LoginView.as_view(), name="login"),
+                                        login_required(HomeView.as_view(site_name=self.name),
+                                                       login_url='%s:login' % self.name), name="index"),
+                                    url(r'^login/$', LoginView.as_view(form_class=str_to_class(config.AUTH_FORM_CLASS)),
+                                        name="login"),
                                     url(r'^logout/$', LogoutView.as_view(), name="logout"),
                                )
 

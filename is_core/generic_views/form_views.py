@@ -4,17 +4,17 @@ from django.forms.models import ModelMultipleChoiceField, modelform_factory
 from django.http.response import HttpResponseRedirect, Http404
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
-
 
 from is_core.form.widgets import RelatedFieldWidgetWrapper
 from is_core.form import form_to_readonly
 from is_core.generic_views.exceptions import SaveObjectException
-from is_core.generic_views import DefaultViewMixin
+from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils.models import get_object_or_none
 
 
-class DefaultFormView(DefaultViewMixin, FormView):
+class DefaultFormView(DefaultCoreViewMixin, FormView):
     view_type = None
     fieldsets = None
     form_template = 'forms/default_form.html'
@@ -22,6 +22,10 @@ class DefaultFormView(DefaultViewMixin, FormView):
     allowed_snippets = ('form-fields',)
     messages = {'success': _('Object was saved successfully.'),
                 'error': _('Please correct the error below.')}
+
+    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, form_class=None):
+        super(DefaultFormView, self).__init__(core, site_name, menu_group, menu_subgroup, model)
+        self.form_class = self.form_class or form_class or core.form_class
 
     def get_success_url(self, obj):
         return ''
@@ -88,16 +92,12 @@ class DefaultFormView(DefaultViewMixin, FormView):
 
     def get_initial(self):
         initial = super(DefaultFormView, self).get_initial()
-        if not self.root_view:
-            initial['_environment'] = self.environment
-            initial['_account'] = self.account
         initial['_user'] = self.request.user
         return initial
 
     def form_field(self, form_field):
         if isinstance(form_field, ModelMultipleChoiceField):
-            form_field.widget = RelatedFieldWidgetWrapper(form_field.widget, form_field.queryset.model, self.site_name,
-                                                          self.account, self.environment)
+            form_field.widget = RelatedFieldWidgetWrapper(form_field.widget, form_field.queryset.model, self.site_name)
         return form_field
 
     def get(self, request, *args, **kwargs):
@@ -137,10 +137,11 @@ class DefaultModelFormView(DefaultFormView):
         return list(self.exclude)
 
     def get_form_class(self):
+        form_class = self.form_class or self.core.get_form_class(self.request, obj=self.get_obj())
         exclude = self.get_exclude()
-        if hasattr(self.form_class, '_meta') and self.form_class._meta.exclude:
-            exclude.extend(self.form_class._meta.exclude)
-        return modelform_factory(self.model, form=self.form_class, exclude=exclude)
+        if hasattr(form_class, '_meta') and form_class._meta.exclude:
+            exclude.extend(form_class._meta.exclude)
+        return modelform_factory(self.model, form=form_class, exclude=exclude)
 
     def get_context_data(self, form=None, **kwargs):
         context_data = super(DefaultModelFormView, self).get_context_data(form=form, **kwargs)
@@ -154,7 +155,7 @@ class DefaultModelFormView(DefaultFormView):
     def get_cancel_url(self):
         if 'list' in self.core.allowed_views:
             info = self.site_name, self.menu_group, self.menu_subgroup
-            return reverse('%s:list-%s-%s' % info, args=(self.account, self.environment))
+            return reverse('%s:list-%s-%s' % info)
         return None
 
     def get_inline_form_views(self):
@@ -163,9 +164,9 @@ class DefaultModelFormView(DefaultFormView):
     def get_success_url(self, obj):
         info = self.site_name, self.menu_group, self.menu_subgroup
         if 'list' in self.core.allowed_views and 'save' in self.request.POST:
-            return reverse('%s:list-%s-%s' % info, args=(self.account, self.environment))
+            return reverse('%s:list-%s-%s' % info)
         elif 'edit' in self.core.allowed_views and 'save-and-continue' in self.request.POST:
-            return reverse('%s:edit-%s-%s' % info, args=(self.account, self.environment, obj.pk))
+            return reverse('%s:edit-%s-%s' % info, args=(obj.pk,))
         return ''
 
     def get(self, request, *args, **kwargs):
@@ -284,6 +285,6 @@ class EditModelFormView(DefaultModelFormView):
 
     def link(self, arguments=None, **kwargs):
         if arguments is None:
-            arguments = (self.account, self.environment, self.kwargs['pk'])
+            arguments = (self.kwargs['pk'],)
         return super(EditModelFormView, self).link(arguments=arguments, **kwargs)
 

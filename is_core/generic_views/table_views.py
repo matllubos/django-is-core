@@ -1,7 +1,8 @@
 from django.views.generic.base import TemplateView
+from django.utils.translation import ugettext_lazy as _
 
-from is_core.generic_views.form_views import DefaultFormView
 from is_core.utils import query_string_from_dict
+from is_core.generic_views import DefaultCoreViewMixin
 
 
 class Header(object):
@@ -17,10 +18,14 @@ class Header(object):
         return self.text
 
 
-class TableView(DefaultFormView, TemplateView):
+class TableView(DefaultCoreViewMixin, TemplateView):
     list_display = ()
     template_name = 'generic_views/table.html'
     view_type = 'list'
+
+    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, list_display=None):
+        super(TableView, self).__init__(core, site_name, menu_group, menu_subgroup, model)
+        self.list_display = self.list_display or list_display or core.list_display
 
     def get_title(self):
         return _('List %s') % self.model._meta.verbose_name
@@ -66,8 +71,7 @@ class TableView(DefaultFormView, TemplateView):
                                 'verbose_name':  self.model._meta.verbose_name,
                                 'view_type': self.view_type,
                                 'list_display': self.get_list_display(),
-                                'list_action': self.core.get_list_actions(self.request.user,
-                                                                          self.request.account_pk),
+                                'list_action': self.core.get_list_actions(self.request.user),
                                 'query_string_filter': self.get_query_string_filter()
                             })
         return context_data
