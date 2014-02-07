@@ -33,9 +33,3 @@ class RestModelFormMixin(object):
 
 class RestModelForm(RestModelFormMixin, AllFieldsUniqueValidationModelForm):
     pass
-
-
-def form_to_readonly(form):
-    for field in form.fields.values():
-        field.widget.attrs['disabled'] = 'disabled'
-

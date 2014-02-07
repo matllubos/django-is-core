@@ -72,24 +72,33 @@ class ModelISCore(ISCore):
 
 
 class UIModelISCore(UIMiddleware, ModelISCore):
-    list_display = ()
-    inline_form_views = ()
-    add_view = AddModelFormView
-    edit_view = EditModelFormView
-    table_view = TableView
+    view_classes = {
+                    'add': (r'^/add/$', AddModelFormView),
+                    'edit': (r'^/(?P<pk>\d+)/$', EditModelFormView),
+                    'list': (r'^/?$', TableView)
+                    }
+
     show_in_menu = True
-    fieldsets = ()
-    default_list_filter = {}
     api_url_name = None
+
+    # list view params
+    list_display = ()
+    default_list_filter = {}
     list_actions = ()
+
+    # add/edit view params
+    fieldsets = ()
+    fields = ()
+    readonly_fields = ()
+    inline_form_views = ()
+    exclude = ()
     form_class = RestModelForm
-    allowed_views = ('add', 'edit', 'list')
 
     def get_show_in_menu(self, request):
-        return 'list' in self.allowed_views and self.show_in_menu;
+        return 'list' in self.view_classes and self.show_in_menu;
 
     def get_rest_list_fields(self):
-        return list(self.list_display)
+        return self.list_display
 
     def get_inline_form_views(self, request, obj=None):
         return self.inline_form_views
@@ -97,21 +106,32 @@ class UIModelISCore(UIMiddleware, ModelISCore):
     def get_default_list_filter(self, request):
         return self.default_list_filter.copy()
 
+    def get_fieldsets(self, request, obj=None):
+        return self.fieldsets
+
+    def get_fields(self, request, obj=None):
+        return self.fields
+
+    def get_form_class(self, request, obj=None):
+        return self.form_class
+
+    def get_readonly_fields(self, request, obj=None):
+        return self.readonly_fields
+
+    def get_exclude(self, request, obj=None):
+        return self.readonly_fields
+
     def menu_url_name(self):
         info = self.menu_group, self.menu_subgroup
         return 'list-%s-%s' % info
     menu_url_name = property(menu_url_name)
 
-    def get_fieldsets(self, form):
-        return list(self.fieldsets)
-
     def bread_crumbs_url_names(self, context):
-        request = context.get('request')
         view_type = context.get('view_type')
 
         bread_crumbs_url_names = [
                                     (_('List %s') % self.model._meta.verbose_name,
-                                     'list' in self.allowed_views and \
+                                     'list' in self.view_classes and \
                                      '%s:list-%s-%s' % (self.site_name, self.menu_group, self.menu_subgroup) or None)
                                   ]
         if view_type == 'add':
@@ -120,23 +140,19 @@ class UIModelISCore(UIMiddleware, ModelISCore):
             bread_crumbs_url_names.append((_('Edit %s') % self.model._meta.verbose_name, None))
         return bread_crumbs_url_names
 
+    def get_view_classes(self):
+        return self.view_classes.copy()
+
     def get_views(self):
         views = super(UIModelISCore, self).get_views()
 
-        if 'list' in self.allowed_views:
-            views['list-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                     (r'^/?$', login_required(self.table_view.as_view(core=self),
+        for name, view_vals in self.view_classes.items():
+            pattern, view = view_vals
+
+            views['%s-%s-%s' % (name, self.menu_group, self.menu_subgroup)] = \
+                     (pattern, login_required(view.as_view(core=self),
                                               login_url='%s:login' % self.site_name))
 
-        if 'add' in self.allowed_views:
-            views['add-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                     (r'^/add/$', login_required(self.add_view.as_view(core=self),
-                                                 login_url='%s:login' % self.site_name))
-
-        if 'edit' in self.allowed_views:
-            views['edit-%s-%s' % (self.menu_group, self.menu_subgroup)] = \
-                     (r'^/(?P<pk>\d+)/$', login_required(self.edit_view.as_view(core=self),
-                                                         login_url='%s:login' % self.site_name))
         return views
 
     def default_list_actions(self, user):

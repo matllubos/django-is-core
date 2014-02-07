@@ -11,7 +11,7 @@ def autodiscover():
         except ImportError as ex:
             pass
 
-VERSION = (0, 2, 7)
+VERSION = (0, 2, 8)
 
 def get_version():
     return '.'.join(map(str, VERSION))

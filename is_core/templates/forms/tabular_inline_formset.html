@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n forms %}
 <fieldset class="inline tabular-inline {{ class_names|join:' ' }}">
 	{% if title %}<legend>{{ title }}</legend>{% endif %}
 	{{ formset.management_form }}
@@ -7,31 +7,37 @@
 			{% if forloop.first %}
 				<thead>
 					<tr>
-						{% for field in form.visible_fields %}
-							<th>
-								{{ field.label|capfirst }}
-								{% if field.field.required %}
-									<span class="required">*</span>
+						{% for field_name in fieldset %}
+							{% with field=form|get_field:field_name %}
+								{% if not field.is_hidden %}
+									<th>
+										{{ field.label|capfirst }}
+										{% if field.field.required %}
+											<span class="required">*</span>
+										{% endif %}
+									</th>
 								{% endif %}
-							</th>
+							{% endwith %}
 						{% endfor %}
 					</tr>
 				</thead>
 			{% endif %}
 			<tr class="{% cycle odd,even %}">
-				{% for field in form.visible_fields %}
-					<td>
-						{# Include the hidden fields in the form #}
-						{% if forloop.first %}
-							{% for hidden in form.hidden_fields %}
-								{{ hidden }}
-							{% endfor %}
-							{{ form.non_field_errors }}
-						{% endif %}
-						{{ field.errors.as_ul }}
-						{{ field }}
-					</td>
-				{% endfor %}
+				{% with visible_fields=form|get_visible_fields:fieldset %}
+					{% for field in visible_fields %}
+						<td>
+							{# Include the hidden fields in the form #}
+							{% if forloop.first %}
+								{% for hidden in form.hidden_fields %}
+									{{ hidden }}
+								{% endfor %}
+								{{ form.non_field_errors }}
+							{% endif %}
+							{{ field.errors.as_ul }}
+							{{ field }}
+						</td>
+					{% endfor %}
+				{% endwith %}
 			</tr>
 		{% endfor %}
 	</table>

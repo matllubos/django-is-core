@@ -1,17 +1,17 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.forms.models import ModelMultipleChoiceField, modelform_factory
-from django.http.response import HttpResponseRedirect, Http404
+from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
+from django.shortcuts import get_object_or_404
 
 from is_core.form.widgets import RelatedFieldWidgetWrapper
-from is_core.form import form_to_readonly
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
-from is_core.utils.models import get_object_or_none
+from is_core.utils import flatten_fieldsets
 
 
 class DefaultFormView(DefaultCoreViewMixin, FormView):
@@ -19,29 +19,27 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
     fieldsets = None
     form_template = 'forms/default_form.html'
     template_name = 'generic_views/default_form.html'
-    allowed_snippets = ('form-fields',)
     messages = {'success': _('Object was saved successfully.'),
                 'error': _('Please correct the error below.')}
+    readonly_fields = ()
 
-    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, form_class=None):
+    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, form_class=None, readonly_fields=()):
         super(DefaultFormView, self).__init__(core, site_name, menu_group, menu_subgroup, model)
-        self.form_class = self.form_class or form_class or core.form_class
+        self.form_class = form_class or self.form_class
+        self.readonly_fields = readonly_fields or self.readonly_fields
 
     def get_success_url(self, obj):
         return ''
 
-    def is_readonly(self):
-        return False
-
     def get_form(self, form_class):
         form = form_class(**self.get_form_kwargs())
-
-        if self.is_readonly():
-            form_to_readonly(form)
 
         for field in form.fields.values():
             field = self.form_field(field)
         return form
+
+    def get_readonly_fields(self):
+        return self.readonly_fields
 
     def get_message(self, type, obj=None):
         msg_dict = {}
@@ -53,16 +51,13 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         raise NotImplemented
 
     def form_valid(self, form, msg=None):
-        if not self.is_readonly():
-            obj = form.save(commit=False)
-            try:
-                self.save_obj(obj, form)
-            except SaveObjectException as ex:
-                return self.form_invalid(form, force_text(ex))
-            if hasattr(form, 'save_m2m'):
-                form.save_m2m()
-        else:
-            obj = self.get_obj()
+        obj = form.save(commit=False)
+        try:
+            self.save_obj(obj, form)
+        except SaveObjectException as ex:
+            return self.form_invalid(form, force_text(ex))
+        if hasattr(form, 'save_m2m'):
+            form.save_m2m()
 
         msg = msg or self.get_message('success', obj)
         messages.success(self.request, msg)
@@ -108,24 +103,27 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
     def post(self, request, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        if (self.is_readonly() or form.is_valid()):
+        if form.is_valid():
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
-    def get_form_kwargs(self):
-        kwargs = super(DefaultFormView, self).get_form_kwargs()
-        if self.request.method in ('POST', 'PUT') and self.is_readonly():
-            del kwargs['data']
-            del kwargs['files']
-        return kwargs
-
 
 class DefaultModelFormView(DefaultFormView):
     model = None
-    exclude = []
+    exclude = ()
+    fieldset = ()
+    fields = None
     inline_form_views = ()
     form_template = 'forms/model_default_form.html'
+
+    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, form_class=None,
+                 exclude=None, fieldset=None, fields=None, readonly_fields=None, inline_form_views=None):
+        super(DefaultModelFormView, self).__init__(core, site_name, menu_group, menu_subgroup, model, form_class, readonly_fields)
+        self.exclude = exclude or self.exclude
+        self.fieldset = fieldset or self.fieldset
+        self.fields = fields or self.fields
+        self.inline_form_views = inline_form_views or self.inline_form_views
 
     def get_message(self, type, obj=None):
         msg_dict = {}
@@ -134,37 +132,62 @@ class DefaultModelFormView(DefaultFormView):
         return self.messages.get(type) % msg_dict
 
     def get_exclude(self):
-        return list(self.exclude)
+        return self.exclude or self.core.get_exclude(self.request, self.get_obj(True))
+
+    def get_readonly_fields(self):
+        return self.readonly_fields or self.core.get_readonly_fields(self.request, self.get_obj(True))
+
+    def get_inline_form_views(self):
+        return self.inline_form_views or self.core.get_inline_form_views(self.request, self.get_obj(True))
+
+    def get_fieldsets(self, form):
+        fieldsets = self.fieldset or self.core.get_fieldsets(self.request, self.get_obj(True))
+
+        if fieldsets:
+            return fieldsets
+        else:
+            fieldsets = [(None, {'fields': self.get_fields() or form.fields.keys()})]
+            for inline_form_view in self.get_inline_form_views():
+                fieldsets.append((inline_form_view.model._meta.verbose_name_plural,
+                                  {'inline_form_view': inline_form_view.__name__}))
+            return list(fieldsets)
+
+    def get_fields(self):
+        fieldsets = self.fieldset or self.core.get_fieldsets(self.request, self.get_obj(True))
+
+        if fieldsets:
+            return flatten_fieldsets(fieldsets)
+        return self.fields
 
     def get_form_class(self):
-        exclude = self.get_exclude()
-        if hasattr(self.form_class, '_meta') and self.form_class._meta.exclude:
-            exclude.extend(self.form_class._meta.exclude)
-        return modelform_factory(self.model, form=self.form_class, exclude=exclude)
+        form_class = self.form_class or self.core.get_form_class(self.request, self.get_obj(True))
+        readonly_fields = self.get_readonly_fields()
+        exclude = self.get_exclude() + readonly_fields
+        fields = self.get_fields()
+        if hasattr(self.form_class, '_meta') and form_class._meta.exclude:
+            exclude.extend(form_class._meta.exclude)
+        return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields)
 
     def get_context_data(self, form=None, **kwargs):
         context_data = super(DefaultModelFormView, self).get_context_data(form=form, **kwargs)
         context_data.update({
                                 'module_name': self.model._meta.module_name,
                                 'cancel_url': self.get_cancel_url(),
-                                'show_save_and_continue': 'list' in self.core.allowed_views
+                                'show_save_and_continue': 'list' in self.core.view_classes
                              })
         return context_data
 
     def get_cancel_url(self):
-        if 'list' in self.core.allowed_views:
+        if 'list' in self.core.view_classes:
             info = self.site_name, self.menu_group, self.menu_subgroup
             return reverse('%s:list-%s-%s' % info)
         return None
 
-    def get_inline_form_views(self):
-        return self.core.get_inline_form_views(self.request, self.get_obj())
-
     def get_success_url(self, obj):
         info = self.site_name, self.menu_group, self.menu_subgroup
-        if 'list' in self.core.allowed_views and 'save' in self.request.POST:
+        if 'list' in self.core.view_classes and 'save' in self.request.POST:
             return reverse('%s:list-%s-%s' % info)
-        elif 'edit' in self.core.allowed_views and 'save-and-continue' in self.request.POST:
+        elif 'edit' in self.core.view_classes and 'save-and-continue' in self.request.POST:
             return reverse('%s:edit-%s-%s' % info, args=(obj.pk,))
         return ''
 
@@ -174,7 +197,7 @@ class DefaultModelFormView(DefaultFormView):
         inline_form_views = SortedDict()
         for inline_form_view in self.get_inline_form_views():
             inline_form_views[inline_form_view.__name__] = inline_form_view(self.request, self.core, self.model,
-                                                                            form.instance, self.is_readonly())
+                                                                            form.instance)
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
 
     def post(self, request, *args, **kwargs):
@@ -184,18 +207,17 @@ class DefaultModelFormView(DefaultFormView):
         inline_forms_is_valid = True
         for inline_form_view in self.get_inline_form_views():
             inline_form_view_instance = inline_form_view(self.request, self.core, self.model,
-                                                         form.instance, self.is_readonly())
-            inline_forms_is_valid = (inline_form_view_instance.is_readonly() \
-                                        or inline_form_view_instance.formset.is_valid()) \
+                                                         form.instance)
+            inline_forms_is_valid = (inline_form_view_instance.formset.is_valid()) \
                                         and inline_forms_is_valid
             inline_form_views[inline_form_view.__name__] = inline_form_view_instance
 
-        if (self.is_readonly() or form.is_valid()) and inline_forms_is_valid:
+        if form.is_valid() and inline_forms_is_valid:
             return self.form_valid(form, inline_form_views)
         else:
             return self.form_invalid(form, inline_form_views)
 
-    def get_obj(self):
+    def get_obj(self, cached=True):
         return None
 
     def get_form_kwargs(self):
@@ -205,13 +227,10 @@ class DefaultModelFormView(DefaultFormView):
 
     def form_valid(self, form, inline_form_views, msg=None):
         try:
-            if not self.is_readonly():
-                obj = form.save(commit=False)
-                self.save_obj(obj, form)
-                if hasattr(form, 'save_m2m'):
-                    form.save_m2m()
-            else:
-                obj = self.get_obj()
+            obj = form.save(commit=False)
+            self.save_obj(obj, form)
+            if hasattr(form, 'save_m2m'):
+                form.save_m2m()
 
             for inline_form_view in inline_form_views.values():
                 inline_form_view.form_valid(self.request)
@@ -229,22 +248,6 @@ class DefaultModelFormView(DefaultFormView):
         msg = msg or self.get_message('error')
         messages.error(self.request, msg)
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
-
-    def get_fieldsets(self, form):
-        core_fieldsets = None
-        if self.core:
-            core_fieldsets = self.core.get_fieldsets(form)
-
-        if self.fieldsets:
-            return self.fieldsets
-        elif core_fieldsets:
-            return core_fieldsets
-        else:
-            fieldsets = [(None, {'fields': form.fields.keys()})]
-            for inline_form_view in self.get_inline_form_views():
-                fieldsets.append((inline_form_view.model._meta.verbose_name_plural,
-                                  {'inline_form_view': inline_form_view.__name__}))
-            return list(fieldsets)
 
 
 class AddModelFormView(DefaultModelFormView):
@@ -276,10 +279,13 @@ class EditModelFormView(DefaultModelFormView):
         filters = {'pk': self.kwargs.get('pk')}
         return filters
 
-    def get_obj(self):
-        obj = get_object_or_none(self.model, **self.get_obj_filters())
-        if not obj:
-            raise Http404
+    _obj = None
+    def get_obj(self, cached=True):
+        if cached and self._obj:
+            return self._obj
+        obj = get_object_or_404(self.model, **self.get_obj_filters())
+        if cached and not self._obj:
+            self._obj = obj
         return obj
 
     def link(self, arguments=None, **kwargs):

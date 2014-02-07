@@ -26,13 +26,12 @@ def inline_form_view_renderer(context, inline_view, title=None):
     template = inline_view.template_name
 
     formset = inline_view.formset
+    fieldset = inline_view.get_fieldset(formset)
     class_names = [inline_view.get_name().lower()]
     if formset.can_add:
         class_names.append('can-add')
     if formset.can_delete:
         class_names.append('can-delete')
-    if formset.readonly:
-        class_names.append('readonly')
 
     if title:
         class_names.append('with-title')
@@ -41,6 +40,7 @@ def inline_form_view_renderer(context, inline_view, title=None):
 
     context.update({
                         'formset': formset,
+                        'fieldset': fieldset,
                         'name': inline_view.get_name(),
                         'title': title,
                         'class_names': class_names,
@@ -65,9 +65,43 @@ def fieldset_renderer(context, form, fieldset):
     return render_to_string(template, context)
 
 
+class ReadonlyField(object):
+
+    is_readonly = True
+    is_hidden = False
+
+    def __init__(self, label, content):
+        self.label = label
+        self.content = content
+
+    def __unicode__(self):
+        return self.content
+
+
 @register.filter
 def get_field(form, field_name):
+    field = form.fields.get(field_name)
+    if not field:
+        instance = form.instance
+        value = getattr(instance, 'get_%s_display' % field_name, None)
+        if value:
+            value = value()
+        else:
+            value = getattr(instance, field_name)
+
+        return ReadonlyField(instance._meta.get_field_by_name(field_name)[0].verbose_name, value or '')
+
     return form[field_name]
+
+@register.filter
+def get_visible_fields(form, fieldset):
+    visible_fields = []
+    for field_name in fieldset:
+        field = get_field(form, field_name)
+        if not field.is_hidden:
+            visible_fields.append(field)
+    return visible_fields
+
 
 
 @register.filter

@@ -18,3 +18,15 @@ def str_to_class(class_string):
     # get the class, will raise AttributeError if class cannot be found
     c = getattr(m, class_name)
     return c
+
+
+def flatten_fieldsets(fieldsets):
+    """Returns a list of field names from an admin fieldsets structure."""
+    field_names = []
+    for name, opts in fieldsets:
+        for field in opts.get('fields', ()):
+            if isinstance(field, (list, tuple)):
+                field_names.extend(field)
+            else:
+                field_names.append(field)
+    return field_names

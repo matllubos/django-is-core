@@ -1,7 +1,6 @@
 from django.forms.models import inlineformset_factory, ModelForm
 
 from is_core.form.models import BaseInlineFormSet
-from is_core.form import form_to_readonly
 
 
 class InlineFormView(object):
@@ -10,14 +9,16 @@ class InlineFormView(object):
     fk_name = None
     template_name = None
     extra = 0
-    exclude = None
+    exclude = ()
     can_add = True
     can_delete = True
 
-    def __init__(self, request, core, parent_model, instance, readonly):
+    readonly_fields = ()
+    fields = None
+
+    def __init__(self, request, core, parent_model, instance):
         self.request = request
         self.parent_model = parent_model
-        self.readonly = readonly
         self.core = core
         self.parent = instance
         self.formset = self.get_formset(instance, self.request.POST)
@@ -25,53 +26,60 @@ class InlineFormView(object):
     def get_exclude(self):
         return self.exclude
 
+    def get_fields(self):
+        return self.fields
+
     def get_extra(self):
         return self.extra
 
+    def get_readonly_fields(self):
+        return self.readonly_fields
+
+    def get_fieldset(self, formset):
+        fields = self.get_fields() or formset.form.base_fields.keys()
+        fields = list(fields) + list(self.readonly_fields)
+        if self.can_delete:
+            fields.append('DELETE')
+        return fields
+
     def get_formset_factory(self):
-        extra = not self.is_readonly() and self.get_extra() or 0
+        extra = self.get_extra()
+        exclude = self.get_exclude() + self.get_readonly_fields()
         return inlineformset_factory(self.parent_model, self.model, form=self.form_class,
                                      fk_name=self.fk_name, extra=extra, formset=BaseInlineFormSet,
-                                     can_delete=self.get_can_delete(), exclude=self.get_exclude())
+                                     can_delete=self.get_can_delete(), exclude=exclude,
+                                     fields=self.fields)
 
     def get_queryset(self):
         return self.model.objects.all()
 
     def get_can_delete(self):
-        return self.can_delete and not self.is_readonly()
+        return self.can_delete
 
     def get_can_add(self):
-        return self.can_add and not self.is_readonly()
+        return self.can_add
 
     def get_formset(self, instance, data):
-        if data and not self.is_readonly():
+        if data:
+            # data = remove
             formset = self.get_formset_factory()(data=data, instance=instance, queryset=self.get_queryset())
         else:
             formset = self.get_formset_factory()(instance=instance, queryset=self.get_queryset())
 
         formset.can_add = self.get_can_add()
         formset.can_delete = self.get_can_delete()
-        formset.readonly = False
 
-        if self.is_readonly():
-            formset.readonly = True
-            for form in formset:
-                form_to_readonly(form)
         return formset
-
-    def is_readonly(self):
-        return self.readonly
 
     def get_name(self):
         return self.model.__name__
 
     def form_valid(self, request):
-        if not self.is_readonly():
-            instances = self.formset.save(commit=False)
-            for obj in instances:
-                self.save_model(request, obj)
-            for obj in self.formset.deleted_objects:
-                self.delete_model(request, obj)
+        instances = self.formset.save(commit=False)
+        for obj in instances:
+            self.save_model(request, obj)
+        for obj in self.formset.deleted_objects:
+            self.delete_model(request, obj)
 
     def save_model(self, request, obj):
         obj.save()
