@@ -71,7 +71,12 @@ class TableView(DefaultCoreViewMixin, TemplateView):
                                 'verbose_name':  self.model._meta.verbose_name,
                                 'view_type': self.view_type,
                                 'list_display': self.get_list_display(),
-                                'list_action': self.core.get_list_actions(self.request.user),
+                                'list_action': self.core.get_list_actions(self.request),
                                 'query_string_filter': self.get_query_string_filter()
                             })
         return context_data
+
+    @classmethod
+    def has_get_permission(cls, request, core, **kwargs):
+        return core.has_read_permission(request)
+

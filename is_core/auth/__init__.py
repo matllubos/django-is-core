@@ -6,8 +6,9 @@ from django.template.context import RequestContext
 
 class Auth(object):
 
-    def __init__(self, permissions_validators):
+    def __init__(self, permissions_validators, **kwargs):
         self.permissions_validators = permissions_validators
+        self.kwargs = kwargs
 
     def is_authenticated(self, request):
         rm = request.method.upper()
@@ -24,15 +25,15 @@ class Auth(object):
             validators = [validators]
 
         for validator in validators:
-            if validator(request):
+            if validator(request, **self.kwargs):
                 return True
         return False
 
 
 class AuthWrapper(Auth):
 
-    def __init__(self, permissions_validators):
-        super(AuthWrapper, self).__init__(permissions_validators)
+    def __init__(self, permissions_validators, **kwargs):
+        super(AuthWrapper, self).__init__(permissions_validators, **kwargs)
 
     def wrap(self, func):
 

@@ -1,5 +1,6 @@
 from django.views.generic.base import TemplateView
 from django.utils.translation import ugettext_lazy as _
+from is_core.auth import AuthWrapper
 
 class DefaultViewMixin(object):
 
@@ -27,6 +28,25 @@ class DefaultViewMixin(object):
         extra_context_data.update(context_data)
         return extra_context_data
 
+    @classmethod
+    def get_permission_validators(cls):
+        return {
+                    'GET': cls.has_get_permission,
+                    'POST': cls.has_post_permission,
+                }
+
+    @classmethod
+    def has_get_permission(cls, request, **kwargs):
+        return True
+
+    @classmethod
+    def has_post_permission(cls, request, **kwargs):
+        return False
+
+    @classmethod
+    def as_wrapped_view(cls, **initkwargs):
+        return AuthWrapper(cls.get_permission_validators(), **initkwargs).wrap(cls.as_view(**initkwargs))
+
 
 class HomeView(DefaultViewMixin, TemplateView):
     template_name = 'home.html'
@@ -50,3 +70,19 @@ class DefaultCoreViewMixin(DefaultViewMixin):
 
     def get_title(self):
         return self.model._meta.verbose_name
+
+    def get_permissions(self):
+        return {
+                    'read': self.core.has_read_permission,
+                    'create': self.core.has_create_permission,
+                    'update': self.core.has_update_permission,
+                    'delete': self.core.has_delete_permission,
+                }
+
+    def get_context_data(self, **kwargs):
+        context_data = super(DefaultCoreViewMixin, self).get_context_data(**kwargs)
+        extra_context_data = {
+                                'permissions': self.get_permissions(),
+                              }
+        extra_context_data.update(context_data)
+        return extra_context_data

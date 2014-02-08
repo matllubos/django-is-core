@@ -1,14 +1,17 @@
-{% extends "forms/default_form.html" %}
+{% extends 'forms/default_form.html' %}
 
 {% load i18n %}
 
 {% block submit-button %}
 	<div class="pull-left">
-		{{ block.super }}
-		{% if show_save_and_continue %}<button type="submit" name="save-and-continue" class="btn-save-and-continue">{% trans "Save and continue" %}</button>{% endif %}
-
+		{% block save-buttons %}
+			<button type="submit" name="save" class="btn-save">{% trans "Save" %}</button>
+			{% if show_save_and_continue %}<button type="submit" name="save-and-continue" class="btn-save-and-continue">{% trans "Save and continue" %}</button>{% endif %}
+		{% endblock %}
 		{% if cancel_url %}
-			<a href="{{ cancel_url }}" class="button btn-cancel">{% trans "Cancel" %}</a>
+			{% block cancel-buttons %}
+				<a href="{{ cancel_url }}" class="button btn-cancel">{% trans "Cancel" %}</a>
+			{% endblock %}
 		{% endif %}
 	</div>
 {% endblock %}

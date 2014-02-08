@@ -16,11 +16,12 @@ class InlineFormView(object):
     readonly_fields = ()
     fields = None
 
-    def __init__(self, request, core, parent_model, instance):
+    def __init__(self, request, core, parent_model, instance, is_readonly=False):
         self.request = request
         self.parent_model = parent_model
         self.core = core
         self.parent = instance
+        self.is_readonly = is_readonly
         self.formset = self.get_formset(instance, self.request.POST)
 
     def get_exclude(self):
@@ -32,43 +33,48 @@ class InlineFormView(object):
     def get_extra(self):
         return self.extra
 
+    def get_can_delete(self):
+        return self.can_delete and not self.is_readonly
+
+    def get_can_add(self):
+        return self.can_add and not self.is_readonly
+
     def get_readonly_fields(self):
+        if self.is_readonly:
+            return self.get_formset_factory().form.base_fields.keys()
+
         return self.readonly_fields
 
     def get_fieldset(self, formset):
         fields = self.get_fields() or formset.form.base_fields.keys()
-        fields = list(fields) + list(self.readonly_fields)
-        if self.can_delete:
+        fields = list(fields) + list(self.get_readonly_fields())
+        if self.get_can_delete():
             fields.append('DELETE')
         return fields
 
-    def get_formset_factory(self):
+    def get_formset_factory(self, fields=None, readonly_fields=()):
         extra = self.get_extra()
-        exclude = self.get_exclude() + self.get_readonly_fields()
+        exclude = list(self.get_exclude()) + list(readonly_fields)
         return inlineformset_factory(self.parent_model, self.model, form=self.form_class,
                                      fk_name=self.fk_name, extra=extra, formset=BaseInlineFormSet,
                                      can_delete=self.get_can_delete(), exclude=exclude,
-                                     fields=self.fields)
+                                     fields=fields)
 
     def get_queryset(self):
         return self.model.objects.all()
 
-    def get_can_delete(self):
-        return self.can_delete
-
-    def get_can_add(self):
-        return self.can_add
-
     def get_formset(self, instance, data):
+        fields = self.get_fields()
+        readonly_fields = self.get_readonly_fields()
+
         if data:
-            # data = remove
-            formset = self.get_formset_factory()(data=data, instance=instance, queryset=self.get_queryset())
+            formset = self.get_formset_factory(fields, readonly_fields)(data=data, instance=instance,
+                                                                        queryset=self.get_queryset())
         else:
-            formset = self.get_formset_factory()(instance=instance, queryset=self.get_queryset())
+            formset = self.get_formset_factory(fields, readonly_fields)(instance=instance, queryset=self.get_queryset())
 
         formset.can_add = self.get_can_add()
         formset.can_delete = self.get_can_delete()
-
         return formset
 
     def get_name(self):

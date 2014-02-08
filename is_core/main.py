@@ -78,6 +78,16 @@ class UIModelISCore(UIMiddleware, ModelISCore):
                     'list': (r'^/?$', TableView)
                     }
 
+
+    def add_auth_wrap(self, view):
+        return self.get_auth_wrapper({'GET': self.has_create_permission, 'POST': self.has_create_permission}).wrap(view)
+
+    def edit_auth_wrap(self, view):
+        return self.get_auth_wrapper({'GET': (self.has_update_permission, self.has_read_permission),
+                                      'POST': self.has_update_permission}).wrap(view)
+
+    def read_auth_wrap(self, view):
+        return self.get_auth_wrapper({'GET': self.has_read_permission}).wrap(view)
     show_in_menu = True
     api_url_name = None
 
@@ -150,20 +160,20 @@ class UIModelISCore(UIMiddleware, ModelISCore):
             pattern, view = view_vals
 
             views['%s-%s-%s' % (name, self.menu_group, self.menu_subgroup)] = \
-                     (pattern, login_required(view.as_view(core=self),
-                                              login_url='%s:login' % self.site_name))
+                     (pattern, view.as_wrapped_view(core=self))
 
         return views
 
-    def default_list_actions(self, user):
+    def default_list_actions(self, request):
         self._default_list_actions = []
         self._default_list_actions.append(WebAction('edit-%s-%s' % (self.menu_group, self.menu_subgroup),
                                                             _('Edit'), 'edit'))
-        self._default_list_actions.append(RestAction('delete', _('Delete')))
+        if self.has_delete_permission(request):
+            self._default_list_actions.append(RestAction('delete', _('Delete')))
         return self._default_list_actions
 
-    def get_list_actions(self, user):
-        list_actions = list(self.list_actions) + list(self.default_list_actions(user))
+    def get_list_actions(self, request):
+        list_actions = list(self.list_actions) + list(self.default_list_actions(request))
         return list_actions
 
     def gel_api_url_name(self):

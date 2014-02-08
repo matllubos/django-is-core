@@ -15,7 +15,7 @@ from is_core.utils import flatten_fieldsets
 
 
 class DefaultFormView(DefaultCoreViewMixin, FormView):
-    view_type = None
+    view_type = 'default'
     fieldsets = None
     form_template = 'forms/default_form.html'
     template_name = 'generic_views/default_form.html'
@@ -72,18 +72,18 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         context_data = super(DefaultFormView, self).get_context_data(form=form, **kwargs)
         context_data.update({
                                 'view_type': self.view_type,
-                                'fieldsets': self.get_fieldsets(form),
+                                'fieldsets': self.get_fieldsets(),
                                 'form_template': self.form_template,
                                 'form_name': '-'.join((self.view_type, self.site_name, self.menu_group,
                                                        self.menu_subgroup, 'form')).lower()
                              })
         return context_data
 
-    def get_fieldsets(self, form):
+    def get_fieldsets(self):
         if self.fieldsets:
             return self.fieldsets
         else:
-            return [(None, {'fields': form.fields.keys()})]
+            return [(None, {'fields': list(self.get_form_class().base_fields.keys())})]
 
     def get_initial(self):
         initial = super(DefaultFormView, self).get_initial()
@@ -119,7 +119,8 @@ class DefaultModelFormView(DefaultFormView):
 
     def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, form_class=None,
                  exclude=None, fieldset=None, fields=None, readonly_fields=None, inline_form_views=None):
-        super(DefaultModelFormView, self).__init__(core, site_name, menu_group, menu_subgroup, model, form_class, readonly_fields)
+        super(DefaultModelFormView, self).__init__(core, site_name, menu_group, menu_subgroup, model, form_class,
+                                                   readonly_fields)
         self.exclude = exclude or self.exclude
         self.fieldset = fieldset or self.fieldset
         self.fields = fields or self.fields
@@ -135,18 +136,21 @@ class DefaultModelFormView(DefaultFormView):
         return self.exclude or self.core.get_exclude(self.request, self.get_obj(True))
 
     def get_readonly_fields(self):
+        if not self.has_post_permission(self.request, self.core):
+            return list(self.get_form_class().base_fields.keys())
+
         return self.readonly_fields or self.core.get_readonly_fields(self.request, self.get_obj(True))
 
     def get_inline_form_views(self):
         return self.inline_form_views or self.core.get_inline_form_views(self.request, self.get_obj(True))
 
-    def get_fieldsets(self, form):
+    def get_fieldsets(self):
         fieldsets = self.fieldset or self.core.get_fieldsets(self.request, self.get_obj(True))
 
         if fieldsets:
             return fieldsets
         else:
-            fieldsets = [(None, {'fields': self.get_fields() or form.fields.keys()})]
+            fieldsets = [(None, {'fields': self.get_fields() or list(self.get_form_class().base_fields.keys())})]
             for inline_form_view in self.get_inline_form_views():
                 fieldsets.append((inline_form_view.model._meta.verbose_name_plural,
                                   {'inline_form_view': inline_form_view.__name__}))
@@ -159,11 +163,9 @@ class DefaultModelFormView(DefaultFormView):
             return flatten_fieldsets(fieldsets)
         return self.fields
 
-    def get_form_class(self):
+    def get_form_class(self, fields=None, readonly_fields=()):
         form_class = self.form_class or self.core.get_form_class(self.request, self.get_obj(True))
-        readonly_fields = self.get_readonly_fields()
-        exclude = self.get_exclude() + readonly_fields
-        fields = self.get_fields()
+        exclude = list(self.get_exclude()) + list(readonly_fields)
         if hasattr(self.form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
         return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields)
@@ -192,22 +194,31 @@ class DefaultModelFormView(DefaultFormView):
         return ''
 
     def get(self, request, *args, **kwargs):
-        form_class = self.get_form_class()
+        fields = self.get_fields()
+        readonly_fields = self.get_readonly_fields()
+
+        form_class = self.get_form_class(fields, readonly_fields)
         form = self.get_form(form_class)
         inline_form_views = SortedDict()
         for inline_form_view in self.get_inline_form_views():
             inline_form_views[inline_form_view.__name__] = inline_form_view(self.request, self.core, self.model,
-                                                                            form.instance)
+                                                                            form.instance,
+                                                                            not self.has_post_permission(self.request,
+                                                                                                         self.core))
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
 
     def post(self, request, *args, **kwargs):
-        form_class = self.get_form_class()
+        fields = self.get_fields()
+        readonly_fields = self.get_readonly_fields()
+
+        form_class = self.get_form_class(fields, readonly_fields)
         form = self.get_form(form_class)
         inline_form_views = SortedDict()
         inline_forms_is_valid = True
         for inline_form_view in self.get_inline_form_views():
             inline_form_view_instance = inline_form_view(self.request, self.core, self.model,
-                                                         form.instance)
+                                                         form.instance, not self.has_post_permission(self.request,
+                                                                                                     self.core))
             inline_forms_is_valid = (inline_form_view_instance.formset.is_valid()) \
                                         and inline_forms_is_valid
             inline_form_views[inline_form_view.__name__] = inline_form_view_instance
@@ -249,9 +260,14 @@ class DefaultModelFormView(DefaultFormView):
         messages.error(self.request, msg)
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
 
+    @classmethod
+    def has_post_permission(cls, request, core, **kwargs):
+        return True
+
 
 class AddModelFormView(DefaultModelFormView):
     template_name = 'generic_views/add_form.html'
+    form_template = 'forms/model_add_form.html'
     view_type = 'add'
     messages = {'success': _('The %(name)s "%(obj)s" was added successfully.'),
                 'error': _('Please correct the error below.')}
@@ -262,9 +278,18 @@ class AddModelFormView(DefaultModelFormView):
     def save_obj(self, obj, form):
         self.core.save_model(self.request, obj, False)
 
+    @classmethod
+    def has_get_permission(cls, request, core, **kwargs):
+        return core.has_create_permission(request)
+
+    @classmethod
+    def has_post_permission(cls, request, core, **kwargs):
+        return core.has_create_permission(request)
+
 
 class EditModelFormView(DefaultModelFormView):
-    template_name = 'generic_views/add_form.html'
+    template_name = 'generic_views/edit_form.html'
+    form_template = 'forms/model_edit_form.html'
     view_type = 'edit'
     messages = {'success': _('The %(name)s "%(obj)s" was changed successfully.'),
                 'error': _('Please correct the error below.')}
@@ -293,3 +318,10 @@ class EditModelFormView(DefaultModelFormView):
             arguments = (self.kwargs['pk'],)
         return super(EditModelFormView, self).link(arguments=arguments, **kwargs)
 
+    @classmethod
+    def has_get_permission(cls, request, core, **kwargs):
+        return core.has_update_permission(request) or core.has_read_permission(request)
+
+    @classmethod
+    def has_post_permission(cls, request, core, **kwargs):
+        return core.has_update_permission(request)

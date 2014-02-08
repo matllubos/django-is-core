@@ -1,0 +1,9 @@
+{% extends 'forms/model_default_form.html' %}
+
+{% load permissions %}
+
+{% block save-buttons %}
+	{% has_permission 'update' %}
+		{{ block.super }}
+	{% endhas_permission %}
+{% endblock %}
