@@ -3,19 +3,44 @@ from django.utils.translation import ugettext_lazy as _
 
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultCoreViewMixin
+from django.utils.html import format_html
+from django.db.models.fields import Field, CharField, TextField, BooleanField
+from django import forms
 
 
 class Header(object):
 
-    def __init__(self, text, sortable):
+    def __init__(self, field_name, text, sortable, filter):
+        self.field_name = field_name
         self.text = text
         self.sortable = sortable
+        self.filter = filter
 
     def __unicode__(self):
         return self.text
 
     def __str__(self):
         return self.text
+
+
+class Filter(object):
+
+    def __init__(self, field_name, field):
+        self.field_name = field_name
+        self.field = field
+
+    def get_filter_name(self):
+        if isinstance(self.field, (CharField, TextField)):
+            return '%s__contains' % self.field_name
+        return self.field_name
+
+
+    def __unicode__(self):
+        if isinstance(self.field, BooleanField):
+            widget = forms.Select(choices=((None, '-----'), (1, _('Yes')), (0, _('No'))))
+        else:
+            widget = self.field.formfield().widget
+        return widget.render('filter__%s' % self.field_name, None, attrs={'data-filter': self.get_filter_name()})
 
 
 class TableView(DefaultCoreViewMixin, TemplateView):
@@ -33,8 +58,9 @@ class TableView(DefaultCoreViewMixin, TemplateView):
     def get_list_display(self):
         return self.list_display
 
-    def get_header(self, field):
-        return Header(self.model._meta.get_field(field).verbose_name, True)
+    def get_header(self, field_name):
+        field = self.model._meta.get_field(field_name)
+        return Header(field_name, field.verbose_name, True, Filter(field_name, field))
 
     def get_headers(self):
         headers = []
