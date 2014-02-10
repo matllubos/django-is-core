@@ -1,6 +1,6 @@
 {% load i18n forms utils %}
 
-<form{% if class_attr %} class="{{ class_attr|to_list|join:' ' }}"{% endif %}{% if id_attr %} id="{{ id_attr }}"{% endif %} method="{{ method }}" action="{% if action %}{{ action }}{% else %}{{ request.get_full_path }}{% endif %}">
+<form{% if form|has_file_field %} enctype="multipart/form-data" {% endif %}{% if class_attr %} class="{{ class_attr|to_list|join:' ' }}"{% endif %}{% if id_attr %} id="{{ id_attr }}"{% endif %} method="{{ method }}" action="{% if action %}{{ action }}{% else %}{{ request.get_full_path }}{% endif %}">
 	{% block form-content %}
 		{% if use_csrf %}{% csrf_token %}{% endif %}
 

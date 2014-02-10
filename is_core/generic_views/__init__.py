@@ -1,8 +1,12 @@
 from django.views.generic.base import TemplateView
 from django.utils.translation import ugettext_lazy as _
+
 from is_core.auth import AuthWrapper
 
-class DefaultViewMixin(object):
+from block_snippets.views import JsonSnippetTemplateResponseMixin, SnippetTemplateResponseMixin
+
+
+class DefaultViewMixin(SnippetTemplateResponseMixin):
 
     site_name = None
     menu_group = None

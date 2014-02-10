@@ -12,6 +12,7 @@ from is_core.form.widgets import RelatedFieldWidgetWrapper
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
+from is_core.response import JsonCreatedHttpResponse
 
 
 class DefaultFormView(DefaultCoreViewMixin, FormView):
@@ -50,6 +51,9 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
     def save_obj(self, obj, form):
         raise NotImplemented
 
+    def is_popup(self):
+        return 'popup' in self.request.GET
+
     def form_valid(self, form, msg=None):
         obj = form.save(commit=False)
         try:
@@ -60,6 +64,10 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
             form.save_m2m()
 
         msg = msg or self.get_message('success', obj)
+
+        if self.is_popup():
+            return JsonCreatedHttpResponse(content={'message': {'success': (msg,)}, 'id': obj.pk})
+
         messages.success(self.request, msg)
         return HttpResponseRedirect(self.get_success_url(obj))
 
@@ -126,6 +134,12 @@ class DefaultModelFormView(DefaultFormView):
         self.fields = fields or self.fields
         self.inline_form_views = inline_form_views or self.inline_form_views
 
+    def get_snippet_names(self):
+        if self.is_popup():
+            return ('content',)
+
+        return super(DefaultModelFormView, self).get_snippet_names()
+
     def get_message(self, type, obj=None):
         msg_dict = {}
         if obj:
@@ -175,12 +189,12 @@ class DefaultModelFormView(DefaultFormView):
         context_data.update({
                                 'module_name': self.model._meta.module_name,
                                 'cancel_url': self.get_cancel_url(),
-                                'show_save_and_continue': 'list' in self.core.view_classes
+                                'show_save_and_continue': 'list' in self.core.view_classes and not self.is_popup()
                              })
         return context_data
 
     def get_cancel_url(self):
-        if 'list' in self.core.view_classes:
+        if 'list' in self.core.view_classes and not self.is_popup():
             info = self.site_name, self.menu_group, self.menu_subgroup
             return reverse('%s:list-%s-%s' % info)
         return None
@@ -250,6 +264,8 @@ class DefaultModelFormView(DefaultFormView):
             return self.form_invalid(form, inline_form_views, force_text(ex))
 
         msg = msg or self.get_message('success', obj)
+        if self.is_popup():
+            return JsonCreatedHttpResponse(content={'message': {'success': (msg,)}, 'id': obj.pk})
 
         messages.success(self.request, msg)
 

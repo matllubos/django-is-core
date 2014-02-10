@@ -1,8 +1,8 @@
-from django import template
+from django import template, forms
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 
-from is_core.snippets import SnippetsIncludeNode
+from block_snippets.templatetags import SnippetsIncludeNode
 
 register = template.Library()
 
@@ -93,6 +93,15 @@ def get_field(form, field_name):
 
     return form[field_name]
 
+
+@register.filter
+def has_file_field(form):
+    for field in form.fields.values():
+        if isinstance(field, forms.FileField):
+            return True
+    return False
+
+
 @register.filter
 def get_visible_fields(form, fieldset):
     visible_fields = []
@@ -101,7 +110,6 @@ def get_visible_fields(form, fieldset):
         if not field.is_hidden:
             visible_fields.append(field)
     return visible_fields
-
 
 
 @register.filter
