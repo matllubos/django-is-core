@@ -246,8 +246,8 @@ class RestModelHandler(RestHandler):
                                             'methods': pattern.methods}
         return rest_links
 
-    def queryset(self, request):
-        return self.model.objects.all()
+    def get_queryset(self, request):
+        return self.core.get_queryset(request)
 
     def _parse_filter_queryset(self, request):
         filter_and_exclude_dict = request.GET.dict()
@@ -288,7 +288,7 @@ class RestModelHandler(RestHandler):
             raise RestException(force_text(_('Cannot resolve X-Order value "%s" into field')) % order_field)
 
     def read(self, request, pk=None):
-        qs = self.queryset(request)
+        qs = self.get_queryset(request)
         if pk:
             try:
                 return qs.get(pk=pk)
@@ -354,7 +354,7 @@ class RestModelHandler(RestHandler):
         inst = None
         if 'id' in data.keys():
             try:
-                inst = self.queryset(request).get(pk=data.get('id'))
+                inst = self.get_queryset(request).get(pk=data.get('id'))
             except ObjectDoesNotExist:
                 raise ResourceNotFoundException
         return inst
@@ -433,7 +433,7 @@ class RestModelHandler(RestHandler):
             return rc.NOT_FOUND
 
     def delete(self, request, pk):
-        qs = self.queryset(request)
+        qs = self.get_queryset(request)
 
         try:
             inst = qs.get(pk=pk)

@@ -95,14 +95,6 @@ def get_field(form, field_name):
 
 
 @register.filter
-def has_file_field(form):
-    for field in form.fields.values():
-        if isinstance(field, forms.FileField):
-            return True
-    return False
-
-
-@register.filter
 def get_visible_fields(form, fieldset):
     visible_fields = []
     for field_name in fieldset:

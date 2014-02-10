@@ -1,6 +1,7 @@
 from django.forms.models import inlineformset_factory, ModelForm
 
 from is_core.form.models import BaseInlineFormSet
+from is_core.utils.forms import formset_has_file_field
 
 
 class InlineFormView(object):
@@ -86,6 +87,9 @@ class InlineFormView(object):
             self.save_model(request, obj)
         for obj in self.formset.deleted_objects:
             self.delete_model(request, obj)
+
+    def get_has_file_field(self):
+        return formset_has_file_field(self.formset.form)
 
     def save_model(self, request, obj):
         obj.save()

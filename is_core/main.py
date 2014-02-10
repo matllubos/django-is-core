@@ -70,6 +70,9 @@ class ModelISCore(ISCore):
     def get_obj(self, pk):
         return get_object_or_404(self.model, pk=pk)
 
+    def get_queryset(self, request):
+        return self.model._default_manager.get_queryset()
+
 
 class UIModelISCore(UIMiddleware, ModelISCore):
     view_classes = {
@@ -77,7 +80,6 @@ class UIModelISCore(UIMiddleware, ModelISCore):
                     'edit': (r'^/(?P<pk>\d+)/$', EditModelFormView),
                     'list': (r'^/?$', TableView)
                     }
-
 
     def add_auth_wrap(self, view):
         return self.get_auth_wrapper({'GET': self.has_create_permission, 'POST': self.has_create_permission}).wrap(view)

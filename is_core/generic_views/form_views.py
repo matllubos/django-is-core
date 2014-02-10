@@ -13,6 +13,7 @@ from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.response import JsonCreatedHttpResponse
+from is_core.utils.forms import formset_has_file_field
 
 
 class DefaultFormView(DefaultCoreViewMixin, FormView):
@@ -31,6 +32,9 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
 
     def get_success_url(self, obj):
         return ''
+
+    def get_has_file_field(self, form, **kwargs):
+        return formset_has_file_field(form)
 
     def get_form(self, form_class):
         form = form_class(**self.get_form_kwargs())
@@ -83,7 +87,8 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
                                 'fieldsets': self.get_fieldsets(),
                                 'form_template': self.form_template,
                                 'form_name': '-'.join((self.view_type, self.site_name, self.menu_group,
-                                                       self.menu_subgroup, 'form')).lower()
+                                                       self.menu_subgroup, 'form')).lower(),
+                                'has_file_field': self.get_has_file_field(form, **kwargs)
                              })
         return context_data
 
@@ -184,14 +189,25 @@ class DefaultModelFormView(DefaultFormView):
             exclude.extend(form_class._meta.exclude)
         return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields)
 
-    def get_context_data(self, form=None, **kwargs):
-        context_data = super(DefaultModelFormView, self).get_context_data(form=form, **kwargs)
+    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
+        context_data = super(DefaultModelFormView, self).get_context_data(form=form,
+                                                                          inline_form_views=inline_form_views, **kwargs)
         context_data.update({
                                 'module_name': self.model._meta.module_name,
                                 'cancel_url': self.get_cancel_url(),
                                 'show_save_and_continue': 'list' in self.core.view_classes and not self.is_popup()
                              })
         return context_data
+
+    def get_has_file_field(self, form, inline_form_views=(), **kwargs):
+        if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
+            return True
+
+        for inline_form_view in inline_form_views:
+            if inline_form_view.has_file_field():
+                return True
+
+        return False
 
     def get_cancel_url(self):
         if 'list' in self.core.view_classes and not self.is_popup():
@@ -324,7 +340,7 @@ class EditModelFormView(DefaultModelFormView):
     def get_obj(self, cached=True):
         if cached and self._obj:
             return self._obj
-        obj = get_object_or_404(self.model, **self.get_obj_filters())
+        obj = get_object_or_404(self.core.get_queryset(self.request), **self.get_obj_filters())
         if cached and not self._obj:
             self._obj = obj
         return obj

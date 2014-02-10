@@ -1,4 +1,5 @@
 {% load i18n forms %}
+
 <fieldset class="inline tabular-inline {{ class_names|join:' ' }}">
 	{% if title %}<legend>{{ title }}</legend>{% endif %}
 	{{ formset.management_form }}
