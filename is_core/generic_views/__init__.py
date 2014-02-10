@@ -3,10 +3,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from is_core.auth import AuthWrapper
 
-from block_snippets.views import JsonSnippetTemplateResponseMixin, SnippetTemplateResponseMixin
+from block_snippets.views import JsonSnippetTemplateResponseMixin
 
 
-class DefaultViewMixin(SnippetTemplateResponseMixin):
+class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
 
     site_name = None
     menu_group = None
