@@ -8,7 +8,9 @@ from germanium.client import ClientTestCase
 
 class ModelViewSeleniumTestCaseMiddleware(object):
 
-    disabled_views = []
+    add_disabled_views = ()
+    edit_disabled_views = ()
+    list_disabled_views = ()
 
     def get_model_main_views(self):
         return [model_view for model_view in registered_model_views.values() if isinstance(model_view, UIModelISCore)]
@@ -38,21 +40,21 @@ class TestSiteAvailability(ModelViewSeleniumTestCaseMiddleware, AsUserTestCase, 
     def test_should_return_right_list_page_for_all_model_views(self):
 
         for model_view in self.get_model_main_views():
-            if self.view_name(model_view) not in self.disabled_views:
+            if self.view_name(model_view) not in self.list_disabled_views:
                 url = self.list_url(model_view.site_name, model_view.menu_group, model_view.menu_subgroup)
                 self.assert_http_ok(self.get(url))
 
     def test_should_return_right_add_page_for_all_model_view(self):
 
         for model_view in self.get_model_main_views():
-            if self.view_name(model_view) not in self.disabled_views:
+            if self.view_name(model_view) not in self.add_disabled_views:
                 url = self.add_url(model_view.site_name, model_view.menu_group, model_view.menu_subgroup)
                 self.assert_http_ok(self.get(url))
 
     def test_should_return_right_edit_page_for_all_model_view(self):
 
         for model_view in self.get_model_main_views():
-            if self.view_name(model_view) not in self.disabled_views:
+            if self.view_name(model_view) not in self.edit_disabled_views:
                 obj_list = model_view.model.objects.all()
                 if obj_list:
                     obj = obj_list[0]
