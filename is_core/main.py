@@ -14,14 +14,14 @@ from is_core.auth.main import UIMiddleware
 
 
 class ISCore(object):
-    menu_group = None
     menu_subgroup = None
     menu_url_name = None
     menu_verbose_name = None
     show_in_menu = True
 
-    def __init__(self, site_name):
+    def __init__(self, site_name, menu_parent_groups):
         self.site_name = site_name
+        self.menu_parent_groups = menu_parent_groups
         self.views = self.get_views()
 
     def get_urlpatterns(self, views):
@@ -45,7 +45,10 @@ class ISCore(object):
         return reverse(('%(site_name)s:' + self.menu_url_name) % {'site_name': self.site_name})
 
     def get_menu_groups(self):
-        return filter(None, (self.menu_group, self.menu_subgroup))
+        return self.menu_parent_groups + (self.menu_group,)
+
+    def get_menu_group_pattern_name(self):
+        return '-'.join(self.get_menu_groups())
 
 
 class ModelISCore(ISCore):
@@ -62,12 +65,8 @@ class ModelISCore(ISCore):
     menu_verbose_name = property(menu_verbose_name)
 
     def menu_group(self):
-        return str(self.model._meta.app_label)
-    menu_group = property(menu_group)
-
-    def menu_subgroup(self):
         return str(self.model._meta.module_name)
-    menu_subgroup = property(menu_subgroup)
+    menu_group = property(menu_group)
 
     def get_obj(self, pk):
         return get_object_or_404(self.model, pk=pk)
@@ -136,7 +135,7 @@ class UIModelISCore(UIMiddleware, ModelISCore):
         return self.readonly_fields
 
     def menu_url_name(self):
-        return 'list-%s' % '-'.join(self.get_menu_groups())
+        return 'list-%s' % self.get_menu_group_pattern_name()
     menu_url_name = property(menu_url_name)
 
     def bread_crumbs_url_names(self, context):
@@ -145,7 +144,7 @@ class UIModelISCore(UIMiddleware, ModelISCore):
         bread_crumbs_url_names = [
                                     (_('List %s') % self.model._meta.verbose_name,
                                      'list' in self.view_classes and \
-                                     '%s:list-%s' % (self.site_name, '-'.join(self.get_menu_groups())) or None)
+                                     '%s:list-%s' % (self.site_name, self.get_menu_group_pattern_name()) or None)
                                   ]
         if view_type == 'add':
             bread_crumbs_url_names.append((_('Add %s') % self.model._meta.verbose_name, None))
@@ -162,14 +161,14 @@ class UIModelISCore(UIMiddleware, ModelISCore):
         for name, view_vals in self.view_classes.items():
             pattern, view = view_vals
 
-            views['%s-%s' % (name, '-'.join(self.get_menu_groups()))] = \
+            views['%s-%s' % (name, self.get_menu_group_pattern_name())] = \
                      (pattern, view.as_wrapped_view(core=self))
 
         return views
 
     def default_list_actions(self, request):
         self._default_list_actions = []
-        self._default_list_actions.append(WebAction('edit-%s' % '-'.join(self.get_menu_groups()),
+        self._default_list_actions.append(WebAction('edit-%s' % self.get_menu_group_pattern_name(),
                                                             _('Edit'), 'edit'))
         if self.has_delete_permission(request):
             self._default_list_actions.append(RestAction('delete', _('Delete')))
@@ -195,8 +194,8 @@ class RestModelISCore(ModelISCore):
     rest_allowed_methods = ('GET', 'DELETE', 'POST', 'PUT')
     rest_handler = RestModelHandler
 
-    def __init__(self, site_name):
-        super(RestModelISCore, self).__init__(site_name)
+    def __init__(self, site_name, menu_parent_groups):
+        super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
         self.rest_resources = self.get_rest_resources()
 
     def get_rest_list_fields(self):
@@ -209,9 +208,9 @@ class RestModelISCore(ModelISCore):
         rest_resource = RestModelResource(name='Api%sHandler' %
                                           ''.join(tuple([capfirst(name) for name in self.get_menu_groups()])), core=self)
         rest_resources = {
-                           'api-resource-%s' % '-'.join(self.get_menu_groups()):
+                           'api-resource-%s' % self.get_menu_group_pattern_name():
                                 (r'^/api/(?P<pk>\d+)/?$', rest_resource, ('GET', 'PUT', 'DELETE')),
-                           'api-%s' % '-'.join(self.get_menu_groups()):
+                           'api-%s' % self.get_menu_group_pattern_name():
                                 (r'^/api/?$', rest_resource, ('GET', 'POST'))
                            }
         return rest_resources
@@ -242,9 +241,5 @@ class UIRestModelISCore(UIModelISCore, RestModelISCore):
         return list(self.rest_list_fields) or list(self.get_list_display())
 
     def gel_api_url_name(self):
-        return self.api_url_name or '%s:api-%s' % (self.site_name, '-'.join(self.get_menu_groups()))
+        return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
 
-
-class FlatCoreMixin(object):
-
-    menu_group = None

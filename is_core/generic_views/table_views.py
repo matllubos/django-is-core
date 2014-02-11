@@ -48,8 +48,8 @@ class TableView(DefaultCoreViewMixin, TemplateView):
     template_name = 'generic_views/table.html'
     view_type = 'list'
 
-    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, list_display=None):
-        super(TableView, self).__init__(core, site_name, menu_group, menu_subgroup, model)
+    def __init__(self, core, site_name=None, menu_groups=None, model=None, list_display=None):
+        super(TableView, self).__init__(core, site_name, menu_groups, model)
         self.list_display = self.list_display or list_display
 
     def get_title(self):
@@ -87,18 +87,19 @@ class TableView(DefaultCoreViewMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TableView, self).get_context_data(**kwargs)
-        info = self.site_name, '-'.join(self.core.get_menu_groups())
+        info = self.site_name, self.core.get_menu_group_pattern_name()
         context_data.update({
                                 'headers': self.get_headers(),
                                 'api_url_name': self.gel_api_url_name(),
                                 'add_url_name': '%s:add-%s' % info,
                                 'edit_url_name': '%s:edit-%s' % info,
-                                'module_name': self.menu_subgroup,
+                                'module_name': self.model._meta.module_name,
                                 'verbose_name':  self.model._meta.verbose_name,
                                 'view_type': self.view_type,
                                 'list_display': self.get_list_display(),
                                 'list_action': self.core.get_list_actions(self.request),
-                                'query_string_filter': self.get_query_string_filter()
+                                'query_string_filter': self.get_query_string_filter(),
+                                'menu_group_pattern_name': self.core.get_menu_group_pattern_name(),
                             })
         return context_data
 

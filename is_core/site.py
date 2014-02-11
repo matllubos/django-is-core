@@ -32,37 +32,53 @@ class NoMenuGroup(Exception):
 
 class MenuGroup(object):
 
-    def __init__(self, name):
+    def __init__(self, name, verbose_name, items):
         self.name = name
-        self.views = SortedDict()
+        self.verbose_name = verbose_name
+        self.items = items
 
 
 class ISSite(object):
 
     def __init__(self, name='IS'):
-        self._registry = SortedDict([(group[0], MenuGroup(group[1]))\
-                                     for group in settings.MENU_GROUPS.get(name)])
         self.name = name
         self.app_name = name
         sites[name] = self
+        self._registry = self._init_items(settings.MENU_GROUPS)
 
-    def register(self, universal_view_class):
-        universal_view = universal_view_class(self.name)
-        if not universal_view.menu_group in self._registry.keys():
-            raise NoMenuGroup('MENU_GROUPS must contains %s for site %s' % (universal_view.menu_group, self.name))
+    def _init_items(self, items, groups=()):
+        out = SortedDict()
 
-        print universal_view.menu_group, universal_view.menu_subgroup
-        self._registry[universal_view.menu_group].views[universal_view.menu_subgroup] = universal_view
-        print self._registry
-        print self._registry[None].views
-        if (hasattr(universal_view, 'model')):
-            model_label = lower('%s.%s' % (universal_view.model._meta.app_label, universal_view.model._meta.object_name))
-            registered_model_views[model_label] = universal_view
-        registered_views.append(universal_view)
+        for item in items:
+            if isinstance(item, (list, tuple)):
+                name, verbose_name, subitems = item
+                out[name] = MenuGroup(name, verbose_name, self._init_items(subitems, groups + (name,)))
+            else:
+                generic_core = self.register(str_to_class(item)(self.name, groups))
+                out[generic_core.menu_group] = generic_core
+        return out
+
+    def register(self, generic_core):
+        if (hasattr(generic_core, 'model')):
+            model_label = lower('%s.%s' % (generic_core.model._meta.app_label, generic_core.model._meta.object_name))
+            registered_model_views[model_label] = generic_core
+        registered_views.append(generic_core)
+        return generic_core
 
     @property
     def urls(self):
         return self.get_urls(), self.app_name, self.name
+
+    def _set_items_urls(self, items, urlpatterns):
+        for item in items:
+            if isinstance(item, MenuGroup):
+                self._set_items_urls(item.items.values(), urlpatterns)
+            else:
+                urlpatterns += patterns('',
+                    url(r'^%s' % ('/'.join(item.get_menu_groups())),
+                            include(item.get_urls())
+                        )
+                )
 
     def get_urls(self):
         urlpatterns = patterns('',
@@ -75,13 +91,7 @@ class ISSite(object):
                                     url(r'^logout/$', LogoutView.as_view(), name="logout"),
                                )
 
-        for menu_group in self._registry.values():
-            for core in menu_group.views.values():
-                urlpatterns += patterns('',
-                    url(r'^%s' % ('/'.join(core.get_menu_groups())),
-                            include(core.get_urls())
-                        )
-                )
+        self._set_items_urls(self._registry.values(), urlpatterns)
         return urlpatterns
 
 site = ISSite()

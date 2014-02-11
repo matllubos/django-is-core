@@ -1,5 +1,0 @@
-<ul class="flat-menu {{ site_name|lower }}">
-	{% for menu_item in menu_items %}
-		<li{% if menu_item.active %} class="active"{% endif %}><a href="{{ menu_item.url }}">{{ menu_item.title|capfirst }}</a></li>
-	{% endfor %}
-</ul>

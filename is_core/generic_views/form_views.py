@@ -25,8 +25,8 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
                 'error': _('Please correct the error below.')}
     readonly_fields = ()
 
-    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, form_class=None, readonly_fields=()):
-        super(DefaultFormView, self).__init__(core, site_name, menu_group, menu_subgroup, model)
+    def __init__(self, core, site_name=None, menu_groups=None, model=None, form_class=None, readonly_fields=()):
+        super(DefaultFormView, self).__init__(core, site_name, menu_groups, model)
         self.form_class = form_class or self.form_class
         self.readonly_fields = readonly_fields or self.readonly_fields
 
@@ -86,8 +86,8 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
                                 'view_type': self.view_type,
                                 'fieldsets': self.get_fieldsets(),
                                 'form_template': self.form_template,
-                                'form_name': '-'.join((self.view_type, self.site_name) + self.core.get_menu_groups()
-                                                      + ('form',)).lower(),
+                                'form_name': '-'.join((self.view_type, self.site_name,
+                                                       self.core.get_menu_group_pattern_name(), 'form',)).lower(),
                                 'has_file_field': self.get_has_file_field(form, **kwargs)
                              })
         return context_data
@@ -130,9 +130,9 @@ class DefaultModelFormView(DefaultFormView):
     inline_form_views = ()
     form_template = 'forms/model_default_form.html'
 
-    def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, form_class=None,
+    def __init__(self, core, site_name=None, menu_groups=None, model=None, form_class=None,
                  exclude=None, fieldset=None, fields=None, readonly_fields=None, inline_form_views=None):
-        super(DefaultModelFormView, self).__init__(core, site_name, menu_group, menu_subgroup, model, form_class,
+        super(DefaultModelFormView, self).__init__(core, site_name, menu_groups, model, form_class,
                                                    readonly_fields)
         self.exclude = exclude or self.exclude
         self.fieldset = fieldset or self.fieldset
@@ -212,12 +212,12 @@ class DefaultModelFormView(DefaultFormView):
 
     def get_cancel_url(self):
         if 'list' in self.core.view_classes and not self.is_popup():
-            info = self.site_name, '-'.join(self.core.get_menu_groups())
+            info = self.site_name, self.core.get_menu_group_pattern_name()
             return reverse('%s:list-%s' % info)
         return None
 
     def get_success_url(self, obj):
-        info = self.site_name, '-'.join(self.core.get_menu_groups())
+        info = self.site_name, self.core.get_menu_group_pattern_name()
         if 'list' in self.core.view_classes and 'save' in self.request.POST:
             return reverse('%s:list-%s' % info)
         elif 'edit' in self.core.view_classes and 'save-and-continue' in self.request.POST:

@@ -2,7 +2,7 @@ from django import template
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 
-from is_core.site import get_site_by_name
+from is_core.site import get_site_by_name, MenuGroup
 
 register = template.Library()
 
@@ -15,38 +15,35 @@ class MenuItem():
         self.active = active
         self.submenu_items = submenu_items
 
+    def __unicode__(self):
+        return self.title
 
-def second_menu_items(request, site, active_menu_group, active_menu_subgroup):
+
+def get_menu_items(request, items, active_groups=()):
     menu_items = []
-    for view in site._registry[active_menu_group].views.values():
-        # TODO: Every application shoud have own index
-        if not view.get_show_in_menu(request):
-            continue
+    if active_groups:
+        group, child_groups = active_groups[0], active_groups[1:]
+    else:
+        group = child_groups = None
 
-        menu_items.append(MenuItem(view.menu_verbose_name, view.menu_url(),
-                                    active_menu_subgroup == view.menu_subgroup))
+    for item in items:
+        if isinstance(item, MenuGroup):
+            submenu_items = get_menu_items(request, item.items.values(), child_groups)
+            if submenu_items:
+                menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url,
+                                            item.name == group, submenu_items))
+        else:
+            if not item.get_show_in_menu(request):
+                continue
+
+            menu_items.append(MenuItem(item.menu_verbose_name, item.menu_url(),
+                                       group == item.menu_group))
     return menu_items
 
 
-def main_menu_items(request, site, active_menu_group, active_menu_subgroup):
-    menu_items = []
-    print site._registry.items()
-    for group_name, group in site._registry.items():
-        print group_name
-        first_view = None
-        for view in group.views.values():
-            if view.get_show_in_menu(request):
-                first_view = view
-                break
-
-        # TODO: Every application shoud have own index
-        if first_view:
-            active = group_name == active_menu_group
-            submenu_items = active and second_menu_items(request, site, active_menu_group,
-                                                         active_menu_subgroup) or []
-            menu_items.append(MenuItem(group.name, first_view.menu_url(),
-                                        group_name == active_menu_group, submenu_items))
-    return menu_items
+@register.inclusion_tag('menu/sub_menu.html', takes_context=True)
+def submenu(context, menu_items):
+    return {'menu_items': menu_items}
 
 
 @register.inclusion_tag('menu/menu.html', takes_context=True)
@@ -55,9 +52,8 @@ def menu(context, site_name):
 
     request = context.get('request')
 
-    active_menu_group = context.get('active_menu_group')
-    active_menu_subgroup = context.get('active_menu_subgroup')
-    menu_items = main_menu_items(request, site, active_menu_group, active_menu_subgroup)
+    active_menu_groups = context.get('active_menu_groups')
+    menu_items = get_menu_items(request, site._registry.values(), active_menu_groups)
     return {'menu_items': menu_items, 'site_name': site_name}
 
 
@@ -68,19 +64,24 @@ def bread_crumbs(context):
 
     request = context.get('request')
 
-    active_menu_group = context.get('active_menu_group')
-    active_menu_subgroup = context.get('active_menu_subgroup')
-
+    active_menu_groups = context.get('active_menu_groups')
 
     index_url = reverse('%s:index' % site_name)
     index_active = request.path == index_url
     menu_items = [MenuItem(_('Home'), index_url, index_active)]
 
-    if active_menu_group:
-        for verbose_name, pattern in site._registry[active_menu_group].views[active_menu_subgroup].bread_crumbs_url_names(context):
-            url = pattern and reverse(pattern) or None
+    items = site._registry
+    for group in active_menu_groups:
+        item = items[group]
+        if isinstance(item, MenuGroup):
+            submenu_items = get_menu_items(request, item.items.values())
+            url = submenu_items[0].url
             active = url == request.path or not url
-
-            menu_items.append(MenuItem(verbose_name, url, active))
-
+            menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url, active))
+            items = item.items
+        else:
+            for verbose_name, pattern in item.bread_crumbs_url_names(context):
+                url = pattern and reverse(pattern) or None
+                active = url == request.path or not url
+                menu_items.append(MenuItem(verbose_name, url, active))
     return {'menu_items': menu_items}
