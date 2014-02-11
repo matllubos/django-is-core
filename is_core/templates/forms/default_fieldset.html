@@ -6,7 +6,7 @@
 	{% for field_name in fields %}
 			<div class="inner-content">
 			{% with field=form|get_field:field_name %}
-				<p>
+				<p class="form-group">
 					{% if not field.is_hidden %}
 						<label for="{{ field.auto_id }}">
 							{{ field.label|capfirst }}
