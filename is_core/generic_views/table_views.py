@@ -87,12 +87,12 @@ class TableView(DefaultCoreViewMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context_data = super(TableView, self).get_context_data(**kwargs)
-        info = self.site_name, self.menu_group, self.menu_subgroup
+        info = self.site_name, '-'.join(self.core.get_menu_groups())
         context_data.update({
                                 'headers': self.get_headers(),
                                 'api_url_name': self.gel_api_url_name(),
-                                'add_url_name': '%s:add-%s-%s' % info,
-                                'edit_url_name': '%s:edit-%s-%s' % info,
+                                'add_url_name': '%s:add-%s' % info,
+                                'edit_url_name': '%s:edit-%s' % info,
                                 'module_name': self.menu_subgroup,
                                 'verbose_name':  self.model._meta.verbose_name,
                                 'view_type': self.view_type,

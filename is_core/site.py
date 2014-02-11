@@ -51,7 +51,10 @@ class ISSite(object):
         if not universal_view.menu_group in self._registry.keys():
             raise NoMenuGroup('MENU_GROUPS must contains %s for site %s' % (universal_view.menu_group, self.name))
 
+        print universal_view.menu_group, universal_view.menu_subgroup
         self._registry[universal_view.menu_group].views[universal_view.menu_subgroup] = universal_view
+        print self._registry
+        print self._registry[None].views
         if (hasattr(universal_view, 'model')):
             model_label = lower('%s.%s' % (universal_view.model._meta.app_label, universal_view.model._meta.object_name))
             registered_model_views[model_label] = universal_view
@@ -72,11 +75,11 @@ class ISSite(object):
                                     url(r'^logout/$', LogoutView.as_view(), name="logout"),
                                )
 
-        for group_name, menu_group in self._registry.iteritems():
-            for subgroup_name, persoo_view in menu_group.views.iteritems():
+        for menu_group in self._registry.values():
+            for core in menu_group.views.values():
                 urlpatterns += patterns('',
-                    url(r'^%s/%s' % (group_name, subgroup_name),
-                            include(persoo_view.get_urls())
+                    url(r'^%s' % ('/'.join(core.get_menu_groups())),
+                            include(core.get_urls())
                         )
                 )
         return urlpatterns

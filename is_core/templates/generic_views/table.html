@@ -19,7 +19,7 @@
 	</div>
 	{% endblock %}
 	{% block table %}
-	<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{% url api_url_name %}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-actions="{{ list_action|json|escape }}" data-confirm="{% trans 'Do you really want to delete %s?' %}" data-item-title="{{ grid_item_title }}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ active_menu_group }}-{{ active_menu_subgroup }}" data-confirm-title="{% trans 'Are you sure?' %}">
+	<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{% url api_url_name %}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-actions="{{ list_action|json|escape }}" data-confirm="{% trans 'Do you really want to delete %s?' %}" data-item-title="{{ grid_item_title }}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{% if active_menu_group %}{{ active_menu_group }}{% endif %}{{ active_menu_subgroup }}" data-confirm-title="{% trans 'Are you sure?' %}">
 		<thead>
 			{% block table-header %}
 				<tr>

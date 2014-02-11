@@ -86,8 +86,8 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
                                 'view_type': self.view_type,
                                 'fieldsets': self.get_fieldsets(),
                                 'form_template': self.form_template,
-                                'form_name': '-'.join((self.view_type, self.site_name, self.menu_group,
-                                                       self.menu_subgroup, 'form')).lower(),
+                                'form_name': '-'.join((self.view_type, self.site_name) + self.core.get_menu_groups()
+                                                      + ('form',)).lower(),
                                 'has_file_field': self.get_has_file_field(form, **kwargs)
                              })
         return context_data
@@ -212,16 +212,16 @@ class DefaultModelFormView(DefaultFormView):
 
     def get_cancel_url(self):
         if 'list' in self.core.view_classes and not self.is_popup():
-            info = self.site_name, self.menu_group, self.menu_subgroup
-            return reverse('%s:list-%s-%s' % info)
+            info = self.site_name, '-'.join(self.core.get_menu_groups())
+            return reverse('%s:list-%s' % info)
         return None
 
     def get_success_url(self, obj):
-        info = self.site_name, self.menu_group, self.menu_subgroup
+        info = self.site_name, '-'.join(self.core.get_menu_groups())
         if 'list' in self.core.view_classes and 'save' in self.request.POST:
-            return reverse('%s:list-%s-%s' % info)
+            return reverse('%s:list-%s' % info)
         elif 'edit' in self.core.view_classes and 'save-and-continue' in self.request.POST:
-            return reverse('%s:edit-%s-%s' % info, args=(obj.pk,))
+            return reverse('%s:edit-%s' % info, args=(obj.pk,))
         return ''
 
     def get(self, request, *args, **kwargs):

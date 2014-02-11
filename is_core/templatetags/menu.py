@@ -30,7 +30,9 @@ def second_menu_items(request, site, active_menu_group, active_menu_subgroup):
 
 def main_menu_items(request, site, active_menu_group, active_menu_subgroup):
     menu_items = []
+    print site._registry.items()
     for group_name, group in site._registry.items():
+        print group_name
         first_view = None
         for view in group.views.values():
             if view.get_show_in_menu(request):

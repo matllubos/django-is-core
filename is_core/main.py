@@ -3,7 +3,6 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import capfirst
-from django.contrib.auth.decorators import login_required
 
 from is_core.form import RestModelForm
 from is_core.actions import WebAction, RestAction, WebActionPattern, RestActionPattern
@@ -44,6 +43,9 @@ class ISCore(object):
 
     def menu_url(self):
         return reverse(('%(site_name)s:' + self.menu_url_name) % {'site_name': self.site_name})
+
+    def get_menu_groups(self):
+        return filter(None, (self.menu_group, self.menu_subgroup))
 
 
 class ModelISCore(ISCore):
@@ -134,8 +136,7 @@ class UIModelISCore(UIMiddleware, ModelISCore):
         return self.readonly_fields
 
     def menu_url_name(self):
-        info = self.menu_group, self.menu_subgroup
-        return 'list-%s-%s' % info
+        return 'list-%s' % '-'.join(self.get_menu_groups())
     menu_url_name = property(menu_url_name)
 
     def bread_crumbs_url_names(self, context):
@@ -144,7 +145,7 @@ class UIModelISCore(UIMiddleware, ModelISCore):
         bread_crumbs_url_names = [
                                     (_('List %s') % self.model._meta.verbose_name,
                                      'list' in self.view_classes and \
-                                     '%s:list-%s-%s' % (self.site_name, self.menu_group, self.menu_subgroup) or None)
+                                     '%s:list-%s' % (self.site_name, '-'.join(self.get_menu_groups())) or None)
                                   ]
         if view_type == 'add':
             bread_crumbs_url_names.append((_('Add %s') % self.model._meta.verbose_name, None))
@@ -161,14 +162,14 @@ class UIModelISCore(UIMiddleware, ModelISCore):
         for name, view_vals in self.view_classes.items():
             pattern, view = view_vals
 
-            views['%s-%s-%s' % (name, self.menu_group, self.menu_subgroup)] = \
+            views['%s-%s' % (name, '-'.join(self.get_menu_groups()))] = \
                      (pattern, view.as_wrapped_view(core=self))
 
         return views
 
     def default_list_actions(self, request):
         self._default_list_actions = []
-        self._default_list_actions.append(WebAction('edit-%s-%s' % (self.menu_group, self.menu_subgroup),
+        self._default_list_actions.append(WebAction('edit-%s' % '-'.join(self.get_menu_groups()),
                                                             _('Edit'), 'edit'))
         if self.has_delete_permission(request):
             self._default_list_actions.append(RestAction('delete', _('Delete')))
@@ -205,12 +206,12 @@ class RestModelISCore(ModelISCore):
         return list(self.rest_obj_fields)
 
     def get_rest_resources(self):
-        info = self.menu_group, self.menu_subgroup
-        rest_resource = RestModelResource(name='Api%s%sHandler' % tuple([capfirst(name) for name in info]), core=self)
+        rest_resource = RestModelResource(name='Api%sHandler' %
+                                          ''.join(tuple([capfirst(name) for name in self.get_menu_groups()])), core=self)
         rest_resources = {
-                           'api-resource-%s-%s' % (self.menu_group, self.menu_subgroup):
+                           'api-resource-%s' % '-'.join(self.get_menu_groups()):
                                 (r'^/api/(?P<pk>\d+)/?$', rest_resource, ('GET', 'PUT', 'DELETE')),
-                           'api-%s-%s' % (self.menu_group, self.menu_subgroup):
+                           'api-%s' % '-'.join(self.get_menu_groups()):
                                 (r'^/api/?$', rest_resource, ('GET', 'POST'))
                            }
         return rest_resources
@@ -241,5 +242,9 @@ class UIRestModelISCore(UIModelISCore, RestModelISCore):
         return list(self.rest_list_fields) or list(self.get_list_display())
 
     def gel_api_url_name(self):
-        info = self.site_name, self.menu_group, self.menu_subgroup
-        return self.api_url_name or '%s:api-%s-%s' % info
+        return self.api_url_name or '%s:api-%s' % (self.site_name, '-'.join(self.get_menu_groups()))
+
+
+class FlatCoreMixin(object):
+
+    menu_group = None
