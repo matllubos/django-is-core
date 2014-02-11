@@ -6,21 +6,20 @@
 		{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{% url add_url_name %}" title="{% blocktrans %}Add {{ verbose_name }}{% endblocktrans %}"><span>{% blocktrans %}Add {{ verbose_name }}{% endblocktrans %}</span></a>{% endhas_permission%}
 	{% endblock %}
 	{% block table-paginator %}
-	<div class="paginator hidden">
+	<div class="paginator" style="visibility: hidden">
 		<div class="pull-left result">{% trans '%d-%d of %d' %}</div>
 		<div class="pull-right paging">
 			<span class="base-switcher" data-pattern="{% trans '%d per page' %}" data-bases="[10,25,50,100,500,1000]"></span>
 			<ul class="pagination">
-				<li class="prev" title="{% trans 'Previous' %}"><span>{% trans 'Previous' %}</span></li>
-				<li class="pages"></li>
-				<li class="next" title="{% trans 'Next' %}"><span>{% trans 'Next' %}</span></li>
+				<li class="previous" title="{% trans 'Previous' %}"><span><span class="symbol">&laquo;</span><span class="caption">{% trans 'Previous' %}</span></span></li>
+				<li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><span class="symbol">&raquo;</span></span></li>
 			</ul>
 		</div>
 		<span class="cleaner"></span>
 	</div>
 	{% endblock %}
 	{% block table %}
-	<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{% url api_url_name %}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-actions="{{ list_action|json|escape }}" data-confirm="{% trans 'Do you really want to delete %s?' %}" data-item-title="{{ grid_item_title }}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ active_menu_group }}-{{ active_menu_subgroup }}">
+	<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{% url api_url_name %}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-actions="{{ list_action|json|escape }}" data-confirm="{% trans 'Do you really want to delete %s?' %}" data-item-title="{{ grid_item_title }}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ active_menu_group }}-{{ active_menu_subgroup }}" data-confirm-title="{% trans 'Are you sure?' %}">
 		<thead>
 			{% block table-header %}
 				<tr>
