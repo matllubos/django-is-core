@@ -50,13 +50,13 @@ class TableView(DefaultCoreViewMixin, TemplateView):
 
     def __init__(self, core, site_name=None, menu_group=None, menu_subgroup=None, model=None, list_display=None):
         super(TableView, self).__init__(core, site_name, menu_group, menu_subgroup, model)
-        self.list_display = self.list_display or list_display or core.list_display
+        self.list_display = self.list_display or list_display
 
     def get_title(self):
         return _('List %s') % self.model._meta.verbose_name
 
     def get_list_display(self):
-        return self.list_display
+        return self.list_display or self.core.get_list_display()
 
     def get_header(self, field_name):
         field = self.model._meta.get_field(field_name)

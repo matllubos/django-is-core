@@ -174,6 +174,9 @@ class UIModelISCore(UIMiddleware, ModelISCore):
             self._default_list_actions.append(RestAction('delete', _('Delete')))
         return self._default_list_actions
 
+    def get_list_display(self):
+        return self.list_display
+
     def get_list_actions(self, request):
         list_actions = list(self.list_actions) + list(self.default_list_actions(request))
         return list_actions
@@ -235,7 +238,7 @@ class RestModelISCore(ModelISCore):
 class UIRestModelISCore(UIModelISCore, RestModelISCore):
 
     def get_rest_list_fields(self):
-        return list(self.rest_list_fields) or list(self.list_display)
+        return list(self.rest_list_fields) or list(self.get_list_display())
 
     def gel_api_url_name(self):
         info = self.site_name, self.menu_group, self.menu_subgroup

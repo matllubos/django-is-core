@@ -203,8 +203,9 @@ class DefaultModelFormView(DefaultFormView):
         if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
             return True
 
+        inline_form_views = inline_form_views and inline_form_views.values() or ()
         for inline_form_view in inline_form_views:
-            if inline_form_view.has_file_field():
+            if inline_form_view.get_has_file_field():
                 return True
 
         return False
