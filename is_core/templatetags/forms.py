@@ -3,6 +3,7 @@ from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 
 from block_snippets.templatetags import SnippetsIncludeNode
+from django.db.models.fields import FieldDoesNotExist
 
 register = template.Library()
 
@@ -83,13 +84,21 @@ def get_field(form, field_name):
     field = form.fields.get(field_name)
     if not field:
         instance = form.instance
-        value = getattr(instance, 'get_%s_display' % field_name, None)
-        if value:
-            value = value()
-        else:
-            value = getattr(instance, field_name)
+        callable_value = getattr(instance, 'get_%s_display' % field_name, None)
+        if not callable_value:
+            callable_value = getattr(instance, field_name)
 
-        return ReadonlyField(instance._meta.get_field_by_name(field_name)[0].verbose_name, value or '')
+        if hasattr(callable_value, '__call__'):
+            value = callable_value()
+        else:
+            value = callable_value
+
+        try:
+            label = instance._meta.get_field_by_name(field_name)[0].verbose_name
+        except FieldDoesNotExist:
+            label = callable_value.short_description
+
+        return ReadonlyField(label, value or '')
 
     return form[field_name]
 

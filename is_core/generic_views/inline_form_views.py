@@ -23,7 +23,7 @@ class InlineFormView(object):
         self.core = core
         self.parent = instance
         self.is_readonly = is_readonly
-        self.formset = self.get_formset(instance, self.request.POST)
+        self.formset = self.get_formset(instance, self.request.POST, self.request.FILES)
 
     def get_exclude(self):
         return self.exclude
@@ -64,12 +64,12 @@ class InlineFormView(object):
     def get_queryset(self):
         return self.model.objects.all()
 
-    def get_formset(self, instance, data):
+    def get_formset(self, instance, data, files):
         fields = self.get_fields()
         readonly_fields = self.get_readonly_fields()
 
         if data:
-            formset = self.get_formset_factory(fields, readonly_fields)(data=data, instance=instance,
+            formset = self.get_formset_factory(fields, readonly_fields)(data=data, files=files, instance=instance,
                                                                         queryset=self.get_queryset())
         else:
             formset = self.get_formset_factory(fields, readonly_fields)(instance=instance, queryset=self.get_queryset())
