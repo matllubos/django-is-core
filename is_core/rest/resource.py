@@ -11,6 +11,7 @@ from piston.utils import MimerDataException, translate_mime, UnsupportedMediaTyp
 
 from emitters import Emitter
 from handler import HeadersResult
+from is_core.utils.models import get_model_field_names
 
 
 class RestResource(Resource):
@@ -207,6 +208,7 @@ class RestModelResource(DynamicRestHandlerResource):
                     obj_fields.append(field.name)
             obj_fields += list_fields
         fields = list(list_fields)
+
         for default_field in ['id', '_rest_links', '_obj_name']:
             fields.append(default_field)
             obj_fields.append(default_field)

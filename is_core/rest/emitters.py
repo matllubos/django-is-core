@@ -26,10 +26,11 @@ from django.db.models.query import QuerySet
 from django.db.models import Model, permalink
 from django.utils.xmlutils import SimplerXMLGenerator
 from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.core.urlresolvers import NoReverseMatch
 from django.core.serializers.json import DateTimeAwareJSONEncoder
 from django.http import HttpResponse
 from django.core import serializers
+from django.utils.translation import ugettext as _
 
 from piston.utils import HttpStatusCode, Mimer
 from piston.validate_jsonp import is_valid_jsonp_callback_value
@@ -91,6 +92,13 @@ class Emitter(object):
 
         return ret
 
+    def smart_unicode(self, thing):
+
+        if isinstance(thing, bool):
+            thing = thing and _('Yes') or _('No')
+
+        return smart_unicode(thing, strings_only=True)
+
     def construct(self):
         """
         Recursively serialize a lot of types, and
@@ -127,7 +135,7 @@ class Emitter(object):
             elif repr(thing).startswith("<django.db.models.fields.related.RelatedManager"):
                 ret = _any(thing.all())
             else:
-                ret = smart_unicode(thing, strings_only=True)
+                ret = self.smart_unicode(thing)
 
             return ret
 
@@ -159,7 +167,15 @@ class Emitter(object):
             get_absolute_uri = False
 
             if handler or fields:
-                v = lambda f: getattr(data, f.attname)
+
+                def v(f):
+                    """
+                    If field has choices this return display value
+                    """
+                    if f.choices:
+                        return getattr(data, 'get_%s_display' % f.attname)()
+
+                    return getattr(data, f.attname)
 
                 if not fields and handler:
                     fields = getattr(handler, 'fields')
