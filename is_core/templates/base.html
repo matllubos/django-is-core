@@ -16,7 +16,9 @@
 				{% endif %}
 			{% endblock %}
 			{% block bread-crumbs %}
-				{% bread_crumbs %}
+				{% if request.user.is_authenticated %}
+					{% bread_crumbs %}
+				{% endif %}
 			{% endblock %}
 			{% block content %}{% endblock %}
 		{% endblock %}

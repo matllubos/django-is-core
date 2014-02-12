@@ -10,7 +10,7 @@ from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
-from is_core.auth.main import UIMiddleware
+from is_core.auth.main import PermissionsUIMiddleware
 
 
 class ISCore(object):
@@ -75,22 +75,13 @@ class ModelISCore(ISCore):
         return self.model._default_manager.get_queryset()
 
 
-class UIModelISCore(UIMiddleware, ModelISCore):
+class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
     view_classes = {
                     'add': (r'^/add/$', AddModelFormView),
                     'edit': (r'^/(?P<pk>\d+)/$', EditModelFormView),
                     'list': (r'^/?$', TableView)
                     }
 
-    def add_auth_wrap(self, view):
-        return self.get_auth_wrapper({'GET': self.has_create_permission, 'POST': self.has_create_permission}).wrap(view)
-
-    def edit_auth_wrap(self, view):
-        return self.get_auth_wrapper({'GET': (self.has_update_permission, self.has_read_permission),
-                                      'POST': self.has_update_permission}).wrap(view)
-
-    def read_auth_wrap(self, view):
-        return self.get_auth_wrapper({'GET': self.has_read_permission}).wrap(view)
     show_in_menu = True
     api_url_name = None
 
@@ -108,7 +99,7 @@ class UIModelISCore(UIMiddleware, ModelISCore):
     form_class = RestModelForm
 
     def get_show_in_menu(self, request):
-        return 'list' in self.view_classes and self.show_in_menu;
+        return 'list' in self.view_classes and self.show_in_menu and self.has_read_permission(request)
 
     def get_rest_list_fields(self):
         return self.list_display

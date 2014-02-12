@@ -4,6 +4,7 @@ from django.template.base import TemplateSyntaxError, token_kwargs
 
 from block_snippets.templatetags import SnippetsIncludeNode
 from django.db.models.fields import FieldDoesNotExist
+from django.contrib.admin.util import display_for_value
 
 register = template.Library()
 
@@ -92,6 +93,8 @@ def get_field(form, field_name):
             value = callable_value()
         else:
             value = callable_value
+
+        value = display_for_value(value)
 
         try:
             label = instance._meta.get_field_by_name(field_name)[0].verbose_name

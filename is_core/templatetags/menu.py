@@ -59,7 +59,7 @@ def menu(context, site_name):
 
 @register.inclusion_tag('menu/bread_crumbs.html', takes_context=True)
 def bread_crumbs(context):
-    site_name = context.get('site_name')
+    site_name = 'IS'
     site = get_site_by_name(site_name)
 
     request = context.get('request')

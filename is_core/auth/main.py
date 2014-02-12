@@ -4,7 +4,7 @@ class PermissionsMiddleware(object):
     pass
 
 
-class UIMiddleware(PermissionsMiddleware):
+class PermissionsUIMiddleware(PermissionsMiddleware):
 
     def get_auth_wrapper(self, permissions_validators):
         return AuthWrapper(permissions_validators).wrap
