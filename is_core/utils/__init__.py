@@ -30,3 +30,23 @@ def flatten_fieldsets(fieldsets):
             else:
                 field_names.append(field)
     return field_names
+
+
+def list_to_dict(list_obj):
+    dict_obj = {}
+    for val in list_obj:
+        if isinstance(val, (list, tuple)):
+            dict_obj[val[0]] = list_to_dict(val[1])
+        else:
+            dict_obj[val] = {}
+    return dict_obj
+
+
+def dict_to_list(dict_obj):
+    list_obj = []
+    for key, val in dict_obj.items():
+        if val:
+            list_obj.append((key, dict_to_list(val)))
+        else:
+            list_obj.append(key)
+    return tuple(list_obj)

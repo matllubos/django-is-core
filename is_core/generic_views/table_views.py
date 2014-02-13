@@ -3,14 +3,13 @@ from django.utils.translation import ugettext_lazy as _
 
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultCoreViewMixin
-from django.utils.html import format_html
-from django.db.models.fields import Field, CharField, TextField, BooleanField
+from django.db.models.fields import CharField, TextField, BooleanField, FieldDoesNotExist
 from django import forms
 
 
 class Header(object):
 
-    def __init__(self, field_name, text, sortable, filter):
+    def __init__(self, field_name, text, sortable, filter=''):
         self.field_name = field_name
         self.text = text
         self.sortable = sortable
@@ -55,12 +54,25 @@ class TableView(DefaultCoreViewMixin, TemplateView):
     def get_title(self):
         return _('List %s') % self.model._meta.verbose_name
 
+    def get_header(self, full_field_name, field_name=None, model=None):
+        if not model:
+            model = self.model
+
+        if not field_name:
+            field_name = full_field_name
+
+        if '__' in field_name:
+            current_field_name, next_field_name = field_name.split('__', 1)
+            return self.get_header(full_field_name, next_field_name, model._meta.get_field(current_field_name).rel.to)
+
+        try:
+            field = model._meta.get_field(field_name)
+            return Header(full_field_name, field.verbose_name, True, Filter(full_field_name, field))
+        except FieldDoesNotExist:
+            return Header(full_field_name, getattr(model(), field_name).short_description, False)
+
     def get_list_display(self):
         return self.list_display or self.core.get_list_display()
-
-    def get_header(self, field_name):
-        field = self.model._meta.get_field(field_name)
-        return Header(field_name, field.verbose_name, True, Filter(field_name, field))
 
     def get_headers(self):
         headers = []

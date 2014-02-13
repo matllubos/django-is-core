@@ -52,11 +52,11 @@ class RelatedFieldWidgetWrapper(WrapperWidget):
         resource_add = ''
         if model_view:
 
-            info = model_view.site_name, model_view.menu_group, model_view.menu_subgroup
-            attrs['data-resource'] = reverse('%s:api-%s-%s' % info)
+            info = model_view.site_name, model_view.get_menu_group_pattern_name()
+            attrs['data-resource'] = reverse('%s:api-%s' % info)
             attrs['data-model'] = model_name
 
-            resource_add = ''.join((reverse('%s:add-%s-%s' % info), '?popup=1'))
+            resource_add = ''.join((reverse('%s:add-%s' % info), '?popup=1'))
 
             if hasattr(self.widget, 'limit_choices_to'):
                 attrs['data-resource'] = '%s?%s' % (attrs['data-resource'],

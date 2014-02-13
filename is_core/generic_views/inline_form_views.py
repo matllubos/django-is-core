@@ -13,7 +13,8 @@ class InlineFormView(object):
     exclude = ()
     can_add = True
     can_delete = True
-
+    max_num = None
+    min_num = 0
     readonly_fields = ()
     fields = None
 
@@ -23,7 +24,13 @@ class InlineFormView(object):
         self.core = core
         self.parent = instance
         self.is_readonly = is_readonly
+        if self.extra < self.min_num:
+            self.extra = self.min_num
+
         self.formset = self.get_formset(instance, self.request.POST, self.request.FILES)
+
+        for i in range(self.min_num):
+            self.formset.forms[i].empty_permitted = False
 
     def get_exclude(self):
         return self.exclude
@@ -59,7 +66,7 @@ class InlineFormView(object):
         return inlineformset_factory(self.parent_model, self.model, form=self.form_class,
                                      fk_name=self.fk_name, extra=extra, formset=BaseInlineFormSet,
                                      can_delete=self.get_can_delete(), exclude=exclude,
-                                     fields=fields)
+                                     fields=fields, max_num=self.max_num)
 
     def get_queryset(self):
         return self.model.objects.all()

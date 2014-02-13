@@ -25,7 +25,7 @@ except NameError:
 from django.db.models.query import QuerySet
 from django.db.models import Model, permalink
 from django.utils.xmlutils import SimplerXMLGenerator
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_unicode, force_text
 from django.core.urlresolvers import NoReverseMatch
 from django.core.serializers.json import DateTimeAwareJSONEncoder
 from django.http import HttpResponse
@@ -93,11 +93,10 @@ class Emitter(object):
         return ret
 
     def smart_unicode(self, thing):
-
         if isinstance(thing, bool):
             thing = thing and _('Yes') or _('No')
 
-        return smart_unicode(thing, strings_only=True)
+        return force_text(thing)
 
     def construct(self):
         """
@@ -182,7 +181,7 @@ class Emitter(object):
                     """
                     If user has not read permission only get pid of the object
                     """
-                    if not handler.has_read_permission(self.request.user, self.request.account_pk, data):
+                    if not handler.has_read_permission(self.request, data):
                         fields = set(('pk',))
 
                 if not fields:

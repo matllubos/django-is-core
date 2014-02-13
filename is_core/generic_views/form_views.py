@@ -171,7 +171,11 @@ class DefaultModelFormView(DefaultFormView):
         else:
             fieldsets = [(None, {'fields': self.get_fields() or list(self.get_form_class().base_fields.keys())})]
             for inline_form_view in self.get_inline_form_views():
-                fieldsets.append((inline_form_view.model._meta.verbose_name_plural,
+                if not inline_form_view.max_num or inline_form_view.max_num > 1:
+                    title = inline_form_view.model._meta.verbose_name_plural
+                else:
+                    title = inline_form_view.model._meta.verbose_name
+                fieldsets.append((title,
                                   {'inline_form_view': inline_form_view.__name__}))
             return list(fieldsets)
 

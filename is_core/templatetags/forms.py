@@ -1,4 +1,4 @@
-from django import template, forms
+from django import template
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 

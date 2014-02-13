@@ -11,6 +11,7 @@ from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsUIMiddleware
+from is_core.utils import list_to_dict, dict_to_list
 
 
 class ISCore(object):
@@ -226,10 +227,19 @@ class RestModelISCore(ModelISCore):
         return list_resources_patterns
 
 
+
 class UIRestModelISCore(UIModelISCore, RestModelISCore):
 
     def get_rest_list_fields(self):
-        return list(self.rest_list_fields) or list(self.get_list_display())
+        rest_list_fields_dict = list_to_dict(self.rest_list_fields)
+
+        for display in self.get_list_display():
+            rest_dict = rest_list_fields_dict
+            for val in display.split('__'):
+                rest_dict[val] = rest_dict.get(val, {})
+                rest_dict = rest_dict[val]
+
+        return dict_to_list(rest_list_fields_dict)
 
     def gel_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
