@@ -133,11 +133,14 @@ class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
     def bread_crumbs_url_names(self, context):
         view_type = context.get('view_type')
 
-        bread_crumbs_url_names = [
+        bread_crumbs_url_names = []
+
+        if 'list' in self.view_classes:
+            bread_crumbs_url_names.append(
                                     (_('List %s') % self.model._meta.verbose_name,
-                                     'list' in self.view_classes and \
-                                     '%s:list-%s' % (self.site_name, self.get_menu_group_pattern_name()) or None)
-                                  ]
+                                     '%s:list-%s' % (self.site_name, self.get_menu_group_pattern_name()))
+                                  )
+
         if view_type == 'add':
             bread_crumbs_url_names.append((_('Add %s') % self.model._meta.verbose_name, None))
         elif view_type == 'edit':
@@ -227,7 +230,6 @@ class RestModelISCore(ModelISCore):
         return list_resources_patterns
 
 
-
 class UIRestModelISCore(UIModelISCore, RestModelISCore):
 
     def get_rest_list_fields(self):
@@ -243,4 +245,3 @@ class UIRestModelISCore(UIModelISCore, RestModelISCore):
 
     def gel_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
-
