@@ -17,7 +17,8 @@ from is_core.utils import list_to_dict, dict_to_list
 class ISCore(object):
     menu_subgroup = None
     menu_url_name = None
-    menu_verbose_name = None
+    verbose_name = None
+    verbose_name_plural = None
     show_in_menu = True
 
     def __init__(self, site_name, menu_parent_groups):
@@ -61,9 +62,13 @@ class ModelISCore(ISCore):
     def delete_model(self, request, obj):
         obj.delete()
 
-    def menu_verbose_name(self):
+    def verbose_name(self):
+        return self.model._meta.verbose_name
+    verbose_name = property(verbose_name)
+
+    def verbose_name_plural(self):
         return self.model._meta.verbose_name_plural
-    menu_verbose_name = property(menu_verbose_name)
+    verbose_name_plural = property(verbose_name_plural)
 
     def menu_group(self):
         return str(self.model._meta.module_name)
@@ -137,14 +142,14 @@ class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
 
         if 'list' in self.view_classes:
             bread_crumbs_url_names.append(
-                                    (_('List %s') % self.model._meta.verbose_name,
+                                    (_('List %s') % self.verbose_name_plural,
                                      '%s:list-%s' % (self.site_name, self.get_menu_group_pattern_name()))
                                   )
 
         if view_type == 'add':
-            bread_crumbs_url_names.append((_('Add %s') % self.model._meta.verbose_name, None))
+            bread_crumbs_url_names.append((_('Add %s') % self.verbose_name, None))
         elif view_type == 'edit':
-            bread_crumbs_url_names.append((_('Edit %s') % self.model._meta.verbose_name, None))
+            bread_crumbs_url_names.append((_('Edit %s') % self.verbose_name, None))
         return bread_crumbs_url_names
 
     def get_view_classes(self):

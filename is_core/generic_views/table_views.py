@@ -57,7 +57,7 @@ class TableView(DefaultCoreViewMixin, TemplateView):
         self.list_display = self.list_display or list_display
 
     def get_title(self):
-        return _('List %s') % self.model._meta.verbose_name
+        return _('List %s') % self.core.verbose_name_plural
 
     def get_header(self, full_field_name, field_name=None, model=None):
         if not model:
@@ -111,7 +111,7 @@ class TableView(DefaultCoreViewMixin, TemplateView):
                                 'add_url_name': '%s:add-%s' % info,
                                 'edit_url_name': '%s:edit-%s' % info,
                                 'module_name': self.model._meta.module_name,
-                                'verbose_name':  self.model._meta.verbose_name,
+                                'verbose_name':  self.core.verbose_name_plural,
                                 'view_type': self.view_type,
                                 'list_display': self.get_list_display(),
                                 'list_action': self.core.get_list_actions(self.request),

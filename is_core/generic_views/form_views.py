@@ -311,6 +311,12 @@ class DefaultModelFormView(DefaultFormView):
 
 class DefaultCoreModelFormView(DefaultModelFormView):
 
+    def get_message(self, type, obj=None):
+        msg_dict = {}
+        if obj:
+            msg_dict = {'obj': force_text(obj), 'name': force_text(self.core.verbose_name)}
+        return self.messages.get(type) % msg_dict
+
     def get_exclude(self):
         return self.exclude or self.core.get_exclude(self.request, self.get_obj(True))
 
@@ -361,7 +367,7 @@ class AddModelFormView(DefaultCoreModelFormView):
                 'error': _('Please correct the error below.')}
 
     def get_title(self):
-        return _('Add %s') % self.model._meta.verbose_name
+        return _('Add %s') % self.core.verbose_name
 
     def save_obj(self, obj, form):
         self.core.save_model(self.request, obj, False)
@@ -383,7 +389,7 @@ class EditModelFormView(DefaultCoreModelFormView):
                 'error': _('Please correct the error below.')}
 
     def get_title(self):
-        return _('Edit %s') % self.model._meta.verbose_name
+        return _('Edit %s') % self.core.verbose_name
 
     def save_obj(self, obj, form):
         self.core.save_model(self.request, obj, True)

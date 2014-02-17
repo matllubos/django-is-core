@@ -80,15 +80,14 @@ class ReadonlyField(object):
         return self.content
 
 
-@register.filter
-def get_field(form, field_name):
-    field = form.fields.get(field_name)
-    if not field:
-        instance = form.instance
+def get_model_field_value_and_label(field_name, instance):
+    if '__' in field_name:
+        current_field_name, next_field_name = field_name.split('__', 1)
+        return get_model_field_value_and_label(next_field_name, getattr(instance, current_field_name))
+    else:
         callable_value = getattr(instance, 'get_%s_display' % field_name, None)
         if not callable_value:
             callable_value = getattr(instance, field_name)
-
         if hasattr(callable_value, '__call__'):
             value = callable_value()
         else:
@@ -101,6 +100,15 @@ def get_field(form, field_name):
         except FieldDoesNotExist:
             label = callable_value.short_description
 
+        return value, label
+
+
+@register.filter
+def get_field(form, field_name):
+    field = form.fields.get(field_name)
+    if not field:
+        instance = form.instance
+        value, label = get_model_field_value_and_label(field_name, instance)
         return ReadonlyField(label, value or '')
 
     return form[field_name]

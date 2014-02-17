@@ -36,7 +36,7 @@ def get_menu_items(request, items, active_groups=()):
             if not item.get_show_in_menu(request):
                 continue
 
-            menu_items.append(MenuItem(item.menu_verbose_name, item.menu_url(),
+            menu_items.append(MenuItem(item.verbose_name_plural, item.menu_url(),
                                        group == item.menu_group))
     return menu_items
 
