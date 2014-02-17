@@ -1,10 +1,10 @@
 from django.views.generic.base import TemplateView
 from django.utils.translation import ugettext_lazy as _
+from django.db.models.fields import CharField, TextField, BooleanField, FieldDoesNotExist
+from django import forms
 
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultCoreViewMixin
-from django.db.models.fields import CharField, TextField, BooleanField, FieldDoesNotExist
-from django import forms
 
 
 class Header(object):
@@ -33,13 +33,18 @@ class Filter(object):
             return '%s__contains' % self.field_name
         return self.field_name
 
+    def get_widget(self):
+        if isinstance(self.field, BooleanField):
+            return forms.Select(choices=((None, '-----'), (1, _('Yes')), (0, _('No'))))
+        elif isinstance(self.field, TextField):
+            return forms.TextInput()
+        elif self.field.formfield():
+            return self.field.formfield().widget
+        else:
+            return forms.TextInput()
 
     def __unicode__(self):
-        if isinstance(self.field, BooleanField):
-            widget = forms.Select(choices=((None, '-----'), (1, _('Yes')), (0, _('No'))))
-        else:
-            widget = self.field.formfield().widget
-        return widget.render('filter__%s' % self.field_name, None, attrs={'data-filter': self.get_filter_name()})
+        return self.get_widget().render('filter__%s' % self.field_name, None, attrs={'data-filter': self.get_filter_name()})
 
 
 class TableView(DefaultCoreViewMixin, TemplateView):

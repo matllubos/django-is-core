@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.forms.models import ModelMultipleChoiceField, modelform_factory
+from django.forms.models import ModelMultipleChoiceField, modelform_factory, ModelForm
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
@@ -84,7 +84,7 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         context_data = super(DefaultFormView, self).get_context_data(form=form, **kwargs)
         context_data.update({
                                 'view_type': self.view_type,
-                                'fieldsets': self.get_fieldsets(),
+                                'fieldsets': self.generate_fieldsets(),
                                 'form_template': self.form_template,
                                 'form_name': '-'.join((self.view_type, self.site_name,
                                                        self.core.get_menu_group_pattern_name(), 'form',)).lower(),
@@ -92,11 +92,15 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
                              })
         return context_data
 
-    def get_fieldsets(self):
-        if self.fieldsets:
-            return self.fieldsets
+    def generate_fieldsets(self):
+        fieldsets = self.get_fieldsets()
+        if fieldsets:
+            return fieldsets
         else:
             return [(None, {'fields': list(self.get_form_class().base_fields.keys())})]
+
+    def get_fieldsets(self):
+        return self.fieldsets
 
     def get_initial(self):
         initial = super(DefaultFormView, self).get_initial()
@@ -121,6 +125,12 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         else:
             return self.form_invalid(form)
 
+    def get_snippet_names(self):
+        if self.is_popup():
+            return ('content',)
+
+        return super(DefaultFormView, self).get_snippet_names()
+
 
 class DefaultModelFormView(DefaultFormView):
     model = None
@@ -139,12 +149,6 @@ class DefaultModelFormView(DefaultFormView):
         self.fields = fields or self.fields
         self.inline_form_views = inline_form_views or self.inline_form_views
 
-    def get_snippet_names(self):
-        if self.is_popup():
-            return ('content',)
-
-        return super(DefaultModelFormView, self).get_snippet_names()
-
     def get_message(self, type, obj=None):
         msg_dict = {}
         if obj:
@@ -152,24 +156,26 @@ class DefaultModelFormView(DefaultFormView):
         return self.messages.get(type) % msg_dict
 
     def get_exclude(self):
-        return self.exclude or self.core.get_exclude(self.request, self.get_obj(True))
+        return self.exclude
+
+    def generate_readonly_fields(self):
+        if not self.has_post_permission(self.request, self.core):
+            return list(self.generate_form_class().base_fields.keys())
+        return self.get_readonly_fields()
 
     def get_readonly_fields(self):
-        if not self.has_post_permission(self.request, self.core):
-            return list(self.get_form_class().base_fields.keys())
-
-        return self.readonly_fields or self.core.get_readonly_fields(self.request, self.get_obj(True))
+        return self.readonly_fields
 
     def get_inline_form_views(self):
-        return self.inline_form_views or self.core.get_inline_form_views(self.request, self.get_obj(True))
+        return self.inline_form_views
 
-    def get_fieldsets(self):
-        fieldsets = self.fieldset or self.core.get_fieldsets(self.request, self.get_obj(True))
+    def generate_fieldsets(self):
+        fieldsets = self.get_fieldsets()
 
         if fieldsets:
             return fieldsets
         else:
-            fieldsets = [(None, {'fields': self.get_fields() or list(self.get_form_class().base_fields.keys())})]
+            fieldsets = [(None, {'fields': self.generate_fields() or list(self.generate_form_class().base_fields.keys())})]
             for inline_form_view in self.get_inline_form_views():
                 if not inline_form_view.max_num or inline_form_view.max_num > 1:
                     title = inline_form_view.model._meta.verbose_name_plural
@@ -180,28 +186,24 @@ class DefaultModelFormView(DefaultFormView):
             return list(fieldsets)
 
     def get_fields(self):
-        fieldsets = self.fieldset or self.core.get_fieldsets(self.request, self.get_obj(True))
+        return self.fields
+
+    def generate_fields(self):
+        fieldsets = self.get_fieldsets()
 
         if fieldsets:
             return flatten_fieldsets(fieldsets)
         return self.fields
 
-    def get_form_class(self, fields=None, readonly_fields=()):
-        form_class = self.form_class or self.core.get_form_class(self.request, self.get_obj(True))
+    def get_form_class(self):
+        return self.form_class or ModelForm
+
+    def generate_form_class(self, fields=None, readonly_fields=()):
+        form_class = self.get_form_class()
         exclude = list(self.get_exclude()) + list(readonly_fields)
         if hasattr(self.form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
         return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields)
-
-    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
-        context_data = super(DefaultModelFormView, self).get_context_data(form=form,
-                                                                          inline_form_views=inline_form_views, **kwargs)
-        context_data.update({
-                                'module_name': self.model._meta.module_name,
-                                'cancel_url': self.get_cancel_url(),
-                                'show_save_and_continue': 'list' in self.core.view_classes and not self.is_popup()
-                             })
-        return context_data
 
     def get_has_file_field(self, form, inline_form_views=(), **kwargs):
         if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
@@ -215,24 +217,16 @@ class DefaultModelFormView(DefaultFormView):
         return False
 
     def get_cancel_url(self):
-        if 'list' in self.core.view_classes and not self.is_popup():
-            info = self.site_name, self.core.get_menu_group_pattern_name()
-            return reverse('%s:list-%s' % info)
         return None
 
     def get_success_url(self, obj):
-        info = self.site_name, self.core.get_menu_group_pattern_name()
-        if 'list' in self.core.view_classes and 'save' in self.request.POST:
-            return reverse('%s:list-%s' % info)
-        elif 'edit' in self.core.view_classes and 'save-and-continue' in self.request.POST:
-            return reverse('%s:edit-%s' % info, args=(obj.pk,))
         return ''
 
     def get(self, request, *args, **kwargs):
-        fields = self.get_fields()
-        readonly_fields = self.get_readonly_fields()
+        fields = self.generate_fields()
+        readonly_fields = self.generate_readonly_fields()
 
-        form_class = self.get_form_class(fields, readonly_fields)
+        form_class = self.generate_form_class(fields, readonly_fields)
         form = self.get_form(form_class)
         inline_form_views = SortedDict()
         for inline_form_view in self.get_inline_form_views():
@@ -243,10 +237,10 @@ class DefaultModelFormView(DefaultFormView):
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
 
     def post(self, request, *args, **kwargs):
-        fields = self.get_fields()
-        readonly_fields = self.get_readonly_fields()
+        fields = self.generate_fields()
+        readonly_fields = self.generate_readonly_fields()
 
-        form_class = self.get_form_class(fields, readonly_fields)
+        form_class = self.generate_form_class(fields, readonly_fields)
         form = self.get_form(form_class)
         inline_form_views = SortedDict()
         inline_forms_is_valid = True
@@ -297,12 +291,69 @@ class DefaultModelFormView(DefaultFormView):
         messages.error(self.request, msg)
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
 
+    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
+        context_data = super(DefaultModelFormView, self).get_context_data(form=form,
+                                                                          inline_form_views=inline_form_views, **kwargs)
+        context_data.update({
+                                'module_name': self.model._meta.module_name,
+                                'cancel_url': self.get_cancel_url(),
+                             })
+        return context_data
+
+    @classmethod
+    def has_get_permission(cls, request, core, **kwargs):
+        return True
+
     @classmethod
     def has_post_permission(cls, request, core, **kwargs):
         return True
 
 
-class AddModelFormView(DefaultModelFormView):
+class DefaultCoreModelFormView(DefaultModelFormView):
+
+    def get_exclude(self):
+        return self.exclude or self.core.get_exclude(self.request, self.get_obj(True))
+
+    def get_readonly_fields(self):
+        return self.readonly_fields or self.core.get_readonly_fields(self.request, self.get_obj(True))
+
+    def get_inline_form_views(self):
+        return self.inline_form_views or self.core.get_inline_form_views(self.request, self.get_obj(True))
+
+    def get_fieldsets(self):
+        return self.fieldset or self.core.get_fieldsets(self.request, self.get_obj(True))
+
+    def get_fields(self):
+        return self.fields or self.core.get_fields(self.request, self.get_obj(True))
+
+    def get_form_class(self, fields=None, readonly_fields=()):
+        return self.form_class or self.core.get_form_class(self.request, self.get_obj(True))
+
+    def get_cancel_url(self):
+        if 'list' in self.core.view_classes and not self.is_popup():
+            info = self.site_name, self.core.get_menu_group_pattern_name()
+            return reverse('%s:list-%s' % info)
+        return None
+
+    def get_success_url(self, obj):
+        info = self.site_name, self.core.get_menu_group_pattern_name()
+        if 'list' in self.core.view_classes and 'save' in self.request.POST:
+            return reverse('%s:list-%s' % info)
+        elif 'edit' in self.core.view_classes and 'save-and-continue' in self.request.POST:
+            return reverse('%s:edit-%s' % info, args=(obj.pk,))
+        return ''
+
+    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
+        context_data = super(DefaultCoreModelFormView, self).get_context_data(form=form,
+                                                                              inline_form_views=inline_form_views,
+                                                                              **kwargs)
+        context_data.update({
+                                'show_save_and_continue': 'list' in self.core.view_classes and not self.is_popup()
+                             })
+        return context_data
+
+
+class AddModelFormView(DefaultCoreModelFormView):
     template_name = 'generic_views/add_form.html'
     form_template = 'forms/model_add_form.html'
     view_type = 'add'
@@ -324,7 +375,7 @@ class AddModelFormView(DefaultModelFormView):
         return core.has_create_permission(request)
 
 
-class EditModelFormView(DefaultModelFormView):
+class EditModelFormView(DefaultCoreModelFormView):
     template_name = 'generic_views/edit_form.html'
     form_template = 'forms/model_edit_form.html'
     view_type = 'edit'
