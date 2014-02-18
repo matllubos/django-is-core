@@ -56,11 +56,23 @@ class ISCore(object):
 class ModelISCore(ISCore):
     exclude = []
 
+    def pre_save_model(self, request, obj, change):
+        pass
+
     def save_model(self, request, obj, change):
         obj.save()
 
+    def post_save_model(self, request, obj, change):
+        pass
+
+    def pre_delete_model(self, request, obj):
+        pass
+
     def delete_model(self, request, obj):
         obj.delete()
+
+    def post_delete_model(self, request, obj):
+        pass
 
     def verbose_name(self):
         return self.model._meta.verbose_name

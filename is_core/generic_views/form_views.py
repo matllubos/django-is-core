@@ -149,6 +149,12 @@ class DefaultModelFormView(DefaultFormView):
         self.fields = fields or self.fields
         self.inline_form_views = inline_form_views or self.inline_form_views
 
+    def pre_save_obj(self, obj, change):
+        pass
+
+    def post_save_obj(self, obj, change):
+        pass
+
     def get_message(self, type, obj=None):
         msg_dict = {}
         if obj:
@@ -269,6 +275,9 @@ class DefaultModelFormView(DefaultFormView):
     def form_valid(self, form, inline_form_views, msg=None):
         try:
             obj = form.save(commit=False)
+            change = obj.pk is not None
+
+            self.pre_save_obj(obj, change)
             self.save_obj(obj, form)
             if hasattr(form, 'save_m2m'):
                 form.save_m2m()
@@ -276,6 +285,7 @@ class DefaultModelFormView(DefaultFormView):
             for inline_form_view in inline_form_views.values():
                 inline_form_view.form_valid(self.request)
 
+            self.post_save_obj(obj, change)
         except SaveObjectException as ex:
             return self.form_invalid(form, inline_form_views, force_text(ex))
 
@@ -311,6 +321,12 @@ class DefaultModelFormView(DefaultFormView):
 
 
 class DefaultCoreModelFormView(DefaultModelFormView):
+
+    def pre_save_obj(self, obj, change):
+        self.core.post_save_model(self.request, obj, change)
+
+    def post_save_obj(self, obj, change):
+        self.core.post_save_model(self.request, obj, change)
 
     def get_message(self, type, obj=None):
         msg_dict = {}

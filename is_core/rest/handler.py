@@ -390,10 +390,16 @@ class RestModelHandler(RestHandler):
 
         inst = form.save(commit=False)
 
-        # Persoo view can do modifications before save object
+        # Core view can do modifications before save object
+        self.core.pre_save_model(request, inst, change)
+
+        # Core view should save object
         self.core.save_model(request, inst, change)
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
+
+        # Core view event after save object
+        self.core.post_save_model(request, inst, change)
 
         postprocesor = DataPostprocessor(request, self.model, form_fields, inst)
         data = postprocesor.process_data(data)
@@ -401,7 +407,9 @@ class RestModelHandler(RestHandler):
         return inst
 
     def _delete(self, request, inst):
+        self.core.pre_delete_model(request, inst)
         self.core.delete_model(request, inst)
+        self.core.post_delete_model(request, inst)
 
     @transaction.atomic
     def _atomic_create_or_update(self, request, data):
