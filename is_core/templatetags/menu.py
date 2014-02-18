@@ -9,10 +9,11 @@ register = template.Library()
 
 class MenuItem():
 
-    def __init__(self, title, url, active, submenu_items=[]):
+    def __init__(self, title, url, active, group, submenu_items=[]):
         self.title = title
         self.url = url
         self.active = active
+        self.group = group
         self.submenu_items = submenu_items
 
     def __unicode__(self):
@@ -31,13 +32,13 @@ def get_menu_items(request, items, active_groups=()):
             submenu_items = get_menu_items(request, item.items.values(), child_groups)
             if submenu_items:
                 menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url,
-                                            item.name == group, submenu_items))
+                                            item.name == group, item.name))
         else:
             if not item.get_show_in_menu(request):
                 continue
 
             menu_items.append(MenuItem(item.verbose_name_plural, item.menu_url(),
-                                       group == item.menu_group))
+                                       group == item.menu_group, item.menu_group))
     return menu_items
 
 
@@ -54,7 +55,8 @@ def menu(context, site_name):
 
     active_menu_groups = context.get('active_menu_groups')
     menu_items = get_menu_items(request, site._registry.values(), active_menu_groups)
-    return {'menu_items': menu_items, 'site_name': site_name}
+    context.update({'menu_items': menu_items, 'site_name': site_name})
+    return context
 
 
 @register.inclusion_tag('menu/bread_crumbs.html', takes_context=True)
@@ -68,7 +70,7 @@ def bread_crumbs(context):
 
     index_url = reverse('%s:index' % site_name)
     index_active = request.path == index_url
-    menu_items = [MenuItem(_('Home'), index_url, index_active)]
+    menu_items = [MenuItem(_('Home'), index_url, index_active, None)]
 
     items = site._registry
     for group in active_menu_groups:
@@ -77,11 +79,11 @@ def bread_crumbs(context):
             submenu_items = get_menu_items(request, item.items.values())
             url = submenu_items[0].url
             active = url == request.path or not url
-            menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url, active))
+            menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url, active, group))
             items = item.items
         else:
             for verbose_name, pattern in item.bread_crumbs_url_names(context):
                 url = pattern and reverse(pattern) or None
                 active = url == request.path or not url
-                menu_items.append(MenuItem(verbose_name, url, active))
+                menu_items.append(MenuItem(verbose_name, url, active, group))
     return {'menu_items': menu_items}

@@ -246,6 +246,10 @@ class RestModelHandler(RestHandler):
                                             'methods': pattern.methods}
         return rest_links
 
+    @classmethod
+    def _class_names(cls, obj, request):
+        return cls.core.get_rest_obj_class_names(request, obj)
+
     def get_queryset(self, request):
         return self.core.get_queryset(request)
 

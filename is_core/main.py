@@ -129,7 +129,7 @@ class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
         return self.readonly_fields
 
     def get_exclude(self, request, obj=None):
-        return self.readonly_fields
+        return self.exclude
 
     def menu_url_name(self):
         return 'list-%s' % self.get_menu_group_pattern_name()
@@ -193,6 +193,7 @@ class RestModelISCore(ModelISCore):
     form_class = RestModelForm
     rest_allowed_methods = ('GET', 'DELETE', 'POST', 'PUT')
     rest_handler = RestModelHandler
+    rest_obj_class_names = ()
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
@@ -203,6 +204,9 @@ class RestModelISCore(ModelISCore):
 
     def get_rest_obj_fields(self):
         return list(self.rest_obj_fields)
+
+    def get_rest_obj_class_names(self, request, obj):
+        return list(self.rest_obj_class_names)
 
     def get_rest_resources(self):
         rest_resource = RestModelResource(name='Api%sHandler' %

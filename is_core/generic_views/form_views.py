@@ -160,7 +160,7 @@ class DefaultModelFormView(DefaultFormView):
 
     def generate_readonly_fields(self):
         if not self.has_post_permission(self.request, self.core):
-            return list(self.generate_form_class().base_fields.keys())
+            return list(self.generate_form_class().base_fields.keys()) + list(self.get_readonly_fields())
         return self.get_readonly_fields()
 
     def get_readonly_fields(self):
@@ -201,6 +201,7 @@ class DefaultModelFormView(DefaultFormView):
     def generate_form_class(self, fields=None, readonly_fields=()):
         form_class = self.get_form_class()
         exclude = list(self.get_exclude()) + list(readonly_fields)
+
         if hasattr(self.form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
         return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields)

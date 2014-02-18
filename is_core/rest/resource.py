@@ -214,6 +214,8 @@ class RestModelResource(DynamicRestHandlerResource):
             obj_fields.append(default_field)
 
         if isinstance(core, UIRestModelISCore):
-            fields.append('_web_links')
-            obj_fields.append('_web_links')
+            for special_field in ['_web_links', '_class_names']:
+                fields.append(special_field)
+                obj_fields.append(special_field)
+
         return fields, obj_fields
