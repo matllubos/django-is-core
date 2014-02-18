@@ -323,7 +323,7 @@ class DefaultModelFormView(DefaultFormView):
 class DefaultCoreModelFormView(DefaultModelFormView):
 
     def pre_save_obj(self, obj, change):
-        self.core.post_save_model(self.request, obj, change)
+        self.core.pre_save_model(self.request, obj, change)
 
     def post_save_obj(self, obj, change):
         self.core.post_save_model(self.request, obj, change)
