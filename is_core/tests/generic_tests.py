@@ -1,6 +1,5 @@
 from django.core.urlresolvers import reverse
 
-from is_core.site import registered_model_views
 from is_core.main import UIModelISCore
 
 from germanium.client import ClientTestCase
@@ -13,6 +12,7 @@ class ModelViewSeleniumTestCaseMiddleware(object):
     list_disabled_views = ()
 
     def get_model_main_views(self):
+        from is_core.site import registered_model_views
         return [model_view for model_view in registered_model_views.values() if isinstance(model_view, UIModelISCore)]
 
     def list_url(self, site_name, menu_groups):
