@@ -173,8 +173,13 @@ class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
         for name, view_vals in self.view_classes.items():
             pattern, view = view_vals
 
+            if view.login_required:
+                view_instance = view.as_wrapped_view(core=self)
+            else:
+                view_instance = view.as_view(core=self)
+
             views['%s-%s' % (name, self.get_menu_group_pattern_name())] = \
-                     (pattern, view.as_wrapped_view(core=self))
+                     (pattern, view_instance)
 
         return views
 

@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.shortcuts import get_object_or_404
 
-from is_core.form.widgets import RelatedFieldWidgetWrapper
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
@@ -108,8 +107,6 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         return initial
 
     def form_field(self, form_field):
-        if isinstance(form_field, ModelMultipleChoiceField):
-            form_field.widget = RelatedFieldWidgetWrapper(form_field.widget, form_field.queryset.model, self.site_name)
         return form_field
 
     def get(self, request, *args, **kwargs):

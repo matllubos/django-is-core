@@ -9,7 +9,7 @@ register = template.Library()
 
 class MenuItem():
 
-    def __init__(self, title, url, active, group, submenu_items=[]):
+    def __init__(self, title, url, active, group=None, submenu_items=[]):
         self.title = title
         self.url = url
         self.active = active
@@ -70,7 +70,7 @@ def bread_crumbs(context):
 
     index_url = reverse('%s:index' % site_name)
     index_active = request.path == index_url
-    menu_items = [MenuItem(_('Home'), index_url, index_active, None)]
+    menu_items = [MenuItem(_('Home'), index_url, index_active)]
 
     items = site._registry
     for group in active_menu_groups:

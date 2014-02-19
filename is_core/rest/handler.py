@@ -230,7 +230,10 @@ class RestModelHandler(RestHandler):
                 web_links[pattern.name] = reverse(pattern.pattern,
                                                   kwargs={'pk': obj.pk})
             except:
-                web_links[pattern.name] = reverse(pattern.pattern)
+                try:
+                    web_links[pattern.name] = reverse(pattern.pattern)
+                except:
+                    pass
         return web_links
 
     @classmethod
