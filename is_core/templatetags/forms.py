@@ -1,10 +1,12 @@
 from django import template
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
-
-from block_snippets.templatetags import SnippetsIncludeNode
 from django.db.models.fields import FieldDoesNotExist
 from django.contrib.admin.util import display_for_value
+from django.utils.html import linebreaks
+from django.utils.safestring import mark_safe
+
+from block_snippets.templatetags import SnippetsIncludeNode
 
 register = template.Library()
 
@@ -100,7 +102,7 @@ def get_model_field_value_and_label(field_name, instance):
         except FieldDoesNotExist:
             label = callable_value.short_description
 
-        return value, label
+        return mark_safe(linebreaks(value)), label
 
 
 @register.filter

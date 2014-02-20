@@ -91,18 +91,35 @@ class InlineFormView(object):
     def form_valid(self, request):
         instances = self.formset.save(commit=False)
         for obj in instances:
-            self.save_model(request, obj)
+            self.save_obj(obj)
         for obj in self.formset.deleted_objects:
-            self.delete_model(request, obj)
+            self.delete_obj(obj)
 
     def get_has_file_field(self):
         return formset_has_file_field(self.formset.form)
 
-    def save_model(self, request, obj):
-        obj.save()
+    def pre_save_obj(self, obj, change):
+        pass
 
-    def delete_model(self, request, obj):
+    def post_save_obj(self, obj, change):
+        pass
+
+    def save_obj(self, obj):
+        change = obj.pk is not None
+        self.pre_save_obj(obj, change)
+        obj.save()
+        self.post_save_obj(obj, change)
+
+    def pre_delete_obj(self, obj):
+        pass
+
+    def post_delete_obj(self, obj):
+        pass
+
+    def delete_obj(self, obj):
+        self.pre_delete_obj(obj)
         obj.delete()
+        self.post_delete_obj(obj)
 
 
 class TabularInlineFormView(InlineFormView):
