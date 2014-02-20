@@ -225,28 +225,19 @@ class RestModelHandler(RestHandler):
     @classmethod
     def _web_links(cls, obj, request):
         web_links = {}
-        for pattern in cls.core.get_list_actions_patterns(obj):
-            try:
-                web_links[pattern.name] = reverse(pattern.pattern,
-                                                  kwargs={'pk': obj.pk})
-            except:
-                try:
-                    web_links[pattern.name] = reverse(pattern.pattern)
-                except:
-                    pass
+        for pattern in cls.core.ui_patterns:
+            url = pattern.get_url_string(obj)
+            if url:
+                web_links[pattern.name] = url
         return web_links
 
     @classmethod
     def _rest_links(cls, obj, request):
         rest_links = {}
-        for pattern in cls.core.get_list_resources_patterns(request.user, obj):
-            try:
-                rest_links[pattern.name] = {'url': reverse(pattern.pattern,
-                                                  kwargs={'pk': obj.pk}),
-                                            'methods': pattern.methods}
-            except:
-                rest_links[pattern.name] = {'url': reverse(pattern.pattern),
-                                            'methods': pattern.methods}
+        for pattern in cls.core.resource_patterns:
+            url = pattern.get_url_string(obj)
+            if url:
+                rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request.user, obj)}
         return rest_links
 
     @classmethod

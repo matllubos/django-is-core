@@ -1,17 +1,18 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import capfirst
 
 from is_core.form import RestModelForm
-from is_core.actions import WebAction, RestAction, WebActionPattern, RestActionPattern
+from is_core.actions import WebAction, RestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsUIMiddleware
 from is_core.utils import list_to_dict, dict_to_list
+from is_core.patterns import UIPattern, RestPattern
 
 
 class ISCore(object):
@@ -24,18 +25,16 @@ class ISCore(object):
     def __init__(self, site_name, menu_parent_groups):
         self.site_name = site_name
         self.menu_parent_groups = menu_parent_groups
-        self.views = self.get_views()
 
-    def get_urlpatterns(self, views):
+    def get_urlpatterns(self, patterns):
         urls = []
-        for key, view_data in views.items():
-            url_pattern, view = view_data[0:2]
-            urls.append(url(url_pattern, view, name=key))
-        urlpatterns = patterns('', *urls)
+        for pattern in patterns:
+            urls.append(pattern.get_url())
+        urlpatterns = django_patterns('', *urls)
         return urlpatterns
 
     def get_urls(self):
-        return self.get_urlpatterns(self.views)
+        return ()
 
     def get_show_in_menu(self, request):
         return self.show_in_menu
@@ -116,6 +115,13 @@ class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
     exclude = ()
     form_class = RestModelForm
 
+    def __init__(self, site_name, menu_parent_groups):
+        super(UIModelISCore, self).__init__(site_name, menu_parent_groups)
+        self.ui_patterns = self.get_view_patterns()
+
+    def get_urls(self):
+        return self.get_urlpatterns(self.ui_patterns)
+
     def get_show_in_menu(self, request):
         return 'list' in self.view_classes and self.show_in_menu and self.has_read_permission(request)
 
@@ -167,21 +173,22 @@ class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
     def get_view_classes(self):
         return self.view_classes.copy()
 
-    def get_views(self):
-        views = super(UIModelISCore, self).get_views()
-
-        for name, view_vals in self.view_classes.items():
-            pattern, view = view_vals
+    def get_view_patterns(self):
+        view_patterns = []
+        for name, view_vals in self.get_view_classes().items():
+            if len(view_vals) == 3:
+                pattern, view, ViewPatternClass = view_vals
+            else:
+                pattern, view = view_vals
+                ViewPatternClass = UIPattern
 
             if view.login_required:
                 view_instance = view.as_wrapped_view(core=self)
             else:
                 view_instance = view.as_view(core=self)
-
-            views['%s-%s' % (name, self.get_menu_group_pattern_name())] = \
-                     (pattern, view_instance)
-
-        return views
+            view_patterns.append(ViewPatternClass('%s-%s' % (name, self.get_menu_group_pattern_name()),
+                                                  self.site_name, pattern, view_instance))
+        return view_patterns
 
     def default_list_actions(self, request):
         self._default_list_actions = []
@@ -214,7 +221,7 @@ class RestModelISCore(ModelISCore):
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
-        self.rest_resources = self.get_rest_resources()
+        self.resource_patterns = self.get_resource_patterns()
 
     def get_rest_list_fields(self):
         return list(self.rest_list_fields)
@@ -237,26 +244,23 @@ class RestModelISCore(ModelISCore):
         return rest_resources
 
     def get_urls(self):
-        urls = self.get_urlpatterns(self.rest_resources)
-        return urls + super(RestModelISCore, self).get_urls()
+        return self.get_urlpatterns(self.resource_patterns)
 
-    def get_list_actions_patterns(self, obj=None):
-        list_actions_patterns = []
-        for key in self.views.keys():
-            list_actions_patterns.append(WebActionPattern(key, self.site_name))
-        return list_actions_patterns
-
-    def get_list_resources_patterns(self, user, obj=None):
-        list_resources_patterns = []
-        for key, resource in self.rest_resources.items():
-            methods = resource[1].handler.get_allowed_methods(user, obj.pk)
-            if len(resource) > 2:
-                methods = set(methods) & set(resource[2])
-            list_resources_patterns.append(RestActionPattern(key, self.site_name, methods))
-        return list_resources_patterns
+    def get_resource_patterns(self):
+        resource = RestModelResource(name='Api%sHandler' % self.get_menu_group_pattern_name(), core=self)
+        resource_patterns = (
+                                RestPattern('api-resource-%s' % self.get_menu_group_pattern_name(),
+                                            self.site_name, r'^/api/(?P<pk>\d+)/?$', resource, ('GET', 'PUT', 'DELETE')),
+                                RestPattern('api-%s' % self.get_menu_group_pattern_name(),
+                                            self.site_name, r'^/api/?$', resource, ('GET', 'POST')),
+                           )
+        return resource_patterns
 
 
 class UIRestModelISCore(UIModelISCore, RestModelISCore):
+
+    def get_urls(self):
+        return self.get_urlpatterns(self.ui_patterns) + self.get_urlpatterns(self.resource_patterns)
 
     def get_rest_list_fields(self):
         rest_list_fields_dict = list_to_dict(self.rest_list_fields)
