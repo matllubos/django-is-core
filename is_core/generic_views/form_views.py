@@ -196,7 +196,7 @@ class DefaultModelFormView(DefaultFormView):
 
         if fieldsets:
             return flatten_fieldsets(fieldsets)
-        return self.fields
+        return self.get_fields()
 
     def get_form_class(self):
         return self.form_class or ModelForm
