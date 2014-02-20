@@ -11,6 +11,7 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
     site_name = None
     menu_groups = None
     login_required = True
+    allowed_snippets = ('content',)
 
     def __init__(self, site_name=None, menu_groups=None):
         super(DefaultViewMixin, self).__init__()
