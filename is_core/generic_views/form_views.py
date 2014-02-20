@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.forms.models import ModelMultipleChoiceField, modelform_factory, ModelForm
+from django.forms.models import modelform_factory, ModelForm
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
@@ -309,12 +309,16 @@ class DefaultModelFormView(DefaultFormView):
         return context_data
 
     @classmethod
-    def has_get_permission(cls, request, core, **kwargs):
+    def has_permission(cls, request, core, **kwargs):
         return True
 
     @classmethod
+    def has_get_permission(cls, request, core, **kwargs):
+        return cls.has_permission(request, core, **kwargs)
+
+    @classmethod
     def has_post_permission(cls, request, core, **kwargs):
-        return True
+        return cls.has_permission(request, core, **kwargs)
 
 
 class DefaultCoreModelFormView(DefaultModelFormView):
