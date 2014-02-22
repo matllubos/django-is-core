@@ -1,7 +1,6 @@
 import re
 
 from django.core.exceptions import ObjectDoesNotExist, FieldError
-from django.core.urlresolvers import reverse
 from django.forms.models import modelform_factory
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.related import ForeignRelatedObjectsDescriptor
@@ -154,7 +153,7 @@ class DataPostprocessor(DataProcessor):
         # TODO: Delete other related objects. This will be more complicated.
         for reverse_related_obj in handler.model.objects.filter(**{related_obj.field.name: self.inst})\
                                     .exclude(pk__in=existing_related):
-            if handler.has_delete_permission(self.request.user, reverse_related_obj.pk):
+            if handler.has_delete_permission(self.request, reverse_related_obj.pk):
                 handler._delete(self.request, reverse_related_obj)
 
         if errors:
@@ -176,19 +175,19 @@ class RestHandler(BaseHandler):
     register = False
 
     @classmethod
-    def has_read_permission(cls, user, pk=None):
+    def has_read_permission(cls, request, pk=None):
         return 'GET' in cls.allowed_methods
 
     @classmethod
-    def has_create_permission(cls, user, pk=None):
+    def has_create_permission(cls, request, pk=None):
         return 'POST' in cls.allowed_methods
 
     @classmethod
-    def has_update_permission(cls, user, pk=None):
+    def has_update_permission(cls, request, pk=None):
         return 'PUT' in cls.allowed_methods
 
     @classmethod
-    def has_delete_permission(cls, user, pk=None):
+    def has_delete_permission(cls, request, pk=None):
         return 'DELETE' in cls.allowed_methods
 
     @classmethod
@@ -363,9 +362,9 @@ class RestModelHandler(RestHandler):
         """
         inst = self._get_instance(request, data)
 
-        if inst and not self.has_update_permission(request.user, inst.pk):
+        if inst and not self.has_update_permission(request, inst.pk):
             return inst
-        elif not inst and not self.has_create_permission(request.user):
+        elif not inst and not self.has_create_permission(request):
             raise NotAllowedException
 
         change = inst and True or False

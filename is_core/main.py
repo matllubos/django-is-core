@@ -10,7 +10,7 @@ from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
-from is_core.auth.main import PermissionsUIMiddleware
+from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
 from is_core.utils import list_to_dict, dict_to_list
 from is_core.patterns import UIPattern, RestPattern
 
@@ -52,7 +52,7 @@ class ISCore(object):
         return '-'.join(self.get_menu_groups())
 
 
-class ModelISCore(ISCore):
+class ModelISCore(PermissionsMixin, ISCore):
     exclude = []
 
     def pre_save_model(self, request, obj, change):
@@ -92,7 +92,7 @@ class ModelISCore(ISCore):
         return self.model._default_manager.get_queryset()
 
 
-class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
+class UIModelISCore(PermissionsUIMixin, ModelISCore):
     view_classes = {
                     'add': (r'^/add/$', AddModelFormView),
                     'edit': (r'^/(?P<pk>\d+)/$', EditModelFormView),
@@ -209,7 +209,7 @@ class UIModelISCore(PermissionsUIMiddleware, ModelISCore):
         return self.api_url_name
 
 
-class RestModelISCore(ModelISCore):
+class RestModelISCore(PermissionsRestMixin, ModelISCore):
     show_in_menu = False
 
     rest_list_fields = ()
@@ -234,7 +234,8 @@ class RestModelISCore(ModelISCore):
 
     def get_rest_resources(self):
         rest_resource = RestModelResource(name='Api%sHandler' %
-                                          ''.join(tuple([capfirst(name) for name in self.get_menu_groups()])), core=self)
+                                          ''.join(tuple([capfirst(name) for name in self.get_menu_groups()])),
+                                          core=self)
         rest_resources = {
                            'api-resource-%s' % self.get_menu_group_pattern_name():
                                 (r'^/api/(?P<pk>\d+)/?$', rest_resource, ('GET', 'PUT', 'DELETE')),

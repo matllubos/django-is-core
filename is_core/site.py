@@ -4,12 +4,19 @@ from django.contrib.auth.decorators import login_required
 from django.utils.datastructures import SortedDict
 from django.template.defaultfilters import lower
 
-from class_based_auth_views.views import LoginView
-
 from is_core.generic_views import HomeView
-from is_core.generic_views.auth_views import LogoutView
 from is_core.utils import str_to_class
 from is_core import config
+from is_core.rest.resource import RestResource
+from is_core.auth_token.auth_handler import AuthHandler
+
+# If is set AUTH_USE_TOKENS to True, django-is-core uses TokenLogin/LogoutView
+if config.AUTH_USE_TOKENS:
+    from auth_token.auth_views import TokenLoginView as LoginView
+    from auth_token.auth_views import TokenLogoutView as LogoutView
+else:
+    from class_based_auth_views.views import LoginView
+    from is_core.generic_views.auth_views import LogoutView
 
 
 sites = {}
@@ -18,10 +25,16 @@ registered_views = []
 
 
 def get_site_by_name(name):
+    """
+    Return site according to name (default is IS)
+    """
     return sites.get(name)
 
 
 def get_model_view(model):
+    """
+    Return core view of given model or None
+    """
     model_label = lower('%s.%s' % (model._meta.app_label, model._meta.object_name))
     return registered_model_views.get(model_label)
 
@@ -85,11 +98,15 @@ class ISSite(object):
                                     # TODO: environment must exist
                                     url(r'^/?$',
                                         login_required(HomeView.as_view(site_name=self.name),
-                                                       login_url='%s:login' % self.name), name="index"),
+                                                       login_url='%s:login' % self.name), name='index'),
                                     url(r'^login/$', LoginView.as_view(form_class=str_to_class(config.AUTH_FORM_CLASS)),
-                                        name="login"),
-                                    url(r'^logout/$', LogoutView.as_view(), name="logout"),
+                                        name='login'),
+                                    url(r'^logout/$', LogoutView.as_view(), name='logout'),
                                )
+
+        if config.AUTH_USE_TOKENS:
+            login_resource = RestResource(handler=AuthHandler, form_class=str_to_class(config.AUTH_FORM_CLASS))
+            urlpatterns += patterns('', url(r'^api/login/$', login_resource, name='api-login'))
 
         self._set_items_urls(self._registry.values(), urlpatterns)
         return urlpatterns

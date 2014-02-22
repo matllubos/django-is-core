@@ -7,6 +7,7 @@ from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 
 from block_snippets.templatetags import SnippetsIncludeNode
+from django.utils.encoding import force_text
 
 register = template.Library()
 
@@ -101,8 +102,7 @@ def get_model_field_value_and_label(field_name, instance):
             label = instance._meta.get_field_by_name(field_name)[0].verbose_name
         except FieldDoesNotExist:
             label = callable_value.short_description
-
-        return mark_safe(linebreaks(value)), label
+        return mark_safe(linebreaks(force_text(value))), label
 
 
 @register.filter
@@ -111,6 +111,7 @@ def get_field(form, field_name):
     if not field:
         instance = form.instance
         value, label = get_model_field_value_and_label(field_name, instance)
+
         return ReadonlyField(label, value or '')
 
     return form[field_name]

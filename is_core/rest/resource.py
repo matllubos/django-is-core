@@ -11,7 +11,8 @@ from piston.utils import MimerDataException, translate_mime, UnsupportedMediaTyp
 
 from emitters import Emitter
 from handler import HeadersResult
-from is_core.utils.models import get_model_field_names
+
+from is_core.rest.auth import RestAuthentication
 
 
 class RestResource(Resource):
@@ -166,6 +167,7 @@ class RestResource(Resource):
 class DynamicRestHandlerResource(RestResource):
 
     def __init__(self, handler_class, name=None, authentication=None, **kwargs):
+        authentication = authentication or RestAuthentication(handler_class.get_permission_validators())
         if name == None:
             name = handler_class.__name__
         handler = type(str(name), (handler_class,), kwargs)

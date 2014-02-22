@@ -24,8 +24,13 @@ class Auth(object):
         if not isinstance(validators, (list, tuple)):
             validators = [validators]
 
+        kwargs = {}
+        if request.kwargs.has_key('pk'):
+            kwargs['pk'] = request.kwargs['pk']
+        kwargs.update(self.kwargs)
+
         for validator in validators:
-            if validator(request, **self.kwargs):
+            if validator(request, **kwargs):
                 return True
         return False
 

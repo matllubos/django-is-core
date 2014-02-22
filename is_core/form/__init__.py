@@ -11,7 +11,7 @@ class AllFieldsUniqueValidationModelForm(forms.ModelForm):
             self._update_errors(e)
 
 
-class RestModelFormMixin(object):
+class RestFormMixin(object):
 
     def is_invalid(self):
         '''
@@ -31,5 +31,5 @@ class RestModelFormMixin(object):
         return False
 
 
-class RestModelForm(RestModelFormMixin, AllFieldsUniqueValidationModelForm):
+class RestModelForm(RestFormMixin, AllFieldsUniqueValidationModelForm):
     pass
