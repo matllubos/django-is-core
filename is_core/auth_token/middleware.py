@@ -29,5 +29,6 @@ class TokenAuthenticationMiddlewares(object):
         # Save the session data and refresh the client cookie.
         # Skip session save for 500 responses, refs #3881.
         if response.status_code != 500 and hasattr(request, 'token') and request.token.is_active:
+            request.token.save()
             response.set_cookie(config.AUTH_COOKIE_NAME, request.token.key)
         return response

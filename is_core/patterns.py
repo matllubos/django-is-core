@@ -15,7 +15,7 @@ class ViewPattern(object):
         return '%s:%s' % (self.site_name, self.name)
 
     def _get_try_kwarg(self, obj):
-        if'(?P<pk>\d+)' in self.url_pattern:
+        if'(?P<pk>[-\w]+)' in self.url_pattern:
             return {'pk': obj.pk}
         return {}
 

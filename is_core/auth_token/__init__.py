@@ -5,6 +5,7 @@ from django.contrib.auth.backends import ModelBackend
 
 from is_core.auth_token.models import Token, AnonymousToken
 from is_core import config
+from django.core.exceptions import ObjectDoesNotExist
 
 
 def login(request, user):
@@ -49,9 +50,12 @@ def get_token(request):
     """
     auth_token = request.META.get(config.AUTH_HEADER_NAME) or request.COOKIES.get(config.AUTH_COOKIE_NAME)
     try:
-        return Token.objects.get(key=auth_token, is_active=True)
-    except:
-        return AnonymousToken()
+        token = Token.objects.get(key=auth_token, is_active=True)
+        if not token.is_expired:
+            return token
+    except ObjectDoesNotExist:
+        pass
+    return AnonymousToken()
 
 
 def get_user(request):

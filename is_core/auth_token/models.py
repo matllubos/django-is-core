@@ -1,11 +1,15 @@
 import binascii
 import os
+from datetime import timedelta
 
 from hashlib import sha1
 
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AnonymousUser
+from django.utils import timezone
+
+from is_core import config
 
 
 # Prior to Django 1.5, the AUTH_USER_MODEL setting does not exist.
@@ -19,6 +23,7 @@ class Token(models.Model):
     key = models.CharField(max_length=40, primary_key=True, null=False, blank=False)
     user = models.ForeignKey(AUTH_USER_MODEL, related_name='auth_token', null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=False, blank=False)
+    last_access = models.DateTimeField(auto_now=True, null=False, blank=False)
     is_active = models.BooleanField(default=True)
     # TODO: It is possiple use https://github.com/selwin/django-user_agents/tree/master/django_user_agents or
     # https://github.com/selwin/python-user-agents for parse
@@ -36,6 +41,10 @@ class Token(models.Model):
         """
         return binascii.hexlify(os.urandom(20))
 
+    @property
+    def is_expired(self):
+        return self.last_access + timedelta(seconds=config.AUTH_TOKEN_EXPIRATION) < timezone.now()
+
     def __unicode__(self):
         return self.key
 
@@ -46,6 +55,7 @@ class AnonymousToken(object):
     creted_at = None
     is_active = False
     user_agent = None
+    is_expired = True
 
     def save(self):
         raise NotImplementedError

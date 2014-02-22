@@ -21,8 +21,7 @@ class AuthHandler(RestHandler):
         form = self.form_class(data=request.data)
 
         errors = form.is_invalid()
-        if not form.is_valid():
-            print form.non_field_errors()
+        if errors:
             return HeadersResult({'errors': errors}, status_code=400)
 
         login(request, form.get_user())

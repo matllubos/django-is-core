@@ -2,7 +2,6 @@ from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from django.template.defaultfilters import capfirst
 
 from is_core.form import RestModelForm
 from is_core.actions import WebAction, RestAction
@@ -95,7 +94,7 @@ class ModelISCore(PermissionsMixin, ISCore):
 class UIModelISCore(PermissionsUIMixin, ModelISCore):
     view_classes = {
                     'add': (r'^/add/$', AddModelFormView),
-                    'edit': (r'^/(?P<pk>\d+)/$', EditModelFormView),
+                    'edit': (r'^/(?P<pk>[-\w]+)/$', EditModelFormView),
                     'list': (r'^/?$', TableView)
                     }
 
@@ -232,18 +231,6 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_rest_obj_class_names(self, request, obj):
         return list(self.rest_obj_class_names)
 
-    def get_rest_resources(self):
-        rest_resource = RestModelResource(name='Api%sHandler' %
-                                          ''.join(tuple([capfirst(name) for name in self.get_menu_groups()])),
-                                          core=self)
-        rest_resources = {
-                           'api-resource-%s' % self.get_menu_group_pattern_name():
-                                (r'^/api/(?P<pk>\d+)/?$', rest_resource, ('GET', 'PUT', 'DELETE')),
-                           'api-%s' % self.get_menu_group_pattern_name():
-                                (r'^/api/?$', rest_resource, ('GET', 'POST'))
-                           }
-        return rest_resources
-
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns)
 
@@ -251,7 +238,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         resource = RestModelResource(name='Api%sHandler' % self.get_menu_group_pattern_name(), core=self)
         resource_patterns = (
                                 RestPattern('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                            self.site_name, r'^/api/(?P<pk>\d+)/?$', resource, ('GET', 'PUT', 'DELETE')),
+                                            self.site_name, r'^/api/(?P<pk>[-\w]+)/?$', resource, ('GET', 'PUT', 'DELETE')),
                                 RestPattern('api-%s' % self.get_menu_group_pattern_name(),
                                             self.site_name, r'^/api/?$', resource, ('GET', 'POST')),
                            )
