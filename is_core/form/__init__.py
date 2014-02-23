@@ -23,7 +23,7 @@ class RestFormMixin(object):
 
         non_field_errors = self.non_field_errors()
         if non_field_errors:
-            errors = {'non-field-errors': non_field_errors}
+            errors = errors['non-field-errors'] = non_field_errors
 
         if errors:
             return errors
