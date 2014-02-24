@@ -1,6 +1,4 @@
 from django.utils.encoding import force_text
-from django.core.urlresolvers import reverse
-
 
 class Action(dict):
 

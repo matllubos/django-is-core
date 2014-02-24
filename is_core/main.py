@@ -92,7 +92,7 @@ class ModelISCore(PermissionsMixin, ISCore):
         return self.model._default_manager.get_queryset()
 
     def get_list_actions(self, request, obj):
-        return self.list_actions
+        return list(self.list_actions)
 
 
 class UIModelISCore(PermissionsUIMixin, ModelISCore):
@@ -241,7 +241,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return resource_patterns
 
     def get_list_actions(self, request, obj):
-        list_actions = super(UIModelISCore, self).get_list_actions(request, obj)
+        list_actions = super(RestModelISCore, self).get_list_actions(request, obj)
         if self.has_delete_permission(request, obj):
             list_actions.append(RestAction('api-resource-%s' % self.get_menu_group_pattern_name(),
                                                          _('Delete') , 'DELETE'))

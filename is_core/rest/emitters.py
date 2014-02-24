@@ -4,6 +4,7 @@ import decimal, re, inspect
 import copy
 
 import json
+from django.utils.functional import Promise
 
 try:
     # yaml isn't standard with python.  It shouldn't be required if it
@@ -96,7 +97,7 @@ class Emitter(object):
         if isinstance(thing, bool):
             thing = thing and _('Yes') or _('No')
 
-        return force_text(thing)
+        return force_text(thing, strings_only=True)
 
     def construct(self):
         """
