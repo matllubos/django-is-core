@@ -174,6 +174,7 @@ class RestHandler(BaseHandler):
 
     register = False
     extra_fields = ()
+    login_required = True
 
     @classmethod
     def has_read_permission(cls, request, pk=None):

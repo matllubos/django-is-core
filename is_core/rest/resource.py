@@ -115,7 +115,7 @@ class RestResource(Resource):
         except HttpStatusCode, e:
             return e.response
 
-    def get_headers(self, request, http_headers):
+    def get_headers(self, request, handler, http_headers):
         return http_headers
 
     def get_fields(self, request, handler):
@@ -180,10 +180,11 @@ class DynamicRestHandlerResource(RestResource):
         if name == None:
             name = handler_class.__name__
         handler = type(str(name), (handler_class,), kwargs)
-        if config.AUTH_USE_TOKENS:
-            authentication = authentication or RestTokenAuthentication(handler.get_permission_validators())
-        else:
-            authentication = authentication or RestAuthentication(handler.get_permission_validators())
+        if handler.login_required:
+            if config.AUTH_USE_TOKENS:
+                authentication = authentication or RestTokenAuthentication(handler.get_permission_validators())
+            else:
+                authentication = authentication or RestAuthentication(handler.get_permission_validators())
         super(DynamicRestHandlerResource, self).__init__(handler, authentication=authentication)
 
 
