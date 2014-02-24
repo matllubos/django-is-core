@@ -12,6 +12,7 @@ from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
 from is_core.utils import list_to_dict, dict_to_list
 from is_core.patterns import UIPattern, RestPattern
+from django.utils.datastructures import SortedDict
 
 
 class ISCore(object):
@@ -96,11 +97,11 @@ class ModelISCore(PermissionsMixin, ISCore):
 
 
 class UIModelISCore(PermissionsUIMixin, ModelISCore):
-    view_classes = {
-                    'add': (r'^/add/$', AddModelFormView),
-                    'edit': (r'^/(?P<pk>[-\w]+)/$', EditModelFormView),
-                    'list': (r'^/?$', TableView)
-                    }
+    view_classes = SortedDict((
+                        ('add', (r'^/add/$', AddModelFormView)),
+                        ('edit', (r'^/(?P<pk>[-\w]+)/$', EditModelFormView)),
+                        ('list', (r'^/?$', TableView)),
+                    ))
 
     show_in_menu = True
     api_url_name = None
