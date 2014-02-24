@@ -29,6 +29,7 @@ class Token(models.Model):
     # https://github.com/selwin/python-user-agents for parse
     # Limited size to 256
     user_agent = models.CharField(max_length=256, null=True, blank=True)
+    is_from_header = False
 
     def save(self, *args, **kwargs):
         if not self.key:
@@ -56,6 +57,7 @@ class AnonymousToken(object):
     is_active = False
     user_agent = None
     is_expired = True
+    is_from_header = False
 
     def save(self):
         raise NotImplementedError

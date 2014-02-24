@@ -14,6 +14,8 @@ from handler import HeadersResult
 
 from is_core.rest.auth import RestAuthentication
 from is_core.utils import list_to_dict, dict_to_list, flat_list
+from is_core import config
+from is_core.auth_token.wrappers import RestTokenAuthentication
 
 
 class RestResource(Resource):
@@ -178,7 +180,10 @@ class DynamicRestHandlerResource(RestResource):
         if name == None:
             name = handler_class.__name__
         handler = type(str(name), (handler_class,), kwargs)
-        authentication = authentication or RestAuthentication(handler.get_permission_validators())
+        if config.AUTH_USE_TOKENS:
+            authentication = authentication or RestTokenAuthentication(handler.get_permission_validators())
+        else:
+            authentication = authentication or RestAuthentication(handler.get_permission_validators())
         super(DynamicRestHandlerResource, self).__init__(handler, authentication=authentication)
 
 

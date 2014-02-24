@@ -52,6 +52,8 @@ def get_token(request):
     try:
         token = Token.objects.get(key=auth_token, is_active=True)
         if not token.is_expired:
+            if auth_token == request.META.get(config.AUTH_HEADER_NAME):
+                token.is_from_header = True
             return token
     except ObjectDoesNotExist:
         pass
