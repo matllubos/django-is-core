@@ -432,8 +432,9 @@ class EditModelFormView(DefaultCoreModelFormView):
 
     @classmethod
     def has_get_permission(cls, request, core, **kwargs):
-        return core.has_update_permission(request) or core.has_read_permission(request)
+        return core.has_ui_update_permission(request, request.kwargs.get('pk')) \
+                or core.has_ui_read_permission(request, request.kwargs.get('pk'))
 
     @classmethod
     def has_post_permission(cls, request, core, **kwargs):
-        return core.has_update_permission(request)
+        return core.has_ui_update_permission(request, request.kwargs.get('pk'))
