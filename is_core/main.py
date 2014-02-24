@@ -53,6 +53,7 @@ class ISCore(object):
 
 class ModelISCore(PermissionsMixin, ISCore):
     exclude = []
+    list_actions = ()
 
     def pre_save_model(self, request, obj, change):
         pass
@@ -90,6 +91,9 @@ class ModelISCore(PermissionsMixin, ISCore):
     def get_queryset(self, request):
         return self.model._default_manager.get_queryset()
 
+    def get_list_actions(self, request, obj):
+        return self.list_actions
+
 
 class UIModelISCore(PermissionsUIMixin, ModelISCore):
     view_classes = {
@@ -104,7 +108,6 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
     # list view params
     list_display = ()
     default_list_filter = {}
-    list_actions = ()
 
     # add/edit view params
     fieldsets = ()
@@ -189,19 +192,12 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
                                                   self.site_name, pattern, view_instance))
         return view_patterns
 
-    def default_list_actions(self, request):
-        self._default_list_actions = []
-        self._default_list_actions.append(WebAction('edit-%s' % self.get_menu_group_pattern_name(),
-                                                            _('Edit'), 'edit'))
-        if self.has_delete_permission(request):
-            self._default_list_actions.append(RestAction('delete', _('Delete')))
-        return self._default_list_actions
-
     def get_list_display(self):
         return self.list_display
 
-    def get_list_actions(self, request):
-        list_actions = list(self.list_actions) + list(self.default_list_actions(request))
+    def get_list_actions(self, request, obj):
+        list_actions = super(UIModelISCore, self).get_list_actions(request, obj)
+        list_actions.append(WebAction('edit-%s' % self.get_menu_group_pattern_name(), _('Edit'), 'edit'))
         return list_actions
 
     def gel_api_url_name(self):
@@ -243,6 +239,13 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
                                             self.site_name, r'^/api/?$', resource, ('GET', 'POST')),
                            )
         return resource_patterns
+
+    def get_list_actions(self, request, obj):
+        list_actions = super(UIModelISCore, self).get_list_actions(request, obj)
+        if self.has_delete_permission(request, obj):
+            list_actions.append(RestAction('api-resource-%s' % self.get_menu_group_pattern_name(),
+                                                         _('Delete') , 'DELETE'))
+        return list_actions
 
 
 class UIRestModelISCore(UIModelISCore, RestModelISCore):

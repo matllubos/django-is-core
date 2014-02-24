@@ -13,6 +13,7 @@ from emitters import Emitter
 from handler import HeadersResult
 
 from is_core.rest.auth import RestAuthentication
+from is_core.utils import list_to_dict, dict_to_list, flat_list
 
 
 class RestResource(Resource):
@@ -63,7 +64,7 @@ class RestResource(Resource):
 
         try:
             emitter, ct = Emitter.get(em_format)
-            fields = handler.fields
+            fields = self.get_fields(request, handler)
 
             # Lubos: I turned list_fields for obj_fields, because when emmiter serialize foreign key objects it should
             # use list_fields. But standard django piston use fields
@@ -100,16 +101,23 @@ class RestResource(Resource):
 
             if not isinstance(stream, HttpResponse):
                 resp = HttpResponse(stream, content_type=ct, status=status_code)
-                for header, value in http_headers.items():
-                    resp[header] = value
             else:
                 resp = stream
+
+            for header, value in self.get_headers(request, handler, http_headers).items():
+                resp[header] = value
 
             resp.streaming = self.stream
 
             return resp
         except HttpStatusCode, e:
             return e.response
+
+    def get_headers(self, request, http_headers):
+        return http_headers
+
+    def get_fields(self, request, handler):
+        return handler.fields
 
     def get_result(self, request, handler, rm, *args, **kwargs):
         """
@@ -167,10 +175,10 @@ class RestResource(Resource):
 class DynamicRestHandlerResource(RestResource):
 
     def __init__(self, handler_class, name=None, authentication=None, **kwargs):
-        authentication = authentication or RestAuthentication(handler_class.get_permission_validators())
         if name == None:
             name = handler_class.__name__
         handler = type(str(name), (handler_class,), kwargs)
+        authentication = authentication or RestAuthentication(handler.get_permission_validators())
         super(DynamicRestHandlerResource, self).__init__(handler, authentication=authentication)
 
 
@@ -189,16 +197,46 @@ class RestModelResource(DynamicRestHandlerResource):
         exclude = exclude or core.exclude
         handler_class = handler_class or core.rest_handler
 
-
-        list_fields, obj_fields = self.get_fields(obj_fields, list_fields, model, core)
+        list_fields, obj_fields, extra_fields = self.get_handler_fields(obj_fields, list_fields, model, core)
         kwargs = {
-                  'model': model, 'fields': list_fields, 'obj_fields': obj_fields, 'form_class': form_class,
+                  'model': model, 'fields': list_fields, 'obj_fields': obj_fields,
+                  'extra_fields': extra_fields, 'form_class': form_class,
                   'site_name': site_name, 'menu_group': menu_group, 'menu_subgroup': menu_subgroup,
                   'core': core, 'allowed_methods': allowed_methods, 'exclude': exclude
                   }
         super(RestModelResource, self).__init__(handler_class, name, **kwargs)
 
-    def get_fields(self, obj_fields, list_fields, model, core):
+    # TODO: maybe cache dict fields
+    def get_fields(self, request, handler):
+        allowed_fields = {}
+        handler_fields_dict = list_to_dict(handler.fields)
+        allowed_fields.update(handler_fields_dict)
+        allowed_fields.update(list_to_dict(handler.extra_fields))
+
+        fields = {}
+
+        x_fields = request.META.get('HTTP_X_FIELDS', '')
+        for field in x_fields.split(','):
+            if field in allowed_fields:
+                fields[field] = allowed_fields.get(field)
+        if fields:
+            return fields
+
+        fields = handler_fields_dict
+        x_extra_fields = request.META.get('HTTP_X_EXTRA_FIELDS', '')
+        for field in x_extra_fields.split(','):
+            if field in allowed_fields:
+                fields[field] = allowed_fields.get(field)
+
+        return dict_to_list(fields)
+
+    def get_headers(self, request, handler, default_http_headers):
+        headers = default_http_headers.copy()
+        headers['X-Fields-Options'] = ','.join(flat_list(handler.fields))
+        headers['X-Extra-Fields-Options'] = ','.join(flat_list(handler.extra_fields))
+        return headers
+
+    def get_handler_fields(self, obj_fields, list_fields, model, core):
         from is_core.main import UIRestModelISCore
 
         obj_fields = list(obj_fields)
@@ -211,13 +249,11 @@ class RestModelResource(DynamicRestHandlerResource):
             obj_fields += list_fields
         fields = list(list_fields)
 
-        for default_field in ['id', '_rest_links', '_obj_name']:
-            fields.append(default_field)
-            obj_fields.append(default_field)
+        fields.append('id')
+        obj_fields.append('id')
 
+        extra_fields = ('_obj_name', '_rest_links', '_actions', '_class_names')
         if isinstance(core, UIRestModelISCore):
-            for special_field in ['_web_links', '_class_names']:
-                fields.append(special_field)
-                obj_fields.append(special_field)
+            extra_fields += ('_web_links',)
 
-        return fields, obj_fields
+        return fields, obj_fields, extra_fields

@@ -114,7 +114,6 @@ class TableView(DefaultCoreViewMixin, TemplateView):
                                 'verbose_name':  self.core.verbose_name_plural,
                                 'view_type': self.view_type,
                                 'list_display': self.get_list_display(),
-                                'list_action': self.core.get_list_actions(self.request),
                                 'query_string_filter': self.get_query_string_filter(),
                                 'menu_group_pattern_name': self.core.get_menu_group_pattern_name(),
                             })

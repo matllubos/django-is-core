@@ -19,5 +19,8 @@ class WebAction(Action):
 
 class RestAction(Action):
 
-    def __init__(self, name, verbose_name, class_name=None):
+    def __init__(self, name, verbose_name, method, data=None, class_name=None):
         super(RestAction, self).__init__(name, verbose_name, 'rest', class_name)
+        self['method'] = method
+        if data:
+            self['data'] = data

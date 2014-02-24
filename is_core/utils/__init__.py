@@ -50,3 +50,13 @@ def dict_to_list(dict_obj):
         else:
             list_obj.append(key)
     return tuple(list_obj)
+
+
+def flat_list(list_obj):
+    flat_list_obj = []
+    for val in list_obj:
+        if isinstance(val, (list, tuple)):
+            flat_list_obj.append(val[0])
+        else:
+            flat_list_obj.append(val)
+    return flat_list_obj

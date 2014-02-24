@@ -173,6 +173,7 @@ class DataPostprocessor(DataProcessor):
 class RestHandler(BaseHandler):
 
     register = False
+    extra_fields = ()
 
     @classmethod
     def has_read_permission(cls, request, pk=None):
@@ -213,7 +214,30 @@ class RestHandler(BaseHandler):
         return allowed_methods
 
 
-class RestModelHandler(RestHandler):
+class RestCoreHandler(RestHandler):
+
+    @classmethod
+    def has_read_permission(cls, request, pk=None):
+        return super(RestCoreHandler, cls).has_read_permission(request, pk) \
+                and cls.core.has_rest_read_permission(request, pk)
+
+    @classmethod
+    def has_create_permission(cls, request, pk=None):
+        return super(RestCoreHandler, cls).has_create_permission(request) \
+                and cls.core.has_rest_create_permission(request, pk)
+
+    @classmethod
+    def has_update_permission(cls, request, pk=None):
+        return super(RestCoreHandler, cls).has_update_permission(request, pk) \
+                and cls.core.has_rest_update_permission(request, pk)
+
+    @classmethod
+    def has_delete_permission(cls, request, pk=None):
+        return super(RestCoreHandler, cls).has_delete_permission(request, pk) \
+                and cls.core.has_rest_delete_permission(request, pk)
+
+
+class RestModelHandler(RestCoreHandler):
 
     register = True
 
@@ -236,8 +260,12 @@ class RestModelHandler(RestHandler):
         for pattern in cls.core.resource_patterns:
             url = pattern.get_url_string(obj)
             if url:
-                rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request.user, obj)}
+                rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}
         return rest_links
+
+    @classmethod
+    def _actions(cls, obj, request):
+        return cls.core.get_list_actions(request, obj)
 
     @classmethod
     def _class_names(cls, obj, request):

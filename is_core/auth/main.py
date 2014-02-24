@@ -9,7 +9,7 @@ class PermissionsMixin(object):
     def has_read_permission(self, request, pk=None):
         return True
 
-    def has_create_permission(self, request):
+    def has_create_permission(self, request, pk=None):
         return True
 
     def has_update_permission(self, request, pk=None):
@@ -30,8 +30,8 @@ class PermissionsUIMixin(PermissionsMixin):
     def has_ui_read_permission(self, request, pk=None):
         return self.has_read_permission(request, pk)
 
-    def has_ui_create_permission(self, request):
-        return self.has_create_permission(request)
+    def has_ui_create_permission(self, request, pk=None):
+        return self.has_create_permission(request, pk)
 
     def has_ui_update_permission(self, request, pk=None):
         return self.has_update_permission(request, pk)
@@ -48,8 +48,8 @@ class PermissionsRestMixin(PermissionsMixin):
     def has_rest_read_permission(self, request, pk=None):
         return self.has_read_permission(request, pk)
 
-    def has_rest_create_permission(self, request):
-        return self.has_create_permission(request)
+    def has_rest_create_permission(self, request, pk=None):
+        return self.has_create_permission(request, pk)
 
     def has_rest_update_permission(self, request, pk=None):
         return self.has_update_permission(request, pk)
