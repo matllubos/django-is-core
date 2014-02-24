@@ -111,7 +111,7 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
 
     # add/edit view params
     fieldsets = ()
-    fields = ()
+    fields = None
     readonly_fields = ()
     inline_form_views = ()
     exclude = ()
@@ -251,7 +251,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 class UIRestModelISCore(UIModelISCore, RestModelISCore):
 
     def get_urls(self):
-        return self.get_urlpatterns(self.ui_patterns) + self.get_urlpatterns(self.resource_patterns)
+        return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
 
     def get_rest_list_fields(self):
         rest_list_fields_dict = list_to_dict(self.rest_list_fields)
