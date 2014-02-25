@@ -42,6 +42,9 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
             field = self.form_field(field)
         return form
 
+    def get_form_action(self):
+        return self.request.get_full_path()
+
     def get_readonly_fields(self):
         return self.readonly_fields
 
@@ -87,7 +90,8 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
                                 'form_template': self.form_template,
                                 'form_name': '-'.join((self.view_type, self.site_name,
                                                        self.core.get_menu_group_pattern_name(), 'form',)).lower(),
-                                'has_file_field': self.get_has_file_field(form, **kwargs)
+                                'has_file_field': self.get_has_file_field(form, **kwargs),
+                                'action': self.get_form_action(),
                              })
         return context_data
 
@@ -269,20 +273,24 @@ class DefaultModelFormView(DefaultFormView):
         kwargs['instance'] = self.get_obj()
         return kwargs
 
+    def save_form(self, form, inline_form_views):
+        obj = form.save(commit=False)
+        change = obj.pk is not None
+
+        self.pre_save_obj(obj, change)
+        self.save_obj(obj, form)
+        if hasattr(form, 'save_m2m'):
+            form.save_m2m()
+
+        for inline_form_view in inline_form_views.values():
+            inline_form_view.form_valid(self.request)
+
+        self.post_save_obj(obj, change)
+        return obj
+
     def form_valid(self, form, inline_form_views, msg=None):
         try:
-            obj = form.save(commit=False)
-            change = obj.pk is not None
-
-            self.pre_save_obj(obj, change)
-            self.save_obj(obj, form)
-            if hasattr(form, 'save_m2m'):
-                form.save_m2m()
-
-            for inline_form_view in inline_form_views.values():
-                inline_form_view.form_valid(self.request)
-
-            self.post_save_obj(obj, change)
+            obj = self.save_form(form, inline_form_views)
         except SaveObjectException as ex:
             return self.form_invalid(form, inline_form_views, force_text(ex))
 
