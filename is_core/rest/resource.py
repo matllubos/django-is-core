@@ -64,14 +64,15 @@ class RestResource(Resource):
 
         kwargs.pop('emitter_format', None)
 
+        if isinstance(result, (list, tuple, QuerySet)):
+            concrete_object = False
+        else:
+            concrete_object = True
+
         try:
             emitter, ct = Emitter.get(em_format)
-            fields = self.get_fields(request, handler)
 
-            # Lubos: I turned list_fields for obj_fields, because when emmiter serialize foreign key objects it should
-            # use list_fields. But standard django piston use fields
-            if hasattr(handler, 'obj_fields') and not isinstance(result, (list, tuple, QuerySet)):
-                fields = handler.obj_fields
+            fields = self.get_fields(request, handler, concrete_object)
         except ValueError:
             result = rc.BAD_REQUEST
             result.content = "Invalid output format specified '%s'." % em_format
@@ -106,7 +107,7 @@ class RestResource(Resource):
             else:
                 resp = stream
 
-            for header, value in self.get_headers(request, handler, http_headers).items():
+            for header, value in self.get_headers(request, handler, http_headers, concrete_object).items():
                 resp[header] = value
 
             resp.streaming = self.stream
@@ -115,10 +116,12 @@ class RestResource(Resource):
         except HttpStatusCode, e:
             return e.response
 
-    def get_headers(self, request, handler, http_headers):
+    def get_headers(self, request, handler, http_headers, concrete_obj):
         return http_headers
 
-    def get_fields(self, request, handler):
+    def get_fields(self, request, handler, concrete_obj):
+        if concrete_obj and hasattr(handler, 'obj_fields'):
+            return handler.obj_fields
         return handler.fields
 
     def get_result(self, request, handler, rm, *args, **kwargs):
@@ -213,10 +216,11 @@ class RestModelResource(DynamicRestHandlerResource):
         super(RestModelResource, self).__init__(handler_class, name, **kwargs)
 
     # TODO: maybe cache dict fields
-    def get_fields(self, request, handler):
+    def get_fields(self, request, handler, concrete_obj):
+        handler_fields_dict = list_to_dict(super(RestModelResource, self).get_fields(request, handler, concrete_obj))
+
         allowed_fields = {}
-        handler_fields_dict = list_to_dict(handler.fields)
-        allowed_fields.update(handler_fields_dict)
+        allowed_fields.update(list_to_dict(handler.fields))
         allowed_fields.update(list_to_dict(handler.extra_fields))
 
         fields = {}
@@ -236,9 +240,10 @@ class RestModelResource(DynamicRestHandlerResource):
 
         return dict_to_list(fields)
 
-    def get_headers(self, request, handler, default_http_headers):
+    def get_headers(self, request, handler, default_http_headers, concrete_obj):
         headers = default_http_headers.copy()
-        headers['X-Fields-Options'] = ','.join(flat_list(handler.fields))
+        headers['X-Fields-Options'] = ','.join(flat_list(super(RestModelResource, self).get_fields(request, handler,
+                                                                                                   concrete_obj)))
         headers['X-Extra-Fields-Options'] = ','.join(flat_list(handler.extra_fields))
         return headers
 

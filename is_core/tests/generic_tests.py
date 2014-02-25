@@ -42,14 +42,14 @@ class TestSiteAvailability(ModelViewSeleniumTestCaseMiddleware, AsUserTestCase, 
         for model_view in self.get_model_main_views():
             if self.view_name(model_view) not in self.list_disabled_views:
                 url = self.list_url(model_view.site_name, model_view.get_menu_groups())
-                self.assert_http_ok(self.get(url))
+                self.assert_http_ok(self.get(url), '%s should return 200' % url)
 
     def test_should_return_right_add_page_for_all_model_view(self):
 
         for model_view in self.get_model_main_views():
             if self.view_name(model_view) not in self.add_disabled_views:
                 url = self.add_url(model_view.site_name, model_view.get_menu_groups())
-                self.assert_http_ok(self.get(url))
+                self.assert_http_ok(self.get(url), '%s should return 200' % url)
 
     def test_should_return_right_edit_page_for_all_model_view(self):
 
@@ -59,4 +59,4 @@ class TestSiteAvailability(ModelViewSeleniumTestCaseMiddleware, AsUserTestCase, 
                 if obj_list:
                     obj = obj_list[0]
                     url = self.edit_url(model_view.site_name, model_view.get_menu_groups(), obj)
-                    self.assert_http_ok(self.get(url))
+                    self.assert_http_ok(self.get(url), '%s should return 200' % url)
