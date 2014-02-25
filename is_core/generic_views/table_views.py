@@ -35,7 +35,7 @@ class Filter(object):
 
     def get_widget(self):
         if isinstance(self.field, BooleanField):
-            return forms.Select(choices=((None, '-----'), (1, _('Yes')), (0, _('No'))))
+            return forms.Select(choices=(('', '-----'), (1, _('Yes')), (0, _('No'))))
         elif isinstance(self.field, TextField):
             return forms.TextInput()
         elif self.field.formfield():
