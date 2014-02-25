@@ -5,6 +5,7 @@ import copy
 
 import json
 from django.utils.functional import Promise
+from django.db.models.fields.files import FileField
 
 try:
     # yaml isn't standard with python.  It shouldn't be required if it
@@ -175,7 +176,12 @@ class Emitter(object):
                     if f.choices:
                         return getattr(data, 'get_%s_display' % f.attname)()
 
-                    return getattr(data, f.attname)
+                    val = getattr(data, f.attname)
+
+                    if isinstance(f, FileField) and val:
+                        val = val.url
+
+                    return val
 
                 if not fields and handler:
                     fields = getattr(handler, 'fields')
