@@ -249,7 +249,9 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return list_actions
 
 
-class UIRestModelISCore(UIModelISCore, RestModelISCore):
+class UIRestModelISCore(RestModelISCore, UIModelISCore):
+
+    show_in_menu = True
 
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
