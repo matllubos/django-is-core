@@ -31,13 +31,13 @@ setup(
         'django>=1.6',
         'django-class-based-auth-views>=0.2',
         'django-piston==0.3.3',
-        'germanium==0.0.1',
+        'germanium==0.0.2',
         'django-block-snippets==0.0.1',
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/master#egg=django-piston-0.3.3',
         'https://github.com/matllubos/django-block-snippets/tarball/next#egg=django-block-snippets-0.0.1',
-        'https://github.com/LukasRychtecky/germanium/tarball/next#egg=germanium-0.0.1',
+        'https://github.com/LukasRychtecky/germanium/tarball/0.0.2#egg=germanium-0.0.2',
     ],
     zip_safe=False
 )
