@@ -2,6 +2,7 @@ from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
+from django.utils.datastructures import SortedDict
 
 from is_core.form import RestModelForm
 from is_core.actions import WebAction, RestAction
@@ -12,7 +13,6 @@ from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
 from is_core.utils import list_to_dict, dict_to_list
 from is_core.patterns import UIPattern, RestPattern
-from django.utils.datastructures import SortedDict
 
 
 class ISCore(object):
@@ -249,7 +249,8 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return list_actions
 
 
-class UIRestModelISCore(UIModelISCore, RestModelISCore):
+class UIRestModelISCore(RestModelISCore, UIModelISCore):
+    show_in_menu = True
 
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
