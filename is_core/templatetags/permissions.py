@@ -27,7 +27,7 @@ class PermissionNode(Node):
 
         if permissions.permissions_validators.has_key(perm_name):
             request = context.get('request')
-            if permissions.permissions_validators.get(perm_name)(request.user, request.account_pk, request.obj_pk):
+            if permissions.permissions_validators.get(perm_name)(request):
                 return self.nodelist.render(context)
         return ''
 
