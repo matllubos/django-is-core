@@ -21,6 +21,13 @@
 				{% endif %}
 			{% endblock %}
 			{% block content %}{% endblock %}
+			{% block footer %}
+			<footer>
+				<div class="pull-right">
+					<span>{{ PROJECT_VERBOSE }} &copy; {% now "Y" %} (v {{ PROJECT_VERSION }})</span>
+				</div>
+			</footer>
+			{% endblock %}
 		{% endblock %}
 	</body>
 </html>
