@@ -7,6 +7,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.shortcuts import get_object_or_404
+from django.contrib.messages.api import get_messages
 
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
@@ -28,6 +29,14 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         super(DefaultFormView, self).__init__(core, site_name, menu_groups, model)
         self.form_class = form_class or self.form_class
         self.readonly_fields = readonly_fields or self.readonly_fields
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.has_snippet():
+            extra_content = response_kwargs['extra_content'] = response_kwargs.get('extra_content', {})
+            extra_content_messages = extra_content['messages'] = {}
+            for message in get_messages(self.request):
+                extra_content_messages[message.tags] = force_text(message)
+        return super(DefaultFormView, self).render_to_response(context, **response_kwargs)
 
     def get_success_url(self, obj):
         return ''
@@ -82,14 +91,20 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         messages.error(self.request, msg)
         return self.render_to_response(self.get_context_data(form=form))
 
+    def get_form_class_names(self):
+        class_names = ['-'.join((self.view_type, self.site_name,
+                                 self.core.get_menu_group_pattern_name(), 'form',)).lower()]
+        if self.has_snippet():
+            class_names.append('ajax')
+        return class_names
+
     def get_context_data(self, form=None, **kwargs):
         context_data = super(DefaultFormView, self).get_context_data(form=form, **kwargs)
         context_data.update({
                                 'view_type': self.view_type,
                                 'fieldsets': self.generate_fieldsets(),
                                 'form_template': self.form_template,
-                                'form_name': '-'.join((self.view_type, self.site_name,
-                                                       self.core.get_menu_group_pattern_name(), 'form',)).lower(),
+                                'form_class_names': self.get_form_class_names(),
                                 'has_file_field': self.get_has_file_field(form, **kwargs),
                                 'action': self.get_form_action(),
                              })
@@ -331,6 +346,8 @@ class DefaultModelFormView(DefaultFormView):
 
 class DefaultCoreModelFormView(DefaultModelFormView):
 
+    show_save_and_continue = True
+
     def pre_save_obj(self, obj, change):
         self.core.pre_save_model(self.request, obj, change)
 
@@ -362,10 +379,14 @@ class DefaultCoreModelFormView(DefaultModelFormView):
         return self.form_class or self.core.get_form_class(self.request, self.get_obj(True))
 
     def get_cancel_url(self):
-        if 'list' in self.core.view_classes and not self.is_popup():
+        if 'list' in self.core.view_classes and not self.is_popup() and not self.has_snippet():
             info = self.site_name, self.core.get_menu_group_pattern_name()
             return reverse('%s:list-%s' % info)
         return None
+
+    def has_save_and_continue_button(self):
+        return 'list' in self.core.view_classes and not self.is_popup() and not self.has_snippet() \
+                and self.show_save_and_continue
 
     def get_success_url(self, obj):
         info = self.site_name, self.core.get_menu_group_pattern_name()
@@ -380,7 +401,7 @@ class DefaultCoreModelFormView(DefaultModelFormView):
                                                                               inline_form_views=inline_form_views,
                                                                               **kwargs)
         context_data.update({
-                                'show_save_and_continue': 'list' in self.core.view_classes and not self.is_popup()
+                                'show_save_and_continue': self.has_save_and_continue_button()
                              })
         return context_data
 

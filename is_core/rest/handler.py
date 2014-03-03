@@ -401,11 +401,11 @@ class RestModelHandler(RestCoreHandler):
         if not inst and 'POST' not in self.allowed_methods:
             raise ResourceNotFoundException
 
-        form_fields = self.get_form(data=data).fields
+        form_fields = self.get_form(data=data, initial={'_user': request.user}).fields
         preprocesor = DataPreprocessor(request, self.model, form_fields, inst)
         data = preprocesor.process_data(data)
 
-        form = self.get_form(inst=inst, data=data)
+        form = self.get_form(inst=inst, data=data, initial={'_user': request.user})
         errors = form.is_invalid()
         if errors:
             raise DataInvalidException(errors)

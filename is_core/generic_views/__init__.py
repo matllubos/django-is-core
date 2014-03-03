@@ -12,6 +12,7 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
     menu_groups = None
     login_required = True
     allowed_snippets = ('content',)
+    view_name = None
 
     def __init__(self, site_name=None, menu_groups=None):
         super(DefaultViewMixin, self).__init__()
@@ -26,7 +27,8 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
         extra_context_data = {
                                 'site_name': self.site_name,
                                 'active_menu_groups': self.menu_groups,
-                                'title': self.get_title()
+                                'title': self.get_title(),
+                                'view_name': self.view_name
                               }
         extra_context_data.update(context_data)
         return extra_context_data
@@ -53,6 +55,7 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
 
 class HomeView(DefaultViewMixin, TemplateView):
     template_name = 'home.html'
+    view_name = 'home'
 
     def get_title(self):
         return _('Home')
@@ -62,6 +65,7 @@ class DefaultCoreViewMixin(DefaultViewMixin):
 
     core = None
     model = None
+    view_name = None
 
     def __init__(self, core, site_name=None, menu_groups=None, model=None):
         self.core = core
@@ -72,6 +76,10 @@ class DefaultCoreViewMixin(DefaultViewMixin):
 
     def get_title(self):
         return self.model._meta.verbose_name
+
+    @property
+    def view_name(self):
+        return '%s-%s' % (self.view_type, '-'.join(self.menu_groups))
 
     def get_permissions(self):
         return {

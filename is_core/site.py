@@ -10,14 +10,6 @@ from is_core import config
 from is_core.rest.resource import RestResource
 from is_core.auth_token.auth_handler import AuthHandler
 
-# If is set AUTH_USE_TOKENS to True, django-is-core uses TokenLogin/LogoutView
-if config.AUTH_USE_TOKENS:
-    from auth_token.auth_views import TokenLoginView as LoginView
-    from auth_token.auth_views import TokenLogoutView as LogoutView
-else:
-    from class_based_auth_views.views import LoginView
-    from is_core.generic_views.auth_views import LogoutView
-
 
 sites = {}
 registered_model_views = {}
@@ -94,6 +86,9 @@ class ISSite(object):
                 )
 
     def get_urls(self):
+        LoginView = str_to_class(config.AUTH_LOGIN_VIEW)
+        LogoutView = str_to_class(config.AUTH_LOGOUT_VIEW)
+
         urlpatterns = patterns('',
                                     # TODO: environment must exist
                                     url(r'^/?$',
