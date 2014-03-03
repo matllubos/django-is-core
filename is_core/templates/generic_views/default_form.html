@@ -4,7 +4,7 @@
 {% block content %}
 	{% block above-form %}{% endblock %}
 	{% block form %}
-		{% form_renderer form fieldsets=fieldsets template=form_template class_attr=form_name action=action %}
+		{% form_renderer form fieldsets=fieldsets template=form_template class_attr=form_class_names action=action %}
 	{% endblock %}
 	{% block below-form %}{% endblock %}
 {% endblock %}
