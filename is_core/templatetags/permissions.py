@@ -12,6 +12,7 @@ class Permissions(object):
 permissions = Permissions()
 
 
+# TODO: there is possibility cache permissions
 class PermissionNode(Node):
     def __init__(self, perm_name, nodelist):
         self.perm_name = perm_name
@@ -20,14 +21,18 @@ class PermissionNode(Node):
     def render(self, context):
         perm_name = self.perm_name.resolve(context, True)
         request = context.get('request')
+        kwargs = {}
+        if request.kwargs.has_key('pk'):
+            kwargs['pk'] = request.kwargs['pk']
+
         view_permissions = context.get('permissions', {})
 
-        if view_permissions.has_key(perm_name) and view_permissions.get(perm_name)(request):
+        if view_permissions.has_key(perm_name) and view_permissions.get(perm_name)(request, **kwargs):
             return self.nodelist.render(context)
 
         if permissions.permissions_validators.has_key(perm_name):
             request = context.get('request')
-            if permissions.permissions_validators.get(perm_name)(request.user, request.account_pk, request.obj_pk):
+            if permissions.permissions_validators.get(perm_name)(request, **kwargs):
                 return self.nodelist.render(context)
         return ''
 

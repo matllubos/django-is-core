@@ -339,14 +339,14 @@ class RestModelHandler(RestCoreHandler):
             exclude.extend(self.form_class._meta.exclude)
         return modelform_factory(self.model, form=self.form_class, exclude=exclude)
 
-    def get_form(self, inst=None, data=None, initial={}):
+    def get_form(self, fields=None, inst=None, data=None, initial={}):
         # When is send PUT (resource instance exists), it is possible send only changed values.
         exclude = []
 
-        if data and inst:
-            for model_field_name in self.model._meta.get_all_field_names():
-                if model_field_name not in data.keys():
-                    exclude.append(model_field_name)
+        if data and inst and fields:
+            for field_name in fields:
+                if field_name not in data.keys():
+                    exclude.append(field_name)
 
         kwargs = {}
         if inst:
@@ -401,11 +401,11 @@ class RestModelHandler(RestCoreHandler):
         if not inst and 'POST' not in self.allowed_methods:
             raise ResourceNotFoundException
 
-        form_fields = self.get_form(data=data).fields
+        form_fields = self.get_form(data=data, initial={'_user': request.user}).fields
         preprocesor = DataPreprocessor(request, self.model, form_fields, inst)
         data = preprocesor.process_data(data)
 
-        form = self.get_form(inst=inst, data=data)
+        form = self.get_form(fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user})
         errors = form.is_invalid()
         if errors:
             raise DataInvalidException(errors)

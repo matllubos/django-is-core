@@ -6,9 +6,9 @@ from django.db.models.fields.files import FieldFile
 from germanium.rest import RESTTestCase
 from germanium.anotations import login_all, data_provider
 
-from is_core import config
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.rest.utils import model_handlers_to_dict
+from is_core.tests.auth_test_cases import RestAuthMixin
 
 
 def add_urls_to_handler(handler):
@@ -23,7 +23,7 @@ def add_urls_to_handler(handler):
 
 
 @login_all
-class TestRestsAvailability(DataGeneratorTestCase, RESTTestCase):
+class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
     iteration = 10
 
@@ -48,18 +48,13 @@ class TestRestsAvailability(DataGeneratorTestCase, RESTTestCase):
 
         return rest_handlers
 
-    def authorize(self, username, password):
-        super(TestRestsAvailability, self).authorize(username, password)
-        if config.AUTH_USE_TOKENS:
-            self.default_headers[config.AUTH_HEADER_NAME] = self.c.cookies.get(config.AUTH_COOKIE_NAME).value
-
     def get_rest_handlers(self):
         return self.rest_handlers
 
     def get_serialized_data(self, handler):
         inst = self.new_instance(handler.model)
 
-        form = handler().get_form(inst=inst)
+        form = handler().get_form(inst=inst, initial={'_user': self.logged_user.user})
 
         data = {}
 

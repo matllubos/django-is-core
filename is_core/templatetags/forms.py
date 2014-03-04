@@ -5,9 +5,9 @@ from django.db.models.fields import FieldDoesNotExist
 from django.contrib.admin.util import display_for_value
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
+from django.utils.encoding import force_text
 
 from block_snippets.templatetags import SnippetsIncludeNode
-from django.utils.encoding import force_text
 
 register = template.Library()
 

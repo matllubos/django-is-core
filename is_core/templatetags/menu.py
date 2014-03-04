@@ -74,16 +74,17 @@ def bread_crumbs(context):
 
     items = site._registry
     for group in active_menu_groups:
-        item = items[group]
-        if isinstance(item, MenuGroup):
-            submenu_items = get_menu_items(request, item.items.values())
-            url = submenu_items[0].url
-            active = url == request.path or not url
-            menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url, active, group))
-            items = item.items
-        else:
-            for verbose_name, pattern in item.bread_crumbs_url_names(context):
-                url = pattern and reverse(pattern) or None
+        item = items.get(group)
+        if item:
+            if isinstance(item, MenuGroup):
+                submenu_items = get_menu_items(request, item.items.values())
+                url = submenu_items[0].url
                 active = url == request.path or not url
-                menu_items.append(MenuItem(verbose_name, url, active, group))
+                menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url, active, group))
+                items = item.items
+            else:
+                for verbose_name, pattern in item.bread_crumbs_url_names(context):
+                    url = pattern and reverse(pattern) or None
+                    active = url == request.path or not url
+                    menu_items.append(MenuItem(verbose_name, url, active, group))
     return {'menu_items': menu_items}
