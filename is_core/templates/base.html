@@ -1,4 +1,4 @@
-{% load menu %}
+{% load menu static i18n %}
 <!DOCTYPE HTML>
 <html lang="en">
 	<head>
@@ -28,6 +28,21 @@
 				</div>
 			</footer>
 			{% endblock %}
+		{% endblock %}
+		{% block foot-scripts %}
+			{% if JS_DEV %}
+				<script src="{% static 'js/goog/base.js' %}" type="text/javascript"></script>
+				<script src="{% static 'js/deps.js' %}" type="text/javascript"></script>
+				<script src="{% static 'js/start.js' %}" type="text/javascript"></script>
+				<script src="http://localhost:35729/livereload.js"></script>
+			{% else %}
+				<script src="{% static 'js/app.js' %}" type="text/javascript"></script>
+			{% endif %}
+			<script type="text/javascript">
+				{% block scripts %}
+					app.start(window, {error: '{% trans 'Internal error occurred. Service is unavailable, sorry.' %}', loading: '{% trans 'Loading...' %}'}, {% if JS_DEV %}true{% else %}false{% endif %});
+				{% endblock %}
+			</script>
 		{% endblock %}
 	</body>
 </html>
