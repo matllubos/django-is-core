@@ -1,8 +1,10 @@
 from django.http.response import HttpResponse
 from django.template.defaultfilters import lower
+from django.db.models.fields.related import RelatedField
 
 from piston.utils import MimerDataException, Mimer as PistonMimer
 from piston.handler import typemapper, handler_tracker
+
 
 
 # Because django-piston bug
@@ -113,3 +115,58 @@ def model_handlers_to_dict():
             label = lower('%s.%s' % (model._meta.app_label, model._meta.object_name))
             model_handlers[label] = handler
     return model_handlers
+
+
+def model_default_rest_fields(model):
+    rest_fields = []
+    for field in model._meta.fields:
+        if isinstance(field, RelatedField):
+            rest_fields.append((field.name, ('id', '_obj_name', '_rest_links')))
+        else:
+            rest_fields.append(field.name)
+    return rest_fields
+
+
+def list_to_dict(list_obj):
+    dict_obj = {}
+    for val in list_obj:
+        if isinstance(val, (list, tuple)):
+            dict_obj[val[0]] = list_to_dict(val[1])
+        else:
+            dict_obj[val] = {}
+    return dict_obj
+
+
+def dict_to_list(dict_obj):
+    list_obj = []
+    for key, val in dict_obj.items():
+        if val:
+            list_obj.append((key, dict_to_list(val)))
+        else:
+            list_obj.append(key)
+    return tuple(list_obj)
+
+
+def join_dicts(dict_obj1, dict_obj2):
+    joined_dict = dict_obj1.copy()
+
+    for key2, val2 in dict_obj2.items():
+        val1 = joined_dict.get(key2)
+        if not val1:
+            joined_dict[key2] = val2
+        elif not val2:
+            continue
+        else:
+            joined_dict[key2] = join_dicts(val1, val2)
+    return joined_dict
+
+
+def flat_list(list_obj):
+    flat_list_obj = []
+    for val in list_obj:
+        if isinstance(val, (list, tuple)):
+            flat_list_obj.append(val[0])
+        else:
+            flat_list_obj.append(val)
+    return flat_list_obj
+

@@ -11,8 +11,9 @@ from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
-from is_core.utils import list_to_dict, dict_to_list
+from is_core.rest.utils import list_to_dict, dict_to_list, model_default_rest_fields, join_dicts
 from is_core.patterns import UIPattern, RestPattern
+from django.forms.widgets import boolean_check
 
 
 class ISCore(object):
@@ -208,8 +209,13 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
 class RestModelISCore(PermissionsRestMixin, ModelISCore):
     show_in_menu = False
 
-    rest_list_fields = ()
-    rest_obj_fields = ()
+    # Allowed rest fields
+    rest_fields = None
+    # Default rest fields for list
+    rest_default_list_fields = None
+    # Default rest fields for one object
+    rest_default_obj_fields = None
+
     form_class = RestModelForm
     rest_allowed_methods = ('GET', 'DELETE', 'POST', 'PUT')
     rest_handler = RestModelHandler
@@ -219,11 +225,22 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
         self.resource_patterns = self.get_resource_patterns()
 
-    def get_rest_list_fields(self):
-        return list(self.rest_list_fields)
+    def get_rest_fields(self):
+        if self.rest_fields:
+            return self.rest_fields
 
-    def get_rest_obj_fields(self):
-        return list(self.rest_obj_fields)
+        rest_fields = list_to_dict(model_default_rest_fields(self.model))
+
+        rest_default_list_fields = list_to_dict(self.get_rest_default_list_fields())
+        rest_default_obj_fields = list_to_dict(self.get_rest_default_obj_fields())
+
+        return dict_to_list(join_dicts(join_dicts(rest_fields, rest_default_list_fields), rest_default_obj_fields))
+
+    def get_rest_default_list_fields(self):
+        return self.rest_default_list_fields or self.rest_fields or model_default_rest_fields(self.model)
+
+    def get_rest_default_obj_fields(self):
+        return self.rest_default_obj_fields or self.rest_fields or model_default_rest_fields(self.model)
 
     def get_rest_obj_class_names(self, request, obj):
         return list(self.rest_obj_class_names)
@@ -255,8 +272,8 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
 
-    def get_rest_list_fields(self):
-        rest_list_fields_dict = list_to_dict(self.rest_list_fields)
+    def get_rest_default_list_fields(self):
+        rest_list_fields_dict = list_to_dict(super(UIRestModelISCore, self).get_rest_default_list_fields())
 
         for display in self.get_list_display():
             rest_dict = rest_list_fields_dict

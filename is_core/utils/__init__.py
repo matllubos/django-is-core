@@ -23,7 +23,7 @@ def str_to_class(class_string):
 def flatten_fieldsets(fieldsets):
     """Returns a list of field names from an admin fieldsets structure."""
     field_names = []
-    for name, opts in fieldsets:
+    for _, opts in fieldsets:
         for field in opts.get('fields', ()):
             if isinstance(field, (list, tuple)):
                 field_names.extend(field)
@@ -32,31 +32,10 @@ def flatten_fieldsets(fieldsets):
     return field_names
 
 
-def list_to_dict(list_obj):
-    dict_obj = {}
-    for val in list_obj:
-        if isinstance(val, (list, tuple)):
-            dict_obj[val[0]] = list_to_dict(val[1])
-        else:
-            dict_obj[val] = {}
-    return dict_obj
+class Enum(set):
+    def __getattr__(self, name):
+        if name in self:
+            return name
+        raise AttributeError
 
 
-def dict_to_list(dict_obj):
-    list_obj = []
-    for key, val in dict_obj.items():
-        if val:
-            list_obj.append((key, dict_to_list(val)))
-        else:
-            list_obj.append(key)
-    return tuple(list_obj)
-
-
-def flat_list(list_obj):
-    flat_list_obj = []
-    for val in list_obj:
-        if isinstance(val, (list, tuple)):
-            flat_list_obj.append(val[0])
-        else:
-            flat_list_obj.append(val)
-    return flat_list_obj

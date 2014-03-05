@@ -1,11 +1,7 @@
 from __future__ import generators
 
-import decimal, re, inspect
-import copy
+import datetime, decimal, re, inspect, copy, json
 
-import json
-from django.utils.functional import Promise
-from django.db.models.fields.files import FileField
 
 try:
     # yaml isn't standard with python.  It shouldn't be required if it
@@ -33,9 +29,13 @@ from django.core.serializers.json import DateTimeAwareJSONEncoder
 from django.http import HttpResponse
 from django.core import serializers
 from django.utils.translation import ugettext as _
+from django.utils import formats, timezone, six
+from django.db.models.fields.files import FileField
 
 from piston.utils import HttpStatusCode, Mimer
 from piston.validate_jsonp import is_valid_jsonp_callback_value
+
+from is_core.utils import Enum
 
 try:
     import cStringIO as StringIO
@@ -68,7 +68,10 @@ class Emitter(object):
                             'delete', 'model', 'anonymous',
                             'allowed_methods', 'fields', 'exclude' ])
 
-    def __init__(self, payload, typemapper, handler, request, fields=(), anonymous=True, fun_kwargs={}):
+    SerializationTypes = Enum(('VERBOSE', 'RAW', 'BOTH'))
+
+    def __init__(self, payload, typemapper, handler, request, serialization_format, fields=(), anonymous=True,
+                 fun_kwargs={}):
         self.typemapper = typemapper
         self.data = payload
         self.handler = handler
@@ -76,6 +79,7 @@ class Emitter(object):
         self.anonymous = anonymous
         self.fun_kwargs = fun_kwargs
         self.request = request
+        self.serialization_format = serialization_format
 
         if isinstance(self.data, Exception):
             raise
@@ -95,9 +99,6 @@ class Emitter(object):
         return ret
 
     def smart_unicode(self, thing):
-        if isinstance(thing, bool):
-            thing = thing and _('Yes') or _('No')
-
         return force_text(thing, strings_only=True)
 
     def construct(self):
@@ -158,6 +159,24 @@ class Emitter(object):
             """
             return [ _model(m, fields) for m in getattr(data, field.name).iterator() ]
 
+        def _raw(data, field):
+            val = getattr(data, field.attname)
+            if isinstance(field, FileField) and val:
+                val = val.url
+            return val
+
+        def _verbose(data, field):
+            val = getattr(data, field.attname)
+            if isinstance(val, bool):
+                val = val and _('Yes') or _('No')
+            elif field.choices:
+                val = getattr(data, 'get_%s_display' % field.attname)()
+            elif isinstance(val, datetime.datetime):
+                return formats.localize(timezone.template_localtime(val))
+            elif isinstance(val, (datetime.date, datetime.time)):
+                return formats.localize(val)
+            return val
+
         def _model(data, fields=None):
             """
             Models. Will respect the `fields` and/or
@@ -173,15 +192,16 @@ class Emitter(object):
                     """
                     If field has choices this return display value
                     """
-                    if f.choices:
-                        return getattr(data, 'get_%s_display' % f.attname)()
-
-                    val = getattr(data, f.attname)
-
-                    if isinstance(f, FileField) and val:
-                        val = val.url
-
-                    return val
+                    if self.serialization_format == self.SerializationTypes.RAW:
+                        return _raw(data, f)
+                    elif self.serialization_format == self.SerializationTypes.VERBOSE:
+                        return _verbose(data, f)
+                    else:
+                        raw = _raw(data, f)
+                        verbose = _verbose(data, f)
+                        if raw != verbose:
+                            return {'_raw': raw, '_verbose': verbose}
+                        return raw
 
                 if not fields and handler:
                     fields = getattr(handler, 'fields')
