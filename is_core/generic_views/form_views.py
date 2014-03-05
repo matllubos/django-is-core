@@ -12,7 +12,6 @@ from django.contrib.messages.api import get_messages
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
-from is_core.response import JsonCreatedHttpResponse
 from is_core.utils.forms import formset_has_file_field
 from is_core.form.widgets import RelatedFieldWidgetWrapper
 
@@ -67,9 +66,6 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
     def save_obj(self, obj, form, change):
         raise NotImplemented
 
-    def is_popup(self):
-        return 'popup' in self.request.GET
-
     def form_valid(self, form, msg=None):
         obj = form.save(commit=False)
 
@@ -83,9 +79,6 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
             form.save_m2m()
 
         msg = msg or self.get_message('success', obj)
-
-        if self.is_popup():
-            return JsonCreatedHttpResponse(content={'message': {'success': (msg,)}, 'id': obj.pk})
 
         messages.success(self.request, msg)
         return HttpResponseRedirect(self.get_success_url(obj))
@@ -146,12 +139,6 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
-
-    def get_snippet_names(self):
-        if self.is_popup():
-            return ('content',)
-
-        return super(DefaultFormView, self).get_snippet_names()
 
 
 class DefaultModelFormView(DefaultFormView):
@@ -316,9 +303,6 @@ class DefaultModelFormView(DefaultFormView):
             return self.form_invalid(form, inline_form_views, force_text(ex))
 
         msg = msg or self.get_message('success', obj)
-        if self.is_popup():
-            return JsonCreatedHttpResponse(content={'message': {'success': (msg,)}, 'id': obj.pk})
-
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url(obj))
@@ -388,13 +372,13 @@ class DefaultCoreModelFormView(DefaultModelFormView):
         return self.form_class or self.core.get_form_class(self.request, self.get_obj(True))
 
     def get_cancel_url(self):
-        if 'list' in self.core.view_classes and not self.is_popup() and not self.has_snippet():
+        if 'list' in self.core.view_classes and not self.has_snippet():
             info = self.site_name, self.core.get_menu_group_pattern_name()
             return reverse('%s:list-%s' % info)
         return None
 
     def has_save_and_continue_button(self):
-        return 'list' in self.core.view_classes and not self.is_popup() and not self.has_snippet() \
+        return 'list' in self.core.view_classes and not self.has_snippet() \
                 and self.show_save_and_continue
 
     def get_success_url(self, obj):

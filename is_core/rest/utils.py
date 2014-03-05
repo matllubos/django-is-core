@@ -6,24 +6,23 @@ from piston.utils import MimerDataException, Mimer as PistonMimer
 from piston.handler import typemapper, handler_tracker
 
 
-
 # Because django-piston bug
 class rc_factory(object):
     """
     Status codes.
     """
-    CODES = dict(ALL_OK=('OK', 200),
-                 CREATED=('Created', 201),
+    CODES = dict(ALL_OK=({'success': 'OK'}, 200),
+                 CREATED=({'success': 'The record was created'}, 201),
                  DELETED=('', 204),  # 204 says "Don't send a body!"
-                 BAD_REQUEST=('Bad Request', 400),
-                 FORBIDDEN=('Forbidden', 401),
-                 NOT_FOUND=('Not Found', 404),
-                 DUPLICATE_ENTRY=('Conflict/Duplicate', 409),
-                 NOT_HERE=('Gone', 410),
-                 UNSUPPORTED_MEDIA_TYPE=('Unsupported Media Type', 415),
-                 INTERNAL_ERROR=('Internal Error', 500),
-                 NOT_IMPLEMENTED=('Not Implemented', 501),
-                 THROTTLED=('Throttled', 503))
+                 BAD_REQUEST=({'error': 'Bad Request'}, 400),
+                 FORBIDDEN=({'error':'Forbidden'}, 401),
+                 NOT_FOUND=({'error':'Not Found'}, 404),
+                 DUPLICATE_ENTRY=({'error': 'Conflict/Duplicate'}, 409),
+                 NOT_HERE=({'error': 'Gone'}, 410),
+                 UNSUPPORTED_MEDIA_TYPE=({'error': 'Unsupported Media Type'}, 415),
+                 INTERNAL_ERROR=({'error': 'Internal server error'}, 500),
+                 NOT_IMPLEMENTED=({'error': 'Not implemented'}, 501),
+                 THROTTLED=({'error': 'The resource was throttled'}, 503))
 
     def __getattr__(self, attr):
         """
@@ -44,14 +43,13 @@ class rc_factory(object):
             """
             def _set_content(self, content):
                 """
-                Set the _container and _base_content_is_iter properties based on the
                 type of the value parameter. This logic is in the construtor
                 for HttpResponse, but doesn't get repeated when setting
                 HttpResponse.content although this bug report (feature request)
                 suggests that it should: http://code.djangoproject.com/ticket/9403
                 """
                 if not isinstance(content, basestring) and hasattr(content, '__iter__'):
-                    self._container = content
+                    self._container = {'messages': content}
                     self._base_content_is_iter = False
                 else:
                     self._container = [content]
@@ -62,6 +60,7 @@ class rc_factory(object):
         return HttpResponseWrapper(r, content_type='text/plain', status=c)
 
 rc = rc_factory()
+
 
 class UnsupportedMediaTypeException(Exception):
     pass

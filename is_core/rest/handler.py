@@ -8,10 +8,11 @@ from django.utils.encoding import force_text
 from django.db import transaction
 
 from piston.handler import BaseHandler
-from piston.utils import rc, get_handler_of_model
+from piston.utils import get_handler_of_model
 
 from is_core.utils.models import get_model_field_names
 from is_core.rest.paginator import Paginator
+from is_core.rest.utils import rc
 
 
 class HeadersResult(object):
@@ -22,10 +23,22 @@ class HeadersResult(object):
         self.status_code = status_code
 
 
-class RESTResponse(HeadersResult):
+class RestResponse(HeadersResult):
 
     def __init__(self, msg, http_headers={}, code=200):
-        super(RESTResponse, self).__init__(result={'message': msg}, http_headers=http_headers, status_code=code)
+        super(RestResponse, self).__init__(result={'messages': msg}, http_headers=http_headers, status_code=code)
+
+
+class RestOkResponse(RestResponse):
+
+    def __init__(self, msg, http_headers={}, code=200):
+        super(RestResponse, self).__init__(msg={'success': msg}, http_headers=http_headers, status_code=code)
+
+
+class RestErrorResponse(RestResponse):
+
+    def __init__(self, msg, http_headers={}, code=400):
+        super(RestResponse, self).__init__(msg={'error': msg}, http_headers=http_headers, status_code=code)
 
 
 class DataInvalidException(Exception):
@@ -42,7 +55,7 @@ class RestException(Exception):
 
     @property
     def errors(self):
-        return {'error': force_text(self.message)}
+        return {'error': self.message}
 
 class ResourceNotFoundException(RestException):
     message = _('Select a valid choice. That choice is not one of the available choices.')
@@ -311,7 +324,7 @@ class RestModelHandler(RestCoreHandler):
         if order_field in get_model_field_names(self.model):
             return self._order_by(request, qs, order_field)
         else:
-            raise RestException(force_text(_('Cannot resolve X-Order value "%s" into field')) % order_field)
+            raise RestException(_('Cannot resolve X-Order value "%s" into field') % order_field)
 
     def read(self, request, pk=None):
         qs = self.get_queryset(request)
@@ -327,10 +340,9 @@ class RestModelHandler(RestCoreHandler):
             paginator = Paginator(qs, request)
             return HeadersResult(paginator.page_qs, {'X-Total': paginator.total})
         except RestException as ex:
-            return HeadersResult(ex.errors, status_code=400)
+            return RestErrorResponse(ex.errors, status_code=400)
         except FieldError as ex:
-            return HeadersResult({'error': force_text(_('Filter query string error (%s)')) % force_text(ex)},
-                                 status_code=400)
+            return RestErrorResponse(_('Filter query string error (%s)') % force_text(ex))
 
     # TODO: duplicate, this is too inside DefaultFormView
     def get_form_class(self, exclude=[]):
