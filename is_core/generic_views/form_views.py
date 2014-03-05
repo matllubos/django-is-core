@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.forms.models import modelform_factory, ModelForm, ModelMultipleChoiceField, ModelChoiceField
+from django.forms.models import modelform_factory, ModelForm, ModelChoiceField
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text

@@ -29,7 +29,7 @@ from django.core.serializers.json import DateTimeAwareJSONEncoder
 from django.http import HttpResponse
 from django.core import serializers
 from django.utils.translation import ugettext as _
-from django.utils import formats, timezone, six
+from django.utils import formats, timezone
 from django.db.models.fields.files import FileField
 
 from piston.utils import HttpStatusCode, Mimer
@@ -265,6 +265,8 @@ class Emitter(object):
 
                 # try to get the remainder of fields
                 for maybe_field in get_fields:
+
+
                     if isinstance(maybe_field, (list, tuple)):
                         model, fields = maybe_field
                         inst = getattr(data, model, None)
@@ -296,7 +298,7 @@ class Emitter(object):
                             handler_f = getattr(handler or self.handler, maybe_field, None)
 
                             if handler_f:
-                                ret[maybe_field] = _any(handler_f(data))
+                                ret[maybe_field] = _any(handler_f(data, **self.fun_kwargs))
 
             else:
                 for f in data._meta.fields:
