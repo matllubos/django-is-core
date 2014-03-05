@@ -90,8 +90,10 @@ class InlineFormView(object):
 
     def form_valid(self, request):
         instances = self.formset.save(commit=False)
+
         for obj in instances:
-            self.save_obj(obj)
+            change = obj.pk is not None
+            self.save_obj(obj, change)
         for obj in self.formset.deleted_objects:
             self.delete_obj(obj)
 
@@ -104,8 +106,7 @@ class InlineFormView(object):
     def post_save_obj(self, obj, change):
         pass
 
-    def save_obj(self, obj):
-        change = obj.pk is not None
+    def save_obj(self, obj, change):
         self.pre_save_obj(obj, change)
         obj.save()
         self.post_save_obj(obj, change)

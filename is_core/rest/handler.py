@@ -413,15 +413,15 @@ class RestModelHandler(RestCoreHandler):
         inst = form.save(commit=False)
 
         # Core view can do modifications before save object
-        self.core.pre_save_model(request, inst, change)
+        self.core.pre_save_model(request, inst, form, change)
 
         # Core view should save object
-        self.core.save_model(request, inst, change)
+        self.core.save_model(request, inst, form, change)
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
 
         # Core view event after save object
-        self.core.post_save_model(request, inst, change)
+        self.core.post_save_model(request, inst, form, change)
 
         postprocesor = DataPostprocessor(request, self.model, form_fields, inst)
         data = postprocesor.process_data(data)

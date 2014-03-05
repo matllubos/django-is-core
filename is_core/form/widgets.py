@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from django import forms
 
 from is_core.utils import query_string_from_dict
+from django.forms.util import flatatt
 
 
 class WrapperWidget(forms.Widget):
@@ -47,16 +48,15 @@ class RelatedFieldWidgetWrapper(WrapperWidget):
     def render(self, name, value, attrs):
         from is_core.site import get_model_view
 
-        model_name = self.model._meta.module_name
         model_view = get_model_view(self.model)
-        resource_add = ''
         if model_view:
 
             info = model_view.site_name, model_view.get_menu_group_pattern_name()
             attrs['data-resource'] = reverse('%s:api-%s' % info)
-            attrs['data-model'] = model_name
+            attrs['data-fields'] = ','.join(self.model._rest_meta.selectbox_fields)
+            if self.model._rest_meta.image_field:
+                attrs['data-image-field'] = self.model._rest_meta.image_field
 
-            resource_add = ''.join((reverse('%s:add-%s' % info), '?popup=1'))
 
             if hasattr(self.widget, 'limit_choices_to'):
                 attrs['data-resource'] = '%s?%s' % (attrs['data-resource'],
@@ -64,9 +64,6 @@ class RelatedFieldWidgetWrapper(WrapperWidget):
 
         output = (
             self.widget.render(name, value, attrs),
-            Html.btn({'class': 'list'}, _('List')),
-            Html.btn({'class': 'add', 'title': _('Add %s') % self.model._meta.verbose_name, 'data-es-modal': resource_add}, _('Add')),
-            Html.el('hr', {'class': 'cleaner'})
         )
 
         return mark_safe(''.join(output))
@@ -77,7 +74,7 @@ class Html(object):
 
     def __init__(self, tag, attrs=None, text_or_pair=False):
         self.tag = tag
-        self.attrs = attrs
+        self.attrs = attrs or {}
         self.text_or_pair = text_or_pair
         self.children = None
 
@@ -87,18 +84,7 @@ class Html(object):
         self.children.append(el)
 
     def __str__(self):
-        attrs_str = ''
-        if self.attrs:
-            attr_tokens = []
-            for k, v in self.attrs.items():
-                attr_tokens.append(' ')
-                attr_tokens.append(k)
-                attr_tokens.append('="')
-                attr_tokens.append(force_text(v))
-                attr_tokens.append('"')
-            attrs_str = ''.join(attr_tokens)
-
-        tokens = ['<', self.tag, attrs_str, '>']
+        tokens = ['<', self.tag, flatatt(self.attrs), '>']
 
         if self.children:
             for child in self.children:

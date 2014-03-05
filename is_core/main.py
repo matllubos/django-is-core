@@ -11,9 +11,8 @@ from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
-from is_core.rest.utils import list_to_dict, dict_to_list, model_default_rest_fields, join_dicts
+from is_core.rest.utils import list_to_dict, dict_to_list, model_default_rest_fields, join_dicts, set_model_rest_meta
 from is_core.patterns import UIPattern, RestPattern
-from django.forms.widgets import boolean_check
 
 
 class ISCore(object):
@@ -57,13 +56,13 @@ class ModelISCore(PermissionsMixin, ISCore):
     exclude = []
     list_actions = ()
 
-    def pre_save_model(self, request, obj, change):
+    def pre_save_model(self, request, obj, form, change):
         pass
 
-    def save_model(self, request, obj, change):
+    def save_model(self, request, obj, form, change):
         obj.save()
 
-    def post_save_model(self, request, obj, change):
+    def post_save_model(self, request, obj, form, change):
         pass
 
     def pre_delete_model(self, request, obj):
@@ -223,13 +222,14 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
+        set_model_rest_meta(self.model)
         self.resource_patterns = self.get_resource_patterns()
 
     def get_rest_fields(self):
         if self.rest_fields:
             return self.rest_fields
 
-        rest_fields = list_to_dict(model_default_rest_fields(self.model))
+        rest_fields = list_to_dict(self.model._rest_meta.fields)
 
         rest_default_list_fields = list_to_dict(self.get_rest_default_list_fields())
         rest_default_obj_fields = list_to_dict(self.get_rest_default_obj_fields())
@@ -237,10 +237,10 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return dict_to_list(join_dicts(join_dicts(rest_fields, rest_default_list_fields), rest_default_obj_fields))
 
     def get_rest_default_list_fields(self):
-        return self.rest_default_list_fields or self.rest_fields or model_default_rest_fields(self.model)
+        return self.rest_default_list_fields or self.model._rest_meta.default_list_fields
 
     def get_rest_default_obj_fields(self):
-        return self.rest_default_obj_fields or self.rest_fields or model_default_rest_fields(self.model)
+        return self.rest_default_obj_fields or self.model._rest_meta.default_obj_fields
 
     def get_rest_obj_class_names(self, request, obj):
         return list(self.rest_obj_class_names)

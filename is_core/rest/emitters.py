@@ -166,7 +166,7 @@ class Emitter(object):
             return val
 
         def _verbose(data, field):
-            val = getattr(data, field.attname)
+            val = _raw(data, field)
             if isinstance(val, bool):
                 val = val and _('Yes') or _('No')
             elif field.choices:

@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.forms.models import modelform_factory, ModelForm
+from django.forms.models import modelform_factory, ModelForm, ModelMultipleChoiceField, ModelChoiceField
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
@@ -14,6 +14,7 @@ from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.response import JsonCreatedHttpResponse
 from is_core.utils.forms import formset_has_file_field
+from is_core.form.widgets import RelatedFieldWidgetWrapper
 
 
 class DefaultFormView(DefaultCoreViewMixin, FormView):
@@ -63,7 +64,7 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
             msg_dict = {'obj': force_text(obj)}
         return self.messages.get(type) % msg_dict
 
-    def save_obj(self, obj, form):
+    def save_obj(self, obj, form, change):
         raise NotImplemented
 
     def is_popup(self):
@@ -71,8 +72,11 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
 
     def form_valid(self, form, msg=None):
         obj = form.save(commit=False)
+
+        change = obj.pk is not None
+
         try:
-            self.save_obj(obj, form)
+            self.save_obj(obj, form, self.is_changed(form), change)
         except SaveObjectException as ex:
             return self.form_invalid(form, force_text(ex))
         if hasattr(form, 'save_m2m'):
@@ -126,6 +130,8 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         return initial
 
     def form_field(self, form_field):
+        if isinstance(form_field, ModelChoiceField):
+            form_field.widget = RelatedFieldWidgetWrapper(form_field.widget, form_field.queryset.model, self.site_name)
         return form_field
 
     def get(self, request, *args, **kwargs):
@@ -165,10 +171,10 @@ class DefaultModelFormView(DefaultFormView):
         self.fields = fields or self.fields
         self.inline_form_views = inline_form_views or self.inline_form_views
 
-    def pre_save_obj(self, obj, change):
+    def pre_save_obj(self, obj, form, change):
         pass
 
-    def post_save_obj(self, obj, change):
+    def post_save_obj(self, obj, form, change):
         pass
 
     def get_message(self, type, obj=None):
@@ -292,15 +298,15 @@ class DefaultModelFormView(DefaultFormView):
         obj = form.save(commit=False)
         change = obj.pk is not None
 
-        self.pre_save_obj(obj, change)
-        self.save_obj(obj, form)
+        self.pre_save_obj(obj, form, change)
+        self.save_obj(obj, form, change)
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
 
         for inline_form_view in inline_form_views.values():
             inline_form_view.form_valid(self.request)
 
-        self.post_save_obj(obj, change)
+        self.post_save_obj(obj, form, change)
         return obj
 
     def form_valid(self, form, inline_form_views, msg=None):
@@ -348,11 +354,14 @@ class DefaultCoreModelFormView(DefaultModelFormView):
 
     show_save_and_continue = True
 
-    def pre_save_obj(self, obj, change):
-        self.core.pre_save_model(self.request, obj, change)
+    def save_obj(self, obj, form, change):
+        self.core.save_model(self.request, obj, form, change)
 
-    def post_save_obj(self, obj, change):
-        self.core.post_save_model(self.request, obj, change)
+    def pre_save_obj(self, obj, form, change):
+        self.core.pre_save_model(self.request, obj, form, change)
+
+    def post_save_obj(self, obj, form, change):
+        self.core.post_save_model(self.request, obj, form, change)
 
     def get_message(self, type, obj=None):
         msg_dict = {}
@@ -416,9 +425,6 @@ class AddModelFormView(DefaultCoreModelFormView):
     def get_title(self):
         return _('Add %s') % self.core.verbose_name
 
-    def save_obj(self, obj, form):
-        self.core.save_model(self.request, obj, False)
-
     @classmethod
     def has_get_permission(cls, request, core, **kwargs):
         return core.has_create_permission(request)
@@ -437,9 +443,6 @@ class EditModelFormView(DefaultCoreModelFormView):
 
     def get_title(self):
         return _('Edit %s') % self.core.verbose_name
-
-    def save_obj(self, obj, form):
-        self.core.save_model(self.request, obj, True)
 
     def get_obj_filters(self):
         filters = {'pk': self.kwargs.get('pk')}

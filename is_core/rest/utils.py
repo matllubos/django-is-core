@@ -170,3 +170,29 @@ def flat_list(list_obj):
             flat_list_obj.append(val)
     return flat_list_obj
 
+
+class RestOptions(object):
+    def __init__(self, model):
+        self.fields = model_default_rest_fields(model)
+        self.default_list_fields = self.fields
+        self.default_obj_fields = self.fields
+        self.selectbox_fields = ('id', '_obj_name')
+        self.image_field = None
+
+        if hasattr(model, 'RestMeta'):
+            self.fields = getattr(model.RestMeta, 'fields', self.fields)
+            self.default_list_fields = getattr(model.RestMeta, 'default_list_fields' , self.default_list_fields)
+            self.default_obj_fields = getattr(model.RestMeta, 'default_obj_fields', self.default_obj_fields)
+            self.image_field = getattr(model.RestMeta, 'image_field', self.image_field)
+            self.selectbox_fields = getattr(model.RestMeta, 'selectbox_fields', self.selectbox_fields)
+
+        self.fields = set(self.fields)
+        self.default_list_fields = set(self.default_list_fields)
+        self.default_obj_fields = set(self.default_obj_fields)
+        self.selectbox_fields = list(self.selectbox_fields)
+        if self.image_field:
+            self.selectbox_fields.append(self.image_field)
+
+
+def set_model_rest_meta(model):
+    model._rest_meta = RestOptions(model)
