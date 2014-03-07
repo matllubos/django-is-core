@@ -28,7 +28,7 @@ class ISCore(object):
 
     def get_urlpatterns(self, patterns):
         urls = []
-        for pattern in patterns:
+        for pattern in patterns.values():
             urls.append(pattern.get_url())
         urlpatterns = django_patterns('', *urls)
         return urlpatterns
@@ -118,9 +118,10 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
     exclude = ()
     form_class = RestModelForm
 
+    _ui_patterns = None
+
     def __init__(self, site_name, menu_parent_groups):
         super(UIModelISCore, self).__init__(site_name, menu_parent_groups)
-        self.ui_patterns = self.get_view_patterns()
 
     def get_urls(self):
         return self.get_urlpatterns(self.ui_patterns)
@@ -176,8 +177,14 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
     def get_view_classes(self):
         return self.view_classes.copy()
 
-    def get_view_patterns(self):
-        view_patterns = []
+    @property
+    def ui_patterns(self):
+        if not self._ui_patterns:
+            self._ui_patterns = self.get_ui_patterns()
+        return self._ui_patterns
+
+    def get_ui_patterns(self):
+        ui_patterns = SortedDict()
         for name, view_vals in self.get_view_classes().items():
             if len(view_vals) == 3:
                 pattern, view, ViewPatternClass = view_vals
@@ -185,13 +192,9 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
                 pattern, view = view_vals
                 ViewPatternClass = UIPattern
 
-            if view.login_required:
-                view_instance = view.as_wrapped_view(core=self)
-            else:
-                view_instance = view.as_view(core=self)
-            view_patterns.append(ViewPatternClass('%s-%s' % (name, self.get_menu_group_pattern_name()),
-                                                  self.site_name, pattern, view_instance))
-        return view_patterns
+            ui_patterns[name] = ViewPatternClass('%s-%s' % (name, self.get_menu_group_pattern_name()),
+                                                    self.site_name, pattern, view, self)
+        return ui_patterns
 
     def get_list_display(self):
         return self.list_display
@@ -220,9 +223,10 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_handler = RestModelHandler
     rest_obj_class_names = ()
 
+    _resource_patterns = None
+
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
-        self.resource_patterns = self.get_resource_patterns()
 
     def get_rest_fields(self):
         if self.rest_fields:
@@ -247,14 +251,21 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns)
 
+    @property
+    def resource_patterns(self):
+        if not self._resource_patterns:
+            self._resource_patterns = self.get_resource_patterns()
+        return self._resource_patterns
+
     def get_resource_patterns(self):
+        resource_patterns = SortedDict()
+
         resource = RestModelResource(name='Api%sHandler' % self.get_menu_group_pattern_name(), core=self)
-        resource_patterns = (
-                                RestPattern('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                            self.site_name, r'^/api/(?P<pk>[-\w]+)/?$', resource, ('GET', 'PUT', 'DELETE')),
-                                RestPattern('api-%s' % self.get_menu_group_pattern_name(),
-                                            self.site_name, r'^/api/?$', resource, ('GET', 'POST')),
-                           )
+        resource_patterns['api-resource'] = RestPattern('api-resource-%s' % self.get_menu_group_pattern_name(),
+                                                        self.site_name, r'^/api/(?P<pk>[-\w]+)/?$',
+                                                        resource, self, ('GET', 'PUT', 'DELETE'))
+        resource_patterns['api'] = RestPattern('api-%s' % self.get_menu_group_pattern_name(),
+                                                self.site_name, r'^/api/?$', resource, self, ('GET', 'POST'))
         return resource_patterns
 
     def get_list_actions(self, request, obj):

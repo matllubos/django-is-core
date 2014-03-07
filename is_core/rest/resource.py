@@ -9,6 +9,7 @@ from piston.handler import typemapper
 from piston.utils import MimerDataException, translate_mime, UnsupportedMediaTypeException, coerce_put_post
 
 from emitters import Emitter
+
 from handler import HeadersResult
 
 from is_core.rest.auth import RestAuthentication

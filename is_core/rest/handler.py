@@ -262,7 +262,7 @@ class RestModelHandler(RestCoreHandler):
     @classmethod
     def _web_links(cls, obj, request):
         web_links = {}
-        for pattern in cls.core.ui_patterns:
+        for pattern in cls.core.ui_patterns.values():
             url = pattern.get_url_string(obj)
             if url:
                 web_links[pattern.name] = url
@@ -271,7 +271,7 @@ class RestModelHandler(RestCoreHandler):
     @classmethod
     def _rest_links(cls, obj, request):
         rest_links = {}
-        for pattern in cls.core.resource_patterns:
+        for pattern in cls.core.resource_patterns.values():
             url = pattern.get_url_string(obj)
             if url:
                 rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}

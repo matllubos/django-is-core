@@ -380,20 +380,27 @@ class DefaultCoreModelFormView(DefaultModelFormView):
         return self.form_class or self.core.get_form_class(self.request, self.get_obj(True))
 
     def get_cancel_url(self):
-        if 'list' in self.core.view_classes and not self.has_snippet():
+        if 'list' in self.core.ui_patterns \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request, self.core) \
+                and not self.has_snippet():
             info = self.site_name, self.core.get_menu_group_pattern_name()
             return reverse('%s:list-%s' % info)
         return None
 
     def has_save_and_continue_button(self):
-        return 'list' in self.core.view_classes and not self.has_snippet() \
+        return 'list' in self.core.ui_patterns and not self.has_snippet() \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request, self.core) \
                 and self.show_save_and_continue
 
     def get_success_url(self, obj):
         info = self.site_name, self.core.get_menu_group_pattern_name()
-        if 'list' in self.core.view_classes and 'save' in self.request.POST:
+        if 'list' in self.core.ui_patterns \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request, self.core) \
+                and 'save' in self.request.POST:
             return reverse('%s:list-%s' % info)
-        elif 'edit' in self.core.view_classes and 'save-and-continue' in self.request.POST:
+        elif 'edit' in self.core.ui_patterns \
+                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request, self.core) \
+                and 'save-and-continue' in self.request.POST:
             return reverse('%s:edit-%s' % info, args=(obj.pk,))
         return ''
 

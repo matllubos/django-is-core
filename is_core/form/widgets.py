@@ -1,9 +1,13 @@
+from itertools import chain
+
 from django import forms
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join
-from logilab.common.compat import chain
-from django.forms.util import flatatt
+
+
+def flat_data_attrs(attrs):
+    return format_html_join('', ' data-{0}="{1}"', sorted(attrs.items()))
 
 
 class WrapperWidget(forms.Widget):
@@ -34,14 +38,9 @@ class WrapperWidget(forms.Widget):
         return self.widget.id_for_label(id_)
 
 
-def flat_data_attrs(attrs):
-    return format_html_join('', ' data-{0}="{1}"', sorted(attrs.items()))
-
-
 class Select(forms.Select):
 
     def render_option(self, selected_choices, option_value, option_label, option_attrs):
-        print flat_data_attrs(option_attrs)
         option_value = force_text(option_value)
         if option_value in selected_choices:
             selected_html = mark_safe(' selected="selected"')

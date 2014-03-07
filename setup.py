@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-from is_core import get_version
+from is_core.version import get_version
 
 setup(
     name='django-is-core',

@@ -1,6 +1,4 @@
-from django.db import models
-
-from is_core.rest.utils import model_default_rest_fields
+from django.core.exceptions import ImproperlyConfigured
 
 
 class UIOptions(object):
@@ -13,6 +11,8 @@ class UIOptions(object):
 
 class RestOptions(object):
     def __init__(self, model):
+        from is_core.rest.utils import model_default_rest_fields
+
         self.fields = model_default_rest_fields(model)
         self.default_list_fields = self.fields
         self.default_obj_fields = self.fields
@@ -27,6 +27,11 @@ class RestOptions(object):
         self.default_obj_fields = set(self.default_obj_fields)
 
 
-for model_cls in models.get_models():
-    model_cls._rest_meta = RestOptions(model_cls)
-    model_cls._ui_meta = UIOptions(model_cls)
+try:
+    from django.db import models
+
+    for model_cls in models.get_models():
+        model_cls._rest_meta = RestOptions(model_cls)
+        model_cls._ui_meta = UIOptions(model_cls)
+except ImproperlyConfigured:
+    pass
