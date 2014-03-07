@@ -32,13 +32,13 @@ class RestResponse(HeadersResult):
 class RestOkResponse(RestResponse):
 
     def __init__(self, msg, http_headers={}, code=200):
-        super(RestResponse, self).__init__(msg={'success': msg}, http_headers=http_headers, status_code=code)
+        super(RestOkResponse, self).__init__(msg={'success': msg}, http_headers=http_headers, code=code)
 
 
 class RestErrorResponse(RestResponse):
 
     def __init__(self, msg, http_headers={}, code=400):
-        super(RestResponse, self).__init__(msg={'error': msg}, http_headers=http_headers, status_code=code)
+        super(RestOkResponse, self).__init__(msg={'error': msg}, http_headers=http_headers, code=code)
 
 
 class DataInvalidException(Exception):
