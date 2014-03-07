@@ -122,4 +122,3 @@ class TableView(DefaultCoreViewMixin, TemplateView):
     @classmethod
     def has_get_permission(cls, request, core, **kwargs):
         return core.has_read_permission(request)
-

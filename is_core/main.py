@@ -11,7 +11,7 @@ from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
 from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
-from is_core.rest.utils import list_to_dict, dict_to_list, model_default_rest_fields, join_dicts, set_model_rest_meta
+from is_core.rest.utils import list_to_dict, dict_to_list, join_dicts
 from is_core.patterns import UIPattern, RestPattern
 
 
@@ -222,7 +222,6 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
-        set_model_rest_meta(self.model)
         self.resource_patterns = self.get_resource_patterns()
 
     def get_rest_fields(self):

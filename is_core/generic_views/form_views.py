@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.forms.models import modelform_factory, ModelForm, ModelChoiceField
+from django.forms.models import modelform_factory, ModelForm
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
@@ -8,12 +8,13 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.shortcuts import get_object_or_404
 from django.contrib.messages.api import get_messages
+from django.db.models.fields.related import ForeignObject, ManyToManyField
 
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
-from is_core.form.widgets import RelatedFieldWidgetWrapper
+from is_core import form as is_forms
 
 
 class DefaultFormView(DefaultCoreViewMixin, FormView):
@@ -123,8 +124,6 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         return initial
 
     def form_field(self, form_field):
-        if isinstance(form_field, ModelChoiceField):
-            form_field.widget = RelatedFieldWidgetWrapper(form_field.widget, form_field.queryset.model, self.site_name)
         return form_field
 
     def get(self, request, *args, **kwargs):
@@ -219,7 +218,16 @@ class DefaultModelFormView(DefaultFormView):
 
         if hasattr(self.form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
-        return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields)
+        return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields,
+                                 formfield_callback=self.formfield_for_dbfield)
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        if isinstance(db_field, ManyToManyField):
+            kwargs['form_class'] = is_forms.ModelMultipleChoiceField
+        elif isinstance(db_field, ForeignObject):
+            kwargs['form_class'] = is_forms.ModelChoiceField
+
+        return db_field.formfield(**kwargs)
 
     def get_has_file_field(self, form, inline_form_views=(), **kwargs):
         if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):

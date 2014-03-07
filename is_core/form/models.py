@@ -1,5 +1,10 @@
 from django.forms import models
 
+from is_core.form import widgets
+from django import forms
+from django.forms.fields import ChoiceField
+from is_core.utils.models import get_model_field_value
+
 
 class BaseInlineFormSet(models.BaseInlineFormSet):
 
@@ -39,3 +44,53 @@ class BaseInlineFormSet(models.BaseInlineFormSet):
 
         if self.can_add:
             yield self.empty_form
+
+
+class ModelChoice(list):
+
+    def __init__(self, id, label, attrs={}):
+        self.append(id)
+        self.append(label)
+        self.attrs = attrs
+
+
+class ModelChoiceIterator(forms.models.ModelChoiceIterator):
+
+    def __iter__(self):
+        if self.field.empty_label is not None:
+            yield ModelChoice("", self.field.empty_label)
+        if self.field.cache_choices:
+            if self.field.choice_cache is None:
+                self.field.choice_cache = [
+                    self.choice(obj) for obj in self.queryset.all()
+                ]
+            for choice in self.field.choice_cache:
+                yield choice
+        else:
+            for obj in self.queryset.all():
+                yield self.choice(obj)
+
+    def choice(self, obj):
+        attrs = {}
+        for key, val in obj._ui_meta.extra_selecbox_fields.items():
+            attrs[key] = get_model_field_value(val, obj)
+        return ModelChoice(self.field.prepare_value(obj), self.field.label_from_instance(obj), attrs)
+
+
+class ModelChoiceFieldMixin(object):
+
+    widget = widgets.Select
+
+    def _get_choices(self):
+        if hasattr(self, '_choices'):
+            return self._choices
+        return ModelChoiceIterator(self)
+    choices = property(_get_choices, ChoiceField._set_choices)
+
+
+class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
+    pass
+
+
+class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceField):
+    pass
