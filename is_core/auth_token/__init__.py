@@ -8,14 +8,14 @@ from is_core import config
 from django.core.exceptions import ObjectDoesNotExist
 
 
-def login(request, user):
+def login(request, user, expiration=True):
     """
     Persist token into database. Token is stored inside cookie therefore is not necessary 
     reauthenticate user for every request.
     """
     if user is None:
         user = request.user
-    token = Token.objects.create(user=user, user_agent=request.META.get('HTTP_USER_AGENT'))
+    token = Token.objects.create(user=user, user_agent=request.META.get('HTTP_USER_AGENT'), expiration=expiration)
     if hasattr(request, 'user'):
         request.user = user
     request.token = token

@@ -29,6 +29,7 @@ class Token(models.Model):
     # https://github.com/selwin/python-user-agents for parse
     # Limited size to 256
     user_agent = models.CharField(max_length=256, null=True, blank=True)
+    expiration = models.BooleanField(null=False, default=True)
     is_from_header = False
 
     def save(self, *args, **kwargs):
@@ -44,7 +45,8 @@ class Token(models.Model):
 
     @property
     def is_expired(self):
-        return self.last_access + timedelta(seconds=config.AUTH_TOKEN_EXPIRATION) < timezone.now()
+        token_age = self.expiration and config.AUTH_DEFAULT_TOKEN_AGE or config.AUTH_MAX_TOKEN_AGE
+        return self.last_access + timedelta(seconds=token_age) < timezone.now()
 
     def __unicode__(self):
         return self.key

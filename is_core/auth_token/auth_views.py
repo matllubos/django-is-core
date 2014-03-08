@@ -2,9 +2,12 @@ from class_based_auth_views.views import LoginView
 
 from is_core.generic_views.auth_views import LogoutView
 from is_core.auth_token import login, logout
+from is_core.auth_token.forms import TokenAuthenticationForm
 
 
 class TokenLoginView(LoginView):
+
+    form_class = TokenAuthenticationForm
 
     def form_valid(self, form):
         """
@@ -12,7 +15,7 @@ class TokenLoginView(LoginView):
         can check the test cookie stuff and log him in.
         """
         self.check_and_delete_test_cookie()
-        login(self.request, form.get_user())
+        login(self.request, form.get_user(), not form.is_permanent())
         return super(TokenLoginView, self).form_valid(form)
 
 

@@ -1,6 +1,12 @@
+from .version import *
+
 # Apply patch only if django is installed
 try:
-    import django
-    from .models.patch import *
+    from django.core.exceptions import ImproperlyConfigured
+    try:
+        from django.db import models
+        from .models.patch import *
+    except ImproperlyConfigured:
+        pass
 except ImportError:
     pass
