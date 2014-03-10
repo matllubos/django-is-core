@@ -1,0 +1,207 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.4.5\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-03-10 20:39+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <matllubos@gmail.com>\n"
+"Language: Czech\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: main.py:167 generic_views/table_views.py:35
+#, python-format
+msgid "List %s"
+msgstr "Tabulka %s"
+
+#: main.py:172 generic_views/form_views.py:425
+#, python-format
+msgid "Add %s"
+msgstr "Přidat %s"
+
+#: main.py:174 generic_views/form_views.py:444
+#, python-format
+msgid "Edit %s"
+msgstr "Upravit %s"
+
+#: main.py:204
+msgid "Edit"
+msgstr "Upravit"
+
+#: main.py:275
+msgid "Delete"
+msgstr "Smazat"
+
+#: auth_token/forms.py:7
+msgid "Remember user"
+msgstr "Zapamatovat uživatele"
+
+#: filters/__init__.py:28 filters/__init__.py:33
+#, python-format
+msgid "Not valid filter: %s"
+msgstr "Neplatný filter: %s"
+
+#: filters/default_filters.py:42
+#, python-format
+msgid "Not valid filter: %(filter_key)s=%(filter_value)s"
+msgstr "Neplatný filter: %(filter_key)s=%(filter_value)s"
+
+#: filters/default_filters.py:117 rest/emitters.py:171
+#: templates/generic_views/table.html:22
+msgid "Yes"
+msgstr "Ano"
+
+#: filters/default_filters.py:117 rest/emitters.py:171
+#: templates/generic_views/table.html:22
+msgid "No"
+msgstr "Ne"
+
+#: generic_views/__init__.py:61 templatetags/menu.py:73
+msgid "Home"
+msgstr "Home"
+
+#: generic_views/form_views.py:25
+msgid "Object was saved successfully."
+msgstr "Položka byla úspěšně uložena."
+
+#: generic_views/form_views.py:26 generic_views/form_views.py:422
+#: generic_views/form_views.py:441
+msgid "Please correct the error below."
+msgstr "Prosím opravte níže uvedené chyby."
+
+#: generic_views/form_views.py:421
+#, python-format
+msgid "The %(name)s \"%(obj)s\" was added successfully."
+msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
+
+#: generic_views/form_views.py:440
+#, python-format
+msgid "The %(name)s \"%(obj)s\" was changed successfully."
+msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
+
+#: rest/handler.py:64
+msgid "Select a valid choice. That choice is not one of the available choices."
+msgstr "Vyberte platnou možnost. Tato není k dispozici."
+
+#: rest/handler.py:68
+msgid "Create or update this resource is not allowed."
+msgstr "Není povoleno vytvořit nebo upravit tento zdroj."
+
+#: rest/handler.py:313
+#, python-format
+msgid "Cannot resolve X-Order value \"%s\" into field"
+msgstr "Není možné řadit dle hodnoty hlavičky X-Order: \"%s\""
+
+#: rest/paginator.py:22
+msgid "X-Offset must be natural number"
+msgstr "Obsah hlavičky X-Offset musí být přirozené číslo."
+
+#: rest/paginator.py:33
+msgid "X-Base must be natural number or empty"
+msgstr "Obsah hlavičky X-Base musí být přirozené číslo nebo musí být hlavička prázdná"
+
+#: templates/403.html:4
+msgid "Forbidden (403)"
+msgstr "Přístup odepřen (403)"
+
+#: templates/404.html:4
+msgid "Not Nound (404)"
+msgstr "Nenalezeno (404)"
+
+#: templates/500.html:4
+msgid "Internal Server Error (500)"
+msgstr "Interní chyba serveru (500)"
+
+#: templates/base.html:43
+msgid "Internal error occurred. Service is unavailable, sorry."
+msgstr "Interní chyba. Služba je dočasně nedostupná."
+
+#: templates/base.html:43
+msgid "Loading..."
+msgstr "Načítám..."
+
+#: templates/home.html:4
+msgid "Welcome"
+msgstr "Vítejte"
+
+#: templates/forms/default_form.html:27
+#: templates/forms/model_default_form.html:8
+msgid "Save"
+msgstr "Uložit"
+
+#: templates/forms/login_form.html:5 templates/registration/login.html:4
+msgid "Login"
+msgstr "Login"
+
+#: templates/forms/model_default_form.html:9
+msgid "Save and continue"
+msgstr "Uložit a pokračovat"
+
+#: templates/forms/model_default_form.html:13
+msgid "Cancel"
+msgstr "Cancel"
+
+#: templates/forms/tabular_inline_formset.html:45
+#, python-format
+msgid "Add %(name)s"
+msgstr "Přidat %(name)s"
+
+#: templates/generic_views/table.html:6
+#, python-format
+msgid "Add %(verbose_name)s"
+msgstr "Přidat %(verbose_name)s"
+
+#: templates/generic_views/table.html:10
+#, python-format
+msgid "%%d-%%d of %%d"
+msgstr "%%d-%%d z %%d"
+
+#: templates/generic_views/table.html:12
+#, python-format
+msgid "%%d per page"
+msgstr "%%d na stranu"
+
+#: templates/generic_views/table.html:14
+msgid "Previous"
+msgstr "Předchozí"
+
+#: templates/generic_views/table.html:15
+msgid "Next"
+msgstr "Následující"
+
+#: templates/generic_views/table.html:22
+#, python-format
+msgid "Do you really want to delete %%s?"
+msgstr "Opravdu chcete odstranit položku %%s?"
+
+#: templates/generic_views/table.html:22
+msgid "Are you sure?"
+msgstr "Jste si jisti?"
+
+#: templates/generic_views/table.html:32
+msgid "Actions"
+msgstr "Akce"
+
+#: templates/generic_views/table.html:42
+msgid "There are no items."
+msgstr "Žádné položky"
+
+#: templates/registration/logout.html:4
+msgid "Logout"
+msgstr "Odhlásit"
+
+#: templates/registration/logout.html:7
+msgid "Thanks for spending some quality time with the Web site today."
+msgstr "Děkujeme za čas strávený s tímto webem."
+
+#: templates/registration/logout.html:8
+msgid "Log in again"
+msgstr "Přihlásit se znovu"

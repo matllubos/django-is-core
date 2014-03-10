@@ -39,7 +39,8 @@ class DefaultFilter(Filter):
     def get_filter_term(self):
         if '__' in self.filter_key:
             if self.filter_key.split('__', 1)[1] not in self.suffixes:
-                raise FilterException(_('Not valid filter: %s=%s' % (self.full_filter_key, self.value)))
+                raise FilterException(_('Not valid filter: %(filter_key)s=%(filter_value)s' %
+                                        {'filter_key': self.full_filter_key, 'filter_value': self.value}))
         return {self.full_filter_key: self.value}
 
     def filter_queryset(self, queryset):
