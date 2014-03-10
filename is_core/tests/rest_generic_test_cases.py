@@ -76,18 +76,17 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
     def test_should_return_data_from_resource_list(self, handler_name, handler, model):
         list_url = handler.list_url()
 
-        resp = self.get(list_url)
-        started_total_count = int(resp['X-Total'])
-
-        for i in range(self.iteration):
-            self.new_instance(model)
-
-            if not handler.has_read_permission(self.get_request_with_user(self.r_factory.get(list_url))):
-                break
+        if not handler.has_read_permission(self.get_request_with_user(self.r_factory.get(list_url))):
+            return
 
             resp = self.get(list_url)
-            self.assert_valid_JSON_response(resp, 'REST get list of model: %s\n response: %s' % (model, resp))
-            self.assertEqual(int(resp['X-Total']) - i, started_total_count + 1)
+            started_total_count = int(resp['X-Total'])
+
+            for i in range(self.iteration):
+                self.new_instance(model)
+
+                self.assert_valid_JSON_response(resp, 'REST get list of model: %s\n response: %s' % (model, resp))
+                self.assertEqual(int(resp['X-Total']) - i, started_total_count + 1)
 
     @data_provider(get_rest_handlers)
     def test_should_return_data_from_resource(self, handler_name, handler, model):
