@@ -21,13 +21,13 @@ class Filter(object):
         return ''
 
 
-class DefaultFieldFilter(Filter):
-
+class DefaultFilter(Filter):
     suffixes = []
     default_suffix = None
+    widget = None
 
-    def __init__(self, filter_key, full_filter_key, field, value=None):
-        self.field = field
+    def __init__(self, filter_key, full_filter_key, field_or_method, value=None):
+        self.field_or_method = field_or_method
         self.filter_key = filter_key
         self.full_filter_key = full_filter_key
         self.value = value
@@ -40,7 +40,7 @@ class DefaultFieldFilter(Filter):
         if '__' in self.filter_key:
             if self.filter_key.split('__', 1)[1] not in self.suffixes:
                 raise FilterException(_('Not valid filter: %s=%s' % (self.full_filter_key, self.value)))
-        return {self.filter_key: self.value}
+        return {self.full_filter_key: self.value}
 
     def filter_queryset(self, queryset):
         if self.is_exclude:
@@ -48,11 +48,14 @@ class DefaultFieldFilter(Filter):
         else:
             return queryset.filter(**self.get_filter_term())
 
-    def get_widget(self):
-        formfield = self.field.formfield()
-        if formfield:
-            return formfield.widget
-        return forms.TextInput()
+    def get_filter_prefix(self):
+        return self.full_filter_key[:-len(self.filter_key)]
+
+    def get_filter_name(self):
+        return self.get_full_filter_key()
+
+    def get_default_suffix(self):
+        return self.default_suffix
 
     def get_full_filter_key(self):
         full_filter_key = [self.full_filter_key]
@@ -61,11 +64,34 @@ class DefaultFieldFilter(Filter):
             full_filter_key.append(default_suffix)
         return '__'.join(full_filter_key)
 
-    def get_default_suffix(self):
-        return self.default_suffix
+    def get_widget(self):
+        return self.widget
 
-    def get_filter_name(self):
-        return self.get_full_filter_key()
+    def __unicode__(self):
+        widget = self.get_widget()
+        if widget:
+            return widget.render('filter__%s' % self.get_filter_name(), None,
+                                 attrs={'data-filter': self.get_filter_name()})
+        return ''
+
+
+class DefaultFieldFilter(DefaultFilter):
+
+    suffixes = []
+    default_suffix = None
+
+    def __init__(self, filter_key, full_filter_key, field, value=None):
+        super(DefaultFieldFilter, self).__init__(filter_key, full_filter_key, field, value)
+        self.field = field
+
+    def get_widget(self):
+        if self.widget:
+            return self.widget
+
+        formfield = self.field.formfield()
+        if formfield:
+            return formfield.widget
+        return forms.TextInput()
 
     def __unicode__(self):
         return self.get_widget().render('filter__%s' % self.get_filter_name(), None,
@@ -119,7 +145,7 @@ class DateFilter(DefaultFieldFilter):
         if '__' in self.filter_key:
             return super(DateTimeFilter, self).get_filter_term()
 
-        res, _ = DEFAULTPARSER._parse(self.value)
+        res, _ = DEFAULTPARSER._parse(self.value, dayfirst=True)
         filter_terms = {}
 
         for attr in self.extra_suffixes:

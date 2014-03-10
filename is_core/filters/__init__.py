@@ -5,7 +5,6 @@ from django.db.models.fields import FieldDoesNotExist
 from is_core.filters.exceptions import FilterException
 
 
-
 def get_model_field_or_method_filter(full_field_term, model, value=None, filter_term=None):
     if not filter_term:
         filter_term = full_field_term
@@ -20,7 +19,7 @@ def get_model_field_or_method_filter(full_field_term, model, value=None, filter_
     try:
         field_or_method = model._meta.get_field(current_filter_term)
         if next_filter_term and isinstance(field_or_method, RelatedField):
-            return get_model_field_or_method_filter(filter_term, getattr(model, current_filter_term).rel.to, value, next_filter_term)
+            return get_model_field_or_method_filter(filter_term, model._meta.get_field(current_filter_term).rel.to, value, next_filter_term)
 
     except FieldDoesNotExist:
         try:

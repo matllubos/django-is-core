@@ -5,6 +5,7 @@ from django.db.models.fields import FieldDoesNotExist
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.filters.default_filters import *
+from is_core.filters import get_model_field_or_method_filter
 
 class Header(object):
 
@@ -33,6 +34,14 @@ class TableView(DefaultCoreViewMixin, TemplateView):
     def get_title(self):
         return _('List %s') % self.core.verbose_name_plural
 
+
+    def get_filter(self, full_field_name):
+        try:
+            return get_model_field_or_method_filter(full_field_name, self.model)
+        except FilterException:
+            return ''
+
+
     def get_header(self, full_field_name, field_name=None, model=None):
         if not model:
             model = self.model
@@ -46,12 +55,9 @@ class TableView(DefaultCoreViewMixin, TemplateView):
 
         try:
             field = model._meta.get_field(field_name)
-            filter = ''
-            if hasattr(field, 'filter'):
-                filter = field.filter(field_name, full_field_name, field)
-            return Header(full_field_name, field.verbose_name, True, filter)
+            return Header(full_field_name, field.verbose_name, True, self.get_filter(full_field_name))
         except FieldDoesNotExist:
-            return Header(full_field_name, getattr(model(), field_name).short_description, False)
+            return Header(full_field_name, getattr(model(), field_name).short_description, False, self.get_filter(full_field_name))
 
     def get_list_display(self):
         return self.list_display or self.core.get_list_display()
