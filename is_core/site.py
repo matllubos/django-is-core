@@ -4,7 +4,6 @@ from django.contrib.auth.decorators import login_required
 from django.utils.datastructures import SortedDict
 from django.template.defaultfilters import lower
 
-from is_core.generic_views import HomeView
 from is_core.utils import str_to_class
 from is_core import config
 from is_core.rest.resource import RestResource
@@ -88,6 +87,7 @@ class ISSite(object):
     def get_urls(self):
         LoginView = str_to_class(config.AUTH_LOGIN_VIEW)
         LogoutView = str_to_class(config.AUTH_LOGOUT_VIEW)
+        HomeView = str_to_class(config.HOME_VIEW)
 
         urlpatterns = patterns('',
                                     # TODO: environment must exist

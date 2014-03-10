@@ -1,11 +1,10 @@
 from django.views.generic.base import TemplateView
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.fields import CharField, TextField, BooleanField, FieldDoesNotExist
-from django import forms
+from django.db.models.fields import FieldDoesNotExist
 
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultCoreViewMixin
-
+from is_core.filters.default_filters import *
 
 class Header(object):
 
@@ -20,31 +19,6 @@ class Header(object):
 
     def __str__(self):
         return self.text
-
-
-class Filter(object):
-
-    def __init__(self, field_name, field):
-        self.field_name = field_name
-        self.field = field
-
-    def get_filter_name(self):
-        if isinstance(self.field, (CharField, TextField)):
-            return '%s__contains' % self.field_name
-        return self.field_name
-
-    def get_widget(self):
-        if isinstance(self.field, BooleanField):
-            return forms.Select(choices=(('', '-----'), (1, _('Yes')), (0, _('No'))))
-        elif isinstance(self.field, TextField):
-            return forms.TextInput()
-        elif self.field.formfield():
-            return self.field.formfield().widget
-        else:
-            return forms.TextInput()
-
-    def __unicode__(self):
-        return self.get_widget().render('filter__%s' % self.field_name, None, attrs={'data-filter': self.get_filter_name()})
 
 
 class TableView(DefaultCoreViewMixin, TemplateView):
@@ -72,7 +46,10 @@ class TableView(DefaultCoreViewMixin, TemplateView):
 
         try:
             field = model._meta.get_field(field_name)
-            return Header(full_field_name, field.verbose_name, True, Filter(full_field_name, field))
+            filter = ''
+            if hasattr(field, 'filter'):
+                filter = field.filter(field_name, full_field_name, field)
+            return Header(full_field_name, field.verbose_name, True, filter)
         except FieldDoesNotExist:
             return Header(full_field_name, getattr(model(), field_name).short_description, False)
 

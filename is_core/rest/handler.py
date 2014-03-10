@@ -13,6 +13,9 @@ from piston.utils import get_handler_of_model
 from is_core.utils.models import get_model_field_names
 from is_core.rest.paginator import Paginator
 from is_core.rest.utils import rc
+from is_core.filters import get_model_field_or_method_filter
+from is_core.filters.exceptions import FilterException
+from django.db.utils import InterfaceError, DatabaseError
 
 
 class HeadersResult(object):
@@ -288,28 +291,11 @@ class RestModelHandler(RestCoreHandler):
     def get_queryset(self, request):
         return self.core.get_queryset(request)
 
-    def _parse_filter_queryset(self, request):
-        filter_and_exclude_dict = request.GET.dict()
-        filter_dict = {}
-        exclude_dict = {}
-        for filter_field_name, filter_field_value in filter_and_exclude_dict.items():
-            if filter_field_name.endswith('__not'):
-                filter_field_name = filter_field_name.replace('__not', '')
-                exclude_dict[filter_field_name] = self._format_filter_value(filter_field_name, filter_field_value)
-            else:
-                filter_dict[filter_field_name] = self._format_filter_value(filter_field_name, filter_field_value)
-        return filter_dict, exclude_dict
-
-    def _format_filter_value(self, filter_name, filter_value):
-        if re.search('(__isnull)$', filter_name):
-            return 'True' == filter_value and True or False
-        else:
-            return filter_value
-
     def _filter_queryset(self, request, qs):
-        if request.GET:
-            filter_dict, exclude_dict = self._parse_filter_queryset(request)
-            qs = qs.filter(**filter_dict).exclude(**exclude_dict)
+        filter_terms = request.GET.dict()
+        for filter_temr, filter_val in filter_terms.items():
+            filter = get_model_field_or_method_filter(filter_temr, self.model, filter_val)
+            qs = filter.filter_queryset(qs)
         return qs
 
     def _order_by(self, request, qs, order_field):
@@ -340,9 +326,10 @@ class RestModelHandler(RestCoreHandler):
             paginator = Paginator(qs, request)
             return HeadersResult(paginator.page_qs, {'X-Total': paginator.total})
         except RestException as ex:
-            return RestErrorResponse(ex.errors, status_code=400)
-        except FieldError as ex:
-            return RestErrorResponse(_('Filter query string error (%s)') % force_text(ex))
+            return RestErrorResponse(ex.errors)
+        # Filter exceptions returns empty list
+        except (InterfaceError, DatabaseError, FilterException, ValueError)  as ex:
+            return HeadersResult(self.model.objects.none(), {'X-Total': 0})
 
     # TODO: duplicate, this is too inside DefaultFormView
     def get_form_class(self, exclude=[]):

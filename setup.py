@@ -33,6 +33,8 @@ setup(
         'django-piston==0.3.3',
         'germanium==0.0.2',
         'django-block-snippets==0.0.2',
+        'python-dateutil>=2.2',
+        'pytz',
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/master#egg=django-piston-0.3.3',
