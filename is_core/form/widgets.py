@@ -5,6 +5,8 @@ from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join
 
+from is_core.form.utils import add_class_name
+
 
 def flat_data_attrs(attrs):
     return format_html_join('', ' data-{0}="{1}"', sorted(attrs.items()))
@@ -39,6 +41,10 @@ class WrapperWidget(forms.Widget):
 
 
 class Select(forms.Select):
+
+    def render(self, name, value, attrs={}, choices=()):
+        attrs = add_class_name(attrs, 'fulltext-search')
+        return super(Select, self).render(name, value, attrs, choices)
 
     def render_option(self, selected_choices, option_value, option_label, option_attrs):
         option_value = force_text(option_value)

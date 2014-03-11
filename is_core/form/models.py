@@ -1,8 +1,8 @@
 from django.forms import models
-
-from is_core.form import widgets
 from django import forms
 from django.forms.fields import ChoiceField
+
+from is_core.form import widgets
 from is_core.utils.models import get_model_field_value
 
 

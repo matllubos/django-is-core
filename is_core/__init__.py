@@ -6,6 +6,7 @@ try:
     try:
         from django.db import models
         from .models.patch import *
+        from .form.patch import *
     except ImproperlyConfigured:
         pass
 except ImportError:
