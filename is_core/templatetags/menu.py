@@ -63,10 +63,12 @@ def menu(context, site_name):
 def bread_crumbs(context):
     site_name = 'IS'
     site = get_site_by_name(site_name)
+    bread_crumbs_menu_items = context.get('bread_crumbs_menu_items')
 
     request = context.get('request')
 
-    active_menu_groups = context.get('active_menu_groups')
+
+    active_menu_groups = context.get('active_menu_groups') or []
 
     index_url = reverse('%s:index' % site_name)
     index_active = request.path == index_url
@@ -83,8 +85,6 @@ def bread_crumbs(context):
                 menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url, active, group))
                 items = item.items
             else:
-                for verbose_name, pattern in item.bread_crumbs_url_names(context):
-                    url = pattern and reverse(pattern) or None
-                    active = url == request.path or not url
-                    menu_items.append(MenuItem(verbose_name, url, active, group))
+                for menu_item in bread_crumbs_menu_items:
+                    menu_items.append(menu_item)
     return {'menu_items': menu_items}

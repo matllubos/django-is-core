@@ -4,8 +4,10 @@ from django.db.models.fields import FieldDoesNotExist
 
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultCoreViewMixin
-from is_core.filters.default_filters import *
 from is_core.filters import get_model_field_or_method_filter
+
+from is_core.filters.default_filters import *
+
 
 class Header(object):
 
@@ -105,3 +107,10 @@ class TableView(DefaultCoreViewMixin, TemplateView):
     @classmethod
     def has_get_permission(cls, request, core, **kwargs):
         return core.has_read_permission(request)
+
+    def bread_crumbs_menu_items(self):
+        from is_core.templatetags.menu import MenuItem
+
+        menu_items = super(TableView, self).bread_crumbs_menu_items()
+        menu_items.append(MenuItem(self.get_title(), self.request.path, True))
+        return menu_items

@@ -157,23 +157,6 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
         return 'list-%s' % self.get_menu_group_pattern_name()
     menu_url_name = property(menu_url_name)
 
-    def bread_crumbs_url_names(self, context):
-        view_type = context.get('view_type')
-
-        bread_crumbs_url_names = []
-
-        if 'list' in self.view_classes:
-            bread_crumbs_url_names.append(
-                                    (_('List %s') % self.verbose_name_plural,
-                                     '%s:list-%s' % (self.site_name, self.get_menu_group_pattern_name()))
-                                  )
-
-        if view_type == 'add':
-            bread_crumbs_url_names.append((_('Add %s') % self.verbose_name, None))
-        elif view_type == 'edit':
-            bread_crumbs_url_names.append((_('Edit %s') % self.verbose_name, None))
-        return bread_crumbs_url_names
-
     def get_view_classes(self):
         return self.view_classes.copy()
 

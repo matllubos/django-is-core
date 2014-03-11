@@ -15,6 +15,7 @@ from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
 from is_core import form as is_forms
+from is_core.generic_views.mixins import ListParentMixin
 
 
 class DefaultFormView(DefaultCoreViewMixin, FormView):
@@ -342,7 +343,7 @@ class DefaultModelFormView(DefaultFormView):
         return cls.has_permission(request, core, **kwargs)
 
 
-class DefaultCoreModelFormView(DefaultModelFormView):
+class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     show_save_and_continue = True
 

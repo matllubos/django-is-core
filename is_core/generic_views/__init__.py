@@ -28,7 +28,8 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
                                 'site_name': self.site_name,
                                 'active_menu_groups': self.menu_groups,
                                 'title': self.get_title(),
-                                'view_name': self.view_name
+                                'view_name': self.view_name,
+                                'bread_crumbs_menu_items': self.bread_crumbs_menu_items()
                               }
         extra_context_data.update(context_data)
         return extra_context_data
@@ -52,6 +53,9 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
     def as_wrapped_view(cls, **initkwargs):
         return AuthWrapper(cls.get_permission_validators(), **initkwargs).wrap(cls.as_view(**initkwargs))
 
+    def bread_crumbs_menu_items(self):
+        return []
+
 
 class HomeView(DefaultViewMixin, TemplateView):
     template_name = 'home.html'
@@ -66,6 +70,7 @@ class DefaultCoreViewMixin(DefaultViewMixin):
     core = None
     model = None
     view_name = None
+    title = None
 
     def __init__(self, core, site_name=None, menu_groups=None, model=None):
         self.core = core
@@ -75,7 +80,7 @@ class DefaultCoreViewMixin(DefaultViewMixin):
         super(DefaultCoreViewMixin, self).__init__(site_name, menu_groups)
 
     def get_title(self):
-        return self.model._meta.verbose_name
+        return self.title or self.model._meta.verbose_name
 
     @property
     def view_name(self):

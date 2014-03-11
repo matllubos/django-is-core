@@ -2,7 +2,7 @@ from django.forms.models import inlineformset_factory, ModelForm
 
 from is_core.form.models import BaseInlineFormSet
 from is_core.utils.forms import formset_has_file_field
-from is_core import form as is_forms
+
 
 class InlineFormView(object):
     form_class = ModelForm
