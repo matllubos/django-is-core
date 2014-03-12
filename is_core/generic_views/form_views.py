@@ -90,10 +90,14 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         messages.error(self.request, msg)
         return self.render_to_response(self.get_context_data(form=form))
 
+    @property
+    def is_ajax_form(self):
+        return self.has_snippet()
+
     def get_form_class_names(self):
         class_names = ['-'.join((self.view_type, self.site_name,
                                  self.core.get_menu_group_pattern_name(), 'form',)).lower()]
-        if self.has_snippet():
+        if self.is_ajax_form:
             class_names.append('ajax')
         return class_names
 
