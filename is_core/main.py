@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.utils.datastructures import SortedDict
 
-from is_core.form import RestModelForm
+from is_core.forms import RestModelForm
 from is_core.actions import WebAction, RestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView

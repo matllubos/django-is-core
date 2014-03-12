@@ -3,7 +3,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from is_core.rest.handler import RestHandler, HeadersResult
 from is_core.rest.utils import rc
 from is_core.auth_token import login
-from is_core.form import RestFormMixin
+from is_core.forms import RestFormMixin
 
 
 class RestAuthenticationForm(RestFormMixin, AuthenticationForm):

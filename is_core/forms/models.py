@@ -2,7 +2,7 @@ from django.forms import models
 from django import forms
 from django.forms.fields import ChoiceField
 
-from is_core.form import widgets
+from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 
 
@@ -89,8 +89,11 @@ class ModelChoiceFieldMixin(object):
 
 
 class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
-    pass
+
+    widget = widgets.Select
 
 
 class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceField):
-    pass
+
+    widget = widgets.MultipleSelect
+

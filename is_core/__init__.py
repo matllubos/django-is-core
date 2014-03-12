@@ -6,8 +6,8 @@ try:
     try:
         from django.db import models
         from .models.patch import *
-        from .form.patch import *
+        from .forms.patch import *
     except ImproperlyConfigured:
         pass
-except ImportError:
-    pass
+except ImportError as ex:
+    print ex

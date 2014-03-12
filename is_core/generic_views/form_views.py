@@ -14,7 +14,7 @@ from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
-from is_core import form as is_forms
+from is_core import forms as is_forms
 from is_core.generic_views.mixins import ListParentMixin
 
 
@@ -228,6 +228,7 @@ class DefaultModelFormView(DefaultFormView):
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         if isinstance(db_field, ManyToManyField):
+
             kwargs['form_class'] = is_forms.ModelMultipleChoiceField
         elif isinstance(db_field, ForeignObject):
             kwargs['form_class'] = is_forms.ModelChoiceField
