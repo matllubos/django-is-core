@@ -6,26 +6,26 @@
 	{% for field_name_or_names in fields %}
 		<div class="inner-content">
 			{% with field_names=field_name_or_names|to_list %}
-				<p class="form-group {{ field_names|join:' '}}">
+				<div class="form-group {{ field_names|join:' '}}">
 				{% for field_name in field_names %}
 					{% with field=form|get_field:field_name %}
-						<span class="field {{ field_name }}">
+						<div class="field {{ field_name }}">
 							{% if not field.is_hidden %}
-								<label for="{{ field.auto_id }}">
+								<label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}>
 									{{ field.label|capfirst }}
 									{% if field.field.required %}
 										<span class="required">*</span>
 									{% endif %}
 								</label>
-								{{ field }}
+								<div class="field-value {{ field_name }}">{{ field }}</div>
 								{{ field.errors }}
 							{% else %}
-								{{ field }}
+								<div class="field-value {{ field_name }}">{{ field }}</div>
 							{% endif %}
-						</span>
+						</div>
 					{% endwith %}
 				{% endfor %}
-				</p>
+				</div>
 			{% endwith %}
 		</div>
 	{% empty %}
