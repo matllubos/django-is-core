@@ -1,8 +1,10 @@
 from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
+from django.forms.fields import FileField
 
 from is_core.forms.utils import add_class_name
-from django.forms.models import ModelChoiceField
-from django.db.models.fields.related import ForeignKey
+from is_core.forms.widgets import DragAndDropFileInput
+
+
 
 
 def build_attrs(self, extra_attrs=None, **kwargs):
@@ -17,6 +19,9 @@ def build_attrs(self, extra_attrs=None, **kwargs):
 
 Widget.class_name = None
 Widget.build_attrs = build_attrs
+
 DateInput.class_name = 'date'
 TimeInput.class_name = 'time'
 DateTimeInput.class_name = 'datetime'
+
+FileField.widget = DragAndDropFileInput

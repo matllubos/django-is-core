@@ -81,3 +81,14 @@ class Select(SelectMixin, forms.Select):
 class MultipleSelect(SelectMixin, forms.SelectMultiple):
 
     class_name = 'fulltext-search multiple'
+
+
+class DragAndDropFileInput(forms.ClearableFileInput):
+
+    def render(self, name, value, attrs={}):
+        id = attrs.get('id')
+        output = ['<div class="drag-and-drop-wrapper">']
+        output.append('<div class="drag-and-drop-placeholder"%s></div>' % (id and 'data-for="%s"' % id or ''))
+        output.append(super(DragAndDropFileInput, self).render(name, None, attrs=attrs))
+        output.append('</div>')
+        return mark_safe('\n'.join(output))
