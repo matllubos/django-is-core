@@ -13,6 +13,7 @@ from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
 from is_core.rest.utils import list_to_dict, dict_to_list, join_dicts
 from is_core.patterns import UIPattern, RestPattern
+from is_core.utils import flatten_fieldsets
 
 
 class ISCore(object):
@@ -53,8 +54,22 @@ class ISCore(object):
 
 
 class ModelISCore(PermissionsMixin, ISCore):
-    exclude = []
     list_actions = ()
+
+    # form params
+    form_fields = None
+    form_inline_form_views = ()
+    form_exclude = ()
+    form_class = RestModelForm
+
+    def get_form_fields(self, request, obj=None):
+        return self.form_fields
+
+    def get_form_class(self, request, obj=None):
+        return self.form_class
+
+    def get_form_exclude(self, request, obj=None):
+        return self.form_exclude
 
     def pre_save_model(self, request, obj, form, change):
         pass
@@ -111,17 +126,30 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
     default_list_filter = {}
 
     # add/edit view params
-    fieldsets = ()
-    fields = None
-    readonly_fields = ()
+    form_fieldsets = ()
+    form_readonly_fields = ()
+
     inline_form_views = ()
-    exclude = ()
-    form_class = RestModelForm
 
     _ui_patterns = None
 
     def __init__(self, site_name, menu_parent_groups):
         super(UIModelISCore, self).__init__(site_name, menu_parent_groups)
+
+    def get_form_fieldsets(self, request, obj=None):
+        return self.form_fieldsets
+
+    def get_form_readonly_fields(self, request, obj=None):
+        return self.form_readonly_fields
+
+    def get_ui_form_fields(self, request, obj=None):
+        return self.get_form_fields(request, obj)
+
+    def get_ui_form_class(self, request, obj=None):
+        return self.get_form_class(request, obj)
+
+    def get_ui_form_exclude(self, request, obj=None):
+        return self.get_form_exclude(request, obj)
 
     def get_urls(self):
         return self.get_urlpatterns(self.ui_patterns)
@@ -137,21 +165,6 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
 
     def get_default_list_filter(self, request):
         return self.default_list_filter.copy()
-
-    def get_fieldsets(self, request, obj=None):
-        return self.fieldsets
-
-    def get_fields(self, request, obj=None):
-        return self.fields
-
-    def get_form_class(self, request, obj=None):
-        return self.form_class
-
-    def get_readonly_fields(self, request, obj=None):
-        return self.readonly_fields
-
-    def get_exclude(self, request, obj=None):
-        return self.exclude
 
     def menu_url_name(self):
         return 'list-%s' % self.get_menu_group_pattern_name()
@@ -210,6 +223,15 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
+
+    def get_rest_form_fields(self, request, obj=None):
+        return self.get_form_fields(request, obj)
+
+    def get_rest_form_class(self, request, obj=None):
+        return self.get_form_class(request, obj)
+
+    def get_rest_form_exclude(self, request, obj=None):
+        return self.get_form_exclude(request, obj)
 
     def get_rest_fields(self):
         if self.rest_fields:
@@ -278,3 +300,10 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
 
     def gel_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
+
+    def get_rest_form_fields(self, request, obj=None):
+        return flatten_fieldsets(self.get_form_fieldsets(request, obj)) or self.get_form_fields(request, obj)
+
+    def get_rest_form_exclude(self, request, obj=None):
+        return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)
+

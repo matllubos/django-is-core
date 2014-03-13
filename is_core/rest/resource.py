@@ -201,9 +201,8 @@ class RestModelResource(DynamicRestHandlerResource):
 
     def __init__(self, name, core, model=None, form_class=None, fields=None, default_list_fields=None,
                  default_obj_fields=None, site_name=None, menu_group=None, menu_subgroup=None, allowed_methods=None,
-                 exclude=None, handler_class=None):
+                 form_exclude=None, handler_class=None):
         model = model or core.model
-        form_class = form_class or core.form_class
 
         fields = fields or core.get_rest_fields()
         default_list_fields = default_list_fields or core.get_rest_default_list_fields()
@@ -213,7 +212,6 @@ class RestModelResource(DynamicRestHandlerResource):
         menu_group = menu_group or core.menu_group
         menu_subgroup = menu_subgroup or core.menu_subgroup
         allowed_methods = allowed_methods or core.rest_allowed_methods
-        exclude = exclude or core.exclude
         handler_class = handler_class or core.rest_handler
 
         fields = self.get_handler_fields(fields, model, core)
@@ -221,7 +219,7 @@ class RestModelResource(DynamicRestHandlerResource):
                   'model': model, 'fields': fields, 'default_list_fields': default_list_fields,
                   'default_obj_fields': default_obj_fields, 'form_class': form_class,
                   'site_name': site_name, 'menu_group': menu_group, 'menu_subgroup': menu_subgroup,
-                  'core': core, 'allowed_methods': allowed_methods, 'exclude': exclude
+                  'core': core, 'allowed_methods': allowed_methods
                   }
         super(RestModelResource, self).__init__(handler_class, name, **kwargs)
 

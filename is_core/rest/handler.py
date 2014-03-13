@@ -1,11 +1,11 @@
 import re
 
-from django.core.exceptions import ObjectDoesNotExist, FieldError
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import modelform_factory
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.related import ForeignRelatedObjectsDescriptor
-from django.utils.encoding import force_text
 from django.db import transaction
+from django.db.utils import InterfaceError, DatabaseError
 
 from piston.handler import BaseHandler
 from piston.utils import get_handler_of_model
@@ -15,7 +15,6 @@ from is_core.rest.paginator import Paginator
 from is_core.rest.utils import rc
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
-from django.db.utils import InterfaceError, DatabaseError
 
 
 class HeadersResult(object):
@@ -331,14 +330,26 @@ class RestModelHandler(RestCoreHandler):
         except (InterfaceError, DatabaseError, FilterException, ValueError)  as ex:
             return HeadersResult(self.model.objects.none(), {'X-Total': 0})
 
-    # TODO: duplicate, this is too inside DefaultFormView
-    def get_form_class(self, exclude=[]):
-        exclude = list(self.exclude) + exclude
-        if hasattr(self.form_class, '_meta') and self.form_class._meta.exclude:
-            exclude.extend(self.form_class._meta.exclude)
-        return modelform_factory(self.model, form=self.form_class, exclude=exclude)
+    def get_exclude(self, request, obj=None):
+        return self.core.get_rest_form_exclude(request, obj)
 
-    def get_form(self, fields=None, inst=None, data=None, initial={}):
+    def get_fields(self, request, obj=None):
+        return self.core.get_rest_form_fields(request, obj)
+
+    def get_form_class(self, request, obj=None):
+        return self.form_class or self.core.get_rest_form_class(request, obj)
+
+    # TODO: duplicate, this is too inside DefaultFormView
+    def generate_form_class(self, request, inst, exclude=[]):
+        exclude = list(self.get_exclude(request, inst)) + exclude
+        form_class = self.get_form_class(request, inst)
+        fields = self.get_fields(request, inst)
+
+        if hasattr(form_class, '_meta') and form_class._meta.exclude:
+            exclude.extend(form_class._meta.exclude)
+        return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields)
+
+    def get_form(self, request, fields=None, inst=None, data=None, initial={}):
         # When is send PUT (resource instance exists), it is possible send only changed values.
         exclude = []
 
@@ -353,7 +364,7 @@ class RestModelHandler(RestCoreHandler):
         if data:
             kwargs['data'] = data
 
-        form_class = self.get_form_class(exclude)
+        form_class = self.generate_form_class(request, inst, exclude)
         form = form_class(initial=initial, **kwargs)
         return form
 
@@ -400,11 +411,11 @@ class RestModelHandler(RestCoreHandler):
         if not inst and 'POST' not in self.allowed_methods:
             raise ResourceNotFoundException
 
-        form_fields = self.get_form(data=data, initial={'_user': request.user}).fields
+        form_fields = self.get_form(request, data=data, initial={'_user': request.user}).fields
         preprocesor = DataPreprocessor(request, self.model, form_fields, inst)
         data = preprocesor.process_data(data)
 
-        form = self.get_form(fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user})
+        form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user})
         errors = form.is_invalid()
         if errors:
             raise DataInvalidException(errors)

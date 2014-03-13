@@ -35,7 +35,7 @@ class EditParentMixin(object):
             menu_items.append(MenuItem(_('Edit %s') % self.core.verbose_name,
                                        reverse('%s:edit-%s' % (self.site_name,
                                                                self.core.get_menu_group_pattern_name()),
-                                                args=(self.request.kwargs.get('pk'))),
+                                                args=(self.request.kwargs.get('pk'),)),
                                        False))
         menu_items.append(MenuItem(self.get_title(), self.request.path, True))
         return menu_items

@@ -8,13 +8,11 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.shortcuts import get_object_or_404
 from django.contrib.messages.api import get_messages
-from django.db.models.fields.related import ForeignObject, ManyToManyField
 
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
-from is_core import forms as is_forms
 from is_core.generic_views.mixins import ListParentMixin
 
 
@@ -362,22 +360,22 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         return self.messages.get(type) % msg_dict
 
     def get_exclude(self):
-        return self.exclude or self.core.get_exclude(self.request, self.get_obj(True))
+        return self.exclude or self.core.get_ui_form_exclude(self.request, self.get_obj(True))
 
     def get_readonly_fields(self):
-        return self.readonly_fields or self.core.get_readonly_fields(self.request, self.get_obj(True))
+        return self.readonly_fields or self.core.get_form_readonly_fields(self.request, self.get_obj(True))
 
     def get_inline_form_views(self):
         return self.inline_form_views or self.core.get_inline_form_views(self.request, self.get_obj(True))
 
     def get_fieldsets(self):
-        return self.fieldset or self.core.get_fieldsets(self.request, self.get_obj(True))
+        return self.fieldset or self.core.get_form_fieldsets(self.request, self.get_obj(True))
 
     def get_fields(self):
-        return self.fields or self.core.get_fields(self.request, self.get_obj(True))
+        return self.fields or self.core.get_ui_form_fields(self.request, self.get_obj(True))
 
-    def get_form_class(self, fields=None, readonly_fields=()):
-        return self.form_class or self.core.get_form_class(self.request, self.get_obj(True))
+    def get_form_class(self):
+        return self.form_class or self.core.get_ui_form_class(self.request, self.get_obj(True))
 
     def get_cancel_url(self):
         if 'list' in self.core.ui_patterns \

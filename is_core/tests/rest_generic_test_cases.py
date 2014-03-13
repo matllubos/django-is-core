@@ -51,17 +51,15 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
     def get_rest_handlers(self):
         return self.rest_handlers
 
-    def get_serialized_data(self, handler):
+    def get_serialized_data(self, request, handler, update=False):
         inst = self.new_instance(handler.model)
 
-        form = handler().get_form(inst=inst, initial={'_user': self.logged_user.user})
-
+        form_class = handler().generate_form_class(request=request, inst=update and inst or None)
+        form = form_class(initial={'_user': self.logged_user.user}, instance=inst)
         data = {}
 
         for field in form:
             value = field.value()
-
-            field.name
             if isinstance(value, FieldFile):
                 value = None
 
@@ -122,10 +120,11 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
         for _ in range(self.iteration):
             list_url = handler.list_url()
 
-            if not handler.has_create_permission(self.get_request_with_user(self.r_factory.post(list_url))):
+            request = self.get_request_with_user(self.r_factory.post(list_url))
+            if not handler.has_create_permission(request):
                 break
 
-            data, inst = self.get_serialized_data(handler)
+            data, inst = self.get_serialized_data(request, handler)
 
             count_before = model._default_manager.all().count()
 
@@ -147,7 +146,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
             if not handler.has_update_permission(request, pk=inst_from.pk):
                 break
 
-            data, inst_to = self.get_serialized_data(handler)
+            data, inst_to = self.get_serialized_data(request, handler, True)
 
             resp = self.put(url, data=data)
             self.assert_valid_JSON_response(resp, 'REST update of model: %s\n response: %s' % (model, resp))
