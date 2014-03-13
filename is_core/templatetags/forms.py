@@ -1,12 +1,13 @@
 from django import template
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
-from django.db.models.fields import FieldDoesNotExist
+from django.db.models.fields import FieldDoesNotExist, DateTimeField
 from django.db.models.fields.related import ForeignKey
 from django.contrib.admin.util import display_for_value
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
+from django.contrib.humanize.templatetags import humanize
 
 from block_snippets.templatetags import SnippetsIncludeNode
 
@@ -108,6 +109,8 @@ def get_model_field_value_and_label(field_name, instance):
             label = field.verbose_name
             if isinstance(field, ForeignKey) and hasattr(getattr(callable_value, 'get_absolute_url', None), '__call__'):
                 value = '<a href="%s">%s</a>' % (callable_value.get_absolute_url(), force_text(value))
+            if isinstance(field, DateTimeField):
+                value = '<span title="%s">%s</span>' % (force_text(value), humanize.naturaltime(callable_value))
         else:
             label = callable_value.short_description
 
