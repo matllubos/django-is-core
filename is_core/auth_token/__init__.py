@@ -37,7 +37,7 @@ def logout(request):
     if hasattr(request, 'user'):
         request.user = AnonymousUser()
 
-    if hasattr(request, 'token'):
+    if hasattr(request, 'token') and request.token.is_active:
         token = request.token
         token.is_active = False
         token.save()
