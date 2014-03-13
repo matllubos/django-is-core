@@ -2,6 +2,7 @@ from django import template
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 from django.db.models.fields import FieldDoesNotExist
+from django.db.models.fields.related import ForeignKey
 from django.contrib.admin.util import display_for_value
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
@@ -99,9 +100,17 @@ def get_model_field_value_and_label(field_name, instance):
         value = display_for_value(value)
 
         try:
-            label = instance._meta.get_field_by_name(field_name)[0].verbose_name
+            field = instance._meta.get_field_by_name(field_name)[0]
         except FieldDoesNotExist:
+            field = None
+
+        if field:
+            label = field.verbose_name
+            if isinstance(field, ForeignKey) and hasattr(getattr(callable_value, 'get_absolute_url', None), '__call__'):
+                value = '<a href="%s">%s</a>' % (callable_value.get_absolute_url(), force_text(value))
+        else:
             label = callable_value.short_description
+
         return mark_safe(linebreaks(force_text(value))), label
 
 
