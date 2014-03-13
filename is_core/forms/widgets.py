@@ -40,6 +40,8 @@ class WrapperWidget(forms.Widget):
 
 class SelectMixin(object):
 
+    extra_fields = True
+
     def render_option(self, selected_choices, option_value, option_label, option_attrs):
         option_value = force_text(option_value)
         if option_value in selected_choices:
@@ -52,7 +54,7 @@ class SelectMixin(object):
         return format_html('<option value="{0}"{1}{2}>{3}</option>',
                            option_value,
                            selected_html,
-                           flat_data_attrs(option_attrs),
+                           self.extra_fields and flat_data_attrs(option_attrs) or '',
                            force_text(option_label))
 
     def render_options(self, choices, selected_choices):

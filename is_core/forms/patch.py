@@ -1,6 +1,8 @@
 from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
 
 from is_core.forms.utils import add_class_name
+from django.forms.models import ModelChoiceField
+from django.db.models.fields.related import ForeignKey
 
 
 def build_attrs(self, extra_attrs=None, **kwargs):

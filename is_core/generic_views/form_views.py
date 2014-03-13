@@ -227,12 +227,6 @@ class DefaultModelFormView(DefaultFormView):
                                  formfield_callback=self.formfield_for_dbfield)
 
     def formfield_for_dbfield(self, db_field, **kwargs):
-        if isinstance(db_field, ManyToManyField):
-
-            kwargs['form_class'] = is_forms.ModelMultipleChoiceField
-        elif isinstance(db_field, ForeignObject):
-            kwargs['form_class'] = is_forms.ModelChoiceField
-
         return db_field.formfield(**kwargs)
 
     def get_has_file_field(self, form, inline_form_views=(), **kwargs):

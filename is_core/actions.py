@@ -1,5 +1,6 @@
 from django.utils.encoding import force_text
 
+
 class Action(dict):
 
     def __init__(self, name, verbose_name, type, class_name=None):
