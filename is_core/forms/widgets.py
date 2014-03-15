@@ -80,7 +80,7 @@ class Select(SelectMixin, forms.Select):
 
 class MultipleSelect(SelectMixin, forms.SelectMultiple):
 
-    class_name = 'fulltext-search multiple'
+    class_name = 'fulltext-search-multiple'
 
 
 class DragAndDropFileInput(forms.ClearableFileInput):
