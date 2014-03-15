@@ -1,16 +1,22 @@
+import six
+
 from django.db import models
 from django.db.models.fields.related import ForeignKey, ManyToManyField
-
-import six
-from django.db.models.fields.files import FileField
+from django.utils.translation import ugettext_lazy as _
 
 
 class UIOptions(object):
     def __init__(self, model):
         self.extra_selecbox_fields = {}
+        self.list_verbose_name = _('%(verbose_name_plural)s')
+        self.add_verbose_name = _('Add %(verbose_name)s')
+        self.edit_verbose_name = _('%(obj)s')
 
         if hasattr(model, 'UIMeta'):
             self.extra_selecbox_fields = getattr(model.UIMeta, 'extra_selecbox_fields', self.extra_selecbox_fields)
+            self.list_verbose_name = getattr(model.UIMeta, 'list_verbose_name', self.list_verbose_name)
+            self.add_verbose_name = getattr(model.UIMeta, 'add_verbose_name', self.add_verbose_name)
+            self.edit_verbose_name = getattr(model.UIMeta, 'edit_verbose_name', self.edit_verbose_name)
 
 
 class RestOptions(object):

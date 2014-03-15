@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 
 from is_core.site import get_site_by_name, MenuGroup
+from is_core import config
 
 register = template.Library()
 
@@ -67,14 +68,16 @@ def bread_crumbs(context):
 
     request = context.get('request')
 
-
     active_menu_groups = context.get('active_menu_groups') or []
 
-    index_url = reverse('%s:index' % site_name)
-    index_active = request.path == index_url
-    menu_items = [MenuItem(_('Home'), index_url, index_active)]
+    menu_items = []
+    if config.HOME_IN_BREADCRUMB:
+        index_url = reverse('%s:index' % site_name)
+        index_active = request.path == index_url
+        menu_items.append(MenuItem(_('Home'), index_url, index_active))
 
     items = site._registry
+
     for group in active_menu_groups:
         item = items.get(group)
         if item:
@@ -85,6 +88,8 @@ def bread_crumbs(context):
                 menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url, active, group))
                 items = item.items
             else:
-                for menu_item in bread_crumbs_menu_items:
-                    menu_items.append(menu_item)
+                break
+
+    for menu_item in bread_crumbs_menu_items:
+        menu_items.append(menu_item)
     return {'menu_items': menu_items}

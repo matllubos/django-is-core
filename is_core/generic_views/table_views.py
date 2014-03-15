@@ -1,5 +1,4 @@
 from django.views.generic.base import TemplateView
-from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields import FieldDoesNotExist
 
 from is_core.utils import query_string_from_dict
@@ -34,15 +33,14 @@ class TableView(DefaultCoreViewMixin, TemplateView):
         self.list_display = self.list_display or list_display
 
     def get_title(self):
-        return _('List %s') % self.core.verbose_name_plural
-
+        return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
+                                                        'verbose_name_plural': self.model._meta.verbose_name_plural}
 
     def get_filter(self, full_field_name):
         try:
             return get_model_field_or_method_filter(full_field_name, self.model)
         except FilterException:
             return ''
-
 
     def get_header(self, full_field_name, field_name=None, model=None):
         if not model:

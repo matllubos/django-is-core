@@ -420,7 +420,8 @@ class AddModelFormView(DefaultCoreModelFormView):
                 'error': _('Please correct the error below.')}
 
     def get_title(self):
-        return _('Add %s') % self.core.verbose_name
+        return self.model._ui_meta.add_verbose_name % {'verbose_name': self.model._meta.verbose_name,
+                                                       'verbose_name_plural': self.model._meta.verbose_name_plural}
 
     @classmethod
     def has_get_permission(cls, request, core, **kwargs):
@@ -439,7 +440,9 @@ class EditModelFormView(DefaultCoreModelFormView):
                 'error': _('Please correct the error below.')}
 
     def get_title(self):
-        return _('Edit %s') % self.core.verbose_name
+        return self.model._ui_meta.edit_verbose_name % {'verbose_name': self.model._meta.verbose_name,
+                                                        'verbose_name_plural': self.model._meta.verbose_name_plural,
+                                                        'obj': self.get_obj(True)}
 
     def get_obj_filters(self):
         filters = {'pk': self.kwargs.get('pk')}
