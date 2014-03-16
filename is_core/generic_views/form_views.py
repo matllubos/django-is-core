@@ -63,6 +63,9 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
             msg_dict = {'obj': force_text(obj)}
         return self.messages.get(type) % msg_dict
 
+    def is_changed(self, form, **kwargs):
+        return form.has_changed()
+
     def save_obj(self, obj, form, change):
         raise NotImplemented
 
@@ -72,7 +75,7 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         change = obj.pk is not None
 
         try:
-            self.save_obj(obj, form, self.is_changed(form), change)
+            self.save_obj(obj, form, change)
         except SaveObjectException as ex:
             return self.form_invalid(form, force_text(ex))
         if hasattr(form, 'save_m2m'):
@@ -137,9 +140,13 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
     def post(self, request, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        if form.is_valid():
+
+        is_changed = self.is_changed(form)
+        if form.is_valid() and is_changed:
             return self.form_valid(form)
         else:
+            if not is_changed:
+                return self.form_invalid(form, msg=_('No changes have been submitted.'))
             return self.form_invalid(form)
 
 
@@ -244,6 +251,12 @@ class DefaultModelFormView(DefaultFormView):
     def get_success_url(self, obj):
         return ''
 
+    def is_changed(self, form, inline_form_views, **kwargs):
+        for inline_form_view_instance in inline_form_views.values():
+            if inline_form_view_instance.formset.has_changed():
+                return True
+        return form.has_changed()
+
     def get(self, request, *args, **kwargs):
         fields = self.generate_fields()
         readonly_fields = self.generate_readonly_fields()
@@ -272,9 +285,13 @@ class DefaultModelFormView(DefaultFormView):
                                         and inline_forms_is_valid
             inline_form_views[inline_form_view.__name__] = inline_form_view_instance
 
-        if form.is_valid() and inline_forms_is_valid:
+        is_changed = self.is_changed(form, inline_form_views=inline_form_views)
+
+        if form.is_valid() and inline_forms_is_valid and is_changed:
             return self.form_valid(form, inline_form_views)
         else:
+            if not is_changed:
+                return self.form_invalid(form, inline_form_views, msg=_('No changes have been submitted.'))
             return self.form_invalid(form, inline_form_views)
 
     def get_obj(self, cached=True):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-10 20:39+0100\n"
+"POT-Creation-Date: 2014-03-16 20:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -17,26 +17,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
-#: main.py:167 generic_views/table_views.py:35
-#, python-format
-msgid "List %s"
-msgstr "Tabulka %s"
-
-#: main.py:172 generic_views/form_views.py:425
-#, python-format
-msgid "Add %s"
-msgstr "Přidat %s"
-
-#: main.py:174 generic_views/form_views.py:444
-#, python-format
-msgid "Edit %s"
-msgstr "Upravit %s"
-
-#: main.py:204
+#: main.py:200
 msgid "Edit"
 msgstr "Upravit"
 
-#: main.py:275
+#: main.py:280
 msgid "Delete"
 msgstr "Smazat"
 
@@ -64,38 +49,56 @@ msgstr "Ano"
 msgid "No"
 msgstr "Ne"
 
-#: generic_views/__init__.py:61 templatetags/menu.py:73
+#: generic_views/__init__.py:65 templatetags/menu.py:77
 msgid "Home"
 msgstr "Home"
 
-#: generic_views/form_views.py:25
+#: generic_views/form_views.py:24
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:26 generic_views/form_views.py:422
-#: generic_views/form_views.py:441
+#: generic_views/form_views.py:25 generic_views/form_views.py:435
+#: generic_views/form_views.py:455
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:421
+#: generic_views/form_views.py:149 generic_views/form_views.py:294
+msgid "No changes have been submitted."
+msgstr "Nebyly odeslány žádné změny."
+
+#: generic_views/form_views.py:434
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:440
+#: generic_views/form_views.py:454
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 
-#: rest/handler.py:64
+#: models/patch.py:11
+msgid "%(verbose_name_plural)s"
+msgstr "%(verbose_name_plural)s"
+
+#: models/patch.py:12 templates/generic_views/table.html:6
+#, python-format
+msgid "Add %(verbose_name)s"
+msgstr "Přidat %(verbose_name)s"
+
+#: models/patch.py:13
+#, python-format
+msgid "%(obj)s"
+msgstr "%(obj)s"
+
+#: rest/handler.py:63
 msgid "Select a valid choice. That choice is not one of the available choices."
 msgstr "Vyberte platnou možnost. Tato není k dispozici."
 
-#: rest/handler.py:68
+#: rest/handler.py:67
 msgid "Create or update this resource is not allowed."
 msgstr "Není povoleno vytvořit nebo upravit tento zdroj."
 
-#: rest/handler.py:313
+#: rest/handler.py:312
 #, python-format
 msgid "Cannot resolve X-Order value \"%s\" into field"
 msgstr "Není možné řadit dle hodnoty hlavičky X-Order: \"%s\""
@@ -106,7 +109,8 @@ msgstr "Obsah hlavičky X-Offset musí být přirozené číslo."
 
 #: rest/paginator.py:33
 msgid "X-Base must be natural number or empty"
-msgstr "Obsah hlavičky X-Base musí být přirozené číslo nebo musí být hlavička prázdná"
+msgstr ""
+"Obsah hlavičky X-Base musí být přirozené číslo nebo musí být hlavička prázdná"
 
 #: templates/403.html:4
 msgid "Forbidden (403)"
@@ -154,14 +158,14 @@ msgstr "Cancel"
 msgid "Add %(name)s"
 msgstr "Přidat %(name)s"
 
-#: templates/generic_views/table.html:6
-#, python-format
-msgid "Add %(verbose_name)s"
-msgstr "Přidat %(verbose_name)s"
-
 #: templates/generic_views/table.html:10
 #, python-format
-msgid "%%d-%%d of %%d"
+msgid "Displayed %%d-%%d"
+msgstr "Zobrazeny %%d-%%d"
+
+#: templates/generic_views/table.html:10
+#, fuzzy, python-format
+msgid "of %%d"
 msgstr "%%d-%%d z %%d"
 
 #: templates/generic_views/table.html:12
