@@ -2,8 +2,6 @@
 {% load forms i18n %}
 
 {% block form %}
-	{% block above-form %}{% endblock %}
 	{% form_renderer form fieldsets=fieldsets inline_form_views=inline_form_views template=form_template class_attr=form_class_names action=action %}
-	{% block below-form %}{% endblock %}
 {% endblock %}
 

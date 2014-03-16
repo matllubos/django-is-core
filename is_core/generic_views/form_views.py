@@ -47,8 +47,8 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
     def get_form(self, form_class):
         form = form_class(**self.get_form_kwargs())
 
-        for field in form.fields.values():
-            field = self.form_field(field)
+        for field_name, field in form.fields.items():
+            field = self.form_field(field_name, field)
         return form
 
     def get_form_action(self):
@@ -126,7 +126,7 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         initial['_user'] = self.request.user
         return initial
 
-    def form_field(self, form_field):
+    def form_field(self, field_name, form_field):
         return form_field
 
     def get(self, request, *args, **kwargs):
@@ -252,8 +252,7 @@ class DefaultModelFormView(DefaultFormView):
         form = self.get_form(form_class)
         inline_form_views = SortedDict()
         for inline_form_view in self.get_inline_form_views():
-            inline_form_views[inline_form_view.__name__] = inline_form_view(self.request, self.core, self.model,
-                                                                            form.instance,
+            inline_form_views[inline_form_view.__name__] = inline_form_view(self.request, self, form.instance,
                                                                             not self.has_post_permission(self.request,
                                                                                                          self.core))
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
@@ -267,9 +266,8 @@ class DefaultModelFormView(DefaultFormView):
         inline_form_views = SortedDict()
         inline_forms_is_valid = True
         for inline_form_view in self.get_inline_form_views():
-            inline_form_view_instance = inline_form_view(self.request, self.core, self.model,
-                                                         form.instance, not self.has_post_permission(self.request,
-                                                                                                     self.core))
+            inline_form_view_instance = inline_form_view(self.request, self, form.instance,
+                                                         not self.has_post_permission(self.request, self.core))
             inline_forms_is_valid = (inline_form_view_instance.formset.is_valid()) \
                                         and inline_forms_is_valid
             inline_form_views[inline_form_view.__name__] = inline_form_view_instance

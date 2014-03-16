@@ -31,11 +31,11 @@ class WrapperWidget(forms.Widget):
     def value_from_datadict(self, data, files, name):
         return self.widget.value_from_datadict(data, files, name)
 
-    def _has_changed(self, initial, data):
-        return self.widget._has_changed(initial, data)
-
     def id_for_label(self, id_):
         return self.widget.id_for_label(id_)
+
+    def render(self, name, value, attrs=None):
+        return self.widget.render(name, value, attrs)
 
 
 class SelectMixin(object):

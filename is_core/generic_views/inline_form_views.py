@@ -17,11 +17,13 @@ class InlineFormView(object):
     min_num = 0
     readonly_fields = ()
     fields = None
+    base_inline_formset_class = BaseInlineFormSet
 
-    def __init__(self, request, core, parent_model, instance, is_readonly=False):
+    def __init__(self, request, parent_view, instance, is_readonly=False):
         self.request = request
-        self.parent_model = parent_model
-        self.core = core
+        self.parent_view = parent_view
+        self.parent_model = parent_view.model
+        self.core = parent_view.core
         self.parent = instance
         self.is_readonly = is_readonly
         if self.extra < self.min_num:
@@ -64,7 +66,7 @@ class InlineFormView(object):
         extra = self.get_extra()
         exclude = list(self.get_exclude()) + list(readonly_fields)
         return inlineformset_factory(self.parent_model, self.model, form=self.form_class,
-                                     fk_name=self.fk_name, extra=extra, formset=BaseInlineFormSet,
+                                     fk_name=self.fk_name, extra=extra, formset=self.base_inline_formset_class,
                                      can_delete=self.get_can_delete(), exclude=exclude,
                                      fields=fields, max_num=self.max_num)
 
@@ -83,7 +85,23 @@ class InlineFormView(object):
 
         formset.can_add = self.get_can_add()
         formset.can_delete = self.get_can_delete()
+
+        for form in formset:
+            form.class_names = self.form_class_names(form)
+            self.form_fields(form)
         return formset
+
+    def form_class_names(self, form):
+        if form.instance.pk:
+            return ['empty']
+        return []
+
+    def form_fields(self, form):
+        for field_name, field in form.fields.items():
+            field = self.form_field(form, field_name, field)
+
+    def form_field(self, form, field_name, form_field):
+        return form_field
 
     def get_name(self):
         return self.model.__name__

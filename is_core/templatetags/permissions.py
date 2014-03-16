@@ -27,8 +27,11 @@ class PermissionNode(Node):
 
         view_permissions = context.get('permissions', {})
 
-        if view_permissions.has_key(perm_name) and view_permissions.get(perm_name)(request, **kwargs):
-            return self.nodelist.render(context)
+        if view_permissions.has_key(perm_name):
+            perm_fun_or_bool = view_permissions.get(perm_name)
+            if (isinstance(perm_fun_or_bool, bool) and perm_fun_or_bool) \
+                or (hasattr(perm_fun_or_bool, '__call__') and perm_fun_or_bool(request, **kwargs)):
+                return self.nodelist.render(context)
 
         if permissions.permissions_validators.has_key(perm_name):
             request = context.get('request')

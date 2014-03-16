@@ -6,7 +6,7 @@
 	{% block fieldset-forms %}
 		{{ formset.management_form }}
 		{% for form in formset.all_forms %}
-			<div class="{{ form | model_name }}" id="{{ form.prefix }}">
+			<div class="{{ form | model_name }} {{ form.class_names|join:' ' }}" id="{{ form.prefix }}">
 				{{ form.non_field_errors }}
 				{% block fieldset-field %}
 					{% for field_name in fieldset %}

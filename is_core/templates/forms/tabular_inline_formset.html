@@ -23,7 +23,7 @@
 					</tr>
 				</thead>
 			{% endif %}
-			<tr class="{% cycle odd,even %}">
+			<tr class="{% cycle odd,even %} {{ form.class_names|join:' ' }}">
 				{% with visible_fields=form|get_visible_fields:fieldset %}
 					{% for field in visible_fields %}
 						<td>
