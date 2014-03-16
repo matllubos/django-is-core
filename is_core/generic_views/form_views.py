@@ -141,11 +141,13 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
+        is_valid = form.is_valid()
         is_changed = self.is_changed(form)
-        if form.is_valid() and is_changed:
+
+        if is_valid and is_changed:
             return self.form_valid(form)
         else:
-            if not is_changed:
+            if is_valid and not is_changed:
                 return self.form_invalid(form, msg=_('No changes have been submitted.'))
             return self.form_invalid(form)
 
@@ -285,12 +287,13 @@ class DefaultModelFormView(DefaultFormView):
                                         and inline_forms_is_valid
             inline_form_views[inline_form_view.__name__] = inline_form_view_instance
 
+        is_valid = form.is_valid()
         is_changed = self.is_changed(form, inline_form_views=inline_form_views)
 
-        if form.is_valid() and inline_forms_is_valid and is_changed:
+        if is_valid and inline_forms_is_valid and is_changed:
             return self.form_valid(form, inline_form_views)
         else:
-            if not is_changed:
+            if is_valid and not is_changed:
                 return self.form_invalid(form, inline_form_views, msg=_('No changes have been submitted.'))
             return self.form_invalid(form, inline_form_views)
 
