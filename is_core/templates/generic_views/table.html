@@ -11,7 +11,7 @@
 			{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{% url add_url_name %}" title="{% blocktrans %}Add {{ verbose_name }}{% endblocktrans %}"><span>{% blocktrans %}Add {{ verbose_name }}{% endblocktrans %}</span></a>{% endhas_permission%}
 		{% endblock %}
 		</div>
-		<div class="content">
+		<div class="content clearfix">
 			{% block tabs-menu-wrapper %}{% endblock %}
 			{% block table-paginator %}
 			<div class="paginator" style="visibility: hidden">
