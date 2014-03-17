@@ -48,7 +48,7 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         form = form_class(**self.get_form_kwargs())
 
         for field_name, field in form.fields.items():
-            field = self.form_field(field_name, field)
+            field = self.form_field(form, field_name, field)
         return form
 
     def get_form_action(self):
@@ -129,7 +129,7 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         initial['_user'] = self.request.user
         return initial
 
-    def form_field(self, field_name, form_field):
+    def form_field(self, form, field_name, form_field):
         return form_field
 
     def get(self, request, *args, **kwargs):
