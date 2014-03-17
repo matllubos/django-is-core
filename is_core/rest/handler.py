@@ -305,7 +305,9 @@ class RestModelHandler(RestCoreHandler):
         return qs.order_by(order_field)
 
     def _order_queryset(self, request, qs):
-        order_field = request.META.get('HTTP_X_ORDER', 'pk')
+        if not 'HTTP_X_ORDER' in request.META:
+            return qs
+        order_field = request.META.get('HTTP_X_ORDER')
         if order_field in get_model_field_names(self.model):
             return self._order_by(request, qs, order_field)
         else:
