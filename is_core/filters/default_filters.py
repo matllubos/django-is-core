@@ -94,9 +94,18 @@ class DefaultFieldFilter(DefaultFilter):
             return formfield.widget
         return forms.TextInput()
 
+    def get_placeholder(self):
+        return self.field.model._ui_meta.filter_placeholders.get(self.field.name, None)
+
+    def get_attrs_for_widget(self):
+        attrs = {'data-filter': self.get_filter_name()}
+        if self.get_placeholder():
+            attrs['placeholder'] = self.get_placeholder()
+        return attrs
+
     def __unicode__(self):
         return self.get_widget().render('filter__%s' % self.get_filter_name(), None,
-                                        attrs={'data-filter': self.get_filter_name()})
+                                        attrs=self.get_attrs_for_widget())
 
 
 class CharFieldFilter(DefaultFieldFilter):
