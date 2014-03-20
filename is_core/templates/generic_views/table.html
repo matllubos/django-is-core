@@ -8,7 +8,7 @@
 			{{ block.super }}
 		{% endblock %}
 		{% block header-btns %}
-			{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{% url add_url_name %}" title="{% blocktrans %}Add {{ verbose_name }}{% endblocktrans %}"><span>{% blocktrans %}Add {{ verbose_name }}{% endblocktrans %}</span></a>{% endhas_permission%}
+			{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{% url add_url_name %}" title="{{ add_button_value }}"><span>{{ add_button_value }}</span></a>{% endhas_permission%}
 		{% endblock %}
 		</div>
 		<div class="content clearfix">
