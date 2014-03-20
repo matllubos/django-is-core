@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load forms i18n %}
+
+{% block content %}
+	<div class="{% block col-classes %}col-lg-12{% endblock %}">
+		<div class="header">
+			{% block bread-crumbs %}
+				{{ block.super }}
+			{% endblock %}
+			{% block header-btns %}
+			{% endblock %}
+		</div>
+		<div class="content clearfix">
+		{% block tabs-menu-wrapper %}{% endblock %}
+		{% block above-form %}{% endblock %}
+		{% block form %}
+			{% form_renderer form fieldsets=fieldsets template=form_template class_attr=form_class_names action=action %}
+		{% endblock %}
+		{% block below-form %}{% endblock %}
+		</div>
+	</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% load menu %}
+<ul>
+	{% for menu_item in menu_items %}
+		<li{% if menu_item.active %} class="active"{% endif %}><a href="{{ menu_item.url }}">{{ menu_item.title|capfirst }}</a>
+			{% if menu_item.active %}{% submenu menu_item.submenu_items %}{% endif %}
+		</li>
+	{% endfor %}
+</ul>

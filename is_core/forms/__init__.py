@@ -1,6 +1,9 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
+from .fields import *
+from .models import *
+
 
 class AllFieldsUniqueValidationModelForm(forms.ModelForm):
 
@@ -11,7 +14,7 @@ class AllFieldsUniqueValidationModelForm(forms.ModelForm):
             self._update_errors(e)
 
 
-class RestModelFormMixin(object):
+class RestFormMixin(object):
 
     def is_invalid(self):
         '''
@@ -23,7 +26,7 @@ class RestModelFormMixin(object):
 
         non_field_errors = self.non_field_errors()
         if non_field_errors:
-            errors = {'non-field-errors': non_field_errors}
+            errors = errors['non-field-errors'] = non_field_errors
 
         if errors:
             return errors
@@ -31,11 +34,5 @@ class RestModelFormMixin(object):
         return False
 
 
-class RestModelForm(RestModelFormMixin, AllFieldsUniqueValidationModelForm):
+class RestModelForm(RestFormMixin, AllFieldsUniqueValidationModelForm):
     pass
-
-
-def form_to_readonly(form):
-    for field in form.fields.values():
-        field.widget.attrs['disabled'] = 'disabled'
-
