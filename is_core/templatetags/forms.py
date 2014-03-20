@@ -7,7 +7,6 @@ from django.contrib.admin.util import display_for_value
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
-from django.contrib.humanize.templatetags import humanize
 
 from block_snippets.templatetags import SnippetsIncludeNode
 
@@ -107,10 +106,15 @@ def get_model_field_value_and_label(field_name, instance):
 
         if field:
             label = field.verbose_name
+
             if isinstance(field, ForeignKey) and hasattr(getattr(callable_value, 'get_absolute_url', None), '__call__'):
                 value = '<a href="%s">%s</a>' % (callable_value.get_absolute_url(), force_text(value))
-            if isinstance(field, DateTimeField):
-                value = '<span title="%s">%s</span>' % (force_text(value), humanize.naturaltime(callable_value))
+
+            elif hasattr(instance, field_name):
+                humanize_method_name = 'get_%s_humanized' % field_name
+                if hasattr(getattr(instance, humanize_method_name, None), '__call__'):
+                    value = '<span title="%s">%s</span>' % (force_text(value), getattr(instance, humanize_method_name)())
+
         else:
             label = callable_value.short_description
 
