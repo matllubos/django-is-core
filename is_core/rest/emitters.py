@@ -167,6 +167,9 @@ class Emitter(object):
             return val
 
         def _verbose(data, field):
+            humanize_method_name = 'get_%s_humanized' % field.attname
+            if hasattr(getattr(data, humanize_method_name, None), '__call__'):
+                return getattr(data, humanize_method_name)()
             val = _raw(data, field)
             if isinstance(val, bool):
                 val = val and _('Yes') or _('No')

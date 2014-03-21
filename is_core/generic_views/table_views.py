@@ -101,6 +101,9 @@ class TableView(DefaultCoreViewMixin, TemplateView):
                                 'list_display': self.get_list_display(),
                                 'query_string_filter': self.get_query_string_filter(),
                                 'menu_group_pattern_name': self.core.get_menu_group_pattern_name(),
+                                'add_button_value': self.core.model._ui_meta.add_verbose_name %
+                                                    {'verbose_name': self.core.model._meta.verbose_name,
+                                                     'verbose_name_plural': self.core.model._meta.verbose_name_plural}
                             })
         return context_data
 
