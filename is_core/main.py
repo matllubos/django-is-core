@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404

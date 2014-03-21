@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.related import RelatedField
 from django.db.models.fields import FieldDoesNotExist

@@ -2,10 +2,10 @@ from django.middleware.csrf import rotate_token
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.backends import ModelBackend
+from django.core.exceptions import ObjectDoesNotExist
 
 from is_core.auth_token.models import Token, AnonymousToken
 from is_core import config
-from django.core.exceptions import ObjectDoesNotExist
 
 
 def login(request, user, expiration=True):
