@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import json as serializer
 
 from django.template.base import Library

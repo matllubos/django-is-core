@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.http.response import HttpResponse
 from django.template.defaultfilters import lower
 from django.db.models.fields.related import RelatedField

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.template.base import Node, Library, TemplateSyntaxError
 
 register = Library()

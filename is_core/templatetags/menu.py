@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django import template
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse

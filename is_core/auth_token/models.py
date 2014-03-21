@@ -1,5 +1,7 @@
-import binascii
-import os
+from __future__ import unicode_literals
+
+import os, binascii
+
 from datetime import timedelta
 
 from hashlib import sha1

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.forms.models import inlineformset_factory, ModelForm
 
 from is_core.forms.models import BaseInlineFormSet

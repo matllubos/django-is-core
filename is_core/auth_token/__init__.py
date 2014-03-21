@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.middleware.csrf import rotate_token
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.auth.models import AnonymousUser

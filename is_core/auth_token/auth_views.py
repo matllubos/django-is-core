@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from class_based_auth_views.views import LoginView
 
 from is_core.generic_views.auth_views import LogoutView

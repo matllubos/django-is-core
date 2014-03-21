@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 
 def add_class_name(attrs, class_name):
     class_names = attrs.get('class')

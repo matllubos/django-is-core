@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.views.decorators.vary import vary_on_headers
 from django.http import HttpResponse
 from django.http.response import HttpResponseNotAllowed, Http404

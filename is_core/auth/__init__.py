@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseForbidden
 from django.template.loader import render_to_string

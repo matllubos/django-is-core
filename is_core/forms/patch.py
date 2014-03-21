@@ -1,10 +1,10 @@
+from __future__ import unicode_literals
+
 from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
 from django.forms.fields import FileField
 
 from is_core.forms.utils import add_class_name
 from is_core.forms.widgets import DragAndDropFileInput
-
-
 
 
 def build_attrs(self, extra_attrs=None, **kwargs):

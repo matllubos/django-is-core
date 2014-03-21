@@ -1,5 +1,7 @@
-from django.forms import models
+from __future__ import unicode_literals
+
 from django import forms
+from django.forms import models
 from django.forms.fields import ChoiceField
 
 from is_core.forms import widgets

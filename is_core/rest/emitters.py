@@ -1,5 +1,4 @@
-from __future__ import generators
-from __future__ import unicode_literals
+from __future__ import generators, unicode_literals
 
 import datetime, decimal, re, inspect, copy, json
 

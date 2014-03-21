@@ -10,4 +10,4 @@ try:
     except ImproperlyConfigured:
         pass
 except ImportError as ex:
-    print ex
+    pass

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from is_core.rest.auth import RestAuthentication
 
 
