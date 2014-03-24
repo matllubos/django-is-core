@@ -7,13 +7,15 @@
 		{% block form-fields %}
 			{% block above-form-fields %}{% endblock %}
 
+			{{ form.non_field_errors }}
 			{% if fieldsets %}
-				{{ form.non_field_errors }}
 				{% for fieldset in fieldsets %}
 					{% fieldset_renderer form fieldset %}
 				{% endfor %}	
 			{% else %}
-				{{ form.as_p }}
+				{% for field in form %}
+					{% include 'forms/default_field.html' with field=field field_name=field.name %}
+				{% endfor %}
 			{% endif %}
 
 			{% block below-form-fields %}{% endblock %}

@@ -10,18 +10,7 @@
 				{% for field_name in field_names %}
 					{% with field=form|get_field:field_name %}
 						<div class="field {{ field_name }}">
-							{% if not field.is_hidden %}
-								<label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}>
-									{{ field.label|capfirst }}
-									{% if field.field.required %}
-										<span class="required">*</span>
-									{% endif %}
-								</label>
-								<div class="field-value {{ field_name }}">{{ field }}</div>
-								{{ field.errors }}
-							{% else %}
-								<div class="field-value {{ field_name }}">{{ field }}</div>
-							{% endif %}
+							{% include 'forms/default_field.html' with field=field field_name=field_name %}
 						</div>
 					{% endwith %}
 				{% endfor %}
