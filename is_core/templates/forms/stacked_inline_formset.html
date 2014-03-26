@@ -11,8 +11,9 @@
 				{% block fieldset-field %}
 					{% for field_name in fieldset %}
 						{% with field=form|get_field:field_name %}
-							<p class="form-group">
+							<div class="form-group">
 								{% if not field.is_hidden %}
+									<div class="field {{ field_name }}{% if field.errors %} error{% endif %}">
 									<label for="{{ field.auto_id }}">
 										{{ field.label|capfirst }}
 										{% if field.field.required %}
@@ -21,10 +22,11 @@
 									</label>
 									{{ field }}
 									{{ field.errors }}
+									</div>
 								{% else %}
 									{{ field }}
 								{% endif %}
-							</p>
+							</div>
 						{% endwith %}
 					{% endfor %}
 				{% endblock %}

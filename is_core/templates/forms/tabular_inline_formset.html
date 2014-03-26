@@ -26,7 +26,7 @@
 			<tr class="{% cycle odd,even %} {{ form.class_names|join:' ' }}">
 				{% with visible_fields=form|get_visible_fields:fieldset %}
 					{% for field in visible_fields %}
-						<td>
+						<td class="field{% if field.errors %} error{% endif %}">
 							{# Include the hidden fields in the form #}
 							{% if forloop.first %}
 								{% for hidden in form.hidden_fields %}
