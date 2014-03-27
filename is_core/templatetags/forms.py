@@ -51,6 +51,7 @@ def inline_form_view_renderer(context, inline_view, title=None):
                         'formset': formset,
                         'fieldset': fieldset,
                         'name': inline_view.get_name(),
+                        'button_value': inline_view.get_button_value(),
                         'title': title,
                         'class_names': class_names,
                     })

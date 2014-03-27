@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.forms.models import inlineformset_factory, ModelForm
+from django.utils.translation import ugettext_lazy as _
 
 from is_core.forms.models import BaseInlineFormSet
 from is_core.utils.forms import formset_has_file_field
@@ -107,6 +108,9 @@ class InlineFormView(object):
 
     def get_name(self):
         return self.model.__name__
+
+    def get_button_value(self):
+        return '%s %s ' % (_('Add'), self.get_name())
 
     def form_valid(self, request):
         instances = self.formset.save(commit=False)
