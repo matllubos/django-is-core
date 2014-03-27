@@ -9,6 +9,7 @@ from django.contrib.admin.util import display_for_value
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
+from django.utils.translation import ugettext_lazy as _
 
 from block_snippets.templatetags import SnippetsIncludeNode
 
@@ -86,10 +87,10 @@ class ReadonlyField(object):
         return self.content
 
 
-def get_model_field_value_and_label(field_name, instance):
+def get_model_field_value_and_label(field_name, instance, request):
     if '__' in field_name:
         current_field_name, next_field_name = field_name.split('__', 1)
-        return get_model_field_value_and_label(next_field_name, getattr(instance, current_field_name))
+        return get_model_field_value_and_label(next_field_name, getattr(instance, current_field_name), request)
     else:
         callable_value = getattr(instance, 'get_%s_display' % field_name, None)
         if not callable_value:
@@ -99,7 +100,10 @@ def get_model_field_value_and_label(field_name, instance):
         else:
             value = callable_value
 
-        value = display_for_value(value)
+        if isinstance(callable_value, bool):
+            value = _('Yes') if value else _('No')
+        else:
+            value = display_for_value(value)
 
         try:
             field = instance._meta.get_field_by_name(field_name)[0]
@@ -109,7 +113,10 @@ def get_model_field_value_and_label(field_name, instance):
         if field:
             label = field.verbose_name
 
-            if isinstance(field, ForeignKey) and hasattr(getattr(callable_value, 'get_absolute_url', None), '__call__'):
+            if isinstance(field, ForeignKey) \
+                and hasattr(getattr(callable_value, 'get_absolute_url', None), '__call__') \
+                and hasattr(getattr(callable_value, 'can_see_edit_link', None), '__call__') \
+                and callable_value.can_see_edit_link(request):
                 value = '<a href="%s">%s</a>' % (callable_value.get_absolute_url(), force_text(value))
 
             elif hasattr(instance, field_name):
@@ -123,23 +130,24 @@ def get_model_field_value_and_label(field_name, instance):
         return mark_safe(linebreaks(force_text(value))), label
 
 
-@register.filter
-def get_field(form, field_name):
+@register.assignment_tag(takes_context=True)
+def get_field(context, form, field_name):
+    request = context['request']
     field = form.fields.get(field_name)
     if not field:
         instance = form.instance
-        value, label = get_model_field_value_and_label(field_name, instance)
+        value, label = get_model_field_value_and_label(field_name, instance, request)
 
         return ReadonlyField(label, value or '')
 
     return form[field_name]
 
 
-@register.filter
-def get_visible_fields(form, fieldset):
+@register.assignment_tag(takes_context=True)
+def get_visible_fields(context, form, fieldset):
     visible_fields = []
     for field_name in fieldset:
-        field = get_field(form, field_name)
+        field = get_field(context, form, field_name)
         if not field.is_hidden:
             visible_fields.append(field)
     return visible_fields

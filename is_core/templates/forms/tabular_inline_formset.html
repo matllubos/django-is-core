@@ -9,36 +9,34 @@
 				<thead>
 					<tr>
 						{% for field_name in fieldset %}
-							{% with field=form|get_field:field_name %}
-								{% if not field.is_hidden %}
-									<th>
-										{{ field.label|capfirst }}
-										{% if field.field.required %}
-											<span class="required">*</span>
-										{% endif %}
-									</th>
-								{% endif %}
-							{% endwith %}
+							{% get_field form field_name as field %}
+							{% if not field.is_hidden %}
+								<th>
+									{{ field.label|capfirst }}
+									{% if field.field.required %}
+										<span class="required">*</span>
+									{% endif %}
+								</th>
+							{% endif %}
 						{% endfor %}
 					</tr>
 				</thead>
 			{% endif %}
 			<tr class="{% cycle odd,even %} {{ form.class_names|join:' ' }}">
-				{% with visible_fields=form|get_visible_fields:fieldset %}
-					{% for field in visible_fields %}
-						<td class="field{% if field.errors %} error{% endif %}">
-							{# Include the hidden fields in the form #}
-							{% if forloop.first %}
-								{% for hidden in form.hidden_fields %}
-									{{ hidden }}
-								{% endfor %}
-								{{ form.non_field_errors }}
-							{% endif %}
-							{{ field }}
-							{{ field.errors.as_ul }}
-						</td>
-					{% endfor %}
-				{% endwith %}
+				{% get_visible_fields form fieldset as visible_fields %}
+				{% for field in visible_fields %}
+					<td class="field{% if field.errors %} error{% endif %}">
+						{# Include the hidden fields in the form #}
+						{% if forloop.first %}
+							{% for hidden in form.hidden_fields %}
+								{{ hidden }}
+							{% endfor %}
+							{{ form.non_field_errors }}
+						{% endif %}
+						{{ field }}
+						{{ field.errors.as_ul }}
+					</td>
+				{% endfor %}
 			</tr>
 		{% endfor %}
 	</table>
