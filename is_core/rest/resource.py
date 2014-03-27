@@ -223,7 +223,12 @@ class RestModelResource(DynamicRestHandlerResource):
                   'site_name': site_name, 'menu_group': menu_group, 'menu_subgroup': menu_subgroup,
                   'core': core, 'allowed_methods': allowed_methods
                   }
+        self.core = core
         super(RestModelResource, self).__init__(handler_class, name, **kwargs)
+
+    def __call__(self, request, *args, **kwargs):
+        self.core.init_request(request)
+        return super(RestModelResource, self).__call__(request, *args, **kwargs)
 
     # TODO: maybe cache dict fields
     def get_fields(self, request, handler, concrete_obj):

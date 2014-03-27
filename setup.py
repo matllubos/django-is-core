@@ -31,7 +31,7 @@ setup(
         'django>=1.6',
         'django-class-based-auth-views>=0.2',
         'django-piston==0.3.3',
-        'germanium==0.0.2',
+        'germanium==0.1.0',
         'django-block-snippets==0.0.5',
         'python-dateutil>=2.2',
         'pytz',
@@ -39,7 +39,7 @@ setup(
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/master#egg=django-piston-0.3.3',
         'https://github.com/matllubos/django-block-snippets/tarball/0.0.5#egg=django-block-snippets-0.0.5',
-        'https://github.com/LukasRychtecky/germanium/tarball/0.0.2#egg=germanium-0.1.0',
+        'https://github.com/LukasRychtecky/germanium/tarball/0.1.0#egg=germanium-0.1.0',
     ],
     zip_safe=False
 )

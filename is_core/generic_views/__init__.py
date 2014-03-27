@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 
 from is_core.auth import AuthWrapper
@@ -80,6 +80,10 @@ class DefaultCoreViewMixin(DefaultViewMixin):
         site_name = self.site_name or site_name or core.site_name
         menu_groups = self.menu_groups or menu_groups or core.get_menu_groups()
         super(DefaultCoreViewMixin, self).__init__(site_name, menu_groups)
+
+    def dispatch(self, request, *args, **kwargs):
+        self.core.init_request(request)
+        return super(DefaultCoreViewMixin, self).dispatch(request, *args, **kwargs)
 
     def get_title(self):
         return self.title or self.model._meta.verbose_name

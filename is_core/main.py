@@ -29,6 +29,9 @@ class ISCore(object):
         self.site_name = site_name
         self.menu_parent_groups = menu_parent_groups
 
+    def init_request(self, request):
+        pass
+
     def get_urlpatterns(self, patterns):
         urls = []
         for pattern in patterns.values():
