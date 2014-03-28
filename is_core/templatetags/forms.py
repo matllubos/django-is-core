@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django import template
+from django.forms import CheckboxInput
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 from django.db.models.fields import FieldDoesNotExist, DateTimeField
@@ -162,3 +163,8 @@ def model_name(form):
 @register.filter
 def split(value, delimiter=','):
     return value.split(delimiter)
+
+
+@register.filter
+def is_checkbox(field):
+    return hasattr(field, 'field') and hasattr(field.field, 'widget') and isinstance(field.field.widget, CheckboxInput)
