@@ -19,6 +19,7 @@ class InlineFormView(object):
     min_num = 0
     readonly_fields = ()
     fields = None
+    initial = []
     base_inline_formset_class = BaseInlineFormSet
 
     def __init__(self, request, parent_view, instance, is_readonly=False):
@@ -43,7 +44,10 @@ class InlineFormView(object):
         return self.fields
 
     def get_extra(self):
-        return self.extra
+        return self.extra + len(self.get_initial())
+
+    def get_initial(self):
+        return self.initial[:]
 
     def get_can_delete(self):
         return self.can_delete and not self.is_readonly
@@ -83,7 +87,8 @@ class InlineFormView(object):
             formset = self.get_formset_factory(fields, readonly_fields)(data=data, files=files, instance=instance,
                                                                         queryset=self.get_queryset())
         else:
-            formset = self.get_formset_factory(fields, readonly_fields)(instance=instance, queryset=self.get_queryset())
+            formset = self.get_formset_factory(fields, readonly_fields)(instance=instance, queryset=self.get_queryset(),
+                                                                        initial=self.get_initial())
 
         formset.can_add = self.get_can_add()
         formset.can_delete = self.get_can_delete()
