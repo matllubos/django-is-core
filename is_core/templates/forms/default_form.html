@@ -22,7 +22,9 @@
 
 		{% endblock %}
 
-		{% block above-submit-button %}{% endblock %}
+		{% block above-submit-button %}
+			<div class="required-hint">{% blocktrans %}Fields marked with <span class="required">*</span> are required{% endblocktrans %}</div>
+		{% endblock %}
 
 		<div class="form-btns">
 		{% block submit-button %}
