@@ -15,7 +15,7 @@
 			{% block tabs-menu-wrapper %}{% endblock %}
 			{% block table-paginator %}
 			<div class="paginator" style="visibility: hidden">
-				<div class="pull-left"><div class="result-displayed">{% trans 'Displayed %d-%d' %}</div><div class="result-total"> {% trans 'of %d' %}</div></div>
+				<div class="pull-left"><span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '%d to %d' %}</span></span><span class="result-total"><span class="result-caption">{% trans 'Item total:' %}</span><span class="result-number">%d</span></span></div>
 				<div class="pull-right paging">
 					<span class="base-switcher" data-pattern="{% trans '%d per page' %}" data-bases="[10,25,50,100]"></span>
 					<ul class="pagination">
