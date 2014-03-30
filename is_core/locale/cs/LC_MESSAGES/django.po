@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-16 20:35+0100\n"
+"POT-Creation-Date: 2014-03-30 20:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -17,97 +17,102 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
-#: main.py:200
+#: main.py:205
 msgid "Edit"
 msgstr "Upravit"
 
-#: main.py:280
+#: main.py:291
 msgid "Delete"
 msgstr "Smazat"
 
-#: auth_token/forms.py:7
+#: auth_token/forms.py:9
 msgid "Remember user"
 msgstr "Zapamatovat uživatele"
 
-#: filters/__init__.py:28 filters/__init__.py:33
+#: filters/__init__.py:30 filters/__init__.py:35
 #, python-format
 msgid "Not valid filter: %s"
 msgstr "Neplatný filter: %s"
 
-#: filters/default_filters.py:42
+#: filters/default_filters.py:44
 #, python-format
 msgid "Not valid filter: %(filter_key)s=%(filter_value)s"
 msgstr "Neplatný filter: %(filter_key)s=%(filter_value)s"
 
-#: filters/default_filters.py:117 rest/emitters.py:171
-#: templates/generic_views/table.html:22
+#: filters/default_filters.py:128 rest/emitters.py:174
+#: templates/generic_views/table.html:30 templatetags/forms.py:106
 msgid "Yes"
 msgstr "Ano"
 
-#: filters/default_filters.py:117 rest/emitters.py:171
-#: templates/generic_views/table.html:22
+#: filters/default_filters.py:128 rest/emitters.py:174
+#: templates/generic_views/table.html:30 templatetags/forms.py:106
 msgid "No"
 msgstr "Ne"
 
-#: generic_views/__init__.py:65 templatetags/menu.py:77
+#: generic_views/__init__.py:67 templatetags/menu.py:79
 msgid "Home"
 msgstr "Home"
 
-#: generic_views/form_views.py:24
+#: generic_views/form_views.py:26
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:25 generic_views/form_views.py:435
-#: generic_views/form_views.py:455
+#: generic_views/form_views.py:27 generic_views/form_views.py:440
+#: generic_views/form_views.py:460
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:149 generic_views/form_views.py:294
+#: generic_views/form_views.py:153 generic_views/form_views.py:299
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
-#: generic_views/form_views.py:434
+#: generic_views/form_views.py:439
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:454
+#: generic_views/form_views.py:459
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 
-#: models/patch.py:11
+#: generic_views/inline_form_views.py:118
+msgid "Add"
+msgstr "Přidat"
+
+#: models/patch.py:13
+#, python-format
 msgid "%(verbose_name_plural)s"
 msgstr "%(verbose_name_plural)s"
 
-#: models/patch.py:12 templates/generic_views/table.html:6
+#: models/patch.py:14
 #, python-format
 msgid "Add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
 
-#: models/patch.py:13
+#: models/patch.py:15
 #, python-format
 msgid "%(obj)s"
 msgstr "%(obj)s"
 
-#: rest/handler.py:63
+#: rest/handler.py:65
 msgid "Select a valid choice. That choice is not one of the available choices."
 msgstr "Vyberte platnou možnost. Tato není k dispozici."
 
-#: rest/handler.py:67
+#: rest/handler.py:69
 msgid "Create or update this resource is not allowed."
 msgstr "Není povoleno vytvořit nebo upravit tento zdroj."
 
-#: rest/handler.py:312
+#: rest/handler.py:316
 #, python-format
 msgid "Cannot resolve X-Order value \"%s\" into field"
 msgstr "Není možné řadit dle hodnoty hlavičky X-Order: \"%s\""
 
-#: rest/paginator.py:22
+#: rest/paginator.py:24
 msgid "X-Offset must be natural number"
 msgstr "Obsah hlavičky X-Offset musí být přirozené číslo."
 
-#: rest/paginator.py:33
+#: rest/paginator.py:35
 msgid "X-Base must be natural number or empty"
 msgstr ""
 "Obsah hlavičky X-Base musí být přirozené číslo nebo musí být hlavička prázdná"
@@ -136,7 +141,11 @@ msgstr "Načítám..."
 msgid "Welcome"
 msgstr "Vítejte"
 
-#: templates/forms/default_form.html:27
+#: templates/forms/default_form.html:26
+msgid "Fields marked with <span class=\"required\">*</span> are required"
+msgstr ""
+
+#: templates/forms/default_form.html:31
 #: templates/forms/model_default_form.html:8
 msgid "Save"
 msgstr "Uložit"
@@ -153,48 +162,45 @@ msgstr "Uložit a pokračovat"
 msgid "Cancel"
 msgstr "Cancel"
 
-#: templates/forms/tabular_inline_formset.html:45
-#, python-format
-msgid "Add %(name)s"
-msgstr "Přidat %(name)s"
+#: templates/generic_views/table.html:18
+msgid "Displayed"
+msgstr "Zobrazeny"
 
-#: templates/generic_views/table.html:10
-#, python-format
-msgid "Displayed %%d-%%d"
-msgstr "Zobrazeny %%d-%%d"
+#: templates/generic_views/table.html:18
+msgid "%%d to %%d"
+msgstr "%%d do %%d"
 
-#: templates/generic_views/table.html:10
-#, fuzzy, python-format
-msgid "of %%d"
-msgstr "%%d-%%d z %%d"
+#: templates/generic_views/table.html:18
+msgid "Item total:"
+msgstr ""
 
-#: templates/generic_views/table.html:12
+#: templates/generic_views/table.html:20
 #, python-format
 msgid "%%d per page"
 msgstr "%%d na stranu"
 
-#: templates/generic_views/table.html:14
+#: templates/generic_views/table.html:22
 msgid "Previous"
 msgstr "Předchozí"
 
-#: templates/generic_views/table.html:15
+#: templates/generic_views/table.html:23
 msgid "Next"
 msgstr "Následující"
 
-#: templates/generic_views/table.html:22
+#: templates/generic_views/table.html:30
 #, python-format
 msgid "Do you really want to delete %%s?"
 msgstr "Opravdu chcete odstranit položku %%s?"
 
-#: templates/generic_views/table.html:22
+#: templates/generic_views/table.html:30
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
 
-#: templates/generic_views/table.html:32
+#: templates/generic_views/table.html:40
 msgid "Actions"
 msgstr "Akce"
 
-#: templates/generic_views/table.html:42
+#: templates/generic_views/table.html:50
 msgid "There are no items."
 msgstr "Žádné položky"
 
