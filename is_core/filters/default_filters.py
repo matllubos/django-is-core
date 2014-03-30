@@ -163,7 +163,10 @@ class DateFilter(DefaultFieldFilter):
         if '__' in self.filter_key:
             return super(DateTimeFilter, self).get_filter_term()
 
-        res, _ = DEFAULTPARSER._parse(self.value, dayfirst=True)
+        parse = DEFAULTPARSER._parse(self.value, dayfirst=True)
+        if parse is None:
+            raise ValueError()
+        res, _ = parse
         filter_terms = {}
 
         for attr in self.extra_suffixes:
