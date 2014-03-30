@@ -23,8 +23,11 @@ class ViewPattern(object):
             return {'pk': obj.pk}
         return {}
 
-    def get_url_string(self, obj):
-        return reverse(self.pattern, kwargs=self._get_try_kwarg(obj))
+    def get_url_string(self, obj=None, kwargs=None):
+        kwargs = kwargs or {}
+        if obj:
+            kwargs.update(self._get_try_kwarg(obj))
+        return reverse(self.pattern, kwargs=kwargs)
 
     def get_view(self):
         raise NotImplemented

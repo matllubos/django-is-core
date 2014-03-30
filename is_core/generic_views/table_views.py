@@ -40,7 +40,7 @@ class TableView(DefaultCoreViewMixin, TemplateView):
 
     def get_filter(self, full_field_name):
         try:
-            return get_model_field_or_method_filter(full_field_name, self.model)
+            return get_model_field_or_method_filter(full_field_name, self.model).render(self.request)
         except FilterException:
             return ''
 
@@ -59,7 +59,8 @@ class TableView(DefaultCoreViewMixin, TemplateView):
             field = model._meta.get_field(field_name)
             return Header(full_field_name, field.verbose_name, True, self.get_filter(full_field_name))
         except FieldDoesNotExist:
-            return Header(full_field_name, getattr(model(), field_name).short_description, False, self.get_filter(full_field_name))
+            return Header(full_field_name, getattr(model(), field_name).short_description, False,
+                          self.get_filter(full_field_name))
 
     def get_list_display(self):
         return self.list_display or self.core.get_list_display()
@@ -73,8 +74,8 @@ class TableView(DefaultCoreViewMixin, TemplateView):
                 headers.append(self.get_header(field))
         return headers
 
-    def gel_api_url_name(self):
-        return self.core.gel_api_url_name()
+    def get_api_url(self):
+        return self.core.get_api_url(self.request)
 
     def get_query_string_filter(self):
         default_list_filter = self.core.get_default_list_filter(self.request)
@@ -92,8 +93,8 @@ class TableView(DefaultCoreViewMixin, TemplateView):
         info = self.site_name, self.core.get_menu_group_pattern_name()
         context_data.update({
                                 'headers': self.get_headers(),
-                                'api_url_name': self.gel_api_url_name(),
-                                'add_url_name': '%s:add-%s' % info,
+                                'api_url': self.get_api_url(),
+                                'add_url': self.core.get_add_url(self.request),
                                 'edit_url_name': '%s:edit-%s' % info,
                                 'module_name': self.model._meta.module_name,
                                 'verbose_name':  self.core.verbose_name_plural,

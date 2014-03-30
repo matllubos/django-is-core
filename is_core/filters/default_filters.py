@@ -19,7 +19,7 @@ class Filter(object):
     def filter_queryset(self, queryset):
         return queryset
 
-    def __unicode__(self):
+    def render(self, request):
         return ''
 
 
@@ -70,7 +70,7 @@ class DefaultFilter(Filter):
     def get_widget(self):
         return self.widget
 
-    def __unicode__(self):
+    def render(self, request):
         widget = self.get_widget()
         if widget:
             return widget.render('filter__%s' % self.get_filter_name(), None,
@@ -105,7 +105,7 @@ class DefaultFieldFilter(DefaultFilter):
             attrs['placeholder'] = self.get_placeholder()
         return attrs
 
-    def __unicode__(self):
+    def render(self, request):
         return self.get_widget().render('filter__%s' % self.get_filter_name(), None,
                                         attrs=self.get_attrs_for_widget())
 

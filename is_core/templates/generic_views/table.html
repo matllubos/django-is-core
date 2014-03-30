@@ -8,7 +8,7 @@
 			{{ block.super }}
 		{% endblock %}
 		{% block header-btns %}
-			{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{% url add_url_name %}" title="{{ add_button_value }}"><span>{{ add_button_value }}</span></a>{% endhas_permission%}
+			{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value }}"><span>{{ add_button_value }}</span></a>{% endhas_permission%}
 		{% endblock %}
 		</div>
 		<div class="content clearfix">
@@ -27,7 +27,7 @@
 			</div>
 			{% endblock %}
 			{% block table %}
-			<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{% url api_url_name %}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-confirm="{% trans 'Do you really want to delete %s?' %}" data-item-title="{{ grid_item_title }}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}">
+			<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-confirm="{% trans 'Do you really want to delete %s?' %}" data-item-title="{{ grid_item_title }}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}">
 				<thead>
 					{% block table-header %}
 						<tr>

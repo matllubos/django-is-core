@@ -122,6 +122,7 @@ class RestResource(Resource):
 
     def get_headers(self, request, handler, http_headers, concrete_obj):
         http_headers['X-Serialization-Format-Options'] = ','.join(Emitter.SerializationTypes)
+        http_headers['Cache-Control'] = 'must-revalidate, private'
         return http_headers
 
     def get_serialization_format(self, request):

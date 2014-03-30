@@ -48,7 +48,7 @@ class ISCore(object):
     def get_views(self):
         return {}
 
-    def menu_url(self):
+    def menu_url(self, request):
         return reverse(('%(site_name)s:' + self.menu_url_name) % {'site_name': self.site_name})
 
     def get_menu_groups(self):
@@ -194,7 +194,7 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
                 ViewPatternClass = UIPattern
 
             ui_patterns[name] = ViewPatternClass('%s-%s' % (name, self.get_menu_group_pattern_name()),
-                                                    self.site_name, pattern, view, self)
+                                                 self.site_name, pattern, view, self)
         return ui_patterns
 
     def get_list_display(self):
@@ -205,8 +205,14 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
         list_actions.append(WebAction('edit-%s' % self.get_menu_group_pattern_name(), _('Edit'), 'edit'))
         return list_actions
 
-    def gel_api_url_name(self):
+    def get_api_url_name(self):
         return self.api_url_name
+
+    def get_add_url(self, request):
+        return self.ui_patterns.get('add').get_url_string()
+
+    def get_api_url(self, request):
+        return reverse(self.get_api_url_name())
 
 
 class RestModelISCore(PermissionsRestMixin, ModelISCore):
@@ -303,7 +309,7 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
 
         return dict_to_list(rest_list_fields_dict)
 
-    def gel_api_url_name(self):
+    def get_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
 
     def get_rest_form_fields(self, request, obj=None):
@@ -311,4 +317,3 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
 
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)
-

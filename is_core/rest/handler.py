@@ -267,7 +267,7 @@ class RestModelHandler(RestCoreHandler):
     def _web_links(cls, obj, request):
         web_links = {}
         for pattern in cls.core.ui_patterns.values():
-            url = pattern.get_url_string(obj)
+            url = pattern.get_url_string(obj=obj)
             if url:
                 web_links[pattern.name] = url
         return web_links
@@ -276,7 +276,7 @@ class RestModelHandler(RestCoreHandler):
     def _rest_links(cls, obj, request):
         rest_links = {}
         for pattern in cls.core.resource_patterns.values():
-            url = pattern.get_url_string(obj)
+            url = pattern.get_url_string(obj=obj)
             if url:
                 rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}
         return rest_links
@@ -315,7 +315,7 @@ class RestModelHandler(RestCoreHandler):
         else:
             raise RestException(_('Cannot resolve X-Order value "%s" into field') % order_field)
 
-    def read(self, request, pk=None):
+    def read(self, request, pk=None, **kwargs):
         qs = self.get_queryset(request)
         if pk:
             try:
@@ -452,7 +452,7 @@ class RestModelHandler(RestCoreHandler):
         inst = self._create_or_update(request, data)
         return inst
 
-    def create(self, request, pk=None):
+    def create(self, request, pk=None, **kwargs):
         if not request.data:
             return rc.BAD_REQUEST
 
@@ -467,7 +467,7 @@ class RestModelHandler(RestCoreHandler):
 
         return HeadersResult(inst, status_code=201)
 
-    def update(self, request, pk=None):
+    def update(self, request, pk=None, **kwargs):
         if not request.data:
             return rc.BAD_REQUEST
 
@@ -480,7 +480,7 @@ class RestModelHandler(RestCoreHandler):
         except ResourceNotFoundException:
             return rc.NOT_FOUND
 
-    def delete(self, request, pk):
+    def delete(self, request, pk, **kwargs):
         qs = self.get_queryset(request)
 
         try:
