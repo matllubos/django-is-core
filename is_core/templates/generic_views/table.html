@@ -32,7 +32,7 @@
 					{% block table-header %}
 						<tr>
 							{% for header in headers %}
-								<th>
+								<th class="{{ header.field_name }}">
 									<span{% if header.sortable %} class="sortable" data-col="{{ header.field_name }}"{% endif %}>{{ header.text|capfirst }}</span><div class="sort-direction"><div class="triangle"></div></div>
 									{{ header.filter }}
 								</th>
