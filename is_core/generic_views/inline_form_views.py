@@ -62,6 +62,9 @@ class InlineFormView(object):
 
         return self.readonly_fields
 
+    def get_prefix(self):
+        return '-'.join((self.parent_view.get_prefix(), 'inline', self.__class__.__name__)).lower()
+
     def get_fieldset(self, formset):
         fields = self.get_fields() or formset.form.base_fields.keys()
         fields = list(fields) + list(self.get_readonly_fields())
@@ -86,10 +89,12 @@ class InlineFormView(object):
 
         if data:
             formset = self.get_formset_factory(fields, readonly_fields)(data=data, files=files, instance=instance,
-                                                                        queryset=self.get_queryset())
+                                                                        queryset=self.get_queryset(),
+                                                                        prefix=self.get_prefix())
         else:
             formset = self.get_formset_factory(fields, readonly_fields)(instance=instance, queryset=self.get_queryset(),
-                                                                        initial=self.get_initial())
+                                                                        initial=self.get_initial(),
+                                                                        prefix=self.get_prefix())
 
         formset.can_add = self.get_can_add()
         formset.can_delete = self.get_can_delete()
