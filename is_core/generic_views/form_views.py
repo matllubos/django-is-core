@@ -9,7 +9,8 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.shortcuts import get_object_or_404
-from django.contrib.messages.api import get_messages
+from django.contrib.messages.api import get_messages, add_message
+from django.contrib.messages import constants
 
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
@@ -88,9 +89,9 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
         messages.success(self.request, msg)
         return HttpResponseRedirect(self.get_success_url(obj))
 
-    def form_invalid(self, form, msg=None):
+    def form_invalid(self, form, msg=None, msg_level=constants.ERROR):
         msg = msg or self.get_message('error')
-        messages.error(self.request, msg)
+        add_message(self.request, msg_level, msg)
         return self.render_to_response(self.get_context_data(form=form))
 
     @property
@@ -150,7 +151,7 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
             return self.form_valid(form)
         else:
             if is_valid and not is_changed:
-                return self.form_invalid(form, msg=_('No changes have been submitted.'))
+                return self.form_invalid(form, msg=_('No changes have been submitted.'), msg_level=constants.INFO)
             return self.form_invalid(form)
 
 
@@ -296,7 +297,8 @@ class DefaultModelFormView(DefaultFormView):
             return self.form_valid(form, inline_form_views)
         else:
             if is_valid and not is_changed:
-                return self.form_invalid(form, inline_form_views, msg=_('No changes have been submitted.'))
+                return self.form_invalid(form, inline_form_views, msg=_('No changes have been submitted.'),
+                                         msg_level=constants.INFO)
             return self.form_invalid(form, inline_form_views)
 
     def get_obj(self, cached=True):
@@ -333,9 +335,9 @@ class DefaultModelFormView(DefaultFormView):
 
         return HttpResponseRedirect(self.get_success_url(obj))
 
-    def form_invalid(self, form, inline_form_views, msg=None):
+    def form_invalid(self, form, inline_form_views, msg=None, msg_level=constants.ERROR):
         msg = msg or self.get_message('error')
-        messages.error(self.request, msg)
+        add_message(self.request, msg_level, msg)
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
