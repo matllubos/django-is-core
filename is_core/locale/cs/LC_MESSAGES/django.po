@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-03-30 20:46+0200\n"
+"POT-Creation-Date: 2014-04-01 16:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -29,7 +29,7 @@ msgstr "Smazat"
 msgid "Remember user"
 msgstr "Zapamatovat uživatele"
 
-#: filters/__init__.py:30 filters/__init__.py:35
+#: filters/__init__.py:31 filters/__init__.py:37
 #, python-format
 msgid "Not valid filter: %s"
 msgstr "Neplatný filter: %s"
@@ -143,7 +143,7 @@ msgstr "Vítejte"
 
 #: templates/forms/default_form.html:26
 msgid "Fields marked with <span class=\"required\">*</span> are required"
-msgstr ""
+msgstr "Položky označené <span class=\"required\">*</span> jsou povinné"
 
 #: templates/forms/default_form.html:31
 #: templates/forms/model_default_form.html:8
@@ -167,17 +167,16 @@ msgid "Displayed"
 msgstr "Zobrazeny"
 
 #: templates/generic_views/table.html:18
-msgid "%%d to %%d"
-msgstr "%%d do %%d"
+msgid "&#37;d to &#37;d"
+msgstr "&#37;d do &#37;d"
 
 #: templates/generic_views/table.html:18
 msgid "Item total:"
-msgstr ""
+msgstr "Celkem položek:"
 
 #: templates/generic_views/table.html:20
-#, python-format
-msgid "%%d per page"
-msgstr "%%d na stranu"
+msgid "&#37;d per page"
+msgstr "&#37;d na stranu"
 
 #: templates/generic_views/table.html:22
 msgid "Previous"
@@ -188,9 +187,8 @@ msgid "Next"
 msgstr "Následující"
 
 #: templates/generic_views/table.html:30
-#, python-format
-msgid "Do you really want to delete %%s?"
-msgstr "Opravdu chcete odstranit položku %%s?"
+msgid "Do you really want to delete &#37;s?"
+msgstr "Opravdu chcete odstranit položku &#37;s?"
 
 #: templates/generic_views/table.html:30
 msgid "Are you sure?"
