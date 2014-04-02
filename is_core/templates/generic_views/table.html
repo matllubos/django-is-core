@@ -15,9 +15,9 @@
 			{% block tabs-menu-wrapper %}{% endblock %}
 			{% block table-paginator %}
 			<div class="paginator" style="visibility: hidden">
-				<div class="pull-left"><span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '%d to %d' %}</span></span><span class="result-total"><span class="result-caption">{% trans 'Item total:' %}</span><span class="result-number">%d</span></span></div>
+				<div class="pull-left"><span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span><span class="result-total"><span class="result-caption">{% trans 'Item total:' %}</span><span class="result-number">%d</span></span></div>
 				<div class="pull-right paging">
-					<span class="base-switcher" data-pattern="{% trans '%d per page' %}" data-bases="[10,25,50,100]"></span>
+					<span class="base-switcher" data-pattern="{% trans '&#37;d per page' %}" data-bases="[10,25,50,100]"></span>
 					<ul class="pagination">
 						<li class="previous" title="{% trans 'Previous' %}"><span><span class="symbol">&laquo;</span><span class="caption">{% trans 'Previous' %}</span></span></li>
 						<li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><span class="symbol">&raquo;</span></span></li>
@@ -27,7 +27,7 @@
 			</div>
 			{% endblock %}
 			{% block table %}
-			<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-confirm="{% trans 'Do you really want to delete %s?' %}" data-item-title="{{ grid_item_title }}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}">
+			<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-item-title="{{ grid_item_title }}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}">
 				<thead>
 					{% block table-header %}
 						<tr>
