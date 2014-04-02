@@ -105,6 +105,9 @@ class DefaultFormView(DefaultCoreViewMixin, FormView):
             class_names.append('ajax')
         return class_names
 
+    def get_prefix(self):
+        return '-'.join((self.view_type, self.site_name, self.core.get_menu_group_pattern_name())).lower()
+
     def get_context_data(self, form=None, **kwargs):
         context_data = super(DefaultFormView, self).get_context_data(form=form, **kwargs)
         context_data.update({
