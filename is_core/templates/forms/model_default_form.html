@@ -5,12 +5,12 @@
 {% block submit-button %}
 	<div class="pull-left">
 		{% block save-buttons %}
-			<button type="submit" name="save" class="btn btn-primary btn-save">{% trans "Save" %}</button>
-			{% if show_save_and_continue %}<button type="submit" name="save-and-continue" class="btn btn-primary btn-save-and-continue">{% trans "Save and continue" %}</button>{% endif %}
+		<button type="submit" name="save" class="{% block save-button-class %}btn-save btn btn-primary{% endblock %}">{% block save-button-caption %}{% trans "Save" %}{% endblock %}</button>
+			{% if show_save_and_continue %}<button type="submit" name="save-and-continue" class="{% block save-and-continue-button-class %}btn btn-primary btn-save-and-continue{% endblock %}">{% block save-and-continue-button-caption %}{% trans "Save and continue" %}{% endblock %}</button>{% endif %}
 		{% endblock %}
 		{% if cancel_url %}
 			{% block cancel-buttons %}
-				<a href="{{ cancel_url }}" class="btn btn-default btn-cancel">{% trans "Cancel" %}</a>
+			<a href="{{ cancel_url }}" class="{% block cancel-button-class %}btn btn-default btn-cancel{% endblock %}">{% block cancel-button-caption %}{% trans "Cancel" %}{% endblock %}</a>
 			{% endblock %}
 		{% endif %}
 	</div>
