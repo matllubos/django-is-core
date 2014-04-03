@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import json as serializer
-
+import os
 from django.template.base import Library
 
 register = Library()
@@ -18,3 +18,8 @@ def to_list(value):
 @register.filter
 def json(value):
     return serializer.dumps(value)
+
+
+@register.filter
+def filename(value):
+    return os.path.basename(value.file.name)
