@@ -82,6 +82,7 @@ class DefaultFieldFilter(DefaultFilter):
 
     suffixes = []
     default_suffix = None
+    EMPTY_LABEL = '---------'
 
     def __init__(self, filter_key, full_filter_key, field, value=None):
         super(DefaultFieldFilter, self).__init__(filter_key, full_filter_key, field, value)
@@ -93,6 +94,10 @@ class DefaultFieldFilter(DefaultFilter):
 
         formfield = self.field.formfield()
         if formfield:
+            if hasattr(formfield, 'empty_label'):
+                formfield.empty_label = self.EMPTY_LABEL
+            elif hasattr(formfield, 'choices'):
+                formfield.choices.insert(0, ('', self.EMPTY_LABEL))
             return formfield.widget
         return forms.TextInput()
 
