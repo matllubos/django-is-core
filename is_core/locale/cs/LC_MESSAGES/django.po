@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-01 16:31+0200\n"
+"POT-Creation-Date: 2014-04-03 16:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -49,34 +49,38 @@ msgstr "Ano"
 msgid "No"
 msgstr "Ne"
 
+#: forms/widgets.py:82 forms/widgets.py:88
+msgid "Search..."
+msgstr "Hledat..."
+
 #: generic_views/__init__.py:67 templatetags/menu.py:79
 msgid "Home"
 msgstr "Home"
 
-#: generic_views/form_views.py:26
+#: generic_views/form_views.py:27
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:27 generic_views/form_views.py:440
-#: generic_views/form_views.py:460
+#: generic_views/form_views.py:28 generic_views/form_views.py:445
+#: generic_views/form_views.py:465
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:153 generic_views/form_views.py:299
+#: generic_views/form_views.py:157 generic_views/form_views.py:303
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
-#: generic_views/form_views.py:439
+#: generic_views/form_views.py:444
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:459
+#: generic_views/form_views.py:464
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 
-#: generic_views/inline_form_views.py:118
+#: generic_views/inline_form_views.py:123
 msgid "Add"
 msgstr "Přidat"
 

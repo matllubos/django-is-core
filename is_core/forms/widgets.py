@@ -6,6 +6,7 @@ from django import forms
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join
+from django.utils.translation import ugettext_lazy as _
 
 
 def flat_data_attrs(attrs):
@@ -78,11 +79,13 @@ class SelectMixin(object):
 class Select(SelectMixin, forms.Select):
 
     class_name = 'fulltext-search'
+    placeholder = _('Search...')
 
 
 class MultipleSelect(SelectMixin, forms.SelectMultiple):
 
     class_name = 'fulltext-search-multiple'
+    placeholder = _('Search...')
 
 
 class DragAndDropFileInput(forms.ClearableFileInput):
