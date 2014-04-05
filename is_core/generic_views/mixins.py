@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404
 
 
 class ListParentMixin(object):
@@ -65,8 +66,14 @@ class TabsViewMixin(object):
         from is_core.templatetags.menu import MenuItem
 
         menu_items = []
-        for tab_title, tab_url in self.get_tabs():
-            menu_items.append(MenuItem(tab_title, tab_url, self.request.path == tab_url))
+        for tab in self.get_tabs():
+            if len(tab) == 2:
+                tab_title, tab_url = tab
+                is_active = self.request.path == tab_url
+            else:
+                tab_title, tab_url, is_active = tab
+
+            menu_items.append(MenuItem(tab_title, tab_url, is_active))
         return menu_items
 
     def get_context_data(self, form=None, **kwargs):
@@ -75,3 +82,19 @@ class TabsViewMixin(object):
             'tabs': self.get_tab_menu_items(),
         })
         return context_data
+
+
+class GetCoreObjViewMixin(object):
+
+    def get_obj_filters(self):
+        filters = {'pk': self.kwargs.get('pk')}
+        return filters
+
+    _obj = None
+    def get_obj(self, cached=True):
+        if cached and self._obj:
+            return self._obj
+        obj = get_object_or_404(self.core.get_queryset(self.request), **self.get_obj_filters())
+        if cached and not self._obj:
+            self._obj = obj
+        return obj

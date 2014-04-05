@@ -8,7 +8,6 @@ from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
-from django.shortcuts import get_object_or_404
 from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
 
@@ -16,7 +15,7 @@ from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
-from is_core.generic_views.mixins import ListParentMixin
+from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 
 
 class DefaultFormView(DefaultCoreViewMixin, FormView):
@@ -457,7 +456,7 @@ class AddModelFormView(DefaultCoreModelFormView):
         return core.has_create_permission(request)
 
 
-class EditModelFormView(DefaultCoreModelFormView):
+class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     template_name = 'generic_views/edit_form.html'
     form_template = 'forms/model_edit_form.html'
     view_type = 'edit'
@@ -468,19 +467,6 @@ class EditModelFormView(DefaultCoreModelFormView):
         return self.model._ui_meta.edit_verbose_name % {'verbose_name': self.model._meta.verbose_name,
                                                         'verbose_name_plural': self.model._meta.verbose_name_plural,
                                                         'obj': self.get_obj(True)}
-
-    def get_obj_filters(self):
-        filters = {'pk': self.kwargs.get('pk')}
-        return filters
-
-    _obj = None
-    def get_obj(self, cached=True):
-        if cached and self._obj:
-            return self._obj
-        obj = get_object_or_404(self.core.get_queryset(self.request), **self.get_obj_filters())
-        if cached and not self._obj:
-            self._obj = obj
-        return obj
 
     def link(self, arguments=None, **kwargs):
         if arguments is None:
