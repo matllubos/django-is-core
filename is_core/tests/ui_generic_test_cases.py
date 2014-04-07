@@ -67,7 +67,6 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
         if 'add' in model_view.ui_patterns:
             url = self.add_url(model_view.site_name, model_view.get_menu_groups())
-
             if model_view.has_ui_create_permission(self.get_request_with_user(self.r_factory.get(url))):
                 self.assert_http_ok(self.get(url), '%s should return 200' % url)
 
@@ -78,7 +77,6 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
             inst = self.new_instance(model)
 
             url = self.edit_url(model_view.site_name, model_view.get_menu_groups(), inst)
-
             request = self.get_request_with_user(self.r_factory.get(url))
             if model_view.has_ui_read_permission(request, inst.pk) or model_view.has_ui_update_permission(request, inst.pk):
                 self.assert_http_ok(self.get(url), '%s should return 200' % url)

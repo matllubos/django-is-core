@@ -94,7 +94,7 @@ class GetCoreObjViewMixin(object):
     def get_obj(self, cached=True):
         if cached and self._obj:
             return self._obj
-        obj = get_object_or_404(self.core.get_queryset(self.request), **self.get_obj_filters())
+        obj = self.core.get_obj(self.request, **self.get_obj_filters())
         if cached and not self._obj:
             self._obj = obj
         return obj

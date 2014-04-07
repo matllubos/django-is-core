@@ -16,6 +16,8 @@ from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsR
 from is_core.rest.utils import list_to_dict, dict_to_list, join_dicts
 from is_core.patterns import UIPattern, RestPattern
 from is_core.utils import flatten_fieldsets
+from django.http.response import Http404
+from django.core.exceptions import ValidationError
 
 
 class ISCore(object):
@@ -106,8 +108,11 @@ class ModelISCore(PermissionsMixin, ISCore):
         return str(self.model._meta.module_name)
     menu_group = property(menu_group)
 
-    def get_obj(self, pk):
-        return get_object_or_404(self.model, pk=pk)
+    def get_obj(self, request, **filters):
+        try:
+            return get_object_or_404(self.get_queryset(request), **filters)
+        except (ValidationError, ValueError):
+            raise Http404
 
     def get_queryset(self, request):
         return self.model._default_manager.get_queryset()
