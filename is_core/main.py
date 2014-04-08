@@ -69,6 +69,8 @@ class ModelISCore(PermissionsMixin, ISCore):
     form_exclude = ()
     form_class = RestModelForm
 
+    ordering = None
+
     def get_form_fields(self, request, obj=None):
         return self.form_fields
 
@@ -114,8 +116,11 @@ class ModelISCore(PermissionsMixin, ISCore):
         except (ValidationError, ValueError):
             raise Http404
 
+    def get_ordering(self):
+        return self.model._meta.ordering or ('pk',)
+
     def get_queryset(self, request):
-        return self.model._default_manager.get_queryset()
+        return self.model._default_manager.get_queryset().order_by(*self.get_ordering())
 
     def get_list_actions(self, request, obj):
         return list(self.list_actions)

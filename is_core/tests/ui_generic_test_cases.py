@@ -58,7 +58,6 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
         if 'list' in model_view.ui_patterns:
             url = self.list_url(model_view.site_name, model_view.get_menu_groups())
-
             if model_view.has_ui_read_permission(self.get_request_with_user(self.r_factory.get(url))):
                 self.assert_http_ok(self.get(url), '%s should return 200' % url)
 
