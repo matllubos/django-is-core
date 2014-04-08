@@ -1,9 +1,13 @@
 {% extends 'forms/model_default_form.html' %}
 
-{% load permissions %}
-
 {% block save-buttons %}
-	{% has_permission 'create' %}
+	{% if show_save_button %}
 		{{ block.super }}
-	{% endhas_permission %}
+	{% endif %}
+{% endblock %}
+
+{% block required-hint %}
+	{% if show_save_button %}
+		{{ block.super }}
+	{% endif %}
 {% endblock %}

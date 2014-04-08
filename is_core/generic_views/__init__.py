@@ -94,10 +94,10 @@ class DefaultCoreViewMixin(DefaultViewMixin):
 
     def get_permissions(self):
         return {
-                    'read': self.core.has_read_permission,
-                    'create': self.core.has_create_permission,
-                    'update': self.core.has_update_permission,
-                    'delete': self.core.has_delete_permission,
+                    'read': self.core.has_ui_read_permission,
+                    'create': self.core.has_ui_create_permission,
+                    'update': self.core.has_ui_update_permission,
+                    'delete': self.core.has_ui_delete_permission,
                 }
 
     def get_context_data(self, **kwargs):
