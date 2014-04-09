@@ -95,23 +95,25 @@ class DefaultFieldFilter(DefaultFilter):
         formfield = self.field.formfield()
         if formfield:
             if hasattr(formfield, 'empty_label'):
-                formfield.empty_label = self.EMPTY_LABEL
-            elif hasattr(formfield, 'choices'):
-                formfield.choices.insert(0, ('', self.EMPTY_LABEL))
+                formfield.empty_label = self.get_placeholder() or self.EMPTY_LABEL
+            elif hasattr(formfield, 'choices') and formfield.choices and formfield.choices[0][0]:
+                formfield.choices.insert(0, ('', self.get_placeholder() or self.EMPTY_LABEL))
             return formfield.widget
         return forms.TextInput()
 
     def get_placeholder(self):
-        return self.field.model._ui_meta.filter_placeholders.get(self.field.name, None)
+        return self.field.model._ui_meta.filter_placeholders.get(self.field.name, '')
 
     def get_attrs_for_widget(self):
         attrs = {'data-filter': self.get_filter_name()}
-        if self.get_placeholder():
-            attrs['placeholder'] = self.get_placeholder()
         return attrs
 
     def render(self, request):
-        return self.get_widget().render('filter__%s' % self.get_filter_name(), None,
+        widget = self.get_widget()
+        placeholder = self.get_placeholder()
+        if placeholder:
+            widget.placeholder = placeholder
+        return widget.render('filter__%s' % self.get_filter_name(), None,
                                         attrs=self.get_attrs_for_widget())
 
 

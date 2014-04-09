@@ -14,11 +14,12 @@ def build_attrs(self, extra_attrs=None, **kwargs):
         attrs.update(extra_attrs)
     if self.class_name:
         attrs = add_class_name(attrs, self.class_name)
-    if hasattr(self, 'placeholder') and self.placeholder:
-	    attrs['placeholder'] = self.placeholder
+    if self.placeholder:
+        attrs['placeholder'] = self.placeholder
     return attrs
 
 
+Widget.placeholder = None
 Widget.class_name = None
 Widget.build_attrs = build_attrs
 

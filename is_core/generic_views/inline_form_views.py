@@ -114,6 +114,9 @@ class InlineFormView(object):
             field = self.form_field(form, field_name, field)
 
     def form_field(self, form, field_name, form_field):
+        placeholder = self.model._ui_meta.placeholders.get('field_name', None)
+        if placeholder:
+            form_field.widget.placeholder = self.model._ui_meta.placeholders.get('field_name', None)
         return form_field
 
     def get_name(self):

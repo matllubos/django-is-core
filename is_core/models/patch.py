@@ -14,6 +14,7 @@ class UIOptions(object):
         self.add_verbose_name = _('Add %(verbose_name)s')
         self.edit_verbose_name = _('%(obj)s')
         self.filter_placeholders = {}
+        self.placeholders = {}
 
         if hasattr(model, 'UIMeta'):
             self.extra_selecbox_fields = getattr(model.UIMeta, 'extra_selecbox_fields', self.extra_selecbox_fields)
@@ -21,6 +22,7 @@ class UIOptions(object):
             self.add_verbose_name = getattr(model.UIMeta, 'add_verbose_name', self.add_verbose_name)
             self.edit_verbose_name = getattr(model.UIMeta, 'edit_verbose_name', self.edit_verbose_name)
             self.filter_placeholders = getattr(model.UIMeta, 'filter_placeholders', self.filter_placeholders)
+            self.placeholders = getattr(model.UIMeta, 'placeholders', self.placeholders)
 
 
 class RestOptions(object):
