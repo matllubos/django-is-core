@@ -66,8 +66,7 @@ class InlineFormView(object):
         return '-'.join((self.parent_view.get_prefix(), 'inline', self.__class__.__name__)).lower()
 
     def get_fieldset(self, formset):
-        fields = self.get_fields() or formset.form.base_fields.keys()
-        fields = list(fields) + list(self.get_readonly_fields())
+        fields = list(self.get_fields() or formset.form.base_fields.keys())
         if self.get_can_delete():
             fields.append('DELETE')
         return fields
