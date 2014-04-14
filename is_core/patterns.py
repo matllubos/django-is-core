@@ -6,11 +6,23 @@ from django.conf.urls import url
 from is_core.rest.resource import DynamicRestHandlerResource
 
 
-class ViewPattern(object):
+class Pattern(object):
+
+    def __init__(self, name):
+        self.name = name
+
+    def get_url_string(self, obj=None, kwargs=None):
+        raise NotImplemented
+
+    def get_url(self):
+        return None
+
+
+class ViewPattern(Pattern):
 
     def __init__(self, name, site_name, url_pattern, core):
+        super(ViewPattern, self).__init__(name)
         self.url_pattern = url_pattern
-        self.name = name
         self.site_name = site_name
         self.core = core
 

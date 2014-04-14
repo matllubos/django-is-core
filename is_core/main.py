@@ -5,6 +5,8 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.utils.datastructures import SortedDict
+from django.http.response import Http404
+from django.core.exceptions import ValidationError
 
 from is_core.forms import RestModelForm
 from is_core.actions import WebAction, RestAction
@@ -16,8 +18,6 @@ from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsR
 from is_core.rest.utils import list_to_dict, dict_to_list, join_dicts
 from is_core.patterns import UIPattern, RestPattern
 from is_core.utils import flatten_fieldsets
-from django.http.response import Http404
-from django.core.exceptions import ValidationError
 
 
 class ISCore(object):
@@ -37,7 +37,9 @@ class ISCore(object):
     def get_urlpatterns(self, patterns):
         urls = []
         for pattern in patterns.values():
-            urls.append(pattern.get_url())
+            url = pattern.get_url()
+            if url:
+                urls.append(url)
         urlpatterns = django_patterns('', *urls)
         return urlpatterns
 
@@ -209,6 +211,9 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
 
     def get_list_display(self):
         return self.list_display
+
+    def get_ui_list_display(self, request):
+        return list(self.get_list_display())
 
     def get_list_actions(self, request, obj):
         list_actions = super(UIModelISCore, self).get_list_actions(request, obj)

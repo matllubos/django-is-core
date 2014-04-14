@@ -63,7 +63,7 @@ class TableView(DefaultCoreViewMixin, TemplateView):
                           self.get_filter(full_field_name))
 
     def get_list_display(self):
-        return self.list_display or self.core.get_list_display()
+        return self.list_display or self.core.get_ui_list_display(self.request)
 
     def get_headers(self):
         headers = []
