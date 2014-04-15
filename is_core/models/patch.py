@@ -7,8 +7,29 @@ from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils.translation import ugettext_lazy as _
 
 
-class UIOptions(object):
-    def __init__(self, model):
+class Options(object):
+
+    def __init__(self):
+        self.is_set = False
+
+    def __setdata__(self, model):
+        if not self.is_set:
+            self.__initdata__(model)
+            self.is_set = True
+
+    def __initdata__(self, model):
+        raise NotImplemented
+
+    def __get__(self, instance=None, owner=None):
+        if not self.is_set:
+            self.__setdata__(owner)
+
+        return self
+
+
+class UIOptions(Options):
+
+    def __initdata__(self, model):
         self.extra_selecbox_fields = {}
         self.list_verbose_name = _('%(verbose_name_plural)s')
         self.add_verbose_name = _('Add %(verbose_name)s')
@@ -25,8 +46,9 @@ class UIOptions(object):
             self.placeholders = getattr(model.UIMeta, 'placeholders', self.placeholders)
 
 
-class RestOptions(object):
-    def __init__(self, model):
+class RestOptions(Options):
+
+    def __initdata__(self, model):
         from is_core.rest.utils import model_default_rest_fields
 
         self.fields = model_default_rest_fields(model)
@@ -41,11 +63,11 @@ class RestOptions(object):
         self.fields = set(self.fields)
         self.default_list_fields = set(self.default_list_fields)
         self.default_obj_fields = set(self.default_obj_fields)
+        self.is_set = True
 
 
-for model_cls in models.get_models():
-    model_cls._rest_meta = RestOptions(model_cls)
-    model_cls._ui_meta = UIOptions(model_cls)
+models.Model._rest_meta = RestOptions()
+models.Model._ui_meta = UIOptions()
 
 
 def fk_formfield(self, **kwargs):
