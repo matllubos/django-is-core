@@ -14,6 +14,7 @@ from emitters import Emitter
 
 from handler import HeadersResult
 
+from is_core import *
 from is_core.rest.auth import RestAuthentication
 from is_core.rest.utils import list_to_dict, dict_to_list, flat_list
 from is_core import config
