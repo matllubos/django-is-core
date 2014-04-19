@@ -171,3 +171,8 @@ def flat_list(list_obj):
             flat_list_obj.append(val)
     return flat_list_obj
 
+
+class JsonObj(dict):
+
+    def __setattr__(self, name, value):
+        self[name] = value

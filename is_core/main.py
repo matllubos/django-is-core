@@ -9,7 +9,7 @@ from django.http.response import Http404
 from django.core.exceptions import ValidationError
 
 from is_core.forms import RestModelForm
-from is_core.actions import WebAction, RestAction
+from is_core.actions import WebAction, RestAction, ConfirmRestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
@@ -302,8 +302,10 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_list_actions(self, request, obj):
         list_actions = super(RestModelISCore, self).get_list_actions(request, obj)
         if self.has_delete_permission(request, obj):
-            list_actions.append(RestAction('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                                         _('Delete') , 'DELETE'))
+            confirm_dialog = ConfirmRestAction.ConfirmDialog(_('Do you really want to delete "%s"') %
+                                                             obj)
+            list_actions.append(ConfirmRestAction('api-resource-%s' % self.get_menu_group_pattern_name(),
+                                                  _('Delete') , 'DELETE', confirm_dialog=confirm_dialog))
         return list_actions
 
 

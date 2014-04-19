@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-03 16:33+0200\n"
+"POT-Creation-Date: 2014-04-19 13:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -17,11 +17,30 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
-#: main.py:205
+#: actions.py:44 filters/default_filters.py:135 rest/emitters.py:174
+#: templates/generic_views/table.html:30 templatetags/forms.py:106
+msgid "Yes"
+msgstr "Ano"
+
+#: actions.py:45 filters/default_filters.py:135 rest/emitters.py:174
+#: templates/generic_views/table.html:30 templatetags/forms.py:106
+msgid "No"
+msgstr "Ne"
+
+#: actions.py:46 templates/generic_views/table.html:30
+msgid "Are you sure?"
+msgstr "Jste si jisti?"
+
+#: main.py:220
 msgid "Edit"
 msgstr "Upravit"
 
-#: main.py:291
+#: main.py:305
+#, python-format
+msgid "Do you really want to delete \"%s\""
+msgstr "Opravdu chcete odstranit položku \"%s\""
+
+#: main.py:308
 msgid "Delete"
 msgstr "Smazat"
 
@@ -39,16 +58,6 @@ msgstr "Neplatný filter: %s"
 msgid "Not valid filter: %(filter_key)s=%(filter_value)s"
 msgstr "Neplatný filter: %(filter_key)s=%(filter_value)s"
 
-#: filters/default_filters.py:128 rest/emitters.py:174
-#: templates/generic_views/table.html:30 templatetags/forms.py:106
-msgid "Yes"
-msgstr "Ano"
-
-#: filters/default_filters.py:128 rest/emitters.py:174
-#: templates/generic_views/table.html:30 templatetags/forms.py:106
-msgid "No"
-msgstr "Ne"
-
 #: forms/widgets.py:82 forms/widgets.py:88
 msgid "Search..."
 msgstr "Hledat..."
@@ -57,44 +66,44 @@ msgstr "Hledat..."
 msgid "Home"
 msgstr "Home"
 
-#: generic_views/form_views.py:27
+#: generic_views/form_views.py:26
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:28 generic_views/form_views.py:445
-#: generic_views/form_views.py:465
+#: generic_views/form_views.py:27 generic_views/form_views.py:459
+#: generic_views/form_views.py:479
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:157 generic_views/form_views.py:303
+#: generic_views/form_views.py:156 generic_views/form_views.py:312
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
-#: generic_views/form_views.py:444
+#: generic_views/form_views.py:458
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:464
+#: generic_views/form_views.py:478
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 
-#: generic_views/inline_form_views.py:123
+#: generic_views/inline_form_views.py:125
 msgid "Add"
 msgstr "Přidat"
 
-#: models/patch.py:13
+#: models/patch.py:33
 #, python-format
 msgid "%(verbose_name_plural)s"
 msgstr "%(verbose_name_plural)s"
 
-#: models/patch.py:14
+#: models/patch.py:34
 #, python-format
 msgid "Add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
 
-#: models/patch.py:15
+#: models/patch.py:35
 #, python-format
 msgid "%(obj)s"
 msgstr "%(obj)s"
@@ -145,11 +154,11 @@ msgstr "Načítám..."
 msgid "Welcome"
 msgstr "Vítejte"
 
-#: templates/forms/default_form.html:26
+#: templates/forms/default_form.html:27
 msgid "Fields marked with <span class=\"required\">*</span> are required"
 msgstr "Položky označené <span class=\"required\">*</span> jsou povinné"
 
-#: templates/forms/default_form.html:31
+#: templates/forms/default_form.html:33
 #: templates/forms/model_default_form.html:8
 msgid "Save"
 msgstr "Uložit"
@@ -193,10 +202,6 @@ msgstr "Následující"
 #: templates/generic_views/table.html:30
 msgid "Do you really want to delete &#37;s?"
 msgstr "Opravdu chcete odstranit položku &#37;s?"
-
-#: templates/generic_views/table.html:30
-msgid "Are you sure?"
-msgstr "Jste si jisti?"
 
 #: templates/generic_views/table.html:40
 msgid "Actions"
