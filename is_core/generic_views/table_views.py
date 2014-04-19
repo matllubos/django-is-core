@@ -59,7 +59,7 @@ class TableView(DefaultCoreViewMixin, TemplateView):
             field = model._meta.get_field(field_name)
             return Header(full_field_name, field.verbose_name, True, self.get_filter(full_field_name))
         except FieldDoesNotExist:
-            return Header(full_field_name, getattr(model(), field_name).short_description, False,
+            return Header(full_field_name, getattr(getattr(model(), field_name), 'short_description', ''), False,
                           self.get_filter(full_field_name))
 
     def get_list_display(self):

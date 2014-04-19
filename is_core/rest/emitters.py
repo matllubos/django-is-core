@@ -294,8 +294,15 @@ class Emitter(object):
                         maybe = getattr(data, maybe_field, None)
                         if maybe is not None:
                             if callable(maybe):
-                                if len(inspect.getargspec(maybe)[0]) <= 1:
-                                    ret[maybe_field] = _any(maybe())
+                                maybe_kwargs_names = inspect.getargspec(maybe)[0][1:]
+                                maybe_kwargs = {}
+
+                                for arg_name in maybe_kwargs_names:
+                                    if arg_name in self.fun_kwargs:
+                                        maybe_kwargs[arg_name] = self.fun_kwargs[arg_name]
+
+                                if len(maybe_kwargs_names) == len(maybe_kwargs):
+                                    ret[maybe_field] = _any(maybe(**maybe_kwargs))
                             else:
                                 ret[maybe_field] = _any(maybe)
                         else:
