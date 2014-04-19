@@ -147,7 +147,6 @@ class RelatedFieldFilter(DefaultFieldFilter):
     def get_widget(self):
         """ Turn off extra fields return """
         widget = super(RelatedFieldFilter, self).get_widget()
-        widget.extra_fields = False
         return widget
 
 
