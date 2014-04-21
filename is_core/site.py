@@ -50,7 +50,7 @@ class ISSite(object):
         self.name = name
         self.app_name = name
         sites[name] = self
-        self._registry = self._init_items(settings.MENU_GROUPS)
+        self._registry = self._init_items([config.HOME_IS_CORE] + list(settings.MENU_GROUPS))
 
     def _init_items(self, items, groups=()):
         out = SortedDict()
@@ -80,8 +80,9 @@ class ISSite(object):
             if isinstance(item, MenuGroup):
                 self._set_items_urls(item.items.values(), urlpatterns)
             else:
+                menu_groups = item.get_menu_groups()
                 urlpatterns += patterns('',
-                    url(r'^%s' % ('/'.join(item.get_menu_groups())),
+                    url(r'^%s' % ('/'.join(menu_groups)),
                             include(item.get_urls())
                         )
                 )
@@ -89,13 +90,7 @@ class ISSite(object):
     def get_urls(self):
         LoginView = str_to_class(config.AUTH_LOGIN_VIEW)
         LogoutView = str_to_class(config.AUTH_LOGOUT_VIEW)
-        HomeView = str_to_class(config.HOME_VIEW)
-
         urlpatterns = patterns('',
-                                    # TODO: environment must exist
-                                    url(r'^/?$',
-                                        login_required(HomeView.as_view(site_name=self.name),
-                                                       login_url='%s:login' % self.name), name='index'),
                                     url(r'^login/$', LoginView.as_view(form_class=str_to_class(config.AUTH_FORM_CLASS)),
                                         name='login'),
                                     url(r'^logout/$', LogoutView.as_view(), name='logout'),

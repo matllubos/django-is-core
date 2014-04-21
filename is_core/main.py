@@ -9,7 +9,7 @@ from django.http.response import Http404
 from django.core.exceptions import ValidationError
 
 from is_core.forms import RestModelForm
-from is_core.actions import WebAction, RestAction, ConfirmRestAction
+from is_core.actions import WebAction, ConfirmRestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
@@ -17,15 +17,17 @@ from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
 from is_core.rest.utils import list_to_dict, dict_to_list, join_dicts
 from is_core.patterns import UIPattern, RestPattern
-from is_core.utils import flatten_fieldsets
+from is_core.utils import flatten_fieldsets, str_to_class
+from is_core import config
+from is_core.templatetags.menu import MenuItemPattern
 
 
 class ISCore(object):
-    menu_subgroup = None
     menu_url_name = None
     verbose_name = None
     verbose_name_plural = None
     show_in_menu = True
+    menu_group = None
 
     def __init__(self, site_name, menu_parent_groups):
         self.site_name = site_name
@@ -56,7 +58,10 @@ class ISCore(object):
         return reverse(('%(site_name)s:' + self.menu_url_name) % {'site_name': self.site_name})
 
     def get_menu_groups(self):
-        return self.menu_parent_groups + (self.menu_group,)
+        menu_groups = self.menu_parent_groups
+        if self.menu_group:
+            menu_groups += (self.menu_group,)
+        return menu_groups
 
     def get_menu_group_pattern_name(self):
         return '-'.join(self.get_menu_groups())
@@ -128,15 +133,69 @@ class ModelISCore(PermissionsMixin, ISCore):
         return list(self.list_actions)
 
 
-class UIModelISCore(PermissionsUIMixin, ModelISCore):
+class UIISCore(PermissionsUIMixin, ISCore):
+
+    api_url_name = None
+    show_in_menu = True
+    menu_url_name = None
+    _ui_patterns = None
+
+    def get_view_classes(self):
+        return self.view_classes.copy()
+
+    @property
+    def ui_patterns(self):
+        if not self._ui_patterns:
+            self._ui_patterns = self.get_ui_patterns()
+        return self._ui_patterns
+
+    def get_ui_patterns(self):
+        ui_patterns = SortedDict()
+        for name, view_vals in self.get_view_classes().items():
+            if len(view_vals) == 3:
+                pattern, view, ViewPatternClass = view_vals
+            else:
+                pattern, view = view_vals
+                ViewPatternClass = UIPattern
+
+            ui_patterns[name] = ViewPatternClass('-'.join([name] + [self.get_menu_group_pattern_name()]),
+                                                 self.site_name, pattern, view, self)
+        return ui_patterns
+
+    def get_urls(self):
+        return self.get_urlpatterns(self.ui_patterns)
+
+    def get_show_in_menu(self, request):
+        return True
+
+    def get_menu_item(self, request):
+        return None
+
+
+class HomeUIISCore(UIISCore):
+
+    menu_url_name = 'index'
+    verbose_name_plural = _('Home')
+
+    def get_view_classes(self):
+        HomeView = str_to_class(config.HOME_VIEW)
+        return SortedDict((
+                        ('index', (r'^$', HomeView)),
+                    ))
+
+    def get_menu_item(self, request):
+        return MenuItemPattern(self.verbose_name_plural, self.get_ui_patterns().get('index'))
+
+    def menu_url(self, request):
+        return ''
+
+
+class UIModelISCore(ModelISCore, UIISCore):
     view_classes = SortedDict((
                         ('add', (r'^/add/$', AddModelFormView)),
                         ('edit', (r'^/(?P<pk>[-\w]+)/$', EditModelFormView)),
                         ('list', (r'^/?$', TableView)),
                     ))
-
-    show_in_menu = True
-    api_url_name = None
 
     # list view params
     list_display = ()
@@ -147,8 +206,6 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
     form_readonly_fields = ()
 
     inline_form_views = ()
-
-    _ui_patterns = None
 
     def __init__(self, site_name, menu_parent_groups):
         super(UIModelISCore, self).__init__(site_name, menu_parent_groups)
@@ -183,31 +240,9 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
     def get_default_list_filter(self, request):
         return self.default_list_filter.copy()
 
+    @property
     def menu_url_name(self):
         return 'list-%s' % self.get_menu_group_pattern_name()
-    menu_url_name = property(menu_url_name)
-
-    def get_view_classes(self):
-        return self.view_classes.copy()
-
-    @property
-    def ui_patterns(self):
-        if not self._ui_patterns:
-            self._ui_patterns = self.get_ui_patterns()
-        return self._ui_patterns
-
-    def get_ui_patterns(self):
-        ui_patterns = SortedDict()
-        for name, view_vals in self.get_view_classes().items():
-            if len(view_vals) == 3:
-                pattern, view, ViewPatternClass = view_vals
-            else:
-                pattern, view = view_vals
-                ViewPatternClass = UIPattern
-
-            ui_patterns[name] = ViewPatternClass('%s-%s' % (name, self.get_menu_group_pattern_name()),
-                                                 self.site_name, pattern, view, self)
-        return ui_patterns
 
     def get_list_display(self):
         return self.list_display
@@ -228,6 +263,9 @@ class UIModelISCore(PermissionsUIMixin, ModelISCore):
 
     def get_api_url(self, request):
         return reverse(self.get_api_url_name())
+
+    def get_menu_item(self, request):
+        return MenuItemPattern(self.verbose_name_plural, self.get_ui_patterns().get('list'))
 
 
 class RestModelISCore(PermissionsRestMixin, ModelISCore):

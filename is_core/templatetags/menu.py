@@ -10,6 +10,15 @@ from is_core import config
 register = template.Library()
 
 
+class MenuItemPattern():
+
+    def __init__(self, title, pattern, show_in_menu=True, submenu_items=[], pattern_kwargs={}):
+        self.title = title
+        self.pattern = pattern
+        self.show_in_menu = show_in_menu
+        self.pattern_kwargs = pattern_kwargs
+
+
 class MenuItem():
 
     def __init__(self, title, url, active, group=None, submenu_items=[]):
@@ -37,11 +46,15 @@ def get_menu_items(request, items, active_groups=()):
                 menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url,
                                             item.name == group, item.name))
         else:
-            if not item.get_show_in_menu(request):
-                continue
+            menu_item_pattern = item.get_menu_item(request)
+            if menu_item_pattern:
+                menu_items.append(MenuItem(menu_item_pattern.title, menu_item_pattern.pattern.get_url_string(),
+                                           group == item.menu_group, item.menu_group))
 
+            '''if not item.get_show_in_menu(request):
+                continue
             menu_items.append(MenuItem(item.verbose_name_plural, item.menu_url(request),
-                                       group == item.menu_group, item.menu_group))
+                                       group == item.menu_group, item.menu_group))'''
     return menu_items
 
 

@@ -59,24 +59,14 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
         return []
 
 
-class HomeView(DefaultViewMixin, TemplateView):
-    template_name = 'home.html'
-    view_name = 'home'
-
-    def get_title(self):
-        return _('Home')
-
-
 class DefaultCoreViewMixin(DefaultViewMixin):
 
     core = None
-    model = None
     view_name = None
     title = None
 
-    def __init__(self, core, site_name=None, menu_groups=None, model=None):
+    def __init__(self, core, site_name=None, menu_groups=None):
         self.core = core
-        self.model = self.model or model or core.model
         site_name = self.site_name or site_name or core.site_name
         menu_groups = self.menu_groups or menu_groups or core.get_menu_groups()
         super(DefaultCoreViewMixin, self).__init__(site_name, menu_groups)
@@ -107,3 +97,20 @@ class DefaultCoreViewMixin(DefaultViewMixin):
                               }
         extra_context_data.update(context_data)
         return extra_context_data
+
+
+class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
+
+    model = None
+
+    def __init__(self, core, site_name=None, menu_groups=None, model=None):
+        super(DefaultModelCoreViewMixin, self).__init__(core, site_name, menu_groups)
+        self.model = self.model or model or core.model
+
+
+class HomeView(DefaultCoreViewMixin, TemplateView):
+    template_name = 'home.html'
+    view_name = 'home'
+
+    def get_title(self):
+        return _('Home')

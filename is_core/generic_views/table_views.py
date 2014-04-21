@@ -4,7 +4,7 @@ from django.views.generic.base import TemplateView
 from django.db.models.fields import FieldDoesNotExist
 
 from is_core.utils import query_string_from_dict
-from is_core.generic_views import DefaultCoreViewMixin
+from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
 
 from is_core.filters.default_filters import *
@@ -25,7 +25,7 @@ class Header(object):
         return self.text
 
 
-class TableView(DefaultCoreViewMixin, TemplateView):
+class TableView(DefaultModelCoreViewMixin, TemplateView):
     list_display = ()
     template_name = 'generic_views/table.html'
     view_type = 'list'

@@ -12,13 +12,13 @@ from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
 
 from is_core.generic_views.exceptions import SaveObjectException
-from is_core.generic_views import DefaultCoreViewMixin
+from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 
 
-class DefaultFormView(DefaultCoreViewMixin, FormView):
+class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     view_type = 'default'
     fieldsets = None
     form_template = 'forms/default_form.html'

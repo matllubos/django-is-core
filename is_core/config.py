@@ -16,5 +16,6 @@ AUTH_LOGIN_VIEW = getattr(settings, 'AUTH_LOGIN_VIEW', AUTH_USE_TOKENS \
 AUTH_LOGOUT_VIEW = getattr(settings, 'AUTH_LOGOUT_VIEW', AUTH_USE_TOKENS \
                                                           and 'is_core.auth_token.auth_views.TokenLogoutView' \
                                                           or 'is_core.generic_views.auth_views.LoginView')
+HOME_IS_CORE = getattr(settings, 'HOME_IS_CORE', 'is_core.main.HomeUIISCore')
 HOME_VIEW = getattr(settings, 'HOME_VIEW', 'is_core.generic_views.HomeView')
 HOME_IN_BREADCRUMB = getattr(settings, 'HOME_IN_BREADCRUMB', True)
