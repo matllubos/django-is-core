@@ -46,15 +46,9 @@ def get_menu_items(request, items, active_groups=()):
                 menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url,
                                             item.name == group, item.name))
         else:
-            menu_item_pattern = item.get_menu_item(request)
-            if menu_item_pattern:
-                menu_items.append(MenuItem(menu_item_pattern.title, menu_item_pattern.pattern.get_url_string(),
-                                           group == item.menu_group, item.menu_group))
-
-            '''if not item.get_show_in_menu(request):
-                continue
-            menu_items.append(MenuItem(item.verbose_name_plural, item.menu_url(request),
-                                       group == item.menu_group, item.menu_group))'''
+            menu_item = item.get_menu_item(request, group)
+            if menu_item:
+                menu_items.append(menu_item)
     return menu_items
 
 

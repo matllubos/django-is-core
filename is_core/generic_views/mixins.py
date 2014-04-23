@@ -20,7 +20,7 @@ class ListParentMixin(object):
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
         if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').view.has_get_permission(self.request, self.core):
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request):
             menu_items.append(self.list_bread_crumbs_menu_item())
         return menu_items
 
@@ -50,7 +50,7 @@ class EditParentMixin(ListParentMixin):
     def parent_bread_crumbs_menu_items(self):
         menu_items = super(EditParentMixin, self).parent_bread_crumbs_menu_items()
         if 'edit' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request, self.core):
+                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 

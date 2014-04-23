@@ -80,9 +80,8 @@ class ISSite(object):
             if isinstance(item, MenuGroup):
                 self._set_items_urls(item.items.values(), urlpatterns)
             else:
-                menu_groups = item.get_menu_groups()
                 urlpatterns += patterns('',
-                    url(r'^%s' % ('/'.join(menu_groups)),
+                    url(r'^%s' % (item.get_url_prefix()),
                             include(item.get_urls())
                         )
                 )

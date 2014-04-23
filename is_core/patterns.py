@@ -5,11 +5,29 @@ from django.conf.urls import url
 
 from is_core.rest.resource import DynamicRestHandlerResource
 
+import logging
+
+logger = logging.getLogger('is-core')
+
+patterns = {}
+
+
+def reverse_view(name):
+    pattern = patterns.get(name)
+    if isinstance(pattern, UIPattern):
+        return pattern.view
+
 
 class Pattern(object):
 
     def __init__(self, name):
         self.name = name
+        self._register()
+
+    def _register(self):
+        if self.name in patterns:
+            logger.warning('Pattern with name %s has been registered yet' % self.name)
+        patterns[self.name] = self
 
     def get_url_string(self, obj=None, kwargs=None):
         raise NotImplemented
@@ -52,7 +70,7 @@ class UIPattern(ViewPattern):
 
     def __init__(self, name, site_name, url_pattern, view, core):
         super(UIPattern, self).__init__(name, site_name, url_pattern, core)
-        self.view = view
+        self.view = type(str(name.title() + view.__name__), (view,), {'core': core, 'pattern': self})
 
     def get_view(self):
         if self.view.login_required:

@@ -197,7 +197,7 @@ class DefaultModelFormView(DefaultFormView):
         return self.exclude
 
     def generate_readonly_fields(self):
-        if not self.has_post_permission(self.request, self.core):
+        if not self.has_post_permission(self.request):
             return list(self.generate_form_class().base_fields.keys()) + list(self.get_readonly_fields())
         return self.get_readonly_fields()
 
@@ -283,8 +283,7 @@ class DefaultModelFormView(DefaultFormView):
         inline_form_views = SortedDict()
         for inline_form_view in self.get_inline_form_views():
             inline_form_views[inline_form_view.__name__] = inline_form_view(self.request, self, form.instance,
-                                                                            not self.has_post_permission(self.request,
-                                                                                                         self.core))
+                                                                            not self.has_post_permission(self.request))
         return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
 
     def post(self, request, *args, **kwargs):
@@ -297,7 +296,7 @@ class DefaultModelFormView(DefaultFormView):
         inline_forms_is_valid = True
         for inline_form_view in self.get_inline_form_views():
             inline_form_view_instance = inline_form_view(self.request, self, form.instance,
-                                                         not self.has_post_permission(self.request, self.core))
+                                                         not self.has_post_permission(self.request))
             inline_forms_is_valid = (inline_form_view_instance.formset.is_valid()) \
                                         and inline_forms_is_valid
             inline_form_views[inline_form_view.__name__] = inline_form_view_instance
@@ -363,16 +362,16 @@ class DefaultModelFormView(DefaultFormView):
         return context_data
 
     @classmethod
-    def has_permission(cls, request, core, **kwargs):
+    def has_permission(cls, request, **kwargs):
         return True
 
     @classmethod
-    def has_get_permission(cls, request, core, **kwargs):
-        return cls.has_permission(request, core, **kwargs)
+    def has_get_permission(cls, request, **kwargs):
+        return cls.has_permission(request, **kwargs)
 
     @classmethod
-    def has_post_permission(cls, request, core, **kwargs):
-        return cls.has_permission(request, core, **kwargs)
+    def has_post_permission(cls, request, **kwargs):
+        return cls.has_permission(request, **kwargs)
 
 
 class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
@@ -414,7 +413,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     def get_cancel_url(self):
         if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').view.has_get_permission(self.request, self.core) \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and not self.has_snippet():
             info = self.site_name, self.core.get_menu_group_pattern_name()
             return reverse('%s:list-%s' % info)
@@ -422,21 +421,21 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     def has_save_and_continue_button(self):
         return 'list' in self.core.ui_patterns and not self.has_snippet() \
-                and self.core.ui_patterns.get('list').view.has_get_permission(self.request, self.core) \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and self.show_save_and_continue
 
     def has_save_button(self):
         return self.view_type in self.core.ui_patterns and \
-               self.core.ui_patterns.get(self.view_type).view.has_post_permission(self.request, self.core)
+               self.core.ui_patterns.get(self.view_type).view.has_post_permission(self.request)
 
     def get_success_url(self, obj):
         info = self.site_name, self.core.get_menu_group_pattern_name()
         if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').view.has_get_permission(self.request, self.core) \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and 'save' in self.request.POST:
             return reverse('%s:list-%s' % info)
         elif 'edit' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request, self.core) \
+                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request) \
                 and 'save-and-continue' in self.request.POST:
             return reverse('%s:edit-%s' % info, args=(obj.pk,))
         return ''
@@ -463,12 +462,12 @@ class AddModelFormView(DefaultCoreModelFormView):
                                                        'verbose_name_plural': self.model._meta.verbose_name_plural}
 
     @classmethod
-    def has_get_permission(cls, request, core, **kwargs):
-        return core.has_create_permission(request)
+    def has_get_permission(cls, request, **kwargs):
+        return cls.core.has_create_permission(request)
 
     @classmethod
-    def has_post_permission(cls, request, core, **kwargs):
-        return core.has_create_permission(request)
+    def has_post_permission(cls, request, **kwargs):
+        return cls.core.has_create_permission(request)
 
 
 class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
@@ -489,10 +488,10 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         return super(EditModelFormView, self).link(arguments=arguments, **kwargs)
 
     @classmethod
-    def has_get_permission(cls, request, core, **kwargs):
-        return core.has_ui_update_permission(request, request.kwargs.get('pk')) \
-                or core.has_ui_read_permission(request, request.kwargs.get('pk'))
+    def has_get_permission(cls, request, **kwargs):
+        return cls.core.has_ui_update_permission(request, request.kwargs.get('pk') or kwargs.get('pk')) \
+                or cls.core.has_ui_read_permission(request, request.kwargs.get('pk') or kwargs.get('pk'))
 
     @classmethod
-    def has_post_permission(cls, request, core, **kwargs):
-        return core.has_ui_update_permission(request, request.kwargs.get('pk'))
+    def has_post_permission(cls, request, **kwargs):
+        return cls.core.has_ui_update_permission(request, request.kwargs.get('pk') or kwargs.get('pk'))

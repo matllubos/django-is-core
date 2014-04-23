@@ -109,8 +109,8 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
         return context_data
 
     @classmethod
-    def has_get_permission(cls, request, core, **kwargs):
-        return core.has_read_permission(request)
+    def has_get_permission(cls, request, **kwargs):
+        return cls.core.has_read_permission(request)
 
     def bread_crumbs_menu_items(self):
         from is_core.templatetags.menu import MenuItem

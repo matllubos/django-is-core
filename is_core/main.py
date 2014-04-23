@@ -19,7 +19,7 @@ from is_core.rest.utils import list_to_dict, dict_to_list, join_dicts
 from is_core.patterns import UIPattern, RestPattern
 from is_core.utils import flatten_fieldsets, str_to_class
 from is_core import config
-from is_core.templatetags.menu import MenuItemPattern
+from is_core.templatetags.menu import MenuItem
 
 
 class ISCore(object):
@@ -62,6 +62,9 @@ class ISCore(object):
         if self.menu_group:
             menu_groups += (self.menu_group,)
         return menu_groups
+
+    def get_url_prefix(self):
+        return '/'.join(self.get_menu_groups())
 
     def get_menu_group_pattern_name(self):
         return '-'.join(self.get_menu_groups())
@@ -139,6 +142,7 @@ class UIISCore(PermissionsUIMixin, ISCore):
     show_in_menu = True
     menu_url_name = None
     _ui_patterns = None
+    view_classes = SortedDict()
 
     def get_view_classes(self):
         return self.view_classes.copy()
@@ -158,18 +162,30 @@ class UIISCore(PermissionsUIMixin, ISCore):
                 pattern, view = view_vals
                 ViewPatternClass = UIPattern
 
-            ui_patterns[name] = ViewPatternClass('-'.join([name] + [self.get_menu_group_pattern_name()]),
-                                                 self.site_name, pattern, view, self)
+            pattern_names = [name]
+            group_pattern_name = self.get_menu_group_pattern_name()
+            if group_pattern_name:
+                pattern_names += [self.get_menu_group_pattern_name()]
+
+            ui_patterns[name] = ViewPatternClass('-'.join(pattern_names), self.site_name, pattern, view, self)
         return ui_patterns
 
     def get_urls(self):
         return self.get_urlpatterns(self.ui_patterns)
 
     def get_show_in_menu(self, request):
-        return True
+        return self.has_ui_read_permission(request)
 
-    def get_menu_item(self, request):
-        return None
+    def get_menu_item(self, request, active_group):
+        if self.get_show_in_menu(request):
+            is_active = active_group == self.menu_group
+            submenu_items = is_active and self.get_submenu_items(request) or ()
+            return MenuItem(self.verbose_name_plural, self.menu_url(request),
+                            active_group == self.menu_group, self.menu_group, submenu_items)
+
+    # TODO: This is not elegant solution
+    def get_submenu_items(self, request):
+        return ()
 
 
 class HomeUIISCore(UIISCore):
@@ -183,11 +199,8 @@ class HomeUIISCore(UIISCore):
                         ('index', (r'^$', HomeView)),
                     ))
 
-    def get_menu_item(self, request):
-        return MenuItemPattern(self.verbose_name_plural, self.get_ui_patterns().get('index'))
-
     def menu_url(self, request):
-        return ''
+        return '/'
 
 
 class UIModelISCore(ModelISCore, UIISCore):
@@ -229,7 +242,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return self.get_urlpatterns(self.ui_patterns)
 
     def get_show_in_menu(self, request):
-        return 'list' in self.view_classes and self.show_in_menu and self.has_read_permission(request)
+        return 'list' in self.view_classes and self.show_in_menu and self.has_ui_read_permission(request)
 
     def get_rest_list_fields(self):
         return self.list_display
@@ -263,9 +276,6 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     def get_api_url(self, request):
         return reverse(self.get_api_url_name())
-
-    def get_menu_item(self, request):
-        return MenuItemPattern(self.verbose_name_plural, self.get_ui_patterns().get('list'))
 
 
 class RestModelISCore(PermissionsRestMixin, ModelISCore):
