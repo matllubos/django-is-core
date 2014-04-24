@@ -353,7 +353,8 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
             confirm_dialog = ConfirmRestAction.ConfirmDialog(_('Do you really want to delete "%s"') %
                                                              obj)
             list_actions.append(ConfirmRestAction('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                                  _('Delete') , 'DELETE', confirm_dialog=confirm_dialog))
+                                                  _('Delete') , 'DELETE', confirm_dialog=confirm_dialog,
+                                                  class_name='delete'))
         return list_actions
 
 
