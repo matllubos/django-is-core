@@ -93,7 +93,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             url = handler.url(inst.pk)
 
-            if not handler.has_read_permission(self.get_request_with_user(self.r_factory.get(url)), pk=inst.pk):
+            if not handler.has_read_permission(self.get_request_with_user(self.r_factory.get(url)), inst):
                 break
 
             resp = self.get(url)
@@ -106,7 +106,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             url = handler.url(inst.pk)
 
-            if not handler.has_delete_permission(self.get_request_with_user(self.r_factory.delete(url)), pk=inst.pk):
+            if not handler.has_delete_permission(self.get_request_with_user(self.r_factory.delete(url)), inst):
                 break
 
             resp = self.delete(url)
@@ -143,7 +143,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             request = self.get_request_with_user(self.r_factory.put(url))
 
-            if not handler.has_update_permission(request, pk=inst_from.pk):
+            if not handler.has_update_permission(request, inst_from):
                 break
 
             data, inst_to = self.get_serialized_data(request, handler, True)

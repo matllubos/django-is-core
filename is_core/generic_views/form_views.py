@@ -489,9 +489,9 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
 
     @classmethod
     def has_get_permission(cls, request, **kwargs):
-        return cls.core.has_ui_update_permission(request, request.kwargs.get('pk') or kwargs.get('pk')) \
-                or cls.core.has_ui_read_permission(request, request.kwargs.get('pk') or kwargs.get('pk'))
+        return cls.core.has_ui_update_permission(request, **kwargs) \
+                or cls.core.has_ui_read_permission(request, **kwargs)
 
     @classmethod
     def has_post_permission(cls, request, **kwargs):
-        return cls.core.has_ui_update_permission(request, request.kwargs.get('pk') or kwargs.get('pk'))
+        return cls.core.has_ui_update_permission(request, **kwargs)

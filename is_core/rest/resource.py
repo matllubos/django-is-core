@@ -95,7 +95,6 @@ class RestResource(Resource):
 
         srl = emitter(result, typemapper, handler, request, self.get_serialization_format(request), fields, anonymous,
                       fun_kwargs=fun_kwargs)
-
         try:
             """
             Decide whether or not we want a generator here,
@@ -103,10 +102,8 @@ class RestResource(Resource):
             before sending it to the client. Won't matter for
             smaller datasets, but larger will have an impact.
             """
-
             if self.stream: stream = srl.stream_render(request)
             else: stream = srl.render(request)
-
             if not isinstance(stream, HttpResponse):
                 resp = HttpResponse(stream, content_type=ct, status=status_code)
             else:

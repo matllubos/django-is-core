@@ -90,7 +90,7 @@ class RestPattern(ViewPattern):
         return self.resource
 
     def get_allowed_methods(self, request, obj):
-        methods = self.resource.handler.get_allowed_methods(request, obj.pk)
+        methods = self.resource.handler.get_allowed_methods(request, obj)
         if self.methods is not None:
             return set(methods) & set(self.methods)
         return set(methods)

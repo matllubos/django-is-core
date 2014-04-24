@@ -4,6 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseForbidden
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
+from django.utils.functional import SimpleLazyObject
+
+
+def get_obj(Model, pk):
+    return Model.objects.get(pk=pk)
 
 
 class Auth(object):
@@ -26,15 +31,18 @@ class Auth(object):
         if not isinstance(validators, (list, tuple)):
             validators = [validators]
 
-        kwargs = {}
-        if request.kwargs.has_key('pk'):
-            kwargs['pk'] = request.kwargs['pk']
-        kwargs.update(self.kwargs)
-
         for validator in validators:
-            if validator(request, **kwargs):
+            if validator(request, **self.validator_kwargs(request, validator)):
                 return True
         return False
+
+    def validator_kwargs(self, request, validator):
+        if request.kwargs.has_key('pk'):
+            Model = getattr(validator.im_self, 'model')
+            if Model:
+                return {'obj': SimpleLazyObject(lambda: get_obj(Model, request.kwargs['pk']))}
+        return {}
+
 
 
 class AuthWrapper(Auth):

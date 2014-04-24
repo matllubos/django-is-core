@@ -9,8 +9,6 @@ from django.utils.http import cookie_date
 from is_core import config, auth_token
 
 
-SessionMiddleware
-
 def get_user(request):
     if not hasattr(request, '_cached_user'):
         request._cached_user = auth_token.get_user(request)

@@ -170,7 +170,7 @@ class DataPostprocessor(DataProcessor):
         # TODO: Delete other related objects. This will be more complicated.
         for reverse_related_obj in handler.model.objects.filter(**{related_obj.field.name: self.inst})\
                                     .exclude(pk__in=existing_related):
-            if handler.has_delete_permission(self.request, reverse_related_obj.pk):
+            if handler.has_delete_permission(self.request, reverse_related_obj):
                 handler._delete(self.request, reverse_related_obj)
 
         if errors:
@@ -194,19 +194,19 @@ class RestHandler(BaseHandler):
     login_required = True
 
     @classmethod
-    def has_read_permission(cls, request, pk=None):
+    def has_read_permission(cls, request, obj=None):
         return 'GET' in cls.allowed_methods
 
     @classmethod
-    def has_create_permission(cls, request, pk=None):
+    def has_create_permission(cls, request, obj=None):
         return 'POST' in cls.allowed_methods
 
     @classmethod
-    def has_update_permission(cls, request, pk=None):
+    def has_update_permission(cls, request, obj=None):
         return 'PUT' in cls.allowed_methods
 
     @classmethod
-    def has_delete_permission(cls, request, pk=None):
+    def has_delete_permission(cls, request, obj=None):
         return 'DELETE' in cls.allowed_methods
 
     @classmethod
@@ -224,10 +224,10 @@ class RestHandler(BaseHandler):
         return permissions_validators
 
     @classmethod
-    def get_allowed_methods(cls, user, obj_pk):
+    def get_allowed_methods(cls, user, obj):
         allowed_methods = []
         for method, validator in cls.get_permission_validators().items():
-            if validator(user, obj_pk):
+            if validator(user, obj):
                 allowed_methods.append(method)
         return allowed_methods
 
@@ -235,27 +235,36 @@ class RestHandler(BaseHandler):
 class RestCoreHandler(RestHandler):
 
     @classmethod
-    def has_read_permission(cls, request, pk=None):
-        return super(RestCoreHandler, cls).has_read_permission(request, pk) \
-                and cls.core.has_rest_read_permission(request, pk)
+    def has_read_permission(cls, request, obj=None):
+        return super(RestCoreHandler, cls).has_read_permission(request, obj) \
+                and cls.core.has_rest_read_permission(request, obj)
 
     @classmethod
-    def has_create_permission(cls, request, pk=None):
-        return super(RestCoreHandler, cls).has_create_permission(request) \
-                and cls.core.has_rest_create_permission(request, pk)
+    def has_create_permission(cls, request, obj=None):
+        return super(RestCoreHandler, cls).has_create_permission(request, obj) \
+                and cls.core.has_rest_create_permission(request, obj)
 
     @classmethod
-    def has_update_permission(cls, request, pk=None):
-        return super(RestCoreHandler, cls).has_update_permission(request, pk) \
-                and cls.core.has_rest_update_permission(request, pk)
+    def has_update_permission(cls, request, obj=None):
+        return super(RestCoreHandler, cls).has_update_permission(request, obj) \
+                and cls.core.has_rest_update_permission(request, obj)
 
     @classmethod
-    def has_delete_permission(cls, request, pk=None):
-        return super(RestCoreHandler, cls).has_delete_permission(request, pk) \
-                and cls.core.has_rest_delete_permission(request, pk)
+    def has_delete_permission(cls, request, obj=None):
+        return super(RestCoreHandler, cls).has_delete_permission(request, obj) \
+                and cls.core.has_rest_delete_permission(request, obj)
 
 
-class RestModelHandler(RestCoreHandler):
+class DefaultRestModelHandler(object):
+
+    fields = ('id', '_obj_name')
+
+    @classmethod
+    def _obj_name(cls, obj, request):
+        return unicode(obj)
+
+
+class RestModelHandler(DefaultRestModelHandler, RestCoreHandler):
 
     register = True
 
@@ -283,7 +292,8 @@ class RestModelHandler(RestCoreHandler):
 
     @classmethod
     def _actions(cls, obj, request):
-        return cls.core.get_list_actions(request, obj)
+        ac = cls.core.get_list_actions(request, obj)
+        return ac
 
     @classmethod
     def _class_names(cls, obj, request):
@@ -405,7 +415,7 @@ class RestModelHandler(RestCoreHandler):
         """
         inst = self._get_instance(request, data)
 
-        if inst and not self.has_update_permission(request, inst.pk):
+        if inst and not self.has_update_permission(request, inst):
             return inst
         elif not inst and not self.has_create_permission(request):
             raise NotAllowedException

@@ -1,6 +1,7 @@
 from __future__ import generators, unicode_literals
 
 import datetime, decimal, re, inspect, copy, json
+from is_core.rest.handler import DefaultRestModelHandler
 
 
 try:
@@ -186,11 +187,11 @@ class Emitter(object):
             `exclude` on the handler (see `typemapper`.)
             """
             ret = { }
-            handler = self.in_typemapper(type(data), self.anonymous)
+
+            handler = self.in_typemapper(type(data), self.anonymous) or DefaultRestModelHandler()
             get_absolute_uri = False
 
             if handler or fields:
-
                 def v(f):
                     """
                     If field has choices this return display value
