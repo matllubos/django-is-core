@@ -19,17 +19,30 @@ class MenuItemPattern():
         self.pattern_kwargs = pattern_kwargs
 
 
-class MenuItem():
+class MenuItem(object):
+
+    def __init__(self, title, active, collapsible, group, submenu_items=[]):
+        self.title = title
+        self.collapsible = collapsible
+        self.submenu_items = submenu_items
+        self.group = group
+        self.active = active
+
+
+class LinkMenuItem(MenuItem):
 
     def __init__(self, title, url, active, group=None, submenu_items=[]):
-        self.title = title
+        super(LinkMenuItem, self).__init__(title, active, False, group, submenu_items)
         self.url = url
-        self.active = active
-        self.group = group
-        self.submenu_items = submenu_items
 
     def __unicode__(self):
         return self.title
+
+
+class CollapsibleMenuItem(MenuItem):
+
+    def __init__(self, title, active, group=None, submenu_items=[]):
+        super(CollapsibleMenuItem, self).__init__(title, active, True, group, submenu_items)
 
 
 def get_menu_items(request, items, active_groups=()):
@@ -44,7 +57,7 @@ def get_menu_items(request, items, active_groups=()):
             submenu_items = get_menu_items(request, item.items.values(), child_groups)
             if submenu_items:
                 menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url,
-                                            item.name == group, item.name))
+                                                item.name == group, item.name))
         else:
             menu_item = item.get_menu_item(request, group)
             if menu_item:

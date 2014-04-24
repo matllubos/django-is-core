@@ -19,7 +19,7 @@ from is_core.rest.utils import list_to_dict, dict_to_list, join_dicts
 from is_core.patterns import UIPattern, RestPattern
 from is_core.utils import flatten_fieldsets, str_to_class
 from is_core import config
-from is_core.templatetags.menu import MenuItem
+from is_core.templatetags.menu import LinkMenuItem
 
 
 class ISCore(object):
@@ -178,10 +178,9 @@ class UIISCore(PermissionsUIMixin, ISCore):
 
     def get_menu_item(self, request, active_group):
         if self.get_show_in_menu(request):
-            is_active = active_group == self.menu_group
-            submenu_items = is_active and self.get_submenu_items(request) or ()
-            return MenuItem(self.verbose_name_plural, self.menu_url(request),
-                            active_group == self.menu_group, self.menu_group, submenu_items)
+            submenu_items = self.get_submenu_items(request) or ()
+            return LinkMenuItem(self.verbose_name_plural, self.menu_url(request),
+                                active_group == self.menu_group, self.menu_group, submenu_items)
 
     # TODO: This is not elegant solution
     def get_submenu_items(self, request):

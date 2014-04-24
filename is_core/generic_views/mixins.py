@@ -9,13 +9,13 @@ class ListParentMixin(object):
     add_current_to_breadcrumbs = True
 
     def list_bread_crumbs_menu_item(self):
-        from is_core.templatetags.menu import MenuItem
+        from is_core.templatetags.menu import LinkMenuItem
 
-        return MenuItem(self.model._ui_meta.list_verbose_name %
-                        {'verbose_name': self.model._meta.verbose_name,
-                         'verbose_name_plural': self.model._meta.verbose_name_plural},
-                        reverse('%s:list-%s' % (self.site_name, self.core.get_menu_group_pattern_name())),
-                                       not self.add_current_to_breadcrumbs)
+        return LinkMenuItem(self.model._ui_meta.list_verbose_name %
+                            {'verbose_name': self.model._meta.verbose_name,
+                             'verbose_name_plural': self.model._meta.verbose_name_plural},
+                            reverse('%s:list-%s' % (self.site_name, self.core.get_menu_group_pattern_name())),
+                                           not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
@@ -25,27 +25,27 @@ class ListParentMixin(object):
         return menu_items
 
     def bread_crumbs_menu_items(self):
-        from is_core.templatetags.menu import MenuItem
+        from is_core.templatetags.menu import LinkMenuItem
 
         menu_items = super(ListParentMixin, self).bread_crumbs_menu_items()
         menu_items += self.parent_bread_crumbs_menu_items()
         if self.add_current_to_breadcrumbs:
-            menu_items.append(MenuItem(self.get_title(), self.request.path, True))
+            menu_items.append(LinkMenuItem(self.get_title(), self.request.path, True))
         return menu_items
 
 
 class EditParentMixin(ListParentMixin):
 
     def edit_bread_crumbs_menu_item(self):
-        from is_core.templatetags.menu import MenuItem
+        from is_core.templatetags.menu import LinkMenuItem
 
-        return MenuItem(self.model._ui_meta.edit_verbose_name %
-                        {'verbose_name': self.model._meta.verbose_name,
-                         'verbose_name_plural': self.model._meta.verbose_name_plural,
-                         'obj': self.get_obj(True)},
-                         reverse('%s:edit-%s' % (self.site_name, self.core.get_menu_group_pattern_name()),
-                                                args=(self.request.kwargs.get('pk'),)),
-                                                not self.add_current_to_breadcrumbs)
+        return LinkMenuItem(self.model._ui_meta.edit_verbose_name %
+                            {'verbose_name': self.model._meta.verbose_name,
+                             'verbose_name_plural': self.model._meta.verbose_name_plural,
+                             'obj': self.get_obj(True)},
+                             reverse('%s:edit-%s' % (self.site_name, self.core.get_menu_group_pattern_name()),
+                                                    args=(self.request.kwargs.get('pk'),)),
+                                                    not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = super(EditParentMixin, self).parent_bread_crumbs_menu_items()
@@ -63,7 +63,7 @@ class TabsViewMixin(object):
         return self.tabs
 
     def get_tab_menu_items(self):
-        from is_core.templatetags.menu import MenuItem
+        from is_core.templatetags.menu import LinkMenuItem
 
         menu_items = []
         for tab in self.get_tabs():
@@ -73,7 +73,7 @@ class TabsViewMixin(object):
             else:
                 tab_title, tab_url, is_active = tab
 
-            menu_items.append(MenuItem(tab_title, tab_url, is_active))
+            menu_items.append(LinkMenuItem(tab_title, tab_url, is_active))
         return menu_items
 
     def get_context_data(self, form=None, **kwargs):
