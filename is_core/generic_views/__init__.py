@@ -16,10 +16,8 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
     allowed_snippets = ('content',)
     view_name = None
 
-    def __init__(self, site_name=None, menu_groups=None):
+    def __init__(self):
         super(DefaultViewMixin, self).__init__()
-        self.site_name = self.site_name or site_name
-        self.menu_groups = self.menu_groups or menu_groups
 
     def get_title(self):
         return None
@@ -65,11 +63,10 @@ class DefaultCoreViewMixin(DefaultViewMixin):
     view_name = None
     title = None
 
-    def __init__(self, core, site_name=None, menu_groups=None):
-        self.core = core
-        site_name = self.site_name or site_name or core.site_name
-        menu_groups = self.menu_groups or menu_groups or core.get_menu_groups()
-        super(DefaultCoreViewMixin, self).__init__(site_name, menu_groups)
+    def __init__(self):
+        super(DefaultCoreViewMixin, self).__init__()
+        self.site_name = self.core.site_name
+        self.menu_groups = self.core.get_menu_groups()
 
     def dispatch(self, request, *args, **kwargs):
         self.core.init_request(request)
@@ -98,18 +95,23 @@ class DefaultCoreViewMixin(DefaultViewMixin):
         extra_context_data.update(context_data)
         return extra_context_data
 
+    @classmethod
+    def __init_core__(cls, core, pattern):
+        cls.core = core
+        cls.pattern = pattern
+
 
 class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
 
     model = None
 
-    def __init__(self, core, site_name=None, menu_groups=None, model=None):
-        super(DefaultModelCoreViewMixin, self).__init__(core, site_name, menu_groups)
-        self.model = self.model or model or core.model
+    def __init__(self):
+        super(DefaultModelCoreViewMixin, self).__init__()
 
     @classmethod
-    def get_model(cls):
-        return cls.core.model
+    def __init_core__(cls, core, pattern):
+        super(DefaultModelCoreViewMixin, cls).__init_core__(core, pattern)
+        cls.model = cls.model or core.model
 
 
 class HomeView(DefaultCoreViewMixin, TemplateView):

@@ -70,13 +70,14 @@ class UIPattern(ViewPattern):
 
     def __init__(self, name, site_name, url_pattern, view, core):
         super(UIPattern, self).__init__(name, site_name, url_pattern, core)
-        self.view = type(str(name.title() + view.__name__), (view,), {'core': core, 'pattern': self})
+        self.view = type(str(name.title() + view.__name__), (view,), {})
+        self.view.__init_core__(core, self)
 
     def get_view(self):
         if self.view.login_required:
-            return self.view.as_wrapped_view(core=self.core)
+            return self.view.as_wrapped_view()
         else:
-            return self.view.as_view(core=self.core)
+            return self.view.as_view()
 
 
 class RestPattern(ViewPattern):
@@ -101,4 +102,3 @@ class DynamicRestPattern(RestPattern):
     def __init__(self, name, site_name, url_pattern, handler, core, methods=None):
         resource = DynamicRestHandlerResource(handler_class=handler, core=core)
         super(DynamicRestPattern, self).__init__(name, site_name, url_pattern, resource, core, methods=methods)
-

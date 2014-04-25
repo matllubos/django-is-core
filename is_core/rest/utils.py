@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.http.response import HttpResponse
 from django.template.defaultfilters import lower
 from django.db.models.fields.related import RelatedField
+from django.utils.translation import ugettext_lazy as _
 
 from piston.utils import MimerDataException, Mimer as PistonMimer
 from piston.handler import typemapper, handler_tracker
@@ -13,18 +14,18 @@ class rc_factory(object):
     """
     Status codes.
     """
-    CODES = dict(ALL_OK=({'success': 'OK'}, 200),
-                 CREATED=({'success': 'The record was created'}, 201),
+    CODES = dict(ALL_OK=({'success': _('OK')}, 200),
+                 CREATED=({'success': _('The record was created')}, 201),
                  DELETED=('', 204),  # 204 says "Don't send a body!"
-                 BAD_REQUEST=({'error': 'Bad Request'}, 400),
-                 FORBIDDEN=({'error':'Forbidden'}, 401),
-                 NOT_FOUND=({'error':'Not Found'}, 404),
-                 DUPLICATE_ENTRY=({'error': 'Conflict/Duplicate'}, 409),
-                 NOT_HERE=({'error': 'Gone'}, 410),
-                 UNSUPPORTED_MEDIA_TYPE=({'error': 'Unsupported Media Type'}, 415),
-                 INTERNAL_ERROR=({'error': 'Internal server error'}, 500),
-                 NOT_IMPLEMENTED=({'error': 'Not implemented'}, 501),
-                 THROTTLED=({'error': 'The resource was throttled'}, 503))
+                 BAD_REQUEST=({'error': _('Bad Request')}, 400),
+                 FORBIDDEN=({'error':_('Forbidden')}, 401),
+                 NOT_FOUND=({'error':_('Not Found')}, 404),
+                 DUPLICATE_ENTRY=({'error': _('Conflict/Duplicate')}, 409),
+                 NOT_HERE=({'error': _('Gone')}, 410),
+                 UNSUPPORTED_MEDIA_TYPE=({'error': _('Unsupported Media Type')}, 415),
+                 INTERNAL_ERROR=({'error': _('Internal server error')}, 500),
+                 NOT_IMPLEMENTED=({'error': _('Not implemented')}, 501),
+                 THROTTLED=({'error': _('The resource was throttled')}, 503))
 
     def __getattr__(self, attr):
         """

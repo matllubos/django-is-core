@@ -30,10 +30,6 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
     template_name = 'generic_views/table.html'
     view_type = 'list'
 
-    def __init__(self, core, site_name=None, menu_groups=None, model=None, list_display=None):
-        super(TableView, self).__init__(core, site_name, menu_groups, model)
-        self.list_display = self.list_display or list_display
-
     def get_title(self):
         return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
                                                         'verbose_name_plural': self.model._meta.verbose_name_plural}

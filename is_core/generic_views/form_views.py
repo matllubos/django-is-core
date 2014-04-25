@@ -27,11 +27,6 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 'error': _('Please correct the error below.')}
     readonly_fields = ()
 
-    def __init__(self, core, site_name=None, menu_groups=None, model=None, form_class=None, readonly_fields=()):
-        super(DefaultFormView, self).__init__(core, site_name, menu_groups, model)
-        self.form_class = form_class or self.form_class
-        self.readonly_fields = readonly_fields or self.readonly_fields
-
     def render_to_response(self, context, **response_kwargs):
         if self.has_snippet():
             extra_content = response_kwargs['extra_content'] = response_kwargs.get('extra_content', {})
@@ -164,15 +159,6 @@ class DefaultModelFormView(DefaultFormView):
     fields = None
     inline_form_views = ()
     form_template = 'forms/model_default_form.html'
-
-    def __init__(self, core, site_name=None, menu_groups=None, model=None, form_class=None,
-                 exclude=None, fieldset=None, fields=None, readonly_fields=None, inline_form_views=None):
-        super(DefaultModelFormView, self).__init__(core, site_name, menu_groups, model, form_class,
-                                                   readonly_fields)
-        self.exclude = exclude or self.exclude
-        self.fieldset = fieldset or self.fieldset
-        self.fields = fields or self.fields
-        self.inline_form_views = inline_form_views or self.inline_form_views
 
     def pre_save_obj(self, obj, form, change):
         pass

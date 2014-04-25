@@ -147,6 +147,7 @@ msgid "Forbidden"
 msgstr "Přístup odepřen"
 
 #: rest/utils.py:22
+#, fuzzy
 msgid "Not Found"
 msgstr "Nenalezeno"
 
