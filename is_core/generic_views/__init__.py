@@ -107,6 +107,10 @@ class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
         super(DefaultModelCoreViewMixin, self).__init__(core, site_name, menu_groups)
         self.model = self.model or model or core.model
 
+    @classmethod
+    def get_model(cls):
+        return cls.core.model
+
 
 class HomeView(DefaultCoreViewMixin, TemplateView):
     template_name = 'home.html'

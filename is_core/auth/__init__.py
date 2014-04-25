@@ -38,9 +38,8 @@ class Auth(object):
 
     def validator_kwargs(self, request, validator):
         if request.kwargs.has_key('pk'):
-            Model = getattr(validator.im_self, 'model')
-            if Model:
-                return {'obj': SimpleLazyObject(lambda: get_obj(Model, request.kwargs['pk']))}
+            if hasattr(validator.im_self, 'get_model'):
+                return {'obj': SimpleLazyObject(lambda: get_obj(validator.im_self.get_model(), request.kwargs['pk']))}
         return {}
 
 
