@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-25 14:26+0200\n"
+"POT-Creation-Date: 2014-04-29 22:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -92,6 +92,11 @@ msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 #: generic_views/inline_form_views.py:125
 msgid "Add"
 msgstr "Přidat"
+
+#: models/fields.py:27
+#, python-format
+msgid "Please keep filesize under %(max)s. Current filesize %(current)s"
+msgstr "Prosíme vkládejte soubory menší než %(max)s. Velikost souboru je %(current)s"
 
 #: models/patch.py:33
 #, python-format
