@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404
+
+from is_core.patterns import reverse_view
 
 
 class ListParentMixin(object):
@@ -42,15 +43,16 @@ class EditParentMixin(ListParentMixin):
         return LinkMenuItem(self.model._ui_meta.edit_verbose_name %
                             {'verbose_name': self.model._meta.verbose_name,
                              'verbose_name_plural': self.model._meta.verbose_name_plural,
-                             'obj': self.get_obj(True)},
+                             'obj': self.get_obj()},
                              reverse('%s:edit-%s' % (self.site_name, self.core.get_menu_group_pattern_name()),
                                                     args=(self.request.kwargs.get('pk'),)),
                                                     not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
+        menu_group = self.core.get_menu_group_pattern_name()
         menu_items = super(EditParentMixin, self).parent_bread_crumbs_menu_items()
         if 'edit' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request):
+                and reverse_view('edit-%s' % menu_group).has_get_permission(self.request, obj=self.get_obj()):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 

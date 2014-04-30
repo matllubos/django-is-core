@@ -36,6 +36,8 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
     def set_up_rest_handlers(cls):
         # Must be here, because hanlers is not registered
         from is_core import site
+        from is_core.site import registered_model_views
+        from is_core.main import UIModelISCore
 
         handlers_dict = model_handlers_to_dict()
         rest_handlers = []

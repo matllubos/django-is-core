@@ -78,5 +78,5 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
             url = self.edit_url(model_view.site_name, model_view.get_menu_groups(), inst)
             request = self.get_request_with_user(self.r_factory.get(url))
-            if model_view.has_ui_read_permission(request, inst.pk) or model_view.has_ui_update_permission(request, inst.pk):
+            if model_view.has_ui_read_permission(request, inst) or model_view.has_ui_update_permission(request, inst.pk):
                 self.assert_http_ok(self.get(url), '%s should return 200' % url)

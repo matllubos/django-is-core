@@ -6,9 +6,11 @@ from django.template.loader import render_to_string
 from django.template.context import RequestContext
 from django.utils.functional import SimpleLazyObject
 
+from is_core.utils.models import get_object_or_none
+
 
 def get_obj(Model, pk):
-    return Model.objects.get(pk=pk)
+    return get_object_or_none(Model, pk=pk)
 
 
 class Auth(object):
