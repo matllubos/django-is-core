@@ -3,6 +3,8 @@ from django.forms import forms
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 
+from is_core import config
+
 try:
     from sorl.thumbnail import ImageField as OriginImageField
 except ImportError:
@@ -16,7 +18,7 @@ class RestrictedFileFieldMixin(object):
         * max_upload_size - a number indicating the maximum file size allowed for upload in MB.
     """
     def __init__(self, *args, **kwargs):
-        self.max_upload_size = kwargs.pop("max_upload_size", 50) * 1024 * 1024
+        self.max_upload_size = kwargs.pop("max_upload_size", config.MAX_UPLOAD_SIZE) * 1024 * 1024
 
         super(RestrictedFileFieldMixin, self).__init__(*args, **kwargs)
 
