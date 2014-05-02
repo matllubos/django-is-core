@@ -253,7 +253,7 @@ class DefaultModelFormView(DefaultFormView):
         return ''
 
     def has_save_button(self):
-        return True
+        return self.has_post_permission(self.request, obj=self.get_obj())
 
     def is_changed(self, form, inline_form_views, **kwargs):
         for inline_form_view_instance in inline_form_views.values():

@@ -5,7 +5,9 @@
 {% block submit-button %}
 	<div class="{% block submit-button-wrapper-class %}pull-left{% endblock %}">
 		{% block save-buttons %}
-		<button type="submit" name="save" class="{% block save-button-class %}btn-save btn btn-primary{% endblock %}">{% block save-button-caption %}{% trans "Save" %}{% endblock %}</button>
+			{% if show_save_button %}
+				<button type="submit" name="save" class="{% block save-button-class %}btn-save btn btn-primary{% endblock %}">{% block save-button-caption %}{% trans "Save" %}{% endblock %}</button>
+			{% endif %}
 			{% if show_save_and_continue %}<button type="submit" name="save-and-continue" class="{% block save-and-continue-button-class %}btn btn-primary btn-save-and-continue{% endblock %}">{% block save-and-continue-button-caption %}{% trans "Save and continue" %}{% endblock %}</button>{% endif %}
 		{% endblock %}
 		{% if cancel_url %}
