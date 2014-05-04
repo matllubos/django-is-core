@@ -5,7 +5,7 @@ from django.forms import CheckboxInput
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 from django.db.models.fields import FieldDoesNotExist, DateTimeField
-from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related import ForeignKey, ManyToManyRel
 from django.contrib.admin.util import display_for_value
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
@@ -114,6 +114,11 @@ def get_model_field_value_and_label(field_name, instance, request):
 
         if field:
             label = field.verbose_name
+
+            if isinstance(field.rel, ManyToManyRel) and callable_value is not None and \
+                    hasattr(getattr(callable_value, 'all'), '__call__'):
+                value = mark_safe('<ul>%s</ul>' %
+                                  ''.join(['<li>%s</li>' % force_text(obj) for obj in callable_value.all()]))
 
             if isinstance(field, ForeignKey) \
                 and hasattr(getattr(callable_value, 'get_absolute_url', None), '__call__') \
