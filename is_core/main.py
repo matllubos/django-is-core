@@ -191,6 +191,7 @@ class HomeUIISCore(UIISCore):
 
     menu_url_name = 'index'
     verbose_name_plural = _('Home')
+    menu_group = 'home'
 
     def get_view_classes(self):
         HomeView = str_to_class(config.HOME_VIEW)
@@ -200,6 +201,9 @@ class HomeUIISCore(UIISCore):
 
     def menu_url(self, request):
         return '/'
+
+    def get_url_prefix(self):
+        return ''
 
 
 class UIModelISCore(ModelISCore, UIISCore):
