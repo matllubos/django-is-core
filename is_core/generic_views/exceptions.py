@@ -1,3 +1,4 @@
 
+
 class SaveObjectException(Exception):
     pass

@@ -9,4 +9,3 @@ class RestAuthentication(Auth):
 
     def challenge(self):
         return HttpResponseForbidden()
-

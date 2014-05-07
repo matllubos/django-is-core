@@ -1,21 +1,26 @@
 from __future__ import unicode_literals
 
+import logging
+
 from django.core.urlresolvers import reverse
 from django.conf.urls import url
 
 from is_core.rest.resource import DynamicRestHandlerResource
-
-import logging
+from is_core.utils import get_new_class_name
 
 logger = logging.getLogger('is-core')
 
 patterns = {}
 
 
-def reverse_view(name):
+def reverse_ui_view(name):
     pattern = patterns.get(name)
     if isinstance(pattern, UIPattern):
         return pattern.view
+
+
+def reverse_pattern(name):
+    return patterns.get(name)
 
 
 class Pattern(object):
@@ -70,7 +75,7 @@ class UIPattern(ViewPattern):
 
     def __init__(self, name, site_name, url_pattern, view, core):
         super(UIPattern, self).__init__(name, site_name, url_pattern, core)
-        self.view = type(str(name.title() + view.__name__), (view,), {})
+        self.view = type(str(get_new_class_name(name, view)), (view,), {})
         self.view.__init_core__(core, self)
 
     def get_view(self):

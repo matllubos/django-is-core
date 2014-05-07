@@ -45,7 +45,6 @@ class Auth(object):
         return {}
 
 
-
 class AuthWrapper(Auth):
 
     def __init__(self, permissions_validators, **kwargs):

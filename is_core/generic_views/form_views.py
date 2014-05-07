@@ -16,7 +16,6 @@ from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
-from is_core.patterns import reverse_view
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -401,18 +400,15 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         return self.form_class or self.core.get_ui_form_class(self.request, self.get_obj(True))
 
     def get_cancel_url(self):
-        menu_group = self.core.get_menu_group_pattern_name()
         if 'list' in self.core.ui_patterns \
-                and reverse_view('list-%s' % menu_group).has_get_permission(self.request) \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and not self.has_snippet():
-            info = self.site_name, menu_group
-            return reverse('%s:list-%s' % info)
+            return reverse('%s:list-%s' % (self.site_name, self.core.get_menu_group_pattern_name()))
         return None
 
     def has_save_and_continue_button(self):
-        menu_group = self.core.get_menu_group_pattern_name()
         return 'list' in self.core.ui_patterns and not self.has_snippet() \
-                and reverse_view('list-%s' % menu_group).has_get_permission(self.request) \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and self.show_save_and_continue
 
     def has_save_button(self):
@@ -423,11 +419,11 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         menu_group = self.core.get_menu_group_pattern_name()
         info = self.site_name, menu_group
         if 'list' in self.core.ui_patterns \
-                and reverse_view('list-%s' % menu_group).has_get_permission(self.request) \
+                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and 'save' in self.request.POST:
             return reverse('%s:list-%s' % info)
         elif 'edit' in self.core.ui_patterns \
-                and reverse_view('edit-%s' % menu_group).has_get_permission(self.request, obj=obj) \
+                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request, obj=obj) \
                 and 'save-and-continue' in self.request.POST:
             return reverse('%s:edit-%s' % info, args=(obj.pk,))
         return ''

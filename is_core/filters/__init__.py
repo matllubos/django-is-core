@@ -35,4 +35,3 @@ def get_model_field_or_method_filter(full_field_term, model, value=None, filter_
         return field_or_method.filter(filter_term, full_field_term, field_or_method, value)
     else:
         raise FilterException(_('Not valid filter: %s') % full_field_term)
-

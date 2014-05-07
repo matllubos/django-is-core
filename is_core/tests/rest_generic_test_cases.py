@@ -148,7 +148,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
             if not handler.has_update_permission(request, inst_from):
                 break
 
-            data, inst_to = self.get_serialized_data(request, handler, True)
+            data, _ = self.get_serialized_data(request, handler, True)
 
             resp = self.put(url, data=data)
             self.assert_valid_JSON_response(resp, 'REST update of model: %s\n response: %s' % (model, resp))

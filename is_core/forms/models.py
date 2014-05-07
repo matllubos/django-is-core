@@ -98,4 +98,3 @@ class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
 class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceField):
 
     widget = widgets.MultipleSelect
-

@@ -4,8 +4,6 @@ import os, binascii
 
 from datetime import timedelta
 
-from hashlib import sha1
-
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AnonymousUser

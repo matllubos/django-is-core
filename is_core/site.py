@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.conf.urls import patterns, url, include
-from django.contrib.auth.decorators import login_required
 from django.utils.datastructures import SortedDict
 from django.template.defaultfilters import lower
 

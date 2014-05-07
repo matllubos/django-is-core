@@ -8,4 +8,3 @@ from django.contrib.auth import get_user
 class RequestKwargsMiddleware(object):
     def process_request(self, request):
         request.kwargs = resolve(request.path).kwargs
-

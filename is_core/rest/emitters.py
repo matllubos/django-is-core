@@ -1,6 +1,6 @@
 from __future__ import generators, unicode_literals
 
-import datetime, decimal, re, inspect, copy, json
+import datetime, decimal, re, inspect, json
 from is_core.rest.handler import DefaultRestModelHandler
 
 

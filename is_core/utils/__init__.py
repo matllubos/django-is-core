@@ -1,3 +1,4 @@
+import re
 import sys
 import types
 
@@ -19,6 +20,12 @@ def str_to_class(class_string):
     return c
 
 
+def get_new_class_name(prefix, klass):
+    prefix = prefix.replace('-', ' ').title()
+    prefix = re.sub(r'\s+', '', prefix)
+    return prefix + klass.__name__
+
+
 def flatten_fieldsets(fieldsets):
     """Returns a list of field names from an admin fieldsets structure."""
     field_names = []
@@ -36,5 +43,3 @@ class Enum(set):
         if name in self:
             return name
         raise AttributeError
-
-
