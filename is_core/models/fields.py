@@ -39,6 +39,13 @@ class RestrictedFileFieldMixin(object):
         args, kwargs = introspector(self)
         return (cls_name, args, kwargs)
 
+    def get_filename(self, filename):
+        """
+        removes UTF chars from filename
+        """
+        from unidecode import unidecode
+        return super(RestrictedFileFieldMixin, self).get_filename(unidecode(filename))
+
 
 class FileField(RestrictedFileFieldMixin, OriginFileField):
     pass

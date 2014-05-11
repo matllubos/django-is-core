@@ -92,6 +92,6 @@ class DragAndDropFileInput(forms.ClearableFileInput):
         id = attrs.get('id')
         output = ['<div class="drag-and-drop-wrapper">']
         output.append('<div class="drag-and-drop-placeholder"%s></div>' % (id and 'data-for="%s"' % id or ''))
-        output.append(super(DragAndDropFileInput, self).render(name, None, attrs=attrs))
+        output.append(super(DragAndDropFileInput, self).render(name, value, attrs=attrs))
         output.append('</div>')
         return mark_safe('\n'.join(output))
