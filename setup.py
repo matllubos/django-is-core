@@ -35,7 +35,8 @@ setup(
         'django-block-snippets==0.0.8',
         'python-dateutil>=2.2',
         'pytz',
-        'Unidecode>=0.04.16'
+        'Unidecode>=0.04.16',
+        'factory-boy>=2.3.1'
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/master#egg=django-piston-0.3.3',

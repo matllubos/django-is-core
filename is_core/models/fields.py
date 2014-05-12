@@ -2,6 +2,7 @@ from django.db.models import FileField as OriginFileField
 from django.forms import forms
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_text
 
 from is_core import config
 
@@ -44,7 +45,7 @@ class RestrictedFileFieldMixin(object):
         removes UTF chars from filename
         """
         from unidecode import unidecode
-        return super(RestrictedFileFieldMixin, self).get_filename(unidecode(filename))
+        return super(RestrictedFileFieldMixin, self).get_filename(unidecode(force_text(filename)))
 
 
 class FileField(RestrictedFileFieldMixin, OriginFileField):

@@ -1,8 +1,16 @@
+import time
+
+from is_core.tests.factory.fields import delete_test_files
 
 
 class DataGeneratorTestCase(object):
 
     factories = {}
+
+    @classmethod
+    def tearDownClass(cls):
+        super(DataGeneratorTestCase, cls).tearDownClass()
+        delete_test_files()
 
     @classmethod
     def get_model_label(cls, model):

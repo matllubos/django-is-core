@@ -12,11 +12,13 @@ from is_core.tests.auth_test_cases import RestAuthMixin
 
 
 def add_urls_to_handler(handler):
+
     def get_handler_list_url(self):
         return reverse('%s:api-%s' % (self.site_name, self.core.get_menu_group_pattern_name()))
 
     def get_handler_url(self, pk):
         return reverse('%s:api-resource-%s' % (self.site_name, self.core.get_menu_group_pattern_name()), args=(pk,))
+
     handler.url = types.MethodType(get_handler_url, handler)
     handler.list_url = types.MethodType(get_handler_list_url, handler)
     return handler
@@ -35,9 +37,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
     @classmethod
     def set_up_rest_handlers(cls):
         # Must be here, because hanlers is not registered
-        from is_core import site
-        from is_core.site import registered_model_views
-        from is_core.main import UIModelISCore
+        import urls
 
         handlers_dict = model_handlers_to_dict()
         rest_handlers = []
