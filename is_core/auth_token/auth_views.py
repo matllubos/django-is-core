@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 
-from class_based_auth_views.views import LoginView
-
-from is_core.generic_views.auth_views import LogoutView
+from is_core.generic_views.auth_views import LogoutView, LoginView
 from is_core.auth_token import login, logout
 from is_core.auth_token.forms import TokenAuthenticationForm
 

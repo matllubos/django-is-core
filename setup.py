@@ -35,13 +35,16 @@ setup(
         'django-block-snippets==0.0.9',
         'python-dateutil>=2.2',
         'pytz',
+        'django-apptemplates',
         'Unidecode>=0.04.16',
-        'factory-boy>=2.3.1'
+        'factory-boy>=2.3.1',
+        'django-project-info==0.2.4',
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/master#egg=django-piston-0.3.3',
         'https://github.com/matllubos/django-block-snippets/tarball/0.0.9#egg=django-block-snippets-0.0.9',
         'https://github.com/LukasRychtecky/germanium/tarball/0.1.3#egg=germanium-0.1.3',
+        'https://github.com/lukasrychtecky/django-project-info/tarball/0.2.4#egg=django-project-info-0.2.4'
     ],
     zip_safe=False
 )

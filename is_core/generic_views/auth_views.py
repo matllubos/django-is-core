@@ -1,7 +1,13 @@
 from __future__ import unicode_literals
 
+from class_based_auth_views.views import LoginView
+
 from django.views.generic.base import TemplateView
 from django.contrib import auth
+
+
+class LoginView(LoginView):
+    pass
 
 
 class LogoutView(TemplateView):

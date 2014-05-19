@@ -12,6 +12,7 @@ def query_string_from_dict(qs_dict):
 
 
 def str_to_class(class_string):
+    print class_string
     module_name, class_name = class_string.rsplit('.', 1)
     # load the module, will raise ImportError if module cannot be loaded
     m = __import__(module_name, globals(), locals(), class_name)
