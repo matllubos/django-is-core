@@ -9,6 +9,7 @@ from is_core.utils import str_to_class
 from is_core import config
 from is_core.rest.resource import RestResource
 from is_core.auth_token.auth_handler import AuthHandler
+from is_core.loading import get_cores
 
 
 sites = {}
@@ -49,18 +50,14 @@ class ISSite(object):
         self.name = name
         self.app_name = name
         sites[name] = self
-        self._registry = self._init_items([config.HOME_IS_CORE] + list(settings.MENU_GROUPS))
+        self._registry = self._init_items()
 
-    def _init_items(self, items, groups=()):
+    def _init_items(self):
         out = SortedDict()
 
-        for item in items:
-            if isinstance(item, (list, tuple)):
-                name, verbose_name, subitems = item
-                out[name] = MenuGroup(name, verbose_name, self._init_items(subitems, groups + (name,)))
-            else:
-                generic_core = self.register(str_to_class(item)(self.name, groups))
-                out[generic_core.menu_group] = generic_core
+        for core in get_cores():
+            generic_core = self.register(core(self.name, []))
+            out[generic_core.menu_group] = generic_core
         return out
 
     def register(self, generic_core):
@@ -89,9 +86,10 @@ class ISSite(object):
         LoginView = str_to_class(config.AUTH_LOGIN_VIEW)
         LogoutView = str_to_class(config.AUTH_LOGOUT_VIEW)
         urlpatterns = patterns('',
-                                    url(r'^login/$', LoginView.as_view(form_class=str_to_class(config.AUTH_FORM_CLASS)),
+                                    url(r'^%s$' % settings.LOGIN_URL[1:],
+                                        LoginView.as_view(form_class=str_to_class(config.AUTH_FORM_CLASS)),
                                         name='login'),
-                                    url(r'^logout/$', LogoutView.as_view(), name='logout'),
+                                    url(r'^%s$' % settings.LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
                                )
 
         if config.AUTH_USE_TOKENS:

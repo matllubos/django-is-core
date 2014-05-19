@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from __main__ import sys
 
 from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
@@ -7,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.datastructures import SortedDict
 from django.http.response import Http404
 from django.core.exceptions import ValidationError
+from django.utils import six
 
 from is_core.forms import RestModelForm
 from is_core.actions import WebAction, ConfirmRestAction
@@ -20,9 +22,35 @@ from is_core.patterns import UIPattern, RestPattern
 from is_core.utils import flatten_fieldsets, str_to_class
 from is_core import config
 from is_core.templatetags.menu import LinkMenuItem
+from is_core.loading import register_core
 
 
-class ISCore(object):
+BASE_CORES = [
+              'is_core.NewBase',
+              'is_core.ISCoreBase',
+              'is_core.ISCore',
+              'is_core.ModelISCore',
+              'is_core.UIISCore',
+              'is_core.UIModelISCore',
+              'is_core.RestModelISCore',
+              'is_core.UIRestModelISCore',
+              ]
+
+
+class ISCoreBase(type):
+    def __new__(cls, *args, **kwargs):
+        super_new = super(ISCoreBase, cls).__new__
+        new_class = super_new(cls, *args, **kwargs)
+        model_module = sys.modules[new_class.__module__]
+        app_label = model_module.__name__.split('.')[-2]
+        class_name = new_class.__name__
+        if '%s.%s' % (app_label, class_name) not in BASE_CORES:
+            print '%s.%s' % (app_label, class_name)
+            register_core(app_label, new_class)
+        return new_class
+
+
+class ISCore(six.with_metaclass(ISCoreBase)):
     menu_url_name = None
     verbose_name = None
     verbose_name_plural = None
@@ -58,7 +86,7 @@ class ISCore(object):
         return reverse(('%(site_name)s:' + self.menu_url_name) % {'site_name': self.site_name})
 
     def get_menu_groups(self):
-        menu_groups = self.menu_parent_groups
+        menu_groups = list(self.menu_parent_groups)
         if self.menu_group:
             menu_groups += (self.menu_group,)
         return menu_groups

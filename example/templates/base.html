@@ -1,0 +1,9 @@
+{% extends 'is_core:base.html' %}
+
+{% load static compress %}
+
+{% block head %}
+	{% compress css %}
+		<link type="text/x-sass" rel="stylesheet" href="{% static 'styles/app.sass' %}">
+	{% endcompress %}
+{% endblock %}

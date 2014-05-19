@@ -93,11 +93,6 @@ def bread_crumbs(context):
     active_menu_groups = context.get('active_menu_groups') or []
 
     menu_items = []
-    if config.HOME_IN_BREADCRUMB:
-        index_url = reverse('%s:index' % site_name)
-        index_active = request.path == index_url
-        menu_items.append(MenuItem(_('Home'), index_url, index_active))
-
     items = site._registry
 
     for group in active_menu_groups:
