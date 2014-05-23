@@ -48,7 +48,7 @@ class UIOptions(Options):
 class RestOptions(Options):
 
     def __init__(self, model):
-        from is_core.rest.utils import model_default_rest_fields
+        from piston.utils import model_default_rest_fields
 
         self.fields = model_default_rest_fields(model)
         self.default_list_fields = self.fields

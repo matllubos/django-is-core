@@ -47,6 +47,9 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
         if not field_name:
             field_name = full_field_name
 
+        if field_name == '_obj_name':
+            return Header(full_field_name, model._meta.verbose_name, False)
+
         if '__' in field_name:
             current_field_name, next_field_name = field_name.split('__', 1)
             return self.get_header(full_field_name, next_field_name, model._meta.get_field(current_field_name).rel.to)

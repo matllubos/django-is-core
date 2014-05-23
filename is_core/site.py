@@ -7,9 +7,9 @@ from django.template.defaultfilters import lower
 
 from is_core.utils import str_to_class
 from is_core import config
-from is_core.rest.resource import RestResource
-from is_core.auth_token.auth_handler import AuthHandler
 from is_core.loading import get_cores
+from is_core.patterns import RestPattern
+from is_core.auth_token.auth_handler import AuthHandler
 
 
 sites = {}
@@ -92,9 +92,13 @@ class ISSite(object):
                                     url(r'^%s$' % settings.LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
                                )
 
+
         if config.AUTH_USE_TOKENS:
-            login_resource = RestResource(handler=AuthHandler, form_class=str_to_class(config.AUTH_FORM_CLASS))
-            urlpatterns += patterns('', url(r'^api/login/$', login_resource, name='api-login'))
+            resource_kwargs = {
+                  'form_class': str_to_class(config.AUTH_FORM_CLASS)
+            }
+            pattern = RestPattern('api-login', self.name, r'^/api/login/?$', AuthHandler, resource_kwargs)
+            urlpatterns += patterns('', pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)
         return urlpatterns
