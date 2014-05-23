@@ -47,9 +47,6 @@ class Auth(object):
 
 class AuthWrapper(Auth):
 
-    def __init__(self, permissions_validators, **kwargs):
-        super(AuthWrapper, self).__init__(permissions_validators, **kwargs)
-
     def wrap(self, func):
 
         def wrapper(request, *args, **kwargs):
@@ -57,5 +54,18 @@ class AuthWrapper(Auth):
                 return HttpResponseForbidden(render_to_string('403.html', context_instance=RequestContext(request)))
 
             return login_required(func)(request, *args, **kwargs)
+
+        return wrapper
+
+
+class RestAuthWrapper(Auth):
+
+    def wrap(self, func):
+
+        def wrapper(request, *args, **kwargs):
+            if not request.user.is_authenticated() or not self.is_authenticated(request):
+                return HttpResponseForbidden()
+
+            return func(request, *args, **kwargs)
 
         return wrapper

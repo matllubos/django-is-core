@@ -10,16 +10,17 @@ from django.http.response import Http404
 from django.core.exceptions import ValidationError
 from django.utils import six
 
+from piston.utils import list_to_dict, dict_to_list, join_dicts
+
 from is_core.forms import RestModelForm
 from is_core.actions import WebAction, ConfirmRestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.handler import RestModelHandler
-from is_core.rest.resource import RestModelResource
+# from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
-from is_core.rest.utils import list_to_dict, dict_to_list, join_dicts
 from is_core.patterns import UIPattern, RestPattern
-from is_core.utils import flatten_fieldsets, str_to_class
+from is_core.utils import flatten_fieldsets, str_to_class, get_new_class_name
 from is_core import config
 from is_core.templatetags.menu import LinkMenuItem
 from is_core.loading import register_core
@@ -45,7 +46,6 @@ class ISCoreBase(type):
         app_label = model_module.__name__.split('.')[-2]
         class_name = new_class.__name__
         if '%s.%s' % (app_label, class_name) not in BASE_CORES:
-            print '%s.%s' % (app_label, class_name)
             register_core(app_label, new_class)
         return new_class
 
@@ -242,7 +242,7 @@ class UIModelISCore(ModelISCore, UIISCore):
                     ))
 
     # list view params
-    list_display = ()
+    list_display = ('_obj_name',)
     default_list_filter = {}
 
     # add/edit view params
@@ -370,12 +370,17 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_resource_patterns(self):
         resource_patterns = SortedDict()
 
-        resource = RestModelResource(name='Api%sHandler' % self.get_menu_group_pattern_name(), core=self)
+        resource_kwargs = {
+                  'model': self.model, 'fields': self.get_rest_fields(), 'default_list_fields': self.get_rest_default_list_fields(),
+                  'default_obj_fields': self.get_rest_default_list_fields(), 'form_class': self.form_class,
+                  'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self,
+                  }
+
         resource_patterns['api-resource'] = RestPattern('api-resource-%s' % self.get_menu_group_pattern_name(),
                                                         self.site_name, r'^/api/(?P<pk>[-\w]+)/?$',
-                                                        resource, self, ('GET', 'PUT', 'DELETE'))
+                                                        self.rest_handler, resource_kwargs, ('GET', 'PUT', 'DELETE'), self)
         resource_patterns['api'] = RestPattern('api-%s' % self.get_menu_group_pattern_name(),
-                                                self.site_name, r'^/api/?$', resource, self, ('GET', 'POST'))
+                                                self.site_name, r'^/api/?$', self.rest_handler, resource_kwargs, ('GET', 'POST'), self)
         return resource_patterns
 
     def get_list_actions(self, request, obj):

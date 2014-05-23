@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.utils.translation import ugettext_lazy as _
 
-from is_core.rest.utils import JsonObj
+from piston.utils import JsonObj
 
 
 class Action(JsonObj):

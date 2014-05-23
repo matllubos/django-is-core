@@ -5,8 +5,9 @@ import logging
 from django.core.urlresolvers import reverse
 from django.conf.urls import url
 
-from is_core.rest.resource import DynamicRestHandlerResource
+# from is_core.rest.resource import DynamicRestHandlerResource
 from is_core.utils import get_new_class_name
+
 
 logger = logging.getLogger('is-core')
 
@@ -73,10 +74,11 @@ class ViewPattern(Pattern):
 
 class UIPattern(ViewPattern):
 
-    def __init__(self, name, site_name, url_pattern, view, core):
+    def __init__(self, name, site_name, url_pattern, view, core=None):
         super(UIPattern, self).__init__(name, site_name, url_pattern, core)
         self.view = type(str(get_new_class_name(name, view)), (view,), {})
-        self.view.__init_core__(core, self)
+        if core:
+            self.view.__init_core__(core, self)
 
     def get_view(self):
         if self.view.login_required:
@@ -87,23 +89,20 @@ class UIPattern(ViewPattern):
 
 class RestPattern(ViewPattern):
 
-    def __init__(self, name, site_name, url_pattern, resource, core, methods=None):
+    def __init__(self, name, site_name, url_pattern, resource, resource_kwargs, methods=None, core=None):
         super(RestPattern, self).__init__(name, site_name, url_pattern, core)
-        self.resource = resource
+        resource_kwargs['allowed_methods'] = self.get_allowed_methods(methods, resource)
+        self.resource = type(str(get_new_class_name(name, resource)), (resource,), resource_kwargs)
         self.methods = methods
 
     def get_view(self):
-        return self.resource
+        if self.resource.login_required:
+            return self.resource.as_wrapped_view()
+        else:
+            return self.resource.as_view()
 
-    def get_allowed_methods(self, request, obj):
-        methods = self.resource.handler.get_allowed_methods(request, obj)
-        if self.methods is not None:
-            return set(methods) & set(self.methods)
-        return set(methods)
-
-
-class DynamicRestPattern(RestPattern):
-
-    def __init__(self, name, site_name, url_pattern, handler, core, methods=None):
-        resource = DynamicRestHandlerResource(handler_class=handler, core=core)
-        super(DynamicRestPattern, self).__init__(name, site_name, url_pattern, resource, core, methods=methods)
+    def get_allowed_methods(self, methods, resource):
+        resource_methods = resource.allowed_methods
+        if methods is not None:
+            return set(methods) & set(resource_methods)
+        return set(resource_methods)

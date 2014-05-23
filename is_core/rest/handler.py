@@ -9,22 +9,14 @@ from django.db.models.fields.related import ForeignRelatedObjectsDescriptor
 from django.db import transaction
 from django.db.utils import InterfaceError, DatabaseError
 
-from piston.handler import BaseHandler
-from piston.utils import get_handler_of_model
+from piston.handler import BaseHandler, BaseModelHandler
+from piston.utils import get_handler_of_model, rc, HeadersResult
 
 from is_core.utils.models import get_model_field_names
 from is_core.rest.paginator import Paginator
-from is_core.rest.utils import rc
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
-
-
-class HeadersResult(object):
-
-    def __init__(self, result, http_headers={}, status_code=200):
-        self.result = result
-        self.http_headers = http_headers
-        self.status_code = status_code
+from is_core.auth import RestAuthWrapper
 
 
 class RestResponse(HeadersResult):
@@ -60,6 +52,7 @@ class RestException(Exception):
     @property
     def errors(self):
         return {'error': self.message}
+
 
 class ResourceNotFoundException(RestException):
     message = _('Select a valid choice. That choice is not one of the available choices.')
@@ -188,89 +181,37 @@ class DataPostprocessor(DataProcessor):
 
 
 class RestHandler(BaseHandler):
-
-    register = False
-    extra_fields = ()
     login_required = True
 
     @classmethod
-    def has_read_permission(cls, request, obj=None):
-        return 'GET' in cls.allowed_methods
-
-    @classmethod
-    def has_create_permission(cls, request, obj=None):
-        return 'POST' in cls.allowed_methods
-
-    @classmethod
-    def has_update_permission(cls, request, obj=None):
-        return 'PUT' in cls.allowed_methods
-
-    @classmethod
-    def has_delete_permission(cls, request, obj=None):
-        return 'DELETE' in cls.allowed_methods
-
-    @classmethod
-    def get_permission_validators(cls):
-        all_permissions_validators = {
-                                        'GET': cls.has_read_permission,
-                                        'PUT': cls.has_update_permission,
-                                        'POST': cls.has_create_permission,
-                                        'DELETE': cls.has_delete_permission,
-                                    }
-
-        permissions_validators = {}
-        for allowed_method in cls.allowed_methods:
-            permissions_validators[allowed_method] = all_permissions_validators[allowed_method]
-        return permissions_validators
-
-    @classmethod
-    def get_allowed_methods(cls, user, obj):
-        allowed_methods = []
-        for method, validator in cls.get_permission_validators().items():
-            if validator(user, obj):
-                allowed_methods.append(method)
-        return allowed_methods
+    def as_wrapped_view(cls, **initkwargs):
+        return RestAuthWrapper(cls.get_permission_validators(), **initkwargs).wrap(cls.as_view(**initkwargs))
 
 
-class RestCoreHandler(RestHandler):
+class RestCoreHandlerMixin(object):
 
     @classmethod
     def has_read_permission(cls, request, obj=None):
-        return super(RestCoreHandler, cls).has_read_permission(request, obj) \
+        return super(RestCoreHandlerMixin, cls).has_read_permission(request, obj) \
                 and cls.core.has_rest_read_permission(request, obj)
 
     @classmethod
     def has_create_permission(cls, request, obj=None):
-        return super(RestCoreHandler, cls).has_create_permission(request, obj) \
+        return super(RestCoreHandlerMixin, cls).has_create_permission(request, obj) \
                 and cls.core.has_rest_create_permission(request, obj)
 
     @classmethod
     def has_update_permission(cls, request, obj=None):
-        return super(RestCoreHandler, cls).has_update_permission(request, obj) \
+        return super(RestCoreHandlerMixin, cls).has_update_permission(request, obj) \
                 and cls.core.has_rest_update_permission(request, obj)
 
     @classmethod
     def has_delete_permission(cls, request, obj=None):
-        return super(RestCoreHandler, cls).has_delete_permission(request, obj) \
+        return super(RestCoreHandlerMixin, cls).has_delete_permission(request, obj) \
                 and cls.core.has_rest_delete_permission(request, obj)
 
 
-class DefaultRestModelHandler(object):
-
-    fields = ('id', '_obj_name')
-
-    @classmethod
-    def _obj_name(cls, obj, request):
-        return unicode(obj)
-
-
-class RestModelHandler(DefaultRestModelHandler, RestCoreHandler):
-
-    register = True
-
-    @classmethod
-    def _obj_name(cls, obj, request):
-        return unicode(obj)
+class RestModelHandler(RestHandler, RestCoreHandlerMixin, BaseModelHandler):
 
     @classmethod
     def _web_links(cls, obj, request):
@@ -287,7 +228,7 @@ class RestModelHandler(DefaultRestModelHandler, RestCoreHandler):
         for pattern in cls.core.resource_patterns.values():
             url = pattern.get_url_string(obj=obj)
             if url:
-                rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}
+                rest_links[pattern.name] = {'url': url, 'methods': pattern.resource.allowed_methods}
         return rest_links
 
     @classmethod
@@ -347,7 +288,7 @@ class RestModelHandler(DefaultRestModelHandler, RestCoreHandler):
     def get_exclude(self, request, obj=None):
         return self.core.get_rest_form_exclude(request, obj)
 
-    def get_fields(self, request, obj=None):
+    def get_rest_form_fields(self, request, obj=None):
         return self.core.get_rest_form_fields(request, obj)
 
     def get_form_class(self, request, obj=None):
@@ -357,7 +298,7 @@ class RestModelHandler(DefaultRestModelHandler, RestCoreHandler):
     def generate_form_class(self, request, inst, exclude=[]):
         exclude = list(self.get_exclude(request, inst)) + exclude
         form_class = self.get_form_class(request, inst)
-        fields = self.get_fields(request, inst)
+        fields = self.get_rest_form_fields(request, inst)
 
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)

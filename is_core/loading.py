@@ -23,7 +23,7 @@ class CoresLoader(object):
         for app in settings.INSTALLED_APPS:
             try:
                 import_module('%s.cores' % app)
-            except ImportError:
+            except ImportError as ex:
                 pass
 
     def get_cores(self):

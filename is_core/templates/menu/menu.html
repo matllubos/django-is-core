@@ -8,7 +8,7 @@
 			</li>
 		{% else %}
 			<li{% if menu_item.active %} class="active"{% endif %}><a href="{{ menu_item.url }}">{{ menu_item.title|capfirst }}</a>
-				{% if menu_item.active %}{% submenu menu_item.submenu_items %}{% endif %}
+				{% if menu_item.active and menu_item.submenu_items %}{% submenu menu_item.submenu_items %}{% endif %}
 			</li>
 		{% endif %}
 	{% endfor %}

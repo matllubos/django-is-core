@@ -6,8 +6,9 @@ from django.db.models.fields.files import FieldFile
 from germanium.rest import RESTTestCase
 from germanium.anotations import login_all, data_provider
 
+from piston.utils import model_handlers_to_dict
+
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
-from is_core.rest.utils import model_handlers_to_dict
 from is_core.tests.auth_test_cases import RestAuthMixin
 
 
