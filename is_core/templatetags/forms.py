@@ -7,7 +7,7 @@ from django.template.base import TemplateSyntaxError, token_kwargs
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignKey, ManyToManyRel
 from django.contrib.admin.util import display_for_value
-from django.utils.html import linebreaks
+from django.utils.html import linebreaks, escape, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -134,7 +134,7 @@ def get_model_field_value_and_label(field_name, instance, request):
         else:
             label = callable_value.short_description
 
-        return mark_safe(linebreaks(force_text(value))), label
+        return mark_safe(linebreaks(conditional_escape(force_text(value)))), label
 
 
 @register.assignment_tag(takes_context=True)

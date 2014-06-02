@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django.template.base import Node, Library, TemplateSyntaxError, NodeList
 from django.utils.functional import SimpleLazyObject
-from django.template.defaulttags import IfNode
 
 register = Library()
 
@@ -20,7 +19,6 @@ def get_obj(Model, pk):
     return Model.objects.get(pk=pk)
 
 
-IfNode
 # TODO: there is possibility cache permissions
 class PermissionNode(Node):
     def __init__(self, perm_name, vals, nodelist_true, nodelist_false):
