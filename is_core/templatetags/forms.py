@@ -124,12 +124,13 @@ def get_model_field_value_and_label(field_name, instance, request):
                 and hasattr(getattr(callable_value, 'get_absolute_url', None), '__call__') \
                 and hasattr(getattr(callable_value, 'can_see_edit_link', None), '__call__') \
                 and callable_value.can_see_edit_link(request):
-                value = '<a href="%s">%s</a>' % (callable_value.get_absolute_url(), force_text(value))
+                value = mark_safe('<a href="%s">%s</a>' % (callable_value.get_absolute_url(), force_text(value)))
 
             elif hasattr(instance, field_name):
                 humanize_method_name = 'get_%s_humanized' % field_name
                 if hasattr(getattr(instance, humanize_method_name, None), '__call__'):
-                    value = '<span title="%s">%s</span>' % (force_text(value), getattr(instance, humanize_method_name)())
+                    value = mark_safe('<span title="%s">%s</span>' % (force_text(value),
+                                                                      getattr(instance, humanize_method_name)()))
 
         else:
             label = callable_value.short_description
