@@ -5,11 +5,11 @@ from django.conf.urls import patterns, url, include
 from django.utils.datastructures import SortedDict
 from django.template.defaultfilters import lower
 
-from is_core.utils import str_to_class
-from is_core import config
-from is_core.loading import get_cores
-from is_core.patterns import RestPattern
-from is_core.auth_token.auth_handler import AuthHandler
+from .utils import str_to_class
+from . import config
+from .loading import get_cores
+from .patterns import RestPattern
+from .auth_token.auth_resource import AuthResource
 
 
 sites = {}
@@ -97,7 +97,7 @@ class ISSite(object):
             resource_kwargs = {
                   'form_class': str_to_class(config.AUTH_FORM_CLASS)
             }
-            pattern = RestPattern('api-login', self.name, r'^/api/login/?$', AuthHandler, resource_kwargs)
+            pattern = RestPattern('api-login', self.name, r'^/api/login/?$', AuthResource, resource_kwargs)
             urlpatterns += patterns('', pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)

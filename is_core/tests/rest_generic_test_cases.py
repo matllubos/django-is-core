@@ -6,23 +6,23 @@ from django.db.models.fields.files import FieldFile
 from germanium.rest import RESTTestCase
 from germanium.anotations import login_all, data_provider
 
-from piston.utils import model_handlers_to_dict
+from piston.utils import model_resources_to_dict
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RestAuthMixin
 
 
-def add_urls_to_handler(handler):
+def add_urls_to_resource(resource):
 
-    def get_handler_list_url(self):
+    def get_resource_list_url(self):
         return reverse('%s:api-%s' % (self.site_name, self.core.get_menu_group_pattern_name()))
 
-    def get_handler_url(self, pk):
+    def get_resource_url(self, pk):
         return reverse('%s:api-resource-%s' % (self.site_name, self.core.get_menu_group_pattern_name()), args=(pk,))
 
-    handler.url = types.MethodType(get_handler_url, handler)
-    handler.list_url = types.MethodType(get_handler_list_url, handler)
-    return handler
+    resource.url = types.MethodType(get_resource_url, resource)
+    resource.list_url = types.MethodType(get_resource_list_url, resource)
+    return resource
 
 
 @login_all
@@ -33,31 +33,31 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
     @classmethod
     def setUpClass(cls):
         super(TestRestsAvailability, cls).setUpClass()
-        cls.rest_handlers = cls.set_up_rest_handlers()
+        cls.rest_resources = cls.set_up_rest_resources()
 
     @classmethod
-    def set_up_rest_handlers(cls):
+    def set_up_rest_resources(cls):
         # Must be here, because hanlers is not registered
         import urls
 
-        handlers_dict = model_handlers_to_dict()
-        rest_handlers = []
-        for handler_name, handler in handlers_dict.items():
-            if cls.get_model_label(handler.model) in cls.factories:
-                add_urls_to_handler(handler)
-                rest_handlers.append((handler_name, handler, handler.model))
+        resources_dict = model_resources_to_dict()
+        rest_resources = []
+        for resource_name, resource in resources_dict.items():
+            if cls.get_model_label(resource.model) in cls.factories:
+                add_urls_to_resource(resource)
+                rest_resources.append((resource_name, resource, resource.model))
             else:
-                cls.logger.warning('Model %s has not created factory class' % handler.model)
+                cls.logger.warning('Model %s has not created factory class' % resource.model)
 
-        return rest_handlers
+        return rest_resources
 
-    def get_rest_handlers(self):
-        return self.rest_handlers
+    def get_rest_resources(self):
+        return self.rest_resources
 
-    def get_serialized_data(self, request, handler, update=False):
-        inst = self.new_instance(handler.model)
+    def get_serialized_data(self, request, resource, update=False):
+        inst = self.new_instance(resource.model)
 
-        form_class = handler().generate_form_class(request=request, inst=update and inst or None)
+        form_class = resource().generate_form_class(request=request, inst=update and inst or None)
         form = form_class(initial={'_user': self.logged_user.user}, instance=inst)
         data = {}
 
@@ -73,11 +73,11 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
         return self.serialize(data), inst
 
-    @data_provider(get_rest_handlers)
-    def test_should_return_data_from_resource_list(self, handler_name, handler, model):
-        list_url = handler.list_url()
+    @data_provider(get_rest_resources)
+    def test_should_return_data_from_resource_list(self, resource_name, resource, model):
+        list_url = resource.list_url()
 
-        if not handler.has_read_permission(self.get_request_with_user(self.r_factory.get(list_url))):
+        if not resource.has_read_permission(self.get_request_with_user(self.r_factory.get(list_url))):
             return
 
             resp = self.get(list_url)
@@ -89,27 +89,27 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
                 self.assert_valid_JSON_response(resp, 'REST get list of model: %s\n response: %s' % (model, resp))
                 self.assertEqual(int(resp['X-Total']) - i, started_total_count + 1)
 
-    @data_provider(get_rest_handlers)
-    def test_should_return_data_from_resource(self, handler_name, handler, model):
+    @data_provider(get_rest_resources)
+    def test_should_return_data_from_resource(self, resource_name, resource, model):
         for _ in range(self.iteration):
             inst = self.new_instance(model)
 
-            url = handler.url(inst.pk)
+            url = resource.url(inst.pk)
 
-            if not handler.has_read_permission(self.get_request_with_user(self.r_factory.get(url)), inst):
+            if not resource.has_read_permission(self.get_request_with_user(self.r_factory.get(url)), inst):
                 break
 
             resp = self.get(url)
             self.assert_valid_JSON_response(resp, 'REST get of model: %s\n response: %s' % (model, resp))
 
-    @data_provider(get_rest_handlers)
-    def test_should_delete_data_from_resource(self, handler_name, handler, model):
+    @data_provider(get_rest_resources)
+    def test_should_delete_data_from_resource(self, resource_name, resource, model):
         for _ in range(self.iteration):
             inst = self.new_instance(model)
 
-            url = handler.url(inst.pk)
+            url = resource.url(inst.pk)
 
-            if not handler.has_delete_permission(self.get_request_with_user(self.r_factory.delete(url)), inst):
+            if not resource.has_delete_permission(self.get_request_with_user(self.r_factory.delete(url)), inst):
                 break
 
             resp = self.delete(url)
@@ -118,16 +118,16 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
             self.assert_http_not_found(self.get(url), 'REST get (should not found) of model: %s\n response: %s' %
                                        (model, resp))
 
-    @data_provider(get_rest_handlers)
-    def test_should_create_data_of_resource(self, handler_name, handler, model):
+    @data_provider(get_rest_resources)
+    def test_should_create_data_of_resource(self, resource_name, resource, model):
         for _ in range(self.iteration):
-            list_url = handler.list_url()
+            list_url = resource.list_url()
 
             request = self.get_request_with_user(self.r_factory.post(list_url))
-            if not handler.has_create_permission(request):
+            if not resource.has_create_permission(request):
                 break
 
-            data, inst = self.get_serialized_data(request, handler)
+            data, inst = self.get_serialized_data(request, resource)
 
             count_before = model._default_manager.all().count()
 
@@ -137,19 +137,19 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
             self.assert_valid_JSON_created_response(resp, 'REST create of model: %s\n response: %s' % (model, resp))
             self.assertEqual(count_before + 1, count_after)
 
-    @data_provider(get_rest_handlers)
-    def test_should_update_data_of_resource(self, handler_name, handler, model):
+    @data_provider(get_rest_resources)
+    def test_should_update_data_of_resource(self, resource_name, resource, model):
         for _ in range(self.iteration):
             inst_from = self.new_instance(model)
 
-            url = handler.url(inst_from.pk)
+            url = resource.url(inst_from.pk)
 
             request = self.get_request_with_user(self.r_factory.put(url))
 
-            if not handler.has_update_permission(request, inst_from):
+            if not resource.has_update_permission(request, inst_from):
                 break
 
-            data, _ = self.get_serialized_data(request, handler, True)
+            data, _ = self.get_serialized_data(request, resource, True)
 
             resp = self.put(url, data=data)
             self.assert_valid_JSON_response(resp, 'REST update of model: %s\n response: %s' % (model, resp))

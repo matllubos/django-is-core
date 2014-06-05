@@ -89,20 +89,16 @@ class UIPattern(ViewPattern):
 
 class RestPattern(ViewPattern):
 
-    def __init__(self, name, site_name, url_pattern, resource, resource_kwargs, methods=None, core=None):
+    def __init__(self, name, site_name, url_pattern, resource, methods=None, core=None):
         super(RestPattern, self).__init__(name, site_name, url_pattern, core)
-        resource_kwargs['allowed_methods'] = self.get_allowed_methods(methods, resource)
-        self.resource = type(str(get_new_class_name(name, resource)), (resource,), resource_kwargs)
+        self.resource = resource
         self.methods = methods
 
     def get_view(self):
         if self.resource.login_required:
-            return self.resource.as_wrapped_view()
+            return self.resource.as_wrapped_view(self.methods)
         else:
             return self.resource.as_view()
 
-    def get_allowed_methods(self, methods, resource):
-        resource_methods = resource.allowed_methods
-        if methods is not None:
-            return set(methods) & set(resource_methods)
-        return set(resource_methods)
+    def get_allowed_methods(self, user, obj):
+        return self.resource.get_allowed_methods(user, obj, self.methods)

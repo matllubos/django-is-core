@@ -20,6 +20,7 @@ class CoresLoader(object):
         self.apps[app_label] = app
 
     def _init_apps(self):
+        import_module('is_core.main')
         for app in settings.INSTALLED_APPS:
             try:
                 import_module('%s.cores' % app)

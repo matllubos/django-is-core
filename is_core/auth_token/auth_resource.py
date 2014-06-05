@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 
 from piston.utils import rc
 
-from is_core.rest.handler import RestHandler, HeadersResult
+from is_core.rest.resource import RestResource, HeadersResult
 from is_core.auth_token import login
 from is_core.forms import RestFormMixin
 
@@ -13,7 +13,7 @@ class RestAuthenticationForm(RestFormMixin, AuthenticationForm):
     pass
 
 
-class AuthHandler(RestHandler):
+class AuthResource(RestResource):
 
     allowed_methods = ('POST',)
     form_class = AuthenticationForm
