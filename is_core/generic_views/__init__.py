@@ -50,7 +50,7 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
         return False
 
     @classmethod
-    def as_wrapped_view(cls, **initkwargs):
+    def as_wrapped_view(cls, allowed_methods=None, **initkwargs):
         return AuthWrapper(cls.get_permission_validators(), **initkwargs).wrap(cls.as_view(**initkwargs))
 
     def bread_crumbs_menu_items(self):

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
-from __main__ import sys
+
+import sys
 
 from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
@@ -16,7 +17,7 @@ from is_core.forms import RestModelForm
 from is_core.actions import WebAction, ConfirmRestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
-from is_core.rest.handler import RestModelHandler
+from is_core.rest.resource import RestModelResource
 # from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
 from is_core.patterns import UIPattern, RestPattern
@@ -321,7 +322,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
     form_class = RestModelForm
     rest_allowed_methods = ('GET', 'DELETE', 'POST', 'PUT')
-    rest_handler = RestModelHandler
+    rest_resource = RestModelResource
     rest_obj_class_names = ()
 
     _resource_patterns = None
@@ -371,16 +372,21 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         resource_patterns = SortedDict()
 
         resource_kwargs = {
-                  'model': self.model, 'fields': self.get_rest_fields(), 'default_list_fields': self.get_rest_default_list_fields(),
+                  'model': self.model, 'fields': set(self.rest_resource.fields + self.get_rest_fields()),
+                  'default_list_fields': self.get_rest_default_list_fields(),
                   'default_obj_fields': self.get_rest_default_list_fields(), 'form_class': self.form_class,
-                  'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self,
+                  'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self, 'register': True
                   }
+        resource = type(str(get_new_class_name('api-resource-%s' % self.get_menu_group_pattern_name(), self.rest_resource)),
+                        (self.rest_resource,), resource_kwargs)
 
         resource_patterns['api-resource'] = RestPattern('api-resource-%s' % self.get_menu_group_pattern_name(),
                                                         self.site_name, r'^/api/(?P<pk>[-\w]+)/?$',
-                                                        self.rest_handler, resource_kwargs, ('GET', 'PUT', 'DELETE'), self)
+                                                        resource, ('GET', 'PUT', 'DELETE'),
+                                                        self)
         resource_patterns['api'] = RestPattern('api-%s' % self.get_menu_group_pattern_name(),
-                                                self.site_name, r'^/api/?$', self.rest_handler, resource_kwargs, ('GET', 'POST'), self)
+                                                self.site_name, r'^/api/?$', resource,
+                                                ('GET', 'POST'), self)
         return resource_patterns
 
     def get_list_actions(self, request, obj):

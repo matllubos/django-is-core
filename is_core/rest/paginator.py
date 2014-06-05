@@ -15,7 +15,7 @@ class Paginator(object):
         return self.qs.count()
 
     def _get_offset(self, request):
-        from is_core.rest.handler import RestException
+        from is_core.rest.resource import RestException
 
         offset = request.META.get('HTTP_X_OFFSET', '0')
         if offset.isdigit():
@@ -24,7 +24,7 @@ class Paginator(object):
             raise RestException(_('X-Offset must be natural number'))
 
     def _get_base(self, request):
-        from is_core.rest.handler import RestException
+        from is_core.rest.resource import RestException
 
         base = request.META.get('HTTP_X_BASE')
         if not base:
