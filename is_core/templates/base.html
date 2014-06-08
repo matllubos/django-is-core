@@ -8,6 +8,15 @@
 	</head>
 	<body>
 		{% block body %}
+			{% block sticky-flash %}
+				<div id="sticky-flash" class="flash">
+					{% if messages %}
+						{% for message in messages %}
+							<div{% if message.tags %} class="flash-msg alert alert-{{ message.tags }}"{% endif %}><span class="msg-text">{{ message }}</span></div>
+						{% endfor %}
+					{% endif %}
+				</div>
+			{% endblock %}
 			{% block menu %}
 				{% if request.user.is_authenticated %}
 					{% block left-menu %}
@@ -18,6 +27,11 @@
 			{% block bread-crumbs %}
 				{% if request.user.is_authenticated %}
 					{% bread_crumbs %}
+				{% endif %}
+			{% endblock %}
+			{% block tabs-menu %}
+				{% if tabs %}
+					{% include 'menu/tabs_menu.html' with tabs=tabs %}
 				{% endif %}
 			{% endblock %}
 			{% block content %}{% endblock %}

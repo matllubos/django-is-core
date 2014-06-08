@@ -1,0 +1,7 @@
+{% block tabs %}
+	<ul class="nav nav-tabs">
+		{% for tab in tabs %}
+			<li{% if tab.active %} class="active"{% endif %}><a href="{{ tab.url }}">{{ tab.title }}</a></li>
+		{% endfor %}
+	</ul>
+{% endblock %}

@@ -4,9 +4,6 @@
 {% block content %}
 	<div class="{% block col-classes %}col-lg-12{% endblock %}">
 		<div class="header">
-		{% block bread-crumbs %}
-			{{ block.super }}
-		{% endblock %}
 		{% block header-btns %}
 			{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value }}"><span>{{ add_button_value }}</span></a>{% endhas_permission %}
 		{% endblock %}
