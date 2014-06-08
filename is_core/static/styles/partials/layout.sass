@@ -1,0 +1,183 @@
+@import "../mixins"
+
+#wrapper
+  width: 100%
+
+#page-wrapper
+  padding: 0
+  height: 100%
+  min-height: 568px
+  background-color: #fff
+
+  & + footer
+    background-color: white
+    min-height: 30px
+    padding: 5px
+
+.snippet-content
+  height: 100%
+
+.row
+  margin: 0
+  height: 100%
+
+.content
+  padding: $content-pad
+
+  h2
+    font-size: 20px
+    font-weight: bold
+    margin-top: -3px
+    margin-bottom: 13px
+
+  .alert
+    margin: 20px 15px
+
+.header
+  padding: 30px 24px 24px 28px
+  height: 91px
+  border-bottom: 1px solid #e1e1e1
+
+  .btn
+    float: right
+    margin-left: 15px
+
+  h1, .breadcrumb li
+    margin: 0
+    font-size: 24px
+    display: inline-block
+    float: left
+    white-space: nowrap
+    max-width: 100%
+
+a, button
+  @include transition
+  color: $a-clr
+  font-weight: normal
+
+  &:active
+    @include transition
+
+  &:hover
+    @include transition
+    color: $a-clr-hover
+    text-decoration: underline
+
+  &:active
+    color: $a-clr-active
+
+.uc
+  text-transform: uppercase
+
+ul, li
+  margin: 0
+
+h1, h2, h3, h4
+  background: none
+
+h3
+  font-size: 16px
+  text-transform: uppercase
+  line-height: 22px
+  margin-bottom: 16px
+  color: #000
+
+html
+  height: 100%
+  background-color: $body-bg
+
+body
+  height: 100%
+  padding-top: 100px
+  background-color: $body-bg
+
+html, body, div, span, p, a, del, em, img, ol, ul, li, fieldset, form, label, h1, h2, h3, h4, h5
+  font-family: $font-family
+
+img
+  max-width: 100%
+
+::selection
+  color: $selection-clr
+  background-color: $selection-bg-clr
+
+::-moz-selection
+  color: $selection-clr
+  background-color: $selection-bg-clr
+
+.navbar-top-links
+
+  li
+    display: inline-block
+
+    &:last-child
+      margin-right: 15px
+
+    a
+      min-height: 50px
+
+  .dropdown-menu li
+    display: block
+
+    &:last-child
+      margin-right: 0
+
+    a
+      padding: 3px 20px
+      min-height: 0
+
+      div
+        white-space: normal
+
+  li .dropdown-toggle
+    position: relative
+    display: block
+    padding: 10px 15px
+    min-height: 50px
+
+.navbar-static-side ul li
+  border-bottom: 1px solid #e7e7e7
+
+@media (min-width: 767px)
+  #page-wrapper
+    position: inherit
+    padding: 5px 0
+    min-height: 600px
+    @include main-content
+
+    & + footer
+      @include main-content
+
+@media (max-width: 767px)
+  body
+    padding-top: 45px
+
+  .header
+    padding: 24px 15px 24px 15px
+    height: 70px
+
+    .btn
+      font-size: 12px
+      padding: 2px 12px
+      height: 34px
+      line-height: 27px
+
+@media(min-width: 768px)
+  body
+    padding-top: 50px
+
+  .navbar-static-side
+    z-index: 1
+    position: absolute
+    width: 250px
+    margin-top: 51px
+
+@media(max-height: 600px) and (max-width: 767px)
+  .sidebar-collapse
+    max-height: 300px
+    overflow-y: scroll
+
+@media(max-height: 400px) and (max-width: 767px)
+  .sidebar-collapse
+    max-height: 200px
+    overflow-y: scroll
