@@ -1,0 +1,79 @@
+@import "../mixins"
+
+@mixin ac-image()
+  width: $user-img-size
+  height: $user-img-size
+  margin-right: 12px
+
+.ac.dropdown-menu
+  display: block
+  // fixes autocomplete suggest box scrolling bug
+  top: initial
+  left: initial
+  min-width: 240px
+  max-height: 400px
+  overflow: scroll
+
+  li
+    height: $user-img-size + 2px
+
+  .active
+    text-decoration: none
+    color: #262626
+    background-color: #f5f5f5
+
+.ac-item, .ac-buttons
+  position: relative
+  display: inline-block
+  width: 100%
+
+  .goog-icon-remove
+    position: absolute
+    right: 12px
+    top: 7px
+    color: $close-clr
+
+  .open-list
+    position: absolute
+    top: 6px
+    right: 0
+    width: 30px
+    height: 30px
+    text-indent: -1000em
+    border: none
+    background-image: url($select-arr)
+    background-repeat: no-repeat
+    background-position: 4px center
+
+  .ac-highlighted
+    background: $ac-highlighted
+
+  .ac-image
+    @include ac-image
+    @include img-small
+
+  .ac-image-placeholder
+    @include ac-image
+    @include img-placeholder
+    padding: 8px
+
+  & > .ac-image
+    position: absolute
+    left: 10px
+    top: 5px
+    width: $user-img-small-size
+    height: $user-img-small-size
+    z-index: 9
+
+  & > .ac-image-placeholder
+    top: 2px
+    position: absolute
+    width: $user-img-small-size
+    height: $user-img-small-size
+
+  input.with-image
+    padding-left: 50px
+
+  .ac-row
+    padding: 5px
+    vertical-align: middle
