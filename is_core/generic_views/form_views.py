@@ -225,8 +225,7 @@ class DefaultModelFormView(DefaultFormView):
     def generate_form_class(self, fields=None, readonly_fields=()):
         form_class = self.get_form_class()
         exclude = list(self.get_exclude()) + list(readonly_fields)
-
-        if hasattr(self.form_class, '_meta') and form_class._meta.exclude:
+        if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
         return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields,
                                  formfield_callback=self.formfield_for_dbfield)
