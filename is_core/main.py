@@ -27,31 +27,25 @@ from is_core.templatetags.menu import LinkMenuItem
 from is_core.loading import register_core
 
 
-BASE_CORES = [
-              'is_core.NewBase',
-              'is_core.ISCoreBase',
-              'is_core.ISCore',
-              'is_core.ModelISCore',
-              'is_core.UIISCore',
-              'is_core.UIModelISCore',
-              'is_core.RestModelISCore',
-              'is_core.UIRestModelISCore',
-              ]
-
-
 class ISCoreBase(type):
     def __new__(cls, *args, **kwargs):
+        name, _, attrs = args
+
+        abstract = attrs.pop('abstract', False)
+
         super_new = super(ISCoreBase, cls).__new__
         new_class = super_new(cls, *args, **kwargs)
         model_module = sys.modules[new_class.__module__]
         app_label = model_module.__name__.split('.')[-2]
-        class_name = new_class.__name__
-        if '%s.%s' % (app_label, class_name) not in BASE_CORES:
+
+        if name != 'NewBase' and not abstract:
             register_core(app_label, new_class)
         return new_class
 
 
 class ISCore(six.with_metaclass(ISCoreBase)):
+    abstract = True
+
     menu_url_name = None
     verbose_name = None
     verbose_name_plural = None
@@ -100,6 +94,8 @@ class ISCore(six.with_metaclass(ISCoreBase)):
 
 
 class ModelISCore(PermissionsMixin, ISCore):
+    abstract = True
+
     list_actions = ()
 
     # form params
@@ -166,6 +162,7 @@ class ModelISCore(PermissionsMixin, ISCore):
 
 
 class UIISCore(PermissionsUIMixin, ISCore):
+    abstract = True
 
     api_url_name = None
     show_in_menu = True
@@ -236,6 +233,8 @@ class HomeUIISCore(UIISCore):
 
 
 class UIModelISCore(ModelISCore, UIISCore):
+    abstract = True
+
     view_classes = SortedDict((
                         ('add', (r'^/add/$', AddModelFormView)),
                         ('edit', (r'^/(?P<pk>[-\w]+)/$', EditModelFormView)),
@@ -311,6 +310,8 @@ class UIModelISCore(ModelISCore, UIISCore):
 
 
 class RestModelISCore(PermissionsRestMixin, ModelISCore):
+    abstract = True
+
     show_in_menu = False
 
     # Allowed rest fields
@@ -401,6 +402,8 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
 
 class UIRestModelISCore(RestModelISCore, UIModelISCore):
+    abstract = True
+
     show_in_menu = True
 
     def get_urls(self):
