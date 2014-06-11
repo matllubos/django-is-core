@@ -232,7 +232,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         for pattern in cls.core.resource_patterns.values():
             url = pattern.get_url_string(obj=obj)
             if url:
-                rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request.user, obj)}
+                rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}
         return rest_links
 
     @classmethod

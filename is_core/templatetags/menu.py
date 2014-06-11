@@ -1,11 +1,8 @@
 from __future__ import unicode_literals
 
 from django import template
-from django.utils.translation import ugettext_lazy as _
-from django.core.urlresolvers import reverse
 
 from is_core.site import get_site_by_name, MenuGroup
-from is_core import config
 
 register = template.Library()
 
@@ -73,10 +70,10 @@ def submenu(context, menu_items):
 @register.inclusion_tag('menu/menu.html', takes_context=True)
 def menu(context, site_name):
     site = get_site_by_name(site_name)
-
     request = context.get('request')
 
     active_menu_groups = context.get('active_menu_groups')
+
     menu_items = get_menu_items(request, site._registry.values(), active_menu_groups)
     context.update({'menu_items': menu_items, 'site_name': site_name})
     return context

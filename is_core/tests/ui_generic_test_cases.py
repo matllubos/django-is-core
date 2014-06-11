@@ -22,12 +22,11 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
         # Must be here, because hanlers is not registered
         import urls
         from is_core.site import registered_model_views
-        from is_core.main import UIModelISCore
-
+        from is_core.main import *
 
         ui_main_views = []
         for main_view in [model_view for model_view in registered_model_views.values() if isinstance(model_view,
-                                                                                                     UIModelISCore)]:
+                                                                                                     UIRestModelISCore)]:
             model = main_view.model
             if cls.get_model_label(model) in cls.factories:
                 ui_main_views.append((main_view, model))

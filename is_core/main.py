@@ -18,7 +18,6 @@ from is_core.actions import WebAction, ConfirmRestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RestModelResource
-# from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
 from is_core.patterns import UIPattern, RestPattern
 from is_core.utils import flatten_fieldsets, str_to_class, get_new_class_name
@@ -323,9 +322,9 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
     form_class = RestModelForm
     rest_allowed_methods = ('GET', 'DELETE', 'POST', 'PUT')
-    rest_resource = RestModelResource
     rest_obj_class_names = ()
 
+    rest_resource_class = RestModelResource
     _resource_patterns = None
 
     def __init__(self, site_name, menu_parent_groups):
@@ -369,25 +368,28 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
             self._resource_patterns = self.get_resource_patterns()
         return self._resource_patterns
 
+    _rest_resource = None
+    @property
+    def rest_resource(self):
+        if not self._rest_resource:
+            resource_kwargs = {
+                      'model': self.model, 'fields': set(self.rest_resource_class.fields + self.get_rest_fields()),
+                      'default_list_fields': self.get_rest_default_list_fields(),
+                      'default_obj_fields': self.get_rest_default_list_fields(), 'form_class': self.form_class,
+                      'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self, 'register': True
+                      }
+            self._rest_resource = type(str(get_new_class_name('api-resource-%s' % self.get_menu_group_pattern_name(),
+                                                              self.rest_resource_class)),
+                                       (self.rest_resource_class,), resource_kwargs)
+        return self._rest_resource
+
     def get_resource_patterns(self):
         resource_patterns = SortedDict()
-
-        resource_kwargs = {
-                  'model': self.model, 'fields': set(self.rest_resource.fields + self.get_rest_fields()),
-                  'default_list_fields': self.get_rest_default_list_fields(),
-                  'default_obj_fields': self.get_rest_default_list_fields(), 'form_class': self.form_class,
-                  'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self, 'register': True
-                  }
-        resource = type(str(get_new_class_name('api-resource-%s' % self.get_menu_group_pattern_name(), self.rest_resource)),
-                        (self.rest_resource,), resource_kwargs)
-
         resource_patterns['api-resource'] = RestPattern('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                                        self.site_name, r'^/api/(?P<pk>[-\w]+)/?$',
-                                                        resource, ('GET', 'PUT', 'DELETE'),
-                                                        self)
+                                                        self.site_name, r'^/api/(?P<pk>[-\w]+)/?$', self.rest_resource,
+                                                        self, ('GET', 'PUT', 'DELETE'))
         resource_patterns['api'] = RestPattern('api-%s' % self.get_menu_group_pattern_name(),
-                                                self.site_name, r'^/api/?$', resource,
-                                                ('GET', 'POST'), self)
+                                                self.site_name, r'^/api/?$', self.rest_resource, self, ('GET', 'POST'))
         return resource_patterns
 
     def get_list_actions(self, request, obj):

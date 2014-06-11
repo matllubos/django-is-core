@@ -104,7 +104,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
     @data_provider(get_rest_resources)
     def test_should_delete_data_from_resource(self, resource_name, resource, model):
-        for _ in range(self.iteration):
+        for i in range(self.iteration):
             inst = self.new_instance(model)
 
             url = resource.url(inst.pk)

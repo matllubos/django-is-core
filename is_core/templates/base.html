@@ -24,23 +24,34 @@
 					{% endblock %}
 				{% endif %}
 			{% endblock %}
-			{% block bread-crumbs %}
-				{% if request.user.is_authenticated %}
-					{% bread_crumbs %}
-				{% endif %}
-			{% endblock %}
-			{% block tabs-menu %}
-				{% if tabs %}
-					{% include 'menu/tabs_menu.html' with tabs=tabs %}
-				{% endif %}
-			{% endblock %}
-			{% block content %}{% endblock %}
-			{% block footer %}
-			<footer>
-				<div class="pull-right">
-					<span>{{ PROJECT_VERBOSE }} &copy; {% now "Y" %} (v {{ PROJECT_VERSION }})</span>
+			{% block middle %}
+				<div class="{% block col-classes %}col-lg-12{% endblock %}">
+					<div class="header">
+						{% block header-content %}
+							{% block bread-crumbs %}
+								{% if request.user.is_authenticated %}
+									{% bread_crumbs %}
+								{% endif %}
+							{% endblock %}
+							{% block tabs-menu %}
+								{% if tabs %}
+									{% include 'menu/tabs_menu.html' with tabs=tabs %}
+								{% endif %}
+							{% endblock %}
+						{% endblock %}
+					</div>
+					<div class="content clearfix">
+						{% block content %}{% endblock %}
+					</div>
 				</div>
-			</footer>
+				{% block another-cols %}{% endblock %}
+			{% endblock %}
+			{% block footer %}
+				<footer>
+					<div class="pull-right">
+						<span>{{ PROJECT_VERBOSE }} &copy; {% now "Y" %} (v {{ PROJECT_VERSION }})</span>
+					</div>
+				</footer>
 			{% endblock %}
 		{% endblock %}
 		{% block foot-scripts %}

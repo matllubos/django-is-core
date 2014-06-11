@@ -89,7 +89,7 @@ class UIPattern(ViewPattern):
 
 class RestPattern(ViewPattern):
 
-    def __init__(self, name, site_name, url_pattern, resource, methods=None, core=None):
+    def __init__(self, name, site_name, url_pattern, resource, core=None, methods=None):
         super(RestPattern, self).__init__(name, site_name, url_pattern, core)
         self.resource = resource
         self.methods = methods
