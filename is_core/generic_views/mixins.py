@@ -8,7 +8,7 @@ class ListParentMixin(object):
     add_current_to_breadcrumbs = True
 
     def list_bread_crumbs_menu_item(self):
-        from is_core.templatetags.menu import LinkMenuItem
+        from is_core.menu import LinkMenuItem
 
         return LinkMenuItem(self.model._ui_meta.list_verbose_name %
                             {'verbose_name': self.model._meta.verbose_name,
@@ -24,7 +24,7 @@ class ListParentMixin(object):
         return menu_items
 
     def bread_crumbs_menu_items(self):
-        from is_core.templatetags.menu import LinkMenuItem
+        from is_core.menu import LinkMenuItem
 
         menu_items = super(ListParentMixin, self).bread_crumbs_menu_items()
         menu_items += self.parent_bread_crumbs_menu_items()
@@ -36,7 +36,7 @@ class ListParentMixin(object):
 class EditParentMixin(ListParentMixin):
 
     def edit_bread_crumbs_menu_item(self):
-        from is_core.templatetags.menu import LinkMenuItem
+        from is_core.menu import LinkMenuItem
 
         return LinkMenuItem(self.model._ui_meta.edit_verbose_name %
                             {'verbose_name': self.model._meta.verbose_name,
@@ -62,7 +62,7 @@ class TabsViewMixin(object):
         return self.tabs
 
     def get_tab_menu_items(self):
-        from is_core.templatetags.menu import LinkMenuItem
+        from is_core.menu import LinkMenuItem
 
         menu_items = []
         for tab in self.get_tabs():

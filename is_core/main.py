@@ -22,7 +22,7 @@ from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsR
 from is_core.patterns import UIPattern, RestPattern
 from is_core.utils import flatten_fieldsets, str_to_class, get_new_class_name
 from is_core import config
-from is_core.templatetags.menu import LinkMenuItem
+from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 
 
@@ -48,7 +48,6 @@ class ISCore(six.with_metaclass(ISCoreBase)):
     menu_url_name = None
     verbose_name = None
     verbose_name_plural = None
-    show_in_menu = True
     menu_group = None
 
     def __init__(self, site_name, menu_parent_groups):
@@ -90,6 +89,9 @@ class ISCore(six.with_metaclass(ISCoreBase)):
 
     def get_menu_group_pattern_name(self):
         return '-'.join(self.get_menu_groups())
+
+    def get_menu_item(self, request, active_group):
+        pass
 
 
 class ModelISCore(PermissionsMixin, ISCore):
@@ -217,6 +219,7 @@ class HomeUIISCore(UIISCore):
     menu_url_name = 'index'
     verbose_name_plural = _('Home')
     menu_group = 'home'
+    abstract = config.HOME_VIEW != 'is_core.generic_views.HomeView'
 
     def get_view_classes(self):
         HomeView = str_to_class(config.HOME_VIEW)
@@ -311,8 +314,6 @@ class UIModelISCore(ModelISCore, UIISCore):
 class RestModelISCore(PermissionsRestMixin, ModelISCore):
     abstract = True
 
-    show_in_menu = False
-
     # Allowed rest fields
     rest_fields = None
     # Default rest fields for list
@@ -405,8 +406,6 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
 class UIRestModelISCore(RestModelISCore, UIModelISCore):
     abstract = True
-
-    show_in_menu = True
 
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)

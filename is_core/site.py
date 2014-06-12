@@ -10,6 +10,8 @@ from . import config
 from .loading import get_cores
 from .patterns import RestPattern
 from .auth_token.auth_resource import AuthResource
+from django.utils.encoding import force_text
+from django.core.exceptions import ImproperlyConfigured
 
 
 sites = {}
@@ -57,6 +59,8 @@ class ISSite(object):
 
         for core in get_cores():
             generic_core = self.register(core(self.name, []))
+            if generic_core.menu_group in out:
+                raise ImproperlyConfigured('Duplicate cores with group: "%s"' % generic_core.menu_group)
             out[generic_core.menu_group] = generic_core
         return out
 
