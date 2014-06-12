@@ -7,15 +7,6 @@ from .fields import *
 from .models import *
 
 
-class AllFieldsUniqueValidationModelForm(forms.ModelForm):
-
-    def validate_unique(self):
-        try:
-            self.instance.validate_unique()
-        except ValidationError as e:
-            self._update_errors(e)
-
-
 class RestFormMixin(object):
 
     def is_invalid(self):
@@ -26,14 +17,25 @@ class RestFormMixin(object):
         if not self.is_valid():
             errors = dict([(k, v[0]) for k, v in self.errors.items()])
 
+        if '__all__' in errors:
+            del errors['__all__']
+
         non_field_errors = self.non_field_errors()
         if non_field_errors:
-            errors = errors['non-field-errors'] = non_field_errors
+            errors['non-field-errors'] = non_field_errors
 
         if errors:
             return errors
 
         return False
+
+class AllFieldsUniqueValidationModelForm(forms.ModelForm):
+
+    def validate_unique(self):
+        try:
+            self.instance.validate_unique()
+        except ValidationError as e:
+            self._update_errors(e)
 
 
 class RestModelForm(RestFormMixin, AllFieldsUniqueValidationModelForm):

@@ -1,22 +1,16 @@
 from __future__ import unicode_literals
 
-from django.contrib.auth.forms import AuthenticationForm
-
 from piston.utils import rc
 
 from is_core.rest.resource import RestResource, HeadersResult
-from is_core.auth_token import login
-from is_core.forms import RestFormMixin
-
-
-class RestAuthenticationForm(RestFormMixin, AuthenticationForm):
-    pass
+from is_core.auth_token import login, logout
+from is_core.auth_token.forms import TokenAuthenticationForm
 
 
 class AuthResource(RestResource):
-
-    allowed_methods = ('POST',)
-    form_class = AuthenticationForm
+    login_required = False
+    allowed_methods = ('POST', 'DELETE')
+    form_class = TokenAuthenticationForm
 
     def create(self, request, pk=None):
         if not request.data:
@@ -27,5 +21,10 @@ class AuthResource(RestResource):
         if errors:
             return HeadersResult({'errors': errors}, status_code=400)
 
-        login(request, form.get_user())
+        login(self.request, form.get_user(), not form.is_permanent())
         return {'token': request.token.key}
+
+    def delete(self, request, pk=None):
+        if self.request.user.is_authenticated():
+            logout(self.request)
+        return rc.DELETED

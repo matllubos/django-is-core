@@ -97,7 +97,8 @@ class ISSite(object):
             resource_kwargs = {
                   'form_class': str_to_class(config.AUTH_FORM_CLASS)
             }
-            pattern = RestPattern('api-login', self.name, r'^/api/login/?$', AuthResource, resource_kwargs)
+            pattern = RestPattern('api-login', self.name, r'^%sapi/$' % settings.LOGIN_URL[1:], AuthResource,
+                                  resource_kwargs)
             urlpatterns += patterns('', pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)

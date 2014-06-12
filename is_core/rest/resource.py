@@ -185,8 +185,11 @@ class RestResource(BaseResource):
 
     @classmethod
     def as_wrapped_view(cls, allowed_methods, **initkwargs):
-        view = cls.as_view(**initkwargs)
-        return RestAuthWrapper(cls.get_permission_validators(allowed_methods), **initkwargs).wrap(cls.as_view(**initkwargs))
+        wrapper = cls.as_view(**initkwargs)
+        auth_wrapper = RestAuthWrapper(cls.get_permission_validators(allowed_methods),
+                                       **initkwargs).wrap(wrapper)
+        auth_wrapper.csrf_exempt = wrapper.csrf_exempt
+        return auth_wrapper
 
 
 class RestCoreResourceMixin(object):
