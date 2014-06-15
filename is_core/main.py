@@ -207,7 +207,7 @@ class UIISCore(PermissionsUIMixin, ISCore):
         if self.get_show_in_menu(request):
             submenu_items = self.get_submenu_items(request) or ()
             return LinkMenuItem(self.verbose_name_plural, self.menu_url(request),
-                                active_group == self.menu_group, self.menu_group, submenu_items)
+                                self.menu_group, active_group == self.menu_group, submenu_items)
 
     # TODO: This is not elegant solution
     def get_submenu_items(self, request):

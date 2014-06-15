@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django import template
 
-from is_core.site import get_site_by_name, MenuGroup
+from is_core.site import get_site_by_name
 from is_core import config
 from is_core.utils import str_to_class
 from is_core.menu import MenuItem
@@ -31,42 +31,18 @@ def menu(context, site_name):
 
     active_menu_groups = context.get('active_menu_groups')
 
-    try:
-        menu_generator = str_to_class(config.MENU_GENERATOR)(request, site)
-        menu_items = menu_generator.get_menu_items(menu_generator.get_menu_structure(), active_menu_groups)
-    except Exception as ex:
-        print ex
+    menu_generator = str_to_class(config.MENU_GENERATOR)(request, site)
+    menu_items = menu_generator.get_menu_items(menu_generator.get_menu_structure(), active_menu_groups)
     context.update({'menu_items': menu_items, 'site_name': site_name})
     return context
 
 
 @register.inclusion_tag('menu/bread_crumbs.html', takes_context=True)
 def bread_crumbs(context):
-    site_name = 'IS'
-    site = get_site_by_name(site_name)
     bread_crumbs_menu_items = context.get('bread_crumbs_menu_items')
 
-    request = context.get('request')
-
-    active_menu_groups = context.get('active_menu_groups') or []
-
     menu_items = []
-    items = site._registry
 
-    menu_generator = str_to_class(config.MENU_GENERATOR)(request, site)
-
-    for group in active_menu_groups:
-        item = items.get(group)
-        if item:
-            if isinstance(item, MenuGroup):
-                submenu_items = menu_generator.get_menu_items(item.items.values())
-                url = submenu_items[0].url
-                active = url == request.path or not url
-                menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url, active, group))
-                items = item.items
-            else:
-                break
-
-    for menu_item in bread_crumbs_menu_items:
+    for menu_item in bread_crumbs_menu_items or []:
         menu_items.append(menu_item)
     return {'menu_items': menu_items}

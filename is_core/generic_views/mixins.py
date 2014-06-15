@@ -14,7 +14,7 @@ class ListParentMixin(object):
                             {'verbose_name': self.model._meta.verbose_name,
                              'verbose_name_plural': self.model._meta.verbose_name_plural},
                             reverse('%s:list-%s' % (self.site_name, self.core.get_menu_group_pattern_name())),
-                                           not self.add_current_to_breadcrumbs)
+                                           active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
@@ -44,7 +44,7 @@ class EditParentMixin(ListParentMixin):
                              'obj': self.get_obj()},
                              reverse('%s:edit-%s' % (self.site_name, self.core.get_menu_group_pattern_name()),
                                                     args=(self.request.kwargs.get('pk'),)),
-                                                    not self.add_current_to_breadcrumbs)
+                                                    active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = super(EditParentMixin, self).parent_bread_crumbs_menu_items()
@@ -72,7 +72,7 @@ class TabsViewMixin(object):
             else:
                 tab_title, tab_url, is_active = tab
 
-            menu_items.append(LinkMenuItem(tab_title, tab_url, is_active))
+            menu_items.append(LinkMenuItem(tab_title, tab_url, active=is_active))
         return menu_items
 
     def get_context_data(self, form=None, **kwargs):

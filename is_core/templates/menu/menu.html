@@ -3,7 +3,7 @@
 	{% for menu_item in menu_items %}
 		{% if menu_item.collapsible %}
 			<li {% if menu_item.active %} class="active"{% endif %}>
-				<a>{{ menu_item.title|capfirst }}</a>
+				<a{% if menu_item.url%} href="{{ menu_item.url }}"{% endif %}">{{ menu_item.title|capfirst }}</a>
 				{% submenu menu_item.submenu_items %}
 			</li>
 		{% else %}

@@ -115,5 +115,5 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
         from is_core.menu import LinkMenuItem
 
         menu_items = super(TableView, self).bread_crumbs_menu_items()
-        menu_items.append(LinkMenuItem(self.get_title(), self.request.path, True))
+        menu_items.append(LinkMenuItem(self.get_title(), self.request.path, active=True))
         return menu_items

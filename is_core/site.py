@@ -34,18 +34,6 @@ def get_model_view(model):
     return registered_model_views.get(model_label)
 
 
-class NoMenuGroup(Exception):
-    pass
-
-
-class MenuGroup(object):
-
-    def __init__(self, name, verbose_name, items):
-        self.name = name
-        self.verbose_name = verbose_name
-        self.items = items
-
-
 class ISSite(object):
 
     def __init__(self, name='IS'):
@@ -77,14 +65,11 @@ class ISSite(object):
 
     def _set_items_urls(self, items, urlpatterns):
         for item in items:
-            if isinstance(item, MenuGroup):
-                self._set_items_urls(item.items.values(), urlpatterns)
-            else:
-                urlpatterns += patterns('',
-                    url(r'^%s' % (item.get_url_prefix()),
-                            include(item.get_urls())
-                        )
-                )
+            urlpatterns += patterns('',
+                url(r'^%s' % (item.get_url_prefix()),
+                        include(item.get_urls())
+                    )
+            )
 
     def get_urls(self):
         LoginView = str_to_class(config.AUTH_LOGIN_VIEW)

@@ -1,9 +1,7 @@
-from is_core.site import MenuGroup
-
 
 class MenuItem(object):
 
-    def __init__(self, title, active, collapsible, group, submenu_items=[]):
+    def __init__(self, title, collapsible, group, active=False, submenu_items=[]):
         self.title = title
         self.collapsible = collapsible
         self.submenu_items = submenu_items
@@ -13,8 +11,8 @@ class MenuItem(object):
 
 class LinkMenuItem(MenuItem):
 
-    def __init__(self, title, url, active, group=None, submenu_items=[]):
-        super(LinkMenuItem, self).__init__(title, active, False, group, submenu_items)
+    def __init__(self, title, url, group=None, active=False, submenu_items=[]):
+        super(LinkMenuItem, self).__init__(title, False, group, active, submenu_items)
         self.url = url
 
     def __unicode__(self):
@@ -23,8 +21,9 @@ class LinkMenuItem(MenuItem):
 
 class CollapsibleMenuItem(MenuItem):
 
-    def __init__(self, title, active, group=None, submenu_items=[]):
-        super(CollapsibleMenuItem, self).__init__(title, active, True, group, submenu_items)
+    def __init__(self, title, url=None, group=None, active=False, submenu_items=[]):
+        super(CollapsibleMenuItem, self).__init__(title, True, group, active, submenu_items)
+        self.url = url
 
 
 class MenuGenerator(object):
@@ -41,11 +40,8 @@ class MenuGenerator(object):
             group = child_groups = None
 
         for item in items:
-            if isinstance(item, MenuGroup):
-                submenu_items = self.get_menu_items(item.items.values(), child_groups)
-                if submenu_items:
-                    menu_items.append(MenuItem(item.verbose_name, submenu_items[0].url,
-                                               item.name == group, item.name))
+            if isinstance(item, MenuItem):
+                menu_items.append(item)
             else:
                 item = self.site._registry[item]
                 menu_item = item.get_menu_item(self.request, group)
