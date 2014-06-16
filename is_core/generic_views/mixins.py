@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-from django.core.urlresolvers import reverse
-
 
 class ListParentMixin(object):
 
@@ -11,8 +9,8 @@ class ListParentMixin(object):
         return LinkMenuItem(self.model._ui_meta.list_verbose_name %
                             {'verbose_name': self.model._meta.verbose_name,
                              'verbose_name_plural': self.model._meta.verbose_name_plural},
-                            reverse('%s:list-%s' % (self.site_name, self.core.get_menu_group_pattern_name())),
-                                           active=not self.add_current_to_breadcrumbs)
+                             self.core.ui_patterns.get('list').get_url_string(),
+                             active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
@@ -34,9 +32,9 @@ class EditParentMixin(ListParentMixin):
                             {'verbose_name': self.model._meta.verbose_name,
                              'verbose_name_plural': self.model._meta.verbose_name_plural,
                              'obj': self.get_obj()},
-                             reverse('%s:edit-%s' % (self.site_name, self.core.get_menu_group_pattern_name()),
-                                                    args=(self.request.kwargs.get('pk'),)),
-                                                    active=not self.add_current_to_breadcrumbs)
+                             self.core.ui_patterns.get('edit')
+                                .get_url_string(kwargs={'pk':self.request.kwargs.get('pk')}),
+                             active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = super(EditParentMixin, self).parent_bread_crumbs_menu_items()

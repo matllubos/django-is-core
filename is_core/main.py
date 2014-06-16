@@ -170,6 +170,7 @@ class UIISCore(PermissionsUIMixin, ISCore):
     menu_url_name = None
     _ui_patterns = None
     view_classes = SortedDict()
+    default_ui_pattern_class = UIPattern
 
     def get_view_classes(self):
         return self.view_classes.copy()
@@ -187,7 +188,9 @@ class UIISCore(PermissionsUIMixin, ISCore):
                 pattern, view, ViewPatternClass = view_vals
             else:
                 pattern, view = view_vals
-                ViewPatternClass = UIPattern
+                ViewPatternClass = self.default_ui_pattern_class
+                print self
+                print ViewPatternClass
 
             pattern_names = [name]
             group_pattern_name = self.get_menu_group_pattern_name()

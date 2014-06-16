@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
 from django.forms.models import modelform_factory, ModelForm
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import SortedDict
@@ -402,7 +401,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         if 'list' in self.core.ui_patterns \
                 and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and not self.has_snippet():
-            return reverse('%s:list-%s' % (self.site_name, self.core.get_menu_group_pattern_name()))
+            return self.core.ui_patterns.get('list').get_url_string()
         return None
 
     def has_save_and_continue_button(self):
@@ -420,11 +419,11 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         if 'list' in self.core.ui_patterns \
                 and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and 'save' in self.request.POST:
-            return reverse('%s:list-%s' % info)
+            return self.core.ui_patterns.get('list').get_url_string()
         elif 'edit' in self.core.ui_patterns \
                 and self.core.ui_patterns.get('edit').view.has_get_permission(self.request, obj=obj) \
                 and 'save-and-continue' in self.request.POST:
-            return reverse('%s:edit-%s' % info, args=(obj.pk,))
+            return self.core.ui_patterns.get('edit').get_url_string(kwargs={'pk': obj.pk})
         return ''
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
