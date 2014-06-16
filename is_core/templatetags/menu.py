@@ -31,8 +31,8 @@ def menu(context, site_name):
 
     active_menu_groups = context.get('active_menu_groups')
 
-    menu_generator = str_to_class(config.MENU_GENERATOR)(request, site)
-    menu_items = menu_generator.get_menu_items(menu_generator.get_menu_structure(), active_menu_groups)
+    menu_generator = str_to_class(config.MENU_GENERATOR)(request, site, active_menu_groups)
+    menu_items = menu_generator.get_menu_items(menu_generator.get_menu_structure())
     context.update({'menu_items': menu_items, 'site_name': site_name})
     return context
 

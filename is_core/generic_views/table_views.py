@@ -110,10 +110,3 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
     @classmethod
     def has_get_permission(cls, request, **kwargs):
         return cls.core.has_read_permission(request)
-
-    def bread_crumbs_menu_items(self):
-        from is_core.menu import LinkMenuItem
-
-        menu_items = super(TableView, self).bread_crumbs_menu_items()
-        menu_items.append(LinkMenuItem(self.get_title(), self.request.path, active=True))
-        return menu_items

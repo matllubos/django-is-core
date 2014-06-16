@@ -28,16 +28,17 @@ class CollapsibleMenuItem(MenuItem):
 
 class MenuGenerator(object):
 
-    def __init__(self, request, site):
+    def __init__(self, request, site, active_groups):
         self.request = request
         self.site = site
+        self.active_groups = active_groups
 
-    def get_menu_items(self, items, active_groups=()):
+    def get_menu_items(self, items):
         menu_items = []
-        if active_groups:
-            group, child_groups = active_groups[0], active_groups[1:]
+        if self.active_groups:
+            group = self.active_groups[0]
         else:
-            group = child_groups = None
+            group = None
 
         for item in items:
             if isinstance(item, MenuItem):

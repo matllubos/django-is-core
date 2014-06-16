@@ -5,8 +5,6 @@ from django.core.urlresolvers import reverse
 
 class ListParentMixin(object):
 
-    add_current_to_breadcrumbs = True
-
     def list_bread_crumbs_menu_item(self):
         from is_core.menu import LinkMenuItem
 
@@ -24,13 +22,7 @@ class ListParentMixin(object):
         return menu_items
 
     def bread_crumbs_menu_items(self):
-        from is_core.menu import LinkMenuItem
-
-        menu_items = super(ListParentMixin, self).bread_crumbs_menu_items()
-        menu_items += self.parent_bread_crumbs_menu_items()
-        if self.add_current_to_breadcrumbs:
-            menu_items.append(LinkMenuItem(self.get_title(), self.request.path, True))
-        return menu_items
+        return self.parent_bread_crumbs_menu_items() + super(ListParentMixin, self).bread_crumbs_menu_items()
 
 
 class EditParentMixin(ListParentMixin):
