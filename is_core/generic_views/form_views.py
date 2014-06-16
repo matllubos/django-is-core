@@ -401,7 +401,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         if 'list' in self.core.ui_patterns \
                 and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and not self.has_snippet():
-            return self.core.ui_patterns.get('list').get_url_string()
+            return self.core.ui_patterns.get('list').get_url_string(self.request)
         return None
 
     def has_save_and_continue_button(self):
@@ -419,11 +419,11 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         if 'list' in self.core.ui_patterns \
                 and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and 'save' in self.request.POST:
-            return self.core.ui_patterns.get('list').get_url_string()
+            return self.core.ui_patterns.get('list').get_url_string(self.request)
         elif 'edit' in self.core.ui_patterns \
                 and self.core.ui_patterns.get('edit').view.has_get_permission(self.request, obj=obj) \
                 and 'save-and-continue' in self.request.POST:
-            return self.core.ui_patterns.get('edit').get_url_string(kwargs={'pk': obj.pk})
+            return self.core.ui_patterns.get('edit').get_url_string(self.request, kwargs={'pk': obj.pk})
         return ''
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):

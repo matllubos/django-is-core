@@ -35,7 +35,7 @@ class Pattern(object):
             logger.warning('Pattern with name %s has been registered yet' % self.name)
         patterns[self.name] = self
 
-    def get_url_string(self, obj=None, kwargs=None):
+    def get_url_string(self, request, obj=None, kwargs=None):
         raise NotImplemented
 
     def get_url(self):
@@ -59,7 +59,7 @@ class ViewPattern(Pattern):
             return {'pk': obj.pk}
         return {}
 
-    def get_url_string(self, obj=None, kwargs=None):
+    def get_url_string(self, request, obj=None, kwargs=None):
         kwargs = kwargs or {}
         if obj:
             kwargs.update(self._get_try_kwarg(obj))

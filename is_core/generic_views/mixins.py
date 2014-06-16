@@ -9,7 +9,7 @@ class ListParentMixin(object):
         return LinkMenuItem(self.model._ui_meta.list_verbose_name %
                             {'verbose_name': self.model._meta.verbose_name,
                              'verbose_name_plural': self.model._meta.verbose_name_plural},
-                             self.core.ui_patterns.get('list').get_url_string(),
+                             self.core.ui_patterns.get('list').get_url_string(self.request),
                              active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
@@ -33,7 +33,7 @@ class EditParentMixin(ListParentMixin):
                              'verbose_name_plural': self.model._meta.verbose_name_plural,
                              'obj': self.get_obj()},
                              self.core.ui_patterns.get('edit')
-                                .get_url_string(kwargs={'pk':self.request.kwargs.get('pk')}),
+                                .get_url_string(self.request, kwargs={'pk':self.request.kwargs.get('pk')}),
                              active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):

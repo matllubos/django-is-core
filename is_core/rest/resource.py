@@ -224,7 +224,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
     def _web_links(cls, obj, request):
         web_links = {}
         for pattern in cls.core.ui_patterns.values():
-            url = pattern.get_url_string(obj=obj)
+            url = pattern.get_url_string(request, obj=obj)
             if url:
                 web_links[pattern.name] = url
         return web_links
@@ -233,7 +233,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
     def _rest_links(cls, obj, request):
         rest_links = {}
         for pattern in cls.core.resource_patterns.values():
-            url = pattern.get_url_string(obj=obj)
+            url = pattern.get_url_string(request, obj=obj)
             if url:
                 rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}
         return rest_links
