@@ -17,6 +17,8 @@ from is_core.rest.paginator import Paginator
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
 from is_core.auth import RestAuthWrapper
+from is_core import config
+from is_core.auth_token.wrappers import RestTokenAuthWrapper
 
 
 class RestResponse(HeadersResult):
@@ -186,7 +188,9 @@ class RestResource(BaseResource):
     @classmethod
     def as_wrapped_view(cls, allowed_methods, **initkwargs):
         wrapper = cls.as_view(**initkwargs)
-        auth_wrapper = RestAuthWrapper(cls.get_permission_validators(allowed_methods),
+        AuthWrapper = config.AUTH_USE_TOKENS and RestTokenAuthWrapper or RestAuthWrapper
+
+        auth_wrapper = AuthWrapper(cls.get_permission_validators(allowed_methods),
                                        **initkwargs).wrap(wrapper)
         auth_wrapper.csrf_exempt = wrapper.csrf_exempt
         return auth_wrapper

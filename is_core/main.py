@@ -207,13 +207,9 @@ class UIISCore(PermissionsUIMixin, ISCore):
 
     def get_menu_item(self, request, active_group):
         if self.get_show_in_menu(request):
-            submenu_items = self.get_submenu_items(request) or ()
             return LinkMenuItem(self.verbose_name_plural, self.menu_url(request),
-                                self.menu_group, active_group == self.menu_group, submenu_items)
+                                self.menu_group, active_group == self.menu_group)
 
-    # TODO: This is not elegant solution
-    def get_submenu_items(self, request):
-        return ()
 
 
 class HomeUIISCore(UIISCore):
@@ -406,7 +402,8 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return list_actions
 
     def web_link_patterns(self):
-        return self.ui_patterns
+        return self.ui_patterns.values()
+
 
 class UIRestModelISCore(RestModelISCore, UIModelISCore):
     abstract = True
