@@ -28,6 +28,7 @@ class Pattern(object):
 
     def __init__(self, name):
         self.name = name
+        self.url_prefix = None
         self._register()
 
     def _register(self):

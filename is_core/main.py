@@ -60,6 +60,7 @@ class ISCore(six.with_metaclass(ISCoreBase)):
     def get_urlpatterns(self, patterns):
         urls = []
         for pattern in patterns.values():
+            pattern.url_prefix = self.get_url_prefix()
             url = pattern.get_url()
             if url:
                 urls.append(url)
@@ -189,8 +190,6 @@ class UIISCore(PermissionsUIMixin, ISCore):
             else:
                 pattern, view = view_vals
                 ViewPatternClass = self.default_ui_pattern_class
-                print self
-                print ViewPatternClass
 
             pattern_names = [name]
             group_pattern_name = self.get_menu_group_pattern_name()
@@ -406,6 +405,8 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
                                                   class_name='delete'))
         return list_actions
 
+    def web_link_patterns(self):
+        return self.ui_patterns
 
 class UIRestModelISCore(RestModelISCore, UIModelISCore):
     abstract = True

@@ -15,8 +15,8 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 sites = {}
-registered_model_views = {}
-registered_views = []
+registered_model_cores = {}
+registered_cores = []
 
 
 def get_site_by_name(name):
@@ -26,12 +26,12 @@ def get_site_by_name(name):
     return sites.get(name)
 
 
-def get_model_view(model):
+def get_model_core(model):
     """
     Return core view of given model or None
     """
     model_label = lower('%s.%s' % (model._meta.app_label, model._meta.object_name))
-    return registered_model_views.get(model_label)
+    return registered_model_cores.get(model_label)
 
 
 class ISSite(object):
@@ -55,8 +55,8 @@ class ISSite(object):
     def register(self, generic_core):
         if (hasattr(generic_core, 'model')):
             model_label = lower('%s.%s' % (generic_core.model._meta.app_label, generic_core.model._meta.object_name))
-            registered_model_views[model_label] = generic_core
-        registered_views.append(generic_core)
+            registered_model_cores[model_label] = generic_core
+        registered_cores.append(generic_core)
         return generic_core
 
     @property
@@ -94,3 +94,6 @@ class ISSite(object):
         return urlpatterns
 
 site = ISSite()
+
+def get_core(name):
+    return site._registry[name]
