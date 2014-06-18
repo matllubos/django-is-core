@@ -401,7 +401,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
                                                   class_name='delete'))
         return list_actions
 
-    def web_link_patterns(self):
+    def web_link_patterns(self, request):
         return self.ui_patterns.values()
 
 

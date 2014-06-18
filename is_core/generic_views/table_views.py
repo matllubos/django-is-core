@@ -78,7 +78,6 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
 
     def get_query_string_filter(self):
         default_list_filter = self.core.get_default_list_filter(self.request)
-
         filter_vals = default_list_filter.get('filter', {}).copy()
         exclude_vals = default_list_filter.get('exclude', {}).copy()
 

@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
+import re
+
 from django.utils.translation import ugettext_lazy as _
 from django import forms
-from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField
+from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField, Q
 from django.db.models.fields.related import RelatedField
 from django.db.models.fields import AutoField, DateField, DateTimeField, DecimalField
 
@@ -38,18 +40,24 @@ class DefaultFilter(Filter):
             self.is_exclude = True
             self.filter_key = self.filter_key[:-5]
 
-    def get_filter_term(self):
+    def _check_suffix(self):
         if '__' in self.filter_key:
             if self.filter_key.split('__', 1)[1] not in self.suffixes:
                 raise FilterException(_('Not valid filter: %(filter_key)s=%(filter_value)s' %
                                         {'filter_key': self.full_filter_key, 'filter_value': self.value}))
+
+    def get_filter_term(self):
+        self._check_suffix()
         return {self.full_filter_key: self.value}
 
     def filter_queryset(self, queryset):
+        filter_term = self.get_filter_term()
+        if isinstance(filter_term, dict):
+            filter_term = Q(**filter_term)
         if self.is_exclude:
-            return queryset.exclude(**self.get_filter_term())
+            return queryset.exclude(filter_term)
         else:
-            return queryset.filter(**self.get_filter_term())
+            return queryset.filter(filter_term)
 
     def get_filter_prefix(self):
         return self.full_filter_key[:-len(self.filter_key)]
@@ -148,6 +156,26 @@ class RelatedFieldFilter(DefaultFieldFilter):
         """ Turn off extra fields return """
         widget = super(RelatedFieldFilter, self).get_widget()
         return widget
+
+    def get_filter_term(self):
+        if '__' not in self.filter_key:
+            return super(RelatedFieldFilter, self).get_filter_term()
+
+        self._check_suffix()
+        key, suffix = self.filter_key.split('__', 1)
+        if suffix in 'in':
+            p = re.compile('\[(.+)\]')
+            m = p.match(self.value)
+            if not m:
+                raise ValueError()
+            value = set(m.group(1).split(','))
+            if 'null' in value:
+                value.remove('null')
+                return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % key: True}))
+
+            return {self.full_filter_key: value}
+        else:
+            return super(RelatedFieldFilter, self).get_filter_term()
 
 
 class DateFilter(DefaultFieldFilter):

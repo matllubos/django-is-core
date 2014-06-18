@@ -227,7 +227,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
     @classmethod
     def _web_links(cls, obj, request):
         web_links = {}
-        for pattern in cls.core.web_link_patterns():
+        for pattern in cls.core.web_link_patterns(request):
             url = pattern.get_url_string(request, obj=obj)
             if url:
                 web_links[pattern.name] = url
