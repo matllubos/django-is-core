@@ -29,6 +29,7 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
     list_display = ()
     template_name = 'generic_views/table.html'
     view_type = 'list'
+    list_filter = None
 
     def get_title(self):
         return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
@@ -76,8 +77,11 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
     def get_api_url(self):
         return self.core.get_api_url(self.request)
 
+    def get_list_filter(self):
+        return self.list_filter or self.core.get_default_list_filter(self.request)
+
     def get_query_string_filter(self):
-        default_list_filter = self.core.get_default_list_filter(self.request)
+        default_list_filter = self.get_list_filter()
         filter_vals = default_list_filter.get('filter', {}).copy()
         exclude_vals = default_list_filter.get('exclude', {}).copy()
 
@@ -86,13 +90,16 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
 
         return query_string_from_dict(filter_vals)
 
+    def get_add_url(self):
+        return self.core.get_add_url(self.request)
+
     def get_context_data(self, **kwargs):
         context_data = super(TableView, self).get_context_data(**kwargs)
         info = self.site_name, self.core.get_menu_group_pattern_name()
         context_data.update({
                                 'headers': self.get_headers(),
                                 'api_url': self.get_api_url(),
-                                'add_url': self.core.get_add_url(self.request),
+                                'add_url': self.get_add_url(),
                                 'edit_url_name': '%s:edit-%s' % info,
                                 'module_name': self.model._meta.module_name,
                                 'verbose_name':  self.core.verbose_name_plural,

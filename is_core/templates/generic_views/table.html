@@ -4,7 +4,7 @@
 {% block header-content %}
 	{{ block.super }}
 	{% block header-btns %}
-		{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value }}"><span>{{ add_button_value }}</span></a>{% endhas_permission %}
+		{% if add_url %}{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value }}"><span>{{ add_button_value }}</span></a>{% endhas_permission %}{% endif %}
 	{% endblock %}
 {% endblock %}
 
