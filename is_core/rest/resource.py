@@ -221,7 +221,7 @@ class RestCoreResourceMixin(object):
 
 class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
-    fields = ('_web_links', '_rest_links', '_actions')
+    fields = ('_web_links', '_rest_links', '_actions', '_class_names')
     register = False
 
     @classmethod
