@@ -185,6 +185,15 @@ class DataPostprocessor(DataProcessor):
 class RestResource(BaseResource):
     login_required = True
 
+    def dispatch(self, request, *args, **kwargs):
+        self.core.init_rest_request(request)
+        return super(RestResource, self).dispatch(request, *args, **kwargs)
+
+    @classmethod
+    def __init_core__(cls, core, pattern):
+        cls.core = core
+        cls.pattern = pattern
+
     @classmethod
     def as_wrapped_view(cls, allowed_methods, **initkwargs):
         wrapper = cls.as_view(**initkwargs)

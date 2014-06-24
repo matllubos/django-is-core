@@ -57,6 +57,12 @@ class ISCore(six.with_metaclass(ISCoreBase)):
     def init_request(self, request):
         pass
 
+    def init_ui_request(self, request):
+        self.init_request(request)
+
+    def init_rest_request(self, request):
+        self.init_request(request)
+
     def get_urlpatterns(self, patterns):
         urls = []
         for pattern in patterns.values():

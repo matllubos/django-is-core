@@ -73,7 +73,7 @@ class DefaultCoreViewMixin(DefaultViewMixin):
         self.menu_groups = self.core.get_menu_groups()
 
     def dispatch(self, request, *args, **kwargs):
-        self.core.init_request(request)
+        self.core.init_ui_request(request)
         return super(DefaultCoreViewMixin, self).dispatch(request, *args, **kwargs)
 
     def get_title(self):

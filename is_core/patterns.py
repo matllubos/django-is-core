@@ -94,6 +94,8 @@ class RestPattern(ViewPattern):
         super(RestPattern, self).__init__(name, site_name, url_pattern, core)
         self.resource = resource
         self.methods = methods
+        if core:
+            self.resource.__init_core__(core, self)
 
     def get_view(self):
         if self.resource.login_required:
