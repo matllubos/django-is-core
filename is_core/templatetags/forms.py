@@ -7,7 +7,7 @@ from django.template.base import TemplateSyntaxError, token_kwargs
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignKey, ManyToManyRel
 from django.contrib.admin.util import display_for_value
-from django.utils.html import linebreaks, escape, conditional_escape
+from django.utils.html import linebreaks, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -32,40 +32,11 @@ def do_form_renderer(parser, token):
 
 
 @register.simple_tag(takes_context=True)
-def inline_form_view_renderer(context, inline_view, title=None):
-    template = inline_view.template_name
-
-    formset = inline_view.formset
-    fieldset = inline_view.get_fieldset(formset)
-    class_names = [inline_view.get_name().lower()]
-    if formset.can_add:
-        class_names.append('can-add')
-    if formset.can_delete:
-        class_names.append('can-delete')
-
-    if title:
-        class_names.append('with-title')
-    else:
-        class_names.append('without-title')
-
-    context.update({
-                        'formset': formset,
-                        'fieldset': fieldset,
-                        'name': inline_view.get_name(),
-                        'button_value': inline_view.get_button_value(),
-                        'title': title,
-                        'class_names': class_names,
-                    })
-    return render_to_string(template, context)
-
-
-@register.simple_tag(takes_context=True)
 def fieldset_renderer(context, form, fieldset):
     values = fieldset[1]
     inline_form_view = values.get('inline_form_view')
     if inline_form_view:
-        return inline_form_view_renderer(context, context.get('inline_form_views').get(inline_form_view), fieldset[0])
-
+        return context.get('inline_form_views').get(inline_form_view).render(context, fieldset[0])
     template = values.get('template') or 'forms/default_fieldset.html'
     context.update({
                         'fields': values.get('fields'),

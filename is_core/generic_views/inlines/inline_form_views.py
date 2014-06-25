@@ -5,9 +5,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from is_core.forms.models import BaseInlineFormSet
 from is_core.utils.forms import formset_has_file_field
+from is_core.generic_views.inlines import InlineView
 
 
-class InlineFormView(object):
+class InlineFormView(InlineView):
     form_class = ModelForm
     model = None
     fk_name = None
@@ -37,6 +38,31 @@ class InlineFormView(object):
 
         for i in range(self.min_num):
             self.formset.forms[i].empty_permitted = False
+
+    def get_context_data(self, **kwargs):
+        context_data = super(InlineFormView, self).get_context_data(**kwargs)
+        formset = self.formset
+        fieldset = self.get_fieldset(formset)
+        class_names = [self.get_name().lower()]
+        if formset.can_add:
+            class_names.append('can-add')
+        if formset.can_delete:
+            class_names.append('can-delete')
+
+        if kwargs.get('title'):
+            class_names.append('with-title')
+        else:
+            class_names.append('without-title')
+
+        context_data.update({
+                            'formset': formset,
+                            'fieldset': fieldset,
+                            'name': self.get_name(),
+                            'button_value': self.get_button_value(),
+                            'class_names': class_names,
+                        })
+
+        return context_data
 
     def get_exclude(self):
         return self.exclude
