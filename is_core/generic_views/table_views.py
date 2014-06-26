@@ -25,11 +25,12 @@ class Header(object):
         return self.text
 
 
-class TableView(DefaultModelCoreViewMixin, TemplateView):
+class TableViewMixin(object):
     list_display = ()
-    template_name = 'generic_views/table.html'
-    view_type = 'list'
     list_filter = None
+    model = None
+    api_url = ''
+    menu_group_pattern_name = None
 
     def get_title(self):
         return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
@@ -63,7 +64,7 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
                           self.get_filter(full_field_name))
 
     def get_list_display(self):
-        return self.list_display or self.core.get_ui_list_display(self.request)
+        return self.list_display
 
     def get_headers(self):
         headers = []
@@ -75,10 +76,10 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
         return headers
 
     def get_api_url(self):
-        return self.core.get_api_url(self.request)
+        return self.api_url
 
     def get_list_filter(self):
-        return self.list_filter or self.core.get_default_list_filter(self.request)
+        return self.list_filter or {}
 
     def get_query_string_filter(self):
         default_list_filter = self.get_list_filter()
@@ -90,23 +91,43 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
 
         return query_string_from_dict(filter_vals)
 
+    def get_menu_group_pattern_name(self):
+        return self.menu_group_pattern_name
+
+    def get_context_data(self, **kwargs):
+        context_data = super(TableViewMixin, self).get_context_data(**kwargs)
+        context_data.update({
+                                'headers': self.get_headers(),
+                                'api_url': self.get_api_url(),
+                                'module_name': self.model._meta.module_name,
+                                'list_display': self.get_list_display(),
+                                'query_string_filter': self.get_query_string_filter(),
+                                'menu_group_pattern_name': self.get_menu_group_pattern_name(),
+                            })
+        return context_data
+
+
+class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
+    template_name = 'generic_views/table.html'
+    view_type = 'list'
+
+    def get_list_display(self):
+        return self.list_display or self.core.get_ui_list_display(self.request)
+
+    def get_api_url(self):
+        return self.api_url or self.core.get_api_url(self.request)
+
+    def get_list_filter(self):
+        return self.list_filter or self.core.get_default_list_filter(self.request)
+
     def get_add_url(self):
         return self.core.get_add_url(self.request)
 
     def get_context_data(self, **kwargs):
         context_data = super(TableView, self).get_context_data(**kwargs)
-        info = self.site_name, self.core.get_menu_group_pattern_name()
         context_data.update({
-                                'headers': self.get_headers(),
-                                'api_url': self.get_api_url(),
                                 'add_url': self.get_add_url(),
-                                'edit_url_name': '%s:edit-%s' % info,
-                                'module_name': self.model._meta.module_name,
-                                'verbose_name':  self.core.verbose_name_plural,
                                 'view_type': self.view_type,
-                                'list_display': self.get_list_display(),
-                                'query_string_filter': self.get_query_string_filter(),
-                                'menu_group_pattern_name': self.core.get_menu_group_pattern_name(),
                                 'add_button_value': self.core.model._ui_meta.add_verbose_name %
                                                     {'verbose_name': self.core.model._meta.verbose_name,
                                                      'verbose_name_plural': self.core.model._meta.verbose_name_plural}
@@ -116,3 +137,6 @@ class TableView(DefaultModelCoreViewMixin, TemplateView):
     @classmethod
     def has_get_permission(cls, request, **kwargs):
         return cls.core.has_read_permission(request)
+
+    def get_menu_group_pattern_name(self):
+        return self.core.get_menu_group_pattern_name()

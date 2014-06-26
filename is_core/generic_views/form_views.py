@@ -15,6 +15,7 @@ from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
+from is_core.generic_views.inlines.inline_form_views import InlineFormView
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -24,7 +25,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     template_name = 'generic_views/default_form.html'
     messages = {'success': _('Object was saved successfully.'),
                 'error': _('Please correct the error below.')}
-    readonly_fields = ()
+    readonly_fields = None
 
     def render_to_response(self, context, **response_kwargs):
         if self.has_snippet():
@@ -51,7 +52,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         return self.request.get_full_path()
 
     def get_readonly_fields(self):
-        return self.readonly_fields
+        return self.readonly_fields or ()
 
     def get_message(self, type, obj=None):
         msg_dict = {}
@@ -153,10 +154,10 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
 class DefaultModelFormView(DefaultFormView):
     model = None
-    exclude = ()
-    fieldset = ()
+    exclude = None
+    fieldset = None
     fields = None
-    inline_form_views = ()
+    inline_views = None
     form_template = 'forms/model_default_form.html'
 
     def pre_save_obj(self, obj, form, change):
@@ -179,33 +180,45 @@ class DefaultModelFormView(DefaultFormView):
         return self.messages.get(type) % msg_dict
 
     def get_exclude(self):
-        return self.exclude
+        return self.exclude or ()
 
     def generate_readonly_fields(self):
         if not self.has_post_permission(self.request, obj=self.get_obj()):
             return list(self.generate_form_class().base_fields.keys()) + list(self.get_readonly_fields())
         return self.get_readonly_fields()
 
-    def get_readonly_fields(self):
-        return self.readonly_fields
+    def get_inline_views(self):
+        return self.inline_views
 
-    def get_inline_form_views(self):
-        return self.inline_form_views
+    def init_inline_views(self, instance):
+        inline_views = SortedDict()
+        for inline_view in self.get_inline_views():
+            inline_views[inline_view.__name__] = inline_view(self.request, self, instance)
+        return inline_views
+
+    def _filter_inline_form_views(self, inline_views):
+        inline_form_views = SortedDict()
+        for name, view in inline_views.items():
+            if isinstance(view, InlineFormView):
+                inline_form_views[name] = view
+        return inline_form_views
 
     def generate_fieldsets(self):
         fieldsets = self.get_fieldsets()
 
-        if fieldsets:
+        if fieldsets is not None:
             return fieldsets
         else:
-            fieldsets = [(None, {'fields': self.generate_fields() or list(self.generate_form_class().base_fields.keys())})]
-            for inline_form_view in self.get_inline_form_views():
-                if not inline_form_view.max_num or inline_form_view.max_num > 1:
-                    title = inline_form_view.model._meta.verbose_name_plural
+            fieldsets = [(None, {'fields': self.generate_fields() or
+                                 list(self.generate_form_class().base_fields.keys())})]
+            for inline_view in self.get_inline_views():
+                if (issubclass(inline_view, InlineFormView) and (not inline_view.max_num or
+                    inline_view.max_num > 1)):
+                    title = inline_view.model._meta.verbose_name_plural
                 else:
-                    title = inline_form_view.model._meta.verbose_name
+                    title = inline_view.model._meta.verbose_name
                 fieldsets.append((title,
-                                  {'inline_form_view': inline_form_view.__name__}))
+                                  {'inline_view': inline_view.__name__}))
             return list(fieldsets)
 
     def get_fields(self):
@@ -214,7 +227,7 @@ class DefaultModelFormView(DefaultFormView):
     def generate_fields(self):
         fieldsets = self.get_fieldsets()
 
-        if fieldsets:
+        if fieldsets is not None:
             return flatten_fieldsets(fieldsets)
         return self.get_fields()
 
@@ -264,12 +277,10 @@ class DefaultModelFormView(DefaultFormView):
 
         form_class = self.generate_form_class(fields, readonly_fields)
         form = self.get_form(form_class)
-        inline_form_views = SortedDict()
-        for inline_form_view in self.get_inline_form_views():
-            inline_form_views[inline_form_view.__name__] = inline_form_view(self.request, self, form.instance,
-                                                                            not self.has_post_permission(self.request,
-                                                                                                         obj=self.get_obj()))
-        return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
+        inline_views = self.init_inline_views(form.instance)
+        inline_form_views = self._filter_inline_form_views(inline_views)
+        return self.render_to_response(self.get_context_data(form=form, inline_views=inline_views,
+                                                             inline_form_views=inline_form_views))
 
     def post(self, request, *args, **kwargs):
         fields = self.generate_fields()
@@ -279,13 +290,13 @@ class DefaultModelFormView(DefaultFormView):
         form = self.get_form(form_class)
         inline_form_views = SortedDict()
         inline_forms_is_valid = True
-        for inline_form_view in self.get_inline_form_views():
-            inline_form_view_instance = inline_form_view(self.request, self, form.instance,
-                                                         not self.has_post_permission(self.request,
-                                                                                      obj=self.get_obj()))
-            inline_forms_is_valid = (inline_form_view_instance.formset.is_valid()) \
+
+        inline_views = self.init_inline_views(form.instance)
+        inline_form_views = self._filter_inline_form_views(inline_views)
+
+        for inline_form_view in inline_form_views:
+            inline_forms_is_valid = (inline_form_view.formset.is_valid()) \
                                         and inline_forms_is_valid
-            inline_form_views[inline_form_view.__name__] = inline_form_view_instance
 
         is_valid = form.is_valid()
         is_changed = self.is_changed(form, inline_form_views=inline_form_views)
@@ -321,7 +332,7 @@ class DefaultModelFormView(DefaultFormView):
         self.post_save_obj(obj, form, change)
         return obj
 
-    def form_valid(self, form, inline_form_views, msg=None):
+    def form_valid(self, form, inline_form_views, inline_views, msg=None):
         try:
             obj = self.save_form(form, inline_form_views)
         except SaveObjectException as ex:
@@ -332,10 +343,11 @@ class DefaultModelFormView(DefaultFormView):
 
         return HttpResponseRedirect(self.get_success_url(obj))
 
-    def form_invalid(self, form, inline_form_views, msg=None, msg_level=constants.ERROR):
+    def form_invalid(self, form, inline_form_views, inline_views, msg=None, msg_level=constants.ERROR):
         msg = msg or self.get_message('error')
         add_message(self.request, msg_level, msg)
-        return self.render_to_response(self.get_context_data(form=form, inline_form_views=inline_form_views))
+        return self.render_to_response(self.get_context_data(form=form, inline_views=inline_views,
+                                                             inline_form_views=inline_form_views))
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
         context_data = super(DefaultModelFormView, self).get_context_data(form=form,
@@ -380,19 +392,24 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         return self.messages.get(type) % msg_dict
 
     def get_exclude(self):
-        return self.exclude or self.core.get_ui_form_exclude(self.request, self.get_obj(True))
+        return (self.exclude is not None and self.exclude or
+                self.core.get_ui_form_exclude(self.request, self.get_obj(True)))
 
     def get_readonly_fields(self):
-        return self.readonly_fields or self.core.get_form_readonly_fields(self.request, self.get_obj(True))
+        return (self.readonly_fields is not None and self.readonly_fields or
+                self.core.get_form_readonly_fields(self.request, self.get_obj(True)))
 
-    def get_inline_form_views(self):
-        return self.inline_form_views or self.core.get_inline_form_views(self.request, self.get_obj(True))
+    def get_inline_views(self):
+        return (self.inline_views is not None and self.inline_views or
+                self.core.get_form_inline_views(self.request, self.get_obj(True)))
 
     def get_fieldsets(self):
-        return self.fieldset or self.core.get_form_fieldsets(self.request, self.get_obj(True))
+        return (self.fieldset is not None and self.fieldset or
+                self.core.get_form_fieldsets(self.request, self.get_obj(True)))
 
     def get_fields(self):
-        return self.fields or self.core.get_ui_form_fields(self.request, self.get_obj(True))
+        return (self.fields is not None and self.fields or
+                self.core.get_ui_form_fields(self.request, self.get_obj(True)))
 
     def get_form_class(self):
         return self.form_class or self.core.get_ui_form_class(self.request, self.get_obj(True))

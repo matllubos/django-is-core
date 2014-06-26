@@ -31,7 +31,7 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
                                 'active_menu_groups': self.menu_groups,
                                 'title': self.get_title(),
                                 'view_name': self.view_name,
-                                'bread_crumbs_menu_items': self.bread_crumbs_menu_items()
+                                'bread_crumbs_menu_items': self.bread_crumbs_menu_items(),
                               }
         extra_context_data.update(context_data)
         return extra_context_data
@@ -116,6 +116,14 @@ class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
     def __init_core__(cls, core, pattern):
         super(DefaultModelCoreViewMixin, cls).__init_core__(core, pattern)
         cls.model = cls.model or core.model
+
+    def get_context_data(self, **kwargs):
+        context_data = super(DefaultModelCoreViewMixin, self).get_context_data(**kwargs)
+        extra_context_data = {
+                                'core': self.core
+                              }
+        extra_context_data.update(context_data)
+        return extra_context_data
 
 
 class HomeView(DefaultCoreViewMixin, TemplateView):

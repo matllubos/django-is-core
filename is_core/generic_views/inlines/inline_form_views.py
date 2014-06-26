@@ -24,17 +24,16 @@ class InlineFormView(InlineView):
     initial = []
     base_inline_formset_class = BaseInlineFormSet
 
-    def __init__(self, request, parent_view, instance, is_readonly=False):
-        self.request = request
-        self.parent_view = parent_view
+    def __init__(self, request, parent_view, parent_instance):
+        super(InlineFormView, self).__init__(request, parent_view, parent_instance)
         self.parent_model = parent_view.model
         self.core = parent_view.core
-        self.parent = instance
-        self.is_readonly = is_readonly
+        self.parent_instance = parent_instance
+        self.is_readonly = not parent_view.has_post_permission(self.request, obj=parent_view.get_obj())
         if self.extra < self.min_num:
             self.extra = self.min_num
 
-        self.formset = self.get_formset(instance, self.request.POST, self.request.FILES)
+        self.formset = self.get_formset(parent_instance, self.request.POST, self.request.FILES)
 
         for i in range(self.min_num):
             self.formset.forms[i].empty_permitted = False

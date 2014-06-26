@@ -108,7 +108,7 @@ class ModelISCore(PermissionsMixin, ISCore):
 
     # form params
     form_fields = None
-    form_inline_form_views = ()
+    form_inline_views = ()
     form_exclude = ()
     form_class = RestModelForm
 
@@ -252,10 +252,8 @@ class UIModelISCore(ModelISCore, UIISCore):
     default_list_filter = {}
 
     # add/edit view params
-    form_fieldsets = ()
+    form_fieldsets = None
     form_readonly_fields = ()
-
-    inline_form_views = ()
 
     def __init__(self, site_name, menu_parent_groups):
         super(UIModelISCore, self).__init__(site_name, menu_parent_groups)
@@ -284,8 +282,8 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_rest_list_fields(self):
         return self.list_display
 
-    def get_inline_form_views(self, request, obj=None):
-        return self.inline_form_views
+    def get_form_inline_views(self, request, obj=None):
+        return self.form_inline_views
 
     def get_default_list_filter(self, request):
         return self.default_list_filter.copy()

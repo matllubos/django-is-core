@@ -25,8 +25,7 @@ class CoresLoader(object):
             try:
                 import_module('%s.cores' % app)
             except ImportError as ex:
-                print app
-                print ex
+                pass
 
     def get_cores(self):
         self._init_apps()
