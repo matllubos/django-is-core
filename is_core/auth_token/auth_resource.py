@@ -28,3 +28,8 @@ class AuthResource(RestResource):
         if self.request.user.is_authenticated():
             logout(self.request)
         return rc.DELETED
+
+    @classmethod
+    def __init_core__(cls, core, pattern):
+        cls.core = core
+        cls.pattern = pattern

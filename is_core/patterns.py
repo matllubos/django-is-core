@@ -7,6 +7,7 @@ from django.conf.urls import url
 
 # from is_core.rest.resource import DynamicRestHandlerResource
 from is_core.utils import get_new_class_name
+from is_core.auth import RestPermWrapper, RestAuthPermWrapper, UIAuthPermWrapper, UIPermWrapper
 
 
 logger = logging.getLogger('is-core')
@@ -83,9 +84,10 @@ class UIPattern(ViewPattern):
 
     def get_view(self):
         if self.view.login_required:
-            return self.view.as_wrapped_view()
+            wrapper_class = UIAuthPermWrapper
         else:
-            return self.view.as_view()
+            wrapper_class = UIPermWrapper
+        return self.view.as_wrapped_view(wrapper_class)
 
 
 class RestPattern(ViewPattern):
@@ -99,9 +101,10 @@ class RestPattern(ViewPattern):
 
     def get_view(self):
         if self.resource.login_required:
-            return self.resource.as_wrapped_view(self.methods)
+            wrapper_class = RestAuthPermWrapper
         else:
-            return self.resource.as_view()
+            wrapper_class = RestPermWrapper
+        return self.resource.as_wrapped_view(wrapper_class, self.methods)
 
     def get_allowed_methods(self, user, obj):
         return self.resource.get_allowed_methods(user, obj, self.methods)

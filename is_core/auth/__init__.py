@@ -7,6 +7,7 @@ from django.template.context import RequestContext
 from django.utils.functional import SimpleLazyObject
 
 from is_core.utils.models import get_object_or_none
+from is_core import config
 
 
 def get_obj(Model, pk):
@@ -20,10 +21,13 @@ class Auth(object):
         self.kwargs = kwargs
 
     def is_authenticated(self, request):
-        rm = request.method.upper()
-
         if not request.user or not request.user.is_active:
             return False
+
+        return self.has_permissions(request)
+
+    def has_permissions(self, request):
+        rm = request.method.upper()
 
         if not self.permissions_validators.has_key(rm):
             return False
@@ -45,27 +49,58 @@ class Auth(object):
         return {}
 
 
-class AuthWrapper(Auth):
+class PermWrapper(Auth):
+
+    def _check_permissions(self, request):
+        raise NotImplemented
+
+    def _forbidden(self, request):
+        return HttpResponseForbidden()
+
+    def _wrap(self, func, request, *args, **kwargs):
+        return func(request, *args, **kwargs)
 
     def wrap(self, func):
 
         def wrapper(request, *args, **kwargs):
-            if request.user.is_authenticated() and not self.is_authenticated(request):
-                return HttpResponseForbidden(render_to_string('403.html', context_instance=RequestContext(request)))
+            if not self._check_permissions(request):
+                return self._forbidden(request)
 
-            return login_required(func)(request, *args, **kwargs)
-
-        return wrapper
-
-
-class RestAuthWrapper(Auth):
-
-    def wrap(self, func):
-
-        def wrapper(request, *args, **kwargs):
-            if not request.user.is_authenticated() or not self.is_authenticated(request):
-                return HttpResponseForbidden()
-
-            return func(request, *args, **kwargs)
+            return self._wrap(func, request, *args, **kwargs)
 
         return wrapper
+
+
+class UIPermWrapper(PermWrapper):
+
+    def _check_permissions(self, request):
+        return self.has_permissions(request)
+
+    def _forbidden(self, request):
+        return HttpResponseForbidden(render_to_string('403.html', context_instance=RequestContext(request)))
+
+
+class UIAuthPermWrapper(UIPermWrapper):
+
+    def _check_permissions(self, request):
+        return not request.user.is_authenticated() or self.is_authenticated(request)
+
+    def _wrap(self, func, request, *args, **kwargs):
+        return login_required(func)(request, *args, **kwargs)
+
+
+class RestPermWrapper(PermWrapper):
+
+    def is_authenticated(self, request):
+        if config.AUTH_USE_TOKENS and not request.token.is_from_header:
+            return False
+        return super(RestPermWrapper, self).has_permissions(request)
+
+    def _check_permissions(self, request):
+        return self.has_permissions(request)
+
+
+class RestAuthPermWrapper(RestPermWrapper):
+
+    def _check_permissions(self, request):
+        return not request.user.is_authenticated() or self.is_authenticated(request)

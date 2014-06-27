@@ -430,7 +430,7 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
 
     def get_rest_form_fields(self, request, obj=None):
-        return flatten_fieldsets(self.get_form_fieldsets(request, obj)) or self.get_form_fields(request, obj)
+        return flatten_fieldsets(self.get_form_fieldsets(request, obj) or ()) or self.get_form_fields(request, obj)
 
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)

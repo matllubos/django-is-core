@@ -188,7 +188,7 @@ class DefaultModelFormView(DefaultFormView):
         return self.get_readonly_fields()
 
     def get_inline_views(self):
-        return self.inline_views
+        return self.inline_views or ()
 
     def init_inline_views(self, instance):
         inline_views = SortedDict()
@@ -294,7 +294,7 @@ class DefaultModelFormView(DefaultFormView):
         inline_views = self.init_inline_views(form.instance)
         inline_form_views = self._filter_inline_form_views(inline_views)
 
-        for inline_form_view in inline_form_views:
+        for inline_form_view in inline_form_views.values():
             inline_forms_is_valid = (inline_form_view.formset.is_valid()) \
                                         and inline_forms_is_valid
 
@@ -302,12 +302,13 @@ class DefaultModelFormView(DefaultFormView):
         is_changed = self.is_changed(form, inline_form_views=inline_form_views)
 
         if is_valid and inline_forms_is_valid and is_changed:
-            return self.form_valid(form, inline_form_views)
+            return self.form_valid(form, inline_form_views, inline_views)
         else:
             if is_valid and not is_changed:
-                return self.form_invalid(form, inline_form_views, msg=_('No changes have been submitted.'),
+                return self.form_invalid(form, inline_form_views, inline_views,
+                                         msg=_('No changes have been submitted.'),
                                          msg_level=constants.INFO)
-            return self.form_invalid(form, inline_form_views)
+            return self.form_invalid(form, inline_form_views, inline_views)
 
     def get_obj(self, cached=True):
         return None
@@ -336,7 +337,7 @@ class DefaultModelFormView(DefaultFormView):
         try:
             obj = self.save_form(form, inline_form_views)
         except SaveObjectException as ex:
-            return self.form_invalid(form, inline_form_views, force_text(ex))
+            return self.form_invalid(form, inline_form_views, inline_views, force_text(ex))
 
         msg = msg or self.get_message('success', obj)
         messages.success(self.request, msg)

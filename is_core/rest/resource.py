@@ -16,9 +16,6 @@ from is_core.utils.models import get_model_field_names
 from is_core.rest.paginator import Paginator
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
-from is_core.auth import RestAuthWrapper
-from is_core import config
-from is_core.auth_token.wrappers import RestTokenAuthWrapper
 
 
 class RestResponse(HeadersResult):
@@ -186,7 +183,8 @@ class RestResource(BaseResource):
     login_required = True
 
     def dispatch(self, request, *args, **kwargs):
-        self.core.init_rest_request(request)
+        if hasattr(self, 'core'):
+            self.core.init_rest_request(request)
         return super(RestResource, self).dispatch(request, *args, **kwargs)
 
     @classmethod
@@ -195,12 +193,11 @@ class RestResource(BaseResource):
         cls.pattern = pattern
 
     @classmethod
-    def as_wrapped_view(cls, allowed_methods, **initkwargs):
+    def as_wrapped_view(cls, wrapper_class, allowed_methods, **initkwargs):
         wrapper = cls.as_view(**initkwargs)
-        AuthWrapper = config.AUTH_USE_TOKENS and RestTokenAuthWrapper or RestAuthWrapper
 
-        auth_wrapper = AuthWrapper(cls.get_permission_validators(allowed_methods),
-                                       **initkwargs).wrap(wrapper)
+        auth_wrapper = wrapper_class(cls.get_permission_validators(allowed_methods),
+                                     **initkwargs).wrap(wrapper)
         auth_wrapper.csrf_exempt = wrapper.csrf_exempt
         return auth_wrapper
 

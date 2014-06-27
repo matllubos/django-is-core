@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-from is_core.auth import AuthWrapper
-
 
 class PermissionsMixin(object):
     """
@@ -25,9 +23,6 @@ class PermissionsUIMixin(PermissionsMixin):
     """
     Mixin that validate UI user permissions inside ISCore
     """
-
-    def get_auth_wrapper(self, permissions_validators):
-        return AuthWrapper(permissions_validators).wrap
 
     def has_ui_read_permission(self, request, obj=None):
         return self.has_read_permission(request, obj)

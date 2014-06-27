@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 
-from is_core.auth import AuthWrapper
 from is_core.menu import LinkMenuItem
 
 from block_snippets.views import JsonSnippetTemplateResponseMixin
@@ -52,8 +51,8 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
         return False
 
     @classmethod
-    def as_wrapped_view(cls, allowed_methods=None, **initkwargs):
-        return AuthWrapper(cls.get_permission_validators(), **initkwargs).wrap(cls.as_view(**initkwargs))
+    def as_wrapped_view(cls, wrapper_class, allowed_methods=None, **initkwargs):
+        return wrapper_class(cls.get_permission_validators(), **initkwargs).wrap(cls.as_view(**initkwargs))
 
     def bread_crumbs_menu_items(self):
         if self.add_current_to_breadcrumbs:

@@ -4,14 +4,13 @@ from django.conf import settings
 from django.conf.urls import patterns, url, include
 from django.utils.datastructures import SortedDict
 from django.template.defaultfilters import lower
+from django.core.exceptions import ImproperlyConfigured
 
 from .utils import str_to_class
 from . import config
 from .loading import get_cores
 from .patterns import RestPattern
 from .auth_token.auth_resource import AuthResource
-from django.utils.encoding import force_text
-from django.core.exceptions import ImproperlyConfigured
 
 
 sites = {}
@@ -83,11 +82,8 @@ class ISSite(object):
 
 
         if config.AUTH_USE_TOKENS:
-            resource_kwargs = {
-                  'form_class': str_to_class(config.AUTH_FORM_CLASS)
-            }
-            pattern = RestPattern('api-login', self.name, r'^%sapi/$' % settings.LOGIN_URL[1:], AuthResource,
-                                  resource_kwargs)
+            AuthResource.form_class = str_to_class(config.AUTH_FORM_CLASS)
+            pattern = RestPattern('api-login', self.name, r'^%sapi/$' % settings.LOGIN_URL[1:], AuthResource)
             urlpatterns += patterns('', pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)
