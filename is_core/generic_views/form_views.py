@@ -467,11 +467,11 @@ class AddModelFormView(DefaultCoreModelFormView):
 
     @classmethod
     def has_get_permission(cls, request, **kwargs):
-        return cls.core.has_create_permission(request, **kwargs)
+        return cls.core.has_ui_create_permission(request, **kwargs)
 
     @classmethod
     def has_post_permission(cls, request, **kwargs):
-        return cls.core.has_create_permission(request, **kwargs)
+        return cls.core.has_ui_create_permission(request, **kwargs)
 
 
 class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):

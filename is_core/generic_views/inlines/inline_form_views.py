@@ -84,7 +84,6 @@ class InlineFormView(InlineView):
     def get_readonly_fields(self):
         if self.is_readonly:
             return self.get_formset_factory().form.base_fields.keys()
-
         return self.readonly_fields
 
     def get_prefix(self):
