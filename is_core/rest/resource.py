@@ -229,6 +229,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
     fields = ('_web_links', '_rest_links', '_actions', '_class_names')
     register = False
+    form_class = None
 
     @classmethod
     def _web_links(cls, obj, request):

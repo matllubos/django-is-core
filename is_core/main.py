@@ -378,7 +378,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
             resource_kwargs = {
                       'model': self.model, 'fields': set(self.rest_resource_class.fields + self.get_rest_fields()),
                       'default_list_fields': self.get_rest_default_list_fields(),
-                      'default_obj_fields': self.get_rest_default_list_fields(), 'form_class': self.form_class,
+                      'default_obj_fields': self.get_rest_default_list_fields(),
                       'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self, 'register': True
                       }
             self._rest_resource = type(str(get_new_class_name('api-resource-%s' % self.get_menu_group_pattern_name(),
