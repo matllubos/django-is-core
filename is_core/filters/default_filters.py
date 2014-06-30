@@ -18,7 +18,7 @@ class Filter(object):
     def get_widget(self, *args, **kwargs):
         raise NotImplemented
 
-    def filter_queryset(self, queryset):
+    def filter_queryset(self, queryset, request):
         return queryset
 
     def render(self, request):
@@ -46,12 +46,12 @@ class DefaultFilter(Filter):
                 raise FilterException(_('Not valid filter: %(filter_key)s=%(filter_value)s' %
                                         {'filter_key': self.full_filter_key, 'filter_value': self.value}))
 
-    def get_filter_term(self):
+    def get_filter_term(self, request):
         self._check_suffix()
         return {self.full_filter_key: self.value}
 
-    def filter_queryset(self, queryset):
-        filter_term = self.get_filter_term()
+    def filter_queryset(self, queryset, request):
+        filter_term = self.get_filter_term(request)
         if isinstance(filter_term, dict):
             filter_term = Q(**filter_term)
         if self.is_exclude:
@@ -157,9 +157,9 @@ class RelatedFieldFilter(DefaultFieldFilter):
         widget = super(RelatedFieldFilter, self).get_widget()
         return widget
 
-    def get_filter_term(self):
+    def get_filter_term(self, request):
         if '__' not in self.filter_key:
-            return super(RelatedFieldFilter, self).get_filter_term()
+            return super(RelatedFieldFilter, self).get_filter_term(request)
 
         self._check_suffix()
         key, suffix = self.filter_key.split('__', 1)
@@ -175,7 +175,7 @@ class RelatedFieldFilter(DefaultFieldFilter):
 
             return {self.full_filter_key: value}
         else:
-            return super(RelatedFieldFilter, self).get_filter_term()
+            return super(RelatedFieldFilter, self).get_filter_term(request)
 
 
 class DateFilter(DefaultFieldFilter):
@@ -193,9 +193,9 @@ class DateFilter(DefaultFieldFilter):
 
         return suffixes
 
-    def get_filter_term(self):
+    def get_filter_term(self, request):
         if '__' in self.filter_key:
-            return super(DateTimeFilter, self).get_filter_term()
+            return super(DateTimeFilter, self).get_filter_term(request)
 
         parse = DEFAULTPARSER._parse(self.value, dayfirst=True)
         if parse is None:

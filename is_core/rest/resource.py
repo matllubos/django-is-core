@@ -264,7 +264,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         filter_terms = request.GET.dict()
         for filter_temr, filter_val in filter_terms.items():
             filter = get_model_field_or_method_filter(filter_temr, self.model, filter_val)
-            qs = filter.filter_queryset(qs)
+            qs = filter.filter_queryset(qs, request)
         return qs
 
     def _order_by(self, request, qs, order_field):
