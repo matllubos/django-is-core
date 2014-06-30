@@ -40,9 +40,13 @@ class DefaultFilter(Filter):
             self.is_exclude = True
             self.filter_key = self.filter_key[:-5]
 
+    @classmethod
+    def get_suffixes(cls):
+        return cls.suffixes
+
     def _check_suffix(self):
         if '__' in self.filter_key:
-            if self.filter_key.split('__', 1)[1] not in self.suffixes:
+            if self.filter_key.split('__', 1)[1] not in self.get_suffixes():
                 raise FilterException(_('Not valid filter: %(filter_key)s=%(filter_value)s' %
                                         {'filter_key': self.full_filter_key, 'filter_value': self.value}))
 
@@ -183,19 +187,20 @@ class DateFilter(DefaultFieldFilter):
     comparators = ['gt', 'lt', 'gte', 'lte']
     extra_suffixes = ['day', 'month', 'year']
 
-    @property
-    def suffixes(self):
-        suffixes = self.comparators + self.extra_suffixes
-
-        for suffix in self.extra_suffixes:
-            for comparator in self.comparators:
-                suffixes.append('__'.join((suffix, comparator)))
-
+    @classmethod
+    def get_suffixes(cls):
+        suffixes = cls.comparators + cls.extra_suffixes
         return suffixes
 
     def get_filter_term(self, request):
-        if '__' in self.filter_key:
-            return super(DateTimeFilter, self).get_filter_term(request)
+        splitted_filter_key = self.filter_key.split('__')
+
+        if len(splitted_filter_key) == 2 and splitted_filter_key[1] in self.comparators:
+            if splitted_filter_key[1] in self.comparators:
+                value = DEFAULTPARSER.parse(self.value, dayfirst=True)
+                return {self.filter_key: value}
+            else:
+                return super(DateFilter, self).get_filter_term(request)
 
         parse = DEFAULTPARSER._parse(self.value, dayfirst=True)
         if parse is None:
