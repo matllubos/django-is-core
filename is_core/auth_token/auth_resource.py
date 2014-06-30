@@ -22,7 +22,7 @@ class AuthResource(RestResource):
             return HeadersResult({'errors': errors}, status_code=400)
 
         login(self.request, form.get_user(), not form.is_permanent())
-        return {'token': request.token.key}
+        return {'token': request.token.key, 'user': form.get_user()}
 
     def delete(self, request, pk=None):
         if self.request.user.is_authenticated():

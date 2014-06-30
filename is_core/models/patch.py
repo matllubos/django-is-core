@@ -51,13 +51,14 @@ class RestOptions(Options):
         from piston.utils import model_default_rest_fields
 
         self.fields = model_default_rest_fields(model)
-        self.default_list_fields = self.fields
-        self.default_obj_fields = self.fields
 
         if hasattr(model, 'RestMeta'):
             self.fields = getattr(model.RestMeta, 'fields', self.fields)
-            self.default_list_fields = getattr(model.RestMeta, 'default_list_fields' , self.default_list_fields)
-            self.default_obj_fields = getattr(model.RestMeta, 'default_obj_fields', self.default_obj_fields)
+            self.default_list_fields = getattr(model.RestMeta, 'default_list_fields' , self.fields)
+            self.default_obj_fields = getattr(model.RestMeta, 'default_obj_fields', self.fields)
+        else:
+            self.default_list_fields = self.fields
+            self.default_obj_fields = self.fields
 
         self.fields = set(self.fields)
         self.default_list_fields = set(self.default_list_fields)

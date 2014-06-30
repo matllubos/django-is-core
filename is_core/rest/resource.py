@@ -228,6 +228,8 @@ class RestCoreResourceMixin(object):
 class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
     fields = ('_rest_links', '_actions', '_class_names')
+    default_obj_fields = ('_rest_links',)
+    default_list_fields = ('_rest_links',)
     register = False
     form_class = None
 
