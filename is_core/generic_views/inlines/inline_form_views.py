@@ -29,7 +29,7 @@ class InlineFormView(InlineView):
         self.parent_model = parent_view.model
         self.core = parent_view.core
         self.parent_instance = parent_instance
-        self.is_readonly = not parent_view.has_post_permission(self.request, obj=parent_view.get_obj())
+        self.readonly = self.is_readonly()
         if self.extra < self.min_num:
             self.extra = self.min_num
 
@@ -37,6 +37,9 @@ class InlineFormView(InlineView):
 
         for i in range(self.min_num):
             self.formset.forms[i].empty_permitted = False
+
+    def is_readonly(self):
+        return not self.parent_view.has_post_permission(self.request, obj=self.parent_view.get_obj())
 
     def get_context_data(self, **kwargs):
         context_data = super(InlineFormView, self).get_context_data(**kwargs)
@@ -76,13 +79,13 @@ class InlineFormView(InlineView):
         return self.initial[:]
 
     def get_can_delete(self):
-        return self.can_delete and not self.is_readonly
+        return self.can_delete and not self.readonly
 
     def get_can_add(self):
-        return self.can_add and not self.is_readonly
+        return self.can_add and not self.readonly
 
     def get_readonly_fields(self):
-        if self.is_readonly:
+        if self.readonly:
             return self.get_formset_factory().form.base_fields.keys()
         return self.readonly_fields
 

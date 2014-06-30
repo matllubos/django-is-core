@@ -418,7 +418,7 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
     def get_rest_default_list_fields(self):
         rest_list_fields_dict = list_to_dict(super(UIRestModelISCore, self).get_rest_default_list_fields())
 
-        for display in self.get_list_display():
+        for display in self.get_rest_list_fields():
             rest_dict = rest_list_fields_dict
             for val in display.split('__'):
                 rest_dict[val] = rest_dict.get(val, {})
