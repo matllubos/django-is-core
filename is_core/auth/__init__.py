@@ -103,4 +103,4 @@ class RestPermWrapper(PermWrapper):
 class RestAuthPermWrapper(RestPermWrapper):
 
     def _check_permissions(self, request):
-        return not request.user.is_authenticated() or self.is_authenticated(request)
+        return request.user.is_authenticated() and self.is_authenticated(request)
