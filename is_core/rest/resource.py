@@ -227,7 +227,7 @@ class RestCoreResourceMixin(object):
 
 class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
-    fields = ('_web_links', '_rest_links', '_actions', '_class_names')
+    fields = ('_rest_links', '_actions', '_class_names')
     register = False
     form_class = None
 
@@ -384,7 +384,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         if not inst and 'POST' not in self.allowed_methods:
             raise ResourceNotFoundException
 
-        form_fields = self.get_form(request, data=data, initial={'_user': request.user}).fields
+        form_fields = self.get_form(request, inst=inst, data=data, initial={'_user': request.user}).fields
         preprocesor = DataPreprocessor(request, self.model, form_fields, inst)
         data = preprocesor.process_data(data)
 

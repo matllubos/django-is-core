@@ -342,11 +342,14 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_exclude(request, obj)
 
+    def get_rest_extra_fields(self):
+        return ()
+
     def get_rest_fields(self):
         if self.rest_fields:
             return self.rest_fields
 
-        rest_fields = list_to_dict(self.model._rest_meta.fields)
+        rest_fields = list_to_dict(list(self.model._rest_meta.fields) + list(self.get_rest_extra_fields()))
 
         rest_default_list_fields = list_to_dict(self.get_rest_default_list_fields())
         rest_default_obj_fields = list_to_dict(self.get_rest_default_obj_fields())
@@ -434,3 +437,6 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
 
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)
+
+    def get_rest_extra_fields(self):
+        return ('_web_links',)
