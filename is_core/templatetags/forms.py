@@ -154,7 +154,8 @@ def get_field(context, form, field_name):
     if core:
         search_instances.append(core)
 
-    search_instances.append(form.instance)
+    if hasattr(form, 'instance'):
+        search_instances.append(form.instance)
 
     field = form.fields.get(field_name)
     if not field:
