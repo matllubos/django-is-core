@@ -6,13 +6,13 @@
 	<div class="{% block submit-button-wrapper-class %}pull-left{% endblock %}">
 		{% block save-buttons %}
 			{% if show_save_button %}
-				<button type="submit" name="save" class="{% block save-button-class %}btn-save btn btn-primary{% endblock %}">{% block save-button-caption %}{% trans "Save" %}{% endblock %}</button>
+				<button type="submit" name="save" data-title="{% trans 'Save and navigate to the list' %}" class="{% block save-button-class %}btn-save btn btn-primary{% endblock %}">{% block save-button-caption %}{% trans "Save" %}{% endblock %}</button>
 			{% endif %}
-			{% if show_save_and_continue %}<button type="submit" name="save-and-continue" class="{% block save-and-continue-button-class %}btn btn-primary btn-save-and-continue{% endblock %}">{% block save-and-continue-button-caption %}{% trans "Save and continue" %}{% endblock %}</button>{% endif %}
+			{% if show_save_and_continue %}<button data-title="{% trans 'Save and stay on the same page' %}" type="submit" name="save-and-continue" class="{% block save-and-continue-button-class %}btn btn-primary btn-save-and-continue{% endblock %}">{% block save-and-continue-button-caption %}{% trans "Save and continue" %}{% endblock %}</button>{% endif %}
 		{% endblock %}
 		{% if cancel_url %}
 			{% block cancel-buttons %}
-			<a href="{{ cancel_url }}" class="{% block cancel-button-class %}btn btn-default btn-cancel{% endblock %}">{% block cancel-button-caption %}{% trans "Cancel" %}{% endblock %}</a>
+			<a href="{{ cancel_url }}" data-title="{% trans 'Do not save and go back' %}" class="{% block cancel-button-class %}btn btn-default btn-cancel{% endblock %}">{% block cancel-button-caption %}{% trans "Cancel" %}{% endblock %}</a>
 			{% endblock %}
 		{% endif %}
 	</div>
