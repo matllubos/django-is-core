@@ -102,7 +102,8 @@ def display_for_field_value(instance, field, value, callable_value, request):
 def get_instance_field_value_and_label(field_name, instance, fun_kwargs, request):
     if '__' in field_name:
         current_field_name, next_field_name = field_name.split('__', 1)
-        return get_instance_field_value_and_label(next_field_name, getattr(instance, current_field_name), request)
+        return get_instance_field_value_and_label(next_field_name, getattr(instance, current_field_name), fun_kwargs,
+                                                  request)
     else:
         callable_value = getattr(instance, 'get_%s_display' % field_name, None)
         if not callable_value:
