@@ -390,11 +390,13 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         if not inst and 'POST' not in self.allowed_methods:
             raise ResourceNotFoundException
 
-        form_fields = self.get_form(request, inst=inst, data=data, initial={'_user': request.user}).fields
+        form_fields = self.get_form(request, inst=inst, data=data, initial={'_user': request.user,
+                                                                            '_request': request}).fields
         preprocesor = DataPreprocessor(request, self.model, form_fields, inst)
         data = preprocesor.process_data(data)
 
-        form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user})
+        form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user,
+                                                                                                '_request': request})
         errors = form.is_invalid()
         if errors:
             raise DataInvalidException(errors)
