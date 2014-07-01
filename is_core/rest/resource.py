@@ -252,6 +252,10 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         return rest_links
 
     @classmethod
+    def _default_action(cls, obj, request):
+        return cls.core.get_default_action(request, obj=obj)
+
+    @classmethod
     def _actions(cls, obj, request):
         ac = cls.core.get_list_actions(request, obj)
         return ac

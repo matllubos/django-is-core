@@ -168,6 +168,9 @@ class ModelISCore(PermissionsMixin, ISCore):
     def get_list_actions(self, request, obj):
         return list(self.list_actions)
 
+    def get_default_action(self, request, obj):
+        return None
+
 
 class UIISCore(PermissionsUIMixin, ISCore):
     abstract = True
@@ -215,7 +218,6 @@ class UIISCore(PermissionsUIMixin, ISCore):
         if self.get_show_in_menu(request):
             return LinkMenuItem(self.verbose_name_plural, self.menu_url(request),
                                 self.menu_group, active_group == self.menu_group)
-
 
 
 class HomeUIISCore(UIISCore):
@@ -297,11 +299,6 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     def get_ui_list_display(self, request):
         return list(self.get_list_display())
-
-    def get_list_actions(self, request, obj):
-        list_actions = super(UIModelISCore, self).get_list_actions(request, obj)
-        list_actions.append(WebAction('edit-%s' % self.get_menu_group_pattern_name(), _('Edit'), 'edit'))
-        return list_actions
 
     def get_api_url_name(self):
         return self.api_url_name
@@ -441,4 +438,12 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
         return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)
 
     def get_rest_extra_fields(self):
-        return ('_web_links',)
+        return ('_web_links', '_default_action')
+
+    def get_list_actions(self, request, obj):
+        list_actions = super(UIModelISCore, self).get_list_actions(request, obj)
+        list_actions.append(WebAction('edit-%s' % self.get_menu_group_pattern_name(), _('Edit'), 'edit'))
+        return list_actions
+
+    def get_default_action(self, request, obj):
+        return 'edit-%s' % self.get_menu_group_pattern_name()
