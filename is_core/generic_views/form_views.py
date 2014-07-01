@@ -127,6 +127,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def get_initial(self):
         initial = super(DefaultFormView, self).get_initial()
         initial['_user'] = self.request.user
+        initial['_request'] = self.request
         return initial
 
     def form_field(self, form, field_name, form_field):
