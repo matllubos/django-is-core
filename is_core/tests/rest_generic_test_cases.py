@@ -10,6 +10,7 @@ from piston.utils import model_resources_to_dict
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RestAuthMixin
+from is_core import config
 
 
 def add_urls_to_resource(resource):
