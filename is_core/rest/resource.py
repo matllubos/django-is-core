@@ -1,11 +1,9 @@
 from __future__ import unicode_literals
 
-import re
-
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms.models import modelform_factory
+from django.forms.models import modelform_factory, _get_foreign_key
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.fields.related import ForeignRelatedObjectsDescriptor
+from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, SingleRelatedObjectDescriptor
 from django.db import transaction
 from django.db.utils import InterfaceError, DatabaseError
 
@@ -59,6 +57,10 @@ class ResourceNotFoundException(RestException):
 
 class NotAllowedException(RestException):
     message = _('Create or update this resource is not allowed.')
+
+
+class ConflictException(RestException):
+    message = _('Object already exists but you do not allowed to change it.')
 
 
 class DataProcessor(object):
@@ -133,10 +135,17 @@ class DataPreprocessor(DataProcessor):
                     self._process_dict_field(resource, data, key, data_item, rel_model)
 
     def clear_data(self, data):
-        return dict([(re.sub('_id$', '', key), val) for key, val in data.items()])
+        return data
 
 
 class DataPostprocessor(DataProcessor):
+
+    def _process_dict_field(self, resource, data, key, data_item, related_obj):
+        try:
+            data_item[related_obj.field.name] = self.inst.pk
+            data[key] = resource._create_or_update(self.request, data_item).pk
+        except (DataInvalidException, ResourceNotFoundException) as ex:
+            self.errors[key] = ex.errors
 
     def _process_list_field(self, resource, data, key, data_item, related_obj):
         """
@@ -148,7 +157,7 @@ class DataPostprocessor(DataProcessor):
         for rel_obj_data in data_item:
 
             if not isinstance(rel_obj_data, dict):
-                rel_obj_data = {'id': rel_obj_data}
+                rel_obj_data = {related_obj.model._meta.pk.name: rel_obj_data}
 
             rel_obj_data[related_obj.field.name] = self.inst.pk
             try:
@@ -169,14 +178,21 @@ class DataPostprocessor(DataProcessor):
             self.errors[key] = errors
 
     def _process_field(self, data, key, data_item):
-        if key not in self.form_fields.keys() and hasattr(self.model, key) and \
-            isinstance(getattr(self.model, key), ForeignRelatedObjectsDescriptor):
-            related_obj = getattr(self.model, key).related
+        print key
 
-            resource_class = get_resource_of_model(related_obj.model)
-            if resource_class:
-                resource = resource_class()
-                self._process_list_field(resource, data, key, data_item, related_obj)
+        if key not in self.form_fields.keys() and hasattr(self.model, key):
+            print getattr(self.model, key)
+        if key not in self.form_fields.keys() and hasattr(self.model, key):
+            if isinstance(getattr(self.model, key), ForeignRelatedObjectsDescriptor):
+                related_obj = getattr(self.model, key).related
+                resource_class = get_resource_of_model(related_obj.model)
+                if resource_class:
+                    self._process_list_field(resource_class(), data, key, data_item, related_obj)
+            elif isinstance(getattr(self.model, key), SingleRelatedObjectDescriptor):
+                related_obj = getattr(self.model, key).related
+                resource_class = get_resource_of_model(related_obj.model)
+                if resource_class:
+                    self._process_dict_field(resource_class(), data, key, data_item, related_obj)
 
 
 class RestResource(BaseResource):
@@ -363,11 +379,12 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
     def _get_instance(self, request, data):
         # If data contains id this method is update otherwise create
         inst = None
-        if 'id' in data.keys():
+        if self.model._meta.pk.name in data.keys():
             try:
-                inst = self.get_queryset(request).get(pk=data.get('id'))
+                inst = self.get_queryset(request).get(pk=data.get(self.model._meta.pk.name))
             except ObjectDoesNotExist:
-                raise ResourceNotFoundException
+                if self.model.objects.filter(pk=data.get(self.model._meta.pk.name)).exists():
+                    raise ConflictException
         return inst
 
     def _create_or_update(self, request, data):
@@ -383,13 +400,9 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
         change = inst and True or False
 
-        if not inst and 'POST' not in self.allowed_methods:
-            raise ResourceNotFoundException
-
         form_fields = self.get_form(request, inst=inst, data=data, initial={'_user': request.user}).fields
         preprocesor = DataPreprocessor(request, self.model, form_fields, inst)
         data = preprocesor.process_data(data)
-
         form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user})
         errors = form.is_invalid()
         if errors:
@@ -428,6 +441,10 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             return rc.BAD_REQUEST
 
         data = self.flatten_dict(request.data)
+        if data.has_key(self.model._meta.pk.name) and self.model.objects.filter(pk=data.get(self.model._meta.pk.name))\
+            .exists():
+            return rc.DUPLICATE_ENTRY
+
         try:
             inst = self._atomic_create_or_update(request, data)
         except DataInvalidException as ex:
@@ -443,7 +460,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             return rc.BAD_REQUEST
 
         data = self.flatten_dict(request.data)
-        data['id'] = pk
+        data[self.model._meta.pk.name] = pk
         try:
             return self._atomic_create_or_update(request, data)
         except DataInvalidException as ex:
