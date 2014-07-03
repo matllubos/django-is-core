@@ -1,17 +1,16 @@
 from __future__ import unicode_literals
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms.models import modelform_factory, _get_foreign_key
+from django.forms.models import modelform_factory, ModelMultipleChoiceField
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, SingleRelatedObjectDescriptor
-from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor
 from django.db import transaction
 from django.db.utils import InterfaceError, DatabaseError
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_resource_of_model, rc, HeadersResult
 
-from is_core.utils.models import get_model_field_names, get_object_or_none
+from is_core.utils.models import get_model_field_names
 from is_core.rest.paginator import Paginator
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
@@ -160,10 +159,10 @@ class DataPreprocessor(DataProcessor):
             if resource_class:
                 resource = resource_class()
 
-                if isinstance(getattr(self.model, key), ReverseSingleRelatedObjectDescriptor):
-                    self._process_dict_field(resource, data, key, data_item, rel_model)
-                else:
+                if isinstance(self.form_fields.get(key), ModelMultipleChoiceField):
                     self._process_list_field(resource, data, key, data_item, rel_model)
+                else:
+                    self._process_dict_field(resource, data, key, data_item, rel_model)
 
     def clear_data(self, data):
         return data
@@ -420,25 +419,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
         form_class = self.generate_form_class(request, inst, exclude)
         form = form_class(initial=initial, **kwargs)
-        form.merge_from_initial()
         return form
-
-    def validation(self, form):
-        """
-        Validate input data. It uses django forms
-        """
-        errors = {}
-        if not form.is_valid():
-            errors = dict([(k, v[0]) for k, v in form.errors.items()])
-
-        non_field_errors = form.non_field_errors()
-        if non_field_errors:
-            errors = {'non-field-errors': non_field_errors}
-
-        if errors:
-            return errors
-
-        return False
 
     def _get_instance(self, request, data):
         # If data contains id this method is update otherwise create
