@@ -133,7 +133,7 @@ class DataPreprocessor(DataProcessor):
                     self._process_dict_field(resource, data, key, data_item, rel_model)
 
     def clear_data(self, data):
-        return dict([(re.sub('_id$', '', key), val) for key, val in data.items()])
+        return data
 
 
 class DataPostprocessor(DataProcessor):
@@ -332,19 +332,16 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         # When is send PUT (resource instance exists), it is possible send only changed values.
         exclude = []
 
-        if data and inst and fields:
-            for field_name in fields:
-                if field_name not in data.keys():
-                    exclude.append(field_name)
-
         kwargs = {}
         if inst:
             kwargs['instance'] = inst
         if data:
             kwargs['data'] = data
+            kwargs['files'] = request.FILES
 
         form_class = self.generate_form_class(request, inst, exclude)
         form = form_class(initial=initial, **kwargs)
+        form.merge_from_initial()
         return form
 
     def validation(self, form):
@@ -387,6 +384,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
         change = inst and True or False
 
+        print inst
         if not inst and 'POST' not in self.allowed_methods:
             raise ResourceNotFoundException
 
