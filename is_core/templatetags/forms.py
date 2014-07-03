@@ -15,6 +15,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 from block_snippets.templatetags import SnippetsIncludeNode
+from django.core.exceptions import ObjectDoesNotExist
 
 register = template.Library()
 
@@ -107,8 +108,11 @@ def get_instance_field_value_and_label(field_name, instance, fun_kwargs, request
     else:
         callable_value = getattr(instance, 'get_%s_display' % field_name, None)
         if not callable_value:
-            callable_value = getattr(instance, field_name)
-
+            # Exeption because OneToOne Field
+            try:
+                callable_value = getattr(instance, field_name)
+            except ObjectDoesNotExist:
+                callable_value = None
         value = get_callable_value(callable_value, fun_kwargs)
 
         if isinstance(value, bool):

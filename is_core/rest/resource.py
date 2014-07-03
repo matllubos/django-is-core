@@ -4,13 +4,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import modelform_factory, _get_foreign_key
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, SingleRelatedObjectDescriptor
+from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor
 from django.db import transaction
 from django.db.utils import InterfaceError, DatabaseError
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_resource_of_model, rc, HeadersResult
 
-from is_core.utils.models import get_model_field_names
+from is_core.utils.models import get_model_field_names, get_object_or_none
 from is_core.rest.paginator import Paginator
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
@@ -90,24 +91,54 @@ class DataProcessor(object):
 
 class DataPreprocessor(DataProcessor):
 
-    def _process_list_field(self, resource, data, key, data_items, rel_model):
-        """
-        Create or update ManyToMany field
-        """
+    def _add_data_items_to_list(self, resource, data, list_items, errors):
         i = 1
-        errors = []
-
-        data[key] = []
-        for data_item in data_items:
+        for data_item in data:
             if isinstance(data_item, dict):
                 try:
-                    data[key].append(resource._create_or_update(self.request, data_item).pk)
-                except (DataInvalidException, ResourceNotFoundException) as ex:
+                    list_items.append(resource._create_or_update(self.request, data_item).pk)
+                except (DataInvalidException, RestException) as ex:
                     er = ex.errors
                     er.update({'_index': i})
                     errors.append(er)
             else:
-                data[key].append(data_item)
+                list_items.append(data_item)
+
+    def _remove_items_from_list(self, resource, data, list_items, errors):
+        i = 1
+        for data_item in data:
+            if isinstance(data_item, dict):
+                if data_item.has_key(self.model._meta.pk.name):
+                    if data_item.get(self.model._meta.pk.name) in list_items:
+                        list_items.remove(data_item.get(self.model._meta.pk.name))
+                else:
+                    errors.append({'_index': i, 'error': _('Removed element must contain pk')})
+            else:
+                if data_item in list_items:
+                    list_items.remove(data_item)
+            i += 1
+
+    def _process_list_field(self, resource, data, key, data_items, rel_model):
+        """
+        Set ManyToMany field
+        """
+
+        if isinstance(data_items, dict):
+            data[key] = list(getattr(self.inst, key).all().values_list('pk', flat=True))
+            errors = {}
+            add_errors = []
+            remove_errors = []
+            self._add_data_items_to_list(resource, data_items.get('add', []), data[key], add_errors)
+            self._remove_data_items_to_list(resource, data_items.get('remove', []), data[key], remove_errors)
+            if add_errors:
+                errors['add'] = add_errors
+            if remove_errors:
+                errors['remove'] = remove_errors
+
+        else:
+            errors = []
+            data[key] = []
+            self._add_data_items_to_list(resource, data_items, data[key], errors)
 
         if errors:
             self.errors[key] = errors
@@ -118,7 +149,7 @@ class DataPreprocessor(DataProcessor):
         """
         try:
             data[key] = resource._create_or_update(self.request, data_item).pk
-        except (DataInvalidException, ResourceNotFoundException) as ex:
+        except (DataInvalidException, RestException) as ex:
             self.errors[key] = ex.errors
 
     def _process_field(self, data, key, data_item):
@@ -129,16 +160,53 @@ class DataPreprocessor(DataProcessor):
             if resource_class:
                 resource = resource_class()
 
-                if isinstance(data_item, (list, tuple)):
-                    self._process_list_field(resource, data, key, data_item, rel_model)
-                else:
+                if isinstance(getattr(self.model, key), ReverseSingleRelatedObjectDescriptor):
                     self._process_dict_field(resource, data, key, data_item, rel_model)
+                else:
+                    self._process_list_field(resource, data, key, data_item, rel_model)
 
     def clear_data(self, data):
         return data
 
 
 class DataPostprocessor(DataProcessor):
+
+    def _add_related_items(self, resource, data, list_items, errors, related_obj):
+        i = 1
+        for rel_obj_data in data:
+            if not isinstance(rel_obj_data, dict):
+                rel_obj_data = {related_obj.model._meta.pk.name: rel_obj_data}
+
+            rel_obj_data[related_obj.field.name] = self.inst.pk
+            try:
+                list_items.append(resource._create_or_update(self.request, rel_obj_data).pk)
+            except (DataInvalidException, RestException) as ex:
+                er = ex.errors
+                er.update({'_index': i})
+                errors.append(er)
+            i += 1
+
+    # TODO: Throw exception if object does not exists or user has not permissions
+    def _remove_related_items(self, resource, data, list_items, errors):
+        i = 1
+        for data_item in data:
+            if isinstance(data_item, dict):
+                if data_item.has_key(self.model._meta.pk.name):
+                    if data_item.get(self.model._meta.pk.name) in list_items:
+                        list_items.remove(data_item.get(self.model._meta.pk.name))
+                else:
+                    errors.append({'_index': i, 'error': _('Removed element must contain pk')})
+            else:
+                if data_item in list_items:
+                    list_items.remove(data_item)
+            i += 1
+
+    def _remove_other_related_objects(self, resource, related_obj, existing_related):
+        for reverse_related_obj in resource.model.objects.filter(**{related_obj.field.name: self.inst})\
+                                    .exclude(pk__in=existing_related):
+            if resource.has_delete_permission(self.request, reverse_related_obj):
+                resource._delete(self.request, reverse_related_obj)
+
 
     def _process_dict_field(self, resource, data, key, data_item, related_obj):
         try:
@@ -147,41 +215,34 @@ class DataPostprocessor(DataProcessor):
         except (DataInvalidException, ResourceNotFoundException) as ex:
             self.errors[key] = ex.errors
 
-    def _process_list_field(self, resource, data, key, data_item, related_obj):
+    def _process_list_field(self, resource, data, key, data_items, related_obj):
         """
         Create or update reverse ForeignKey field
         """
-        i = 1
-        errors = []
-        existing_related = []
-        for rel_obj_data in data_item:
 
-            if not isinstance(rel_obj_data, dict):
-                rel_obj_data = {related_obj.model._meta.pk.name: rel_obj_data}
+        if isinstance(data_items, dict):
+            existing_related = list(resource.model.objects.filter(**{related_obj.field.name: self.inst}).values_list('pk', flat=True))
+            errors = {}
+            add_errors = []
+            remove_errors = []
 
-            rel_obj_data[related_obj.field.name] = self.inst.pk
-            try:
-                existing_related.append(resource._create_or_update(self.request, rel_obj_data).pk)
-            except (DataInvalidException, ResourceNotFoundException) as ex:
-                er = ex.errors
-                er.update({'_index': i})
-                errors.append(er)
-            i += 1
+            self._add_related_items(resource, data_items.get('add', []), existing_related, add_errors, related_obj)
+            self._remove_related_items(resource, data_items.get('remove', []), existing_related, remove_errors)
+            if add_errors:
+                errors['add'] = add_errors
+            if remove_errors:
+                errors['remove'] = remove_errors
+        else:
+            errors = []
+            existing_related = []
+            self._add_related_items(resource, data_items, existing_related, errors, related_obj)
 
-        # TODO: Delete other related objects. This will be more complicated.
-        for reverse_related_obj in resource.model.objects.filter(**{related_obj.field.name: self.inst})\
-                                    .exclude(pk__in=existing_related):
-            if resource.has_delete_permission(self.request, reverse_related_obj):
-                resource._delete(self.request, reverse_related_obj)
+        self._remove_other_related_objects(resource, related_obj, existing_related)
 
         if errors:
             self.errors[key] = errors
 
     def _process_field(self, data, key, data_item):
-        print key
-
-        if key not in self.form_fields.keys() and hasattr(self.model, key):
-            print getattr(self.model, key)
         if key not in self.form_fields.keys() and hasattr(self.model, key):
             if isinstance(getattr(self.model, key), ForeignRelatedObjectsDescriptor):
                 related_obj = getattr(self.model, key).related
@@ -264,7 +325,9 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         for pattern in cls.core.resource_patterns.values():
             url = pattern.get_url_string(request, obj=obj)
             if url:
-                rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}
+                allowed_methods = pattern.get_allowed_methods(request, obj)
+                if allowed_methods:
+                    rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}
         return rest_links
 
     @classmethod
