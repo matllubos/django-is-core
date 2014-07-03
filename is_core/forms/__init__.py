@@ -43,6 +43,7 @@ class RestFormMixin(object):
     do this on its own, which is really annoying.
     """
     def _merge_from_initial(self):
+        self.data = self.data.copy()
         filt = lambda v: v not in self.data.keys()
         for field_name in filter(filt, self.fields.keys()):
             field = self.fields[field_name]
