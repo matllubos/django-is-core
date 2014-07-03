@@ -29,6 +29,19 @@ class RestFormMixin(object):
 
         return False
 
+    """
+    Subclass of `forms.ModelForm` which makes sure
+    that the initial values are present in the form
+    data, so you don't have to send all old values
+    for the form to actually validate. Django does not
+    do this on its own, which is really annoying.
+    """
+    def merge_from_initial(self):
+        filt = lambda v: v not in self.data.keys()
+        for field in filter(filt, self.fields.keys()):
+            self.data[field] = self.initial.get(field, self.fields[field].initial)
+
+
 class AllFieldsUniqueValidationModelForm(forms.ModelForm):
 
     def validate_unique(self):

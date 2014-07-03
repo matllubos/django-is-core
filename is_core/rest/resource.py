@@ -268,6 +268,10 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         return rest_links
 
     @classmethod
+    def _default_action(cls, obj, request):
+        return cls.core.get_default_action(request, obj=obj)
+
+    @classmethod
     def _actions(cls, obj, request):
         ac = cls.core.get_list_actions(request, obj)
         return ac
@@ -344,19 +348,16 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         # When is send PUT (resource instance exists), it is possible send only changed values.
         exclude = []
 
-        if data and inst and fields:
-            for field_name in fields:
-                if field_name not in data.keys():
-                    exclude.append(field_name)
-
         kwargs = {}
         if inst:
             kwargs['instance'] = inst
         if data:
             kwargs['data'] = data
+            kwargs['files'] = request.FILES
 
         form_class = self.generate_form_class(request, inst, exclude)
         form = form_class(initial=initial, **kwargs)
+        form.merge_from_initial()
         return form
 
     def validation(self, form):
@@ -400,10 +401,13 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
         change = inst and True or False
 
-        form_fields = self.get_form(request, inst=inst, data=data, initial={'_user': request.user}).fields
+        form_fields = self.get_form(request, inst=inst, data=data, initial={'_user': request.user,
+                                                                            '_request': request}).fields
         preprocesor = DataPreprocessor(request, self.model, form_fields, inst)
         data = preprocesor.process_data(data)
-        form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user})
+        form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user,
+                                                                                                '_request': request})
+
         errors = form.is_invalid()
         if errors:
             raise DataInvalidException(errors)

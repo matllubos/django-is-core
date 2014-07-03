@@ -10,6 +10,7 @@ from piston.utils import model_resources_to_dict
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RestAuthMixin
+from is_core import config
 
 
 def add_urls_to_resource(resource):
@@ -58,7 +59,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
         inst = self.new_instance(resource.model)
 
         form_class = resource().generate_form_class(request=request, inst=update and inst or None)
-        form = form_class(initial={'_user': self.logged_user.user}, instance=inst)
+        form = form_class(initial={'_user': self.logged_user.user, '_request': None}, instance=inst)
         data = {}
 
         for field in form:

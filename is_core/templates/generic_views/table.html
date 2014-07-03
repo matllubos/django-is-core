@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+	{% block above-table %}{% endblock %}
 	<div class="table-responsive">
 		{% block tabs-menu-wrapper %}{% endblock %}
 		{% block table-paginator %}
@@ -56,4 +57,5 @@
 			</div>
 		{% endblock %}
 	</div>
+	{% block below-table %}{% endblock %}
 {% endblock %}
