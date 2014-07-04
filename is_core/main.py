@@ -441,9 +441,8 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
         return ('_web_links', '_default_action')
 
     def get_list_actions(self, request, obj):
-        list_actions = super(UIModelISCore, self).get_list_actions(request, obj)
-        list_actions.append(WebAction('edit-%s' % self.get_menu_group_pattern_name(), _('Edit'), 'edit'))
-        return list_actions
+        list_actions = super(UIRestModelISCore, self).get_list_actions(request, obj)
+        return [WebAction('edit-%s' % self.get_menu_group_pattern_name(), _('Edit'), 'edit')] + list_actions
 
     def get_default_action(self, request, obj):
         return 'edit-%s' % self.get_menu_group_pattern_name()
