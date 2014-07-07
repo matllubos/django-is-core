@@ -18,8 +18,12 @@ class Action(JsonObj):
 
 class WebAction(Action):
 
-    def __init__(self, name, verbose_name, class_name=None):
+    def __init__(self, name, verbose_name, class_name=None, target=None, rel=None):
         super(WebAction, self).__init__(name, verbose_name, 'web', class_name)
+        if target:
+            self.target = target
+        if rel:
+            self.rel = rel
 
 
 class RestAction(Action):

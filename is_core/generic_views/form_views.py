@@ -152,6 +152,10 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 return self.form_invalid(form, msg=_('No changes have been submitted.'), msg_level=constants.INFO)
             return self.form_invalid(form)
 
+    @classmethod
+    def has_post_permission(cls, request, **kwargs):
+        return True
+
 
 class DefaultModelFormView(DefaultFormView):
     model = None
