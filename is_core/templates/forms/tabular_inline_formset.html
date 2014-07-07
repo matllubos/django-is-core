@@ -25,7 +25,7 @@
 					</thead>
 				{% endblock %}
 			{% endif %}
-			<tr class="{% cycle odd,even %} {{ form.class_names|join:' ' }}">
+			<tr class="inline-line {% cycle odd,even %} {{ form.class_names|join:' ' }}">
 				{% get_visible_fields form fieldset as visible_fields %}
 				{% for field in visible_fields %}
 					<td class="field{% if field.errors %} error{% endif %}">
