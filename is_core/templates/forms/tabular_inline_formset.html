@@ -2,6 +2,7 @@
 
 <fieldset class="inline tabular-inline {{ class_names|join:' ' }}">
 	{% block inline-title %}{% if title %}<legend>{{ title }}</legend>{% endif %}{% endblock %}
+	{% block above-table %}{% endblock %}
 	{{ formset.management_form }}
 	<table class="form">
 		{% for form in formset.all_forms %}
@@ -42,5 +43,7 @@
 			</tr>
 		{% endfor %}
 	</table>
-	{% if formset.can_add %}<button type="button" class="dynamic btn btn-default">{{ button_value }}</button>{% endif %}
+	{% block below-table %}
+			{% if formset.can_add %}<button type="button" class="dynamic btn btn-default">{{ button_value }}</button>{% endif %}
+	{% endblock %}
 </fieldset>
