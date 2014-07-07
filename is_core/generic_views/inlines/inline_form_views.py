@@ -192,3 +192,7 @@ class TabularInlineFormView(InlineFormView):
 
 class StackedInlineFormView(InlineFormView):
     template_name = 'forms/stacked_inline_formset.html'
+
+
+class ResponsiveInlineFormView(InlineFormView):
+    template_name = 'forms/responsive_inline_formset.html'
