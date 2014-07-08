@@ -12,7 +12,7 @@
 		{% endblock %}
 		{% if cancel_url %}
 			{% block cancel-buttons %}
-			<a href="{{ cancel_url }}" data-title="{% trans 'Do not save and go back' %}" class="{% block cancel-button-class %}btn btn-default btn-cancel{% endblock %}">{% block cancel-button-caption %}{% trans "Cancel" %}{% endblock %}</a>
+			<a href="{{ cancel_url }}" data-title="{% trans 'Do not save and go back to the list' %}" class="{% block cancel-button-class %}btn btn-default btn-cancel{% endblock %}">{% block cancel-button-caption %}{% trans "Back" %}{% endblock %}</a>
 			{% endblock %}
 		{% endif %}
 	</div>
