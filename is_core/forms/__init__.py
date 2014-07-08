@@ -48,7 +48,7 @@ class RestFormMixin(object):
         for field_name in filter(filt, self.fields.keys()):
             field = self.fields[field_name]
 
-            self.data[field_name] = field.prepare_value(self.initial.get(field, field.initial))
+            self.data[field_name] = field.prepare_value(self.initial.get(field_name, field.initial))
 
 
 class AllFieldsUniqueValidationModelForm(forms.ModelForm):
