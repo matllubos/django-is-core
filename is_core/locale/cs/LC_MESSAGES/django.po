@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-01 11:25+0200\n"
+"POT-Creation-Date: 2014-07-08 14:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -17,39 +16,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
-#: actions.py:43 filters/default_filters.py:147
+#: actions.py:47 filters/default_filters.py:147
 #: templates/forms/inline_table.html:26 templates/generic_views/table.html:36
-#: templatetags/forms.py:114
+#: templatetags/forms.py:119
 msgid "Yes"
 msgstr "Ano"
 
-#: actions.py:44 filters/default_filters.py:147
+#: actions.py:48 filters/default_filters.py:147
 #: templates/forms/inline_table.html:26 templates/generic_views/table.html:36
-#: templatetags/forms.py:114
+#: templatetags/forms.py:119
 msgid "No"
 msgstr "Ne"
 
-#: actions.py:45 templates/forms/inline_table.html:26
+#: actions.py:49 templates/forms/inline_table.html:26
 #: templates/generic_views/table.html:36
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
 
-#: main.py:224 generic_views/__init__.py:133
+#: main.py:226 generic_views/__init__.py:133
 msgid "Home"
 msgstr "Home"
 
-#: main.py:303
-msgid "Edit"
-msgstr "Upravit"
-
-#: main.py:406
+#: main.py:403
 #, python-format
 msgid "Do you really want to delete \"%s\""
 msgstr "Opravdu chcete odstranit položku \"%s\""
 
-#: main.py:409
+#: main.py:406
 msgid "Delete"
 msgstr "Smazat"
+
+#: main.py:445
+msgid "Edit"
+msgstr "Upravit"
 
 #: auth_token/forms.py:32
 msgid "Remember user"
@@ -73,21 +72,21 @@ msgstr "Hledat..."
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:27 generic_views/form_views.py:462
-#: generic_views/form_views.py:482
+#: generic_views/form_views.py:27 generic_views/form_views.py:467
+#: generic_views/form_views.py:487
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:151 generic_views/form_views.py:309
+#: generic_views/form_views.py:152 generic_views/form_views.py:314
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
-#: generic_views/form_views.py:461
+#: generic_views/form_views.py:466
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:481
+#: generic_views/form_views.py:486
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
@@ -126,15 +125,23 @@ msgid "X-Base must be natural number or empty"
 msgstr ""
 "Obsah hlavičky X-Base musí být přirozené číslo nebo musí být hlavička prázdná"
 
-#: rest/resource.py:57
+#: rest/resource.py:55
 msgid "Select a valid choice. That choice is not one of the available choices."
 msgstr "Vyberte platnou možnost. Tato není k dispozici."
 
-#: rest/resource.py:61
+#: rest/resource.py:59
 msgid "Create or update this resource is not allowed."
 msgstr "Není povoleno vytvořit nebo upravit tento zdroj."
 
-#: rest/resource.py:287
+#: rest/resource.py:63
+msgid "Object already exists but you do not allowed to change it."
+msgstr ""
+
+#: rest/resource.py:114 rest/resource.py:197
+msgid "Removed element must contain pk"
+msgstr ""
+
+#: rest/resource.py:369
 #, python-format
 msgid "Cannot resolve X-Order value \"%s\" into field"
 msgstr "Není možné řadit dle hodnoty hlavičky X-Order: \"%s\""
@@ -221,12 +228,12 @@ msgid "Save and continue"
 msgstr "Uložit a pokračovat"
 
 #: templates/forms/model_default_form.html:15
-msgid "Do not save and go back"
-msgstr "Neukládat a vrátit se na předchozí stránku"
+msgid "Do not save and go back to the list"
+msgstr "Neukládat a vrátit se na seznam"
 
 #: templates/forms/model_default_form.html:15
-msgid "Cancel"
-msgstr "Cancel"
+msgid "Back"
+msgstr "Zpět"
 
 #: templates/registration/login.html:14
 msgid "Please Sign In"
