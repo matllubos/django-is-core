@@ -382,7 +382,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             paginator = Paginator(qs, request)
             return HeadersResult(paginator.page_qs, {'X-Total': paginator.total})
         except RestException as ex:
-            return RestErrorResponse(ex.errors)
+            return RestErrorResponse(ex.message)
         # Filter exceptions returns empty list
         except (InterfaceError, DatabaseError, FilterException, ValueError)  as ex:
             return HeadersResult(self.model.objects.none(), {'X-Total': 0})
@@ -500,6 +500,8 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         except ResourceNotFoundException:
             # It cannot happend
             return rc.NOT_FOUND
+        except RestException as ex:
+            return RestErrorResponse(ex.message)
 
         return HeadersResult(inst, status_code=201)
 
@@ -515,6 +517,10 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             return HeadersResult({'errors': ex.errors}, status_code=400)
         except ResourceNotFoundException:
             return rc.NOT_FOUND
+        except ConflictException as ex:
+            return rc.FORBIDDEN
+        except RestException as ex:
+            return RestErrorResponse(ex.message)
 
     def delete(self, request, pk, **kwargs):
         qs = self.get_queryset(request)
