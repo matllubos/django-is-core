@@ -13,9 +13,10 @@ from django.utils.html import linebreaks, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ObjectDoesNotExist
 
 from block_snippets.templatetags import SnippetsIncludeNode
-from django.core.exceptions import ObjectDoesNotExist
+
 
 register = template.Library()
 
