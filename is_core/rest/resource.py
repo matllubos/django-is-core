@@ -64,11 +64,12 @@ class ConflictException(RestException):
 
 
 class DataProcessor(object):
-    def __init__(self, request, model, form_fields, inst):
+    def __init__(self, request, model, form_fields, inst, via):
         self.model = model
         self.request = request
         self.form_fields = form_fields
         self.inst = inst
+        self.via = via
 
     def _process_field(self, data, key, data_item):
         pass
@@ -95,7 +96,7 @@ class DataPreprocessor(DataProcessor):
         for data_item in data:
             if isinstance(data_item, dict):
                 try:
-                    list_items.append(resource._create_or_update(self.request, data_item).pk)
+                    list_items.append(resource._create_or_update(self.request, data_item, self.via).pk)
                 except (DataInvalidException, RestException) as ex:
                     er = ex.errors
                     er.update({'_index': i})
@@ -147,7 +148,7 @@ class DataPreprocessor(DataProcessor):
         Create or update ForeignKey field
         """
         try:
-            data[key] = resource._create_or_update(self.request, data_item).pk
+            data[key] = resource._create_or_update(self.request, data_item, self.via).pk
         except (DataInvalidException, RestException) as ex:
             self.errors[key] = ex.errors
 
@@ -178,7 +179,7 @@ class DataPostprocessor(DataProcessor):
 
             rel_obj_data[related_obj.field.name] = self.inst.pk
             try:
-                list_items.append(resource._create_or_update(self.request, rel_obj_data).pk)
+                list_items.append(resource._create_or_update(self.request, rel_obj_data, self.via).pk)
             except (DataInvalidException, RestException) as ex:
                 er = ex.errors
                 er.update({'_index': i})
@@ -203,14 +204,14 @@ class DataPostprocessor(DataProcessor):
     def _remove_other_related_objects(self, resource, related_obj, existing_related):
         for reverse_related_obj in resource.model.objects.filter(**{related_obj.field.name: self.inst})\
                                     .exclude(pk__in=existing_related):
-            if resource.has_delete_permission(self.request, reverse_related_obj):
+            if resource.has_delete_permission(self.request, reverse_related_obj, self.via):
                 resource._delete(self.request, reverse_related_obj)
 
 
     def _process_dict_field(self, resource, data, key, data_item, related_obj):
         try:
             data_item[related_obj.field.name] = self.inst.pk
-            data[key] = resource._create_or_update(self.request, data_item).pk
+            data[key] = resource._create_or_update(self.request, data_item, self.via).pk
         except (DataInvalidException, ResourceNotFoundException) as ex:
             self.errors[key] = ex.errors
 
@@ -281,23 +282,23 @@ class RestResource(BaseResource):
 class RestCoreResourceMixin(object):
 
     @classmethod
-    def has_read_permission(cls, request, obj=None):
-        return super(RestCoreResourceMixin, cls).has_read_permission(request, obj) \
+    def has_read_permission(cls, request, obj=None, via=None):
+        return super(RestCoreResourceMixin, cls).has_read_permission(request, obj, via) \
                 and cls.core.has_rest_read_permission(request, obj)
 
     @classmethod
-    def has_create_permission(cls, request, obj=None):
-        return super(RestCoreResourceMixin, cls).has_create_permission(request, obj) \
+    def has_create_permission(cls, request, obj=None, via=None):
+        return super(RestCoreResourceMixin, cls).has_create_permission(request, obj, via) \
                 and cls.core.has_rest_create_permission(request, obj)
 
     @classmethod
-    def has_update_permission(cls, request, obj=None):
-        return super(RestCoreResourceMixin, cls).has_update_permission(request, obj) \
+    def has_update_permission(cls, request, obj=None, via=None):
+        return super(RestCoreResourceMixin, cls).has_update_permission(request, obj, via) \
                 and cls.core.has_rest_update_permission(request, obj)
 
     @classmethod
-    def has_delete_permission(cls, request, obj=None):
-        return super(RestCoreResourceMixin, cls).has_delete_permission(request, obj) \
+    def has_delete_permission(cls, request, obj=None, via=None):
+        return super(RestCoreResourceMixin, cls).has_delete_permission(request, obj, via) \
                 and cls.core.has_rest_delete_permission(request, obj)
 
 
@@ -432,22 +433,26 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
                     raise ConflictException
         return inst
 
-    def _create_or_update(self, request, data):
+    def _create_or_update(self, request, data, via=None):
         """
         Helper for creating or updating resource
         """
+
+        if via is None:
+            via = []
+
         inst = self._get_instance(request, data)
 
-        if inst and not self.has_update_permission(request, inst):
+        if inst and not self.has_update_permission_via(request, inst, via):
             return inst
-        elif not inst and not self.has_create_permission(request):
+        elif not inst and not self.has_create_permission(request, via=via):
             raise NotAllowedException
 
         change = inst and True or False
 
         form_fields = self.get_form(request, inst=inst, data=data, initial={'_user': request.user,
                                                                             '_request': request}).fields
-        preprocesor = DataPreprocessor(request, self.model, form_fields, inst)
+        preprocesor = DataPreprocessor(request, self.model, form_fields, inst, via + [self])
         data = preprocesor.process_data(data)
         form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user,
                                                                                                 '_request': request})
@@ -466,10 +471,10 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
 
-        postprocesor = DataPostprocessor(request, self.model, form_fields, inst)
+        # Core view event after save object
+        postprocesor = DataPostprocessor(request, self.model, form_fields, inst, via + [self])
         data = postprocesor.process_data(data)
 
-        # Core view event after save object
         self.core.post_save_model(request, inst, form, change)
 
         return inst
