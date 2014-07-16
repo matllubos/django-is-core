@@ -103,7 +103,7 @@ class DataPreprocessor(DataProcessor):
             else:
                 list_items.append(data_item)
 
-    def _remove_items_from_list(self, resource, data, list_items, errors):
+    def _remove_data_items_from_list(self, resource, data, list_items, errors):
         i = 1
         for data_item in data:
             if isinstance(data_item, dict):
@@ -128,7 +128,7 @@ class DataPreprocessor(DataProcessor):
             add_errors = []
             remove_errors = []
             self._add_data_items_to_list(resource, data_items.get('add', []), data[key], add_errors)
-            self._remove_data_items_to_list(resource, data_items.get('remove', []), data[key], remove_errors)
+            self._remove_data_items_from_list(resource, data_items.get('remove', []), data[key], remove_errors)
             if add_errors:
                 errors['add'] = add_errors
             if remove_errors:
@@ -303,9 +303,9 @@ class RestCoreResourceMixin(object):
 
 class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
-    fields = ('_rest_links', '_actions', '_class_names')
-    default_obj_fields = ('_rest_links',)
-    default_list_fields = ('_rest_links',)
+    fields = ('_rest_links', '_actions', '_class_names', '_obj_name')
+    default_obj_fields = ('_rest_links', '_obj_name')
+    default_list_fields = ('_rest_links', '_obj_name')
     register = False
     form_class = None
 
