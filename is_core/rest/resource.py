@@ -466,11 +466,11 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
 
-        # Core view event after save object
-        self.core.post_save_model(request, inst, form, change)
-
         postprocesor = DataPostprocessor(request, self.model, form_fields, inst)
         data = postprocesor.process_data(data)
+
+        # Core view event after save object
+        self.core.post_save_model(request, inst, form, change)
 
         return inst
 
@@ -484,11 +484,12 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         inst = self._create_or_update(request, data)
         return inst
 
-    def create(self, request, pk=None, **kwargs):
-        if not request.data:
-            return rc.BAD_REQUEST
-
+    def _prepare_data(self, request):
         data = self.flatten_dict(request.data)
+        return data
+
+    def create(self, request, pk=None, **kwargs):
+        data = self._prepare_data(request)
         if data.has_key(self.model._meta.pk.name) and self.model.objects.filter(pk=data.get(self.model._meta.pk.name))\
             .exists():
             return rc.DUPLICATE_ENTRY
@@ -506,10 +507,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         return HeadersResult(inst, status_code=201)
 
     def update(self, request, pk=None, **kwargs):
-        if not request.data:
-            return rc.BAD_REQUEST
-
-        data = self.flatten_dict(request.data)
+        data = self._prepare_data(request)
         data[self.model._meta.pk.name] = pk
         try:
             return self._atomic_create_or_update(request, data)

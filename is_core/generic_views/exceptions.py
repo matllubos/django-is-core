@@ -1,4 +1,5 @@
+from is_core.rest.resource import RestException
 
 
-class SaveObjectException(Exception):
+class SaveObjectException(RestException):
     pass
