@@ -10,7 +10,7 @@ from django.db.utils import InterfaceError, DatabaseError
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_resource_of_model, rc, HeadersResult
 
-from is_core.utils.models import get_model_field_names
+from is_core.utils.models import get_model_field_names, get_object_or_none
 from is_core.rest.paginator import Paginator
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
@@ -184,6 +184,8 @@ class DataPostprocessor(DataProcessor):
                 er = ex.errors
                 er.update({'_index': i})
                 errors.append(er)
+            except TypeError:
+                errors.append({'error': _('Field must contains object'), '_index': i})
             i += 1
 
     # TODO: Throw exception if object does not exists or user has not permissions
@@ -209,11 +211,26 @@ class DataPostprocessor(DataProcessor):
 
 
     def _process_dict_field(self, resource, data, key, data_item, related_obj):
-        try:
-            data_item[related_obj.field.name] = self.inst.pk
-            data[key] = resource._create_or_update(self.request, data_item, self.via).pk
-        except (DataInvalidException, ResourceNotFoundException) as ex:
-            self.errors[key] = ex.errors
+        related_model_obj = get_object_or_none(related_obj.model, **{related_obj.field.name:self.inst.pk})
+
+        if data_item is None and related_model_obj:
+            if resource.has_delete_permission(self.request, related_model_obj, self.via):
+                resource._delete(self.request, related_model_obj)
+            else:
+                self.errors[key] = {'error': _('You don not have permisson to delete object')}
+        else:
+            try:
+                data_item[related_obj.field.name] = self.inst.pk
+
+                # Update OneToOne field without pk
+                if related_model_obj:
+                    data_item[related_obj.model._meta.pk.name] = related_model_obj.pk
+
+                data[key] = resource._create_or_update(self.request, data_item, self.via).pk
+            except (DataInvalidException, ResourceNotFoundException) as ex:
+                self.errors[key] = ex.errors
+            except TypeError:
+                self.errors[key] = {'error': _('Field must contains object')}
 
     def _process_list_field(self, resource, data, key, data_items, related_obj):
         """
@@ -283,23 +300,23 @@ class RestCoreResourceMixin(object):
 
     @classmethod
     def has_read_permission(cls, request, obj=None, via=None):
-        return super(RestCoreResourceMixin, cls).has_read_permission(request, obj, via) \
-                and cls.core.has_rest_read_permission(request, obj)
+        return super(RestCoreResourceMixin, cls).has_read_permission(request, obj) \
+                and cls.core.has_rest_read_permission(request, obj, via)
 
     @classmethod
     def has_create_permission(cls, request, obj=None, via=None):
-        return super(RestCoreResourceMixin, cls).has_create_permission(request, obj, via) \
-                and cls.core.has_rest_create_permission(request, obj)
+        return super(RestCoreResourceMixin, cls).has_create_permission(request, obj) \
+                and cls.core.has_rest_create_permission(request, obj, via)
 
     @classmethod
     def has_update_permission(cls, request, obj=None, via=None):
-        return super(RestCoreResourceMixin, cls).has_update_permission(request, obj, via) \
-                and cls.core.has_rest_update_permission(request, obj)
+        return super(RestCoreResourceMixin, cls).has_update_permission(request, obj) \
+                and cls.core.has_rest_update_permission(request, obj, via)
 
     @classmethod
     def has_delete_permission(cls, request, obj=None, via=None):
-        return super(RestCoreResourceMixin, cls).has_delete_permission(request, obj, via) \
-                and cls.core.has_rest_delete_permission(request, obj)
+        return super(RestCoreResourceMixin, cls).has_delete_permission(request, obj) \
+                and cls.core.has_rest_delete_permission(request, obj, via)
 
 
 class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
@@ -443,7 +460,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
         inst = self._get_instance(request, data)
 
-        if inst and not self.has_update_permission_via(request, inst, via):
+        if inst and not self.has_update_permission(request, inst, via):
             return inst
         elif not inst and not self.has_create_permission(request, via=via):
             raise NotAllowedException
@@ -470,13 +487,11 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         self.core.save_model(request, inst, form, change)
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
-
         # Core view event after save object
         postprocesor = DataPostprocessor(request, self.model, form_fields, inst, via + [self])
         data = postprocesor.process_data(data)
 
         self.core.post_save_model(request, inst, form, change)
-
         return inst
 
     def _delete(self, request, inst):

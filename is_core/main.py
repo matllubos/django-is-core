@@ -24,6 +24,7 @@ from is_core.utils import flatten_fieldsets, str_to_class, get_new_class_name
 from is_core import config
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
+from django.forms.models import _get_foreign_key
 
 
 class ISCoreBase(type):
@@ -446,3 +447,37 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
 
     def get_default_action(self, request, obj):
         return 'edit-%s' % self.get_menu_group_pattern_name()
+
+
+class ViaRestModelISCore(RestModelISCore):
+    via_model = None
+    fk_name = None
+    abstract = True
+
+    def get_form_exclude(self, request, obj=None):
+        exclude = super(ViaRestModelISCore, self).get_form_exclude(request, obj)
+        if obj:
+            fk = _get_foreign_key(self.via_model, self.model, fk_name=self.fk_name).name
+            exclude = list(exclude)
+            exclude.append(fk)
+        return exclude
+
+    def has_rest_read_permission(self, request, obj=None, via=None):
+        if not via or via[-1].model != self.via_model:
+            return False
+        return super(ViaRestModelISCore, self).has_rest_read_permission(request, obj, via)
+
+    def has_rest_create_permission(self, request, obj=None, via=None):
+        if not via or via[-1].model != self.via_model:
+            return False
+        return super(ViaRestModelISCore, self).has_rest_create_permission(request, obj, via)
+
+    def has_rest_update_permission(self, request, obj=None, via=None):
+        if not via or via[-1].model != self.via_model:
+            return False
+        return super(ViaRestModelISCore, self).has_rest_update_permission(request, obj, via)
+
+    def has_rest_delete_permission(self, request, obj=None, via=None):
+        if not via or via[-1].model != self.via_model:
+            return False
+        return super(ViaRestModelISCore, self).has_rest_delete_permission(request, obj, via)

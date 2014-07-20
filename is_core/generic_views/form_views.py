@@ -16,7 +16,6 @@ from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
-from django.db import transaction
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
