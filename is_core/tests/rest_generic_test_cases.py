@@ -10,7 +10,6 @@ from piston.utils import model_resources_to_dict
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RestAuthMixin
-from is_core import config
 
 
 def add_urls_to_resource(resource):
@@ -21,8 +20,8 @@ def add_urls_to_resource(resource):
     def get_resource_url(self, pk):
         return reverse('%s:api-resource-%s' % (self.site_name, self.core.get_menu_group_pattern_name()), args=(pk,))
 
-    resource.url = types.MethodType(get_resource_url, resource)
-    resource.list_url = types.MethodType(get_resource_list_url, resource)
+    resource._resource_url = types.MethodType(get_resource_url, resource)
+    resource._resource_list_url = types.MethodType(get_resource_list_url, resource)
     return resource
 
 
@@ -66,7 +65,6 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
             value = field.value()
             if isinstance(value, FieldFile):
                 value = None
-
             data[field.name] = value
 
         # Removed instance (must be created because FK)
@@ -76,7 +74,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
     @data_provider(get_rest_resources)
     def test_should_return_data_from_resource_list(self, resource_name, resource, model):
-        list_url = resource.list_url()
+        list_url = resource._resource_list_url()
 
         if not resource.has_read_permission(self.get_request_with_user(self.r_factory.get(list_url))):
             return
@@ -95,7 +93,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
         for _ in range(self.iteration):
             inst = self.new_instance(model)
 
-            url = resource.url(inst.pk)
+            url = resource._resource_url(inst.pk)
 
             if not resource.has_read_permission(self.get_request_with_user(self.r_factory.get(url)), inst):
                 break
@@ -108,7 +106,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
         for i in range(self.iteration):
             inst = self.new_instance(model)
 
-            url = resource.url(inst.pk)
+            url = resource._resource_url(inst.pk)
 
             if not resource.has_delete_permission(self.get_request_with_user(self.r_factory.delete(url)), inst):
                 break
@@ -122,7 +120,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
     @data_provider(get_rest_resources)
     def test_should_create_data_of_resource(self, resource_name, resource, model):
         for _ in range(self.iteration):
-            list_url = resource.list_url()
+            list_url = resource._resource_list_url()
 
             request = self.get_request_with_user(self.r_factory.post(list_url))
             if not resource.has_create_permission(request):
@@ -143,7 +141,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
         for _ in range(self.iteration):
             inst_from = self.new_instance(model)
 
-            url = resource.url(inst_from.pk)
+            url = resource._resource_url(inst_from.pk)
 
             request = self.get_request_with_user(self.r_factory.put(url))
 
