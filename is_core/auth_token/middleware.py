@@ -43,5 +43,6 @@ class TokenAuthenticationMiddlewares(object):
                 expires = None
 
             request.token.save()
-            response.set_cookie(config.AUTH_COOKIE_NAME, request.token.key, max_age=max_age, expires=expires)
+            response.set_cookie(config.AUTH_COOKIE_NAME, request.token.key, max_age=max_age, expires=expires,
+                                httponly=config.AUTH_COOKIE_HTTPONLY)
         return response
