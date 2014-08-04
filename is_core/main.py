@@ -282,7 +282,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_show_in_menu(self, request):
         return 'list' in self.view_classes and self.show_in_menu and self.has_ui_read_permission(request)
 
-    def get_rest_list_fields(self):
+    def get_rest_list_display_fields(self, request):
         return self.list_display
 
     def get_form_inline_views(self, request, obj=None):
@@ -316,10 +316,13 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
     # Allowed rest fields
     rest_fields = None
-    # Default rest fields for list
-    rest_default_list_fields = None
-    # Default rest fields for one object
-    rest_default_obj_fields = None
+    rest_obj_fields = None
+    rest_list_fields = None
+    # Default rest fields for list, obj and guest
+    rest_default_fields = ('_rest_links', '_actions', '_class_names', '_obj_name')
+    rest_default_obj_fields = ('_rest_links', '_obj_name')
+    rest_default_list_fields = ('_rest_links', '_obj_name')
+    rest_guest_fields = ('id', '_obj_name')
 
     form_class = RestModelForm
     rest_allowed_methods = ('GET', 'DELETE', 'POST', 'PUT')
@@ -327,6 +330,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
     rest_resource_class = RestModelResource
     _resource_patterns = None
+
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
@@ -340,25 +344,30 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_exclude(request, obj)
 
-    def get_rest_extra_fields(self):
+    def get_rest_extra_fields(self, request):
         return ()
 
-    def get_rest_fields(self):
+    def get_rest_fields(self, request, obj=None):
         if self.rest_fields:
             return self.rest_fields
 
-        rest_fields = list_to_dict(list(self.model._rest_meta.fields) + list(self.get_rest_extra_fields()))
+        rest_fields = list_to_dict(list(self.model._rest_meta.fields) + list(self.get_rest_extra_fields(request)))
 
-        rest_default_list_fields = list_to_dict(self.get_rest_default_list_fields())
-        rest_default_obj_fields = list_to_dict(self.get_rest_default_obj_fields())
+        rest_default_list_fields = list_to_dict(self.get_rest_list_fields(request))
+        rest_default_obj_fields = list_to_dict(self.get_rest_obj_fields(request, obj=obj))
 
         return dict_to_list(join_dicts(join_dicts(rest_fields, rest_default_list_fields), rest_default_obj_fields))
 
-    def get_rest_default_list_fields(self):
-        return self.rest_default_list_fields or self.model._rest_meta.default_list_fields
+    def get_rest_list_fields(self, request):
+        return self.rest_list_fields or set(tuple(self.model._rest_meta.default_list_fields) +
+                                            tuple(self.rest_default_list_fields))
 
-    def get_rest_default_obj_fields(self):
-        return self.rest_default_obj_fields or self.model._rest_meta.default_obj_fields
+    def get_rest_obj_fields(self, request, obj=None):
+        return self.rest_obj_fields or set(tuple(self.model._rest_meta.default_obj_fields) +
+                                            tuple(self.rest_default_obj_fields))
+
+    def get_rest_guest_fields(self, request):
+        return self.rest_guest_fields
 
     def get_rest_obj_class_names(self, request, obj):
         return list(self.rest_obj_class_names)
@@ -377,12 +386,8 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def rest_resource(self):
         if not self._rest_resource:
             resource_kwargs = {
-                      'model': self.model, 'fields': set(self.rest_resource_class.fields + self.get_rest_fields()),
-                      'default_list_fields': set(list(self.rest_resource_class.default_list_fields)
-                                                 + list(self.get_rest_default_list_fields())),
-                      'default_obj_fields': set(list(self.rest_resource_class.default_obj_fields)
-                                                + list(self.get_rest_default_list_fields())),
-                      'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self, 'register': True
+                      'model': self.model, 'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self,
+                      'register': True
                       }
             self._rest_resource = type(str(get_new_class_name('api-resource-%s' % self.get_menu_group_pattern_name(),
                                                               self.rest_resource_class)),
@@ -418,10 +423,10 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
 
-    def get_rest_default_list_fields(self):
-        rest_list_fields_dict = list_to_dict(super(UIRestModelISCore, self).get_rest_default_list_fields())
+    def get_rest_list_fields(self, request):
+        rest_list_fields_dict = list_to_dict(super(UIRestModelISCore, self).get_rest_list_fields(request))
 
-        for display in self.get_rest_list_fields():
+        for display in self.get_rest_list_display_fields(request):
             rest_dict = rest_list_fields_dict
             for val in display.split('__'):
                 rest_dict[val] = rest_dict.get(val, {})
@@ -438,7 +443,7 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)
 
-    def get_rest_extra_fields(self):
+    def get_rest_extra_fields(self, request):
         return ('_web_links', '_default_action')
 
     def get_list_actions(self, request, obj):

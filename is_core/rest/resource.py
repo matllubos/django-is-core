@@ -327,6 +327,18 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
     register = False
     form_class = None
 
+    def get_fields(self, request, obj):
+        return self.core.get_rest_fields(request, obj=obj)
+
+    def get_default_obj_fields(self, request, obj):
+        return self.core.get_rest_obj_fields(request, obj=obj)
+
+    def get_default_list_fields(self, request):
+        return self.core.get_rest_list_fields(request)
+
+    def get_guest_fields(self, request):
+        return self.core.get_rest_guest_fields(request)
+
     @classmethod
     def _web_links(cls, obj, request):
         web_links = {}
