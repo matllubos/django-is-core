@@ -11,7 +11,10 @@ from is_core import config
 
 
 def get_obj(Model, pk):
-    return get_object_or_none(Model, pk=pk)
+    try:
+        return get_object_or_none(Model, pk=pk)
+    except ValueError:
+        return None
 
 
 class Auth(object):
