@@ -10,6 +10,7 @@ from django.utils.datastructures import SortedDict
 from django.http.response import Http404
 from django.core.exceptions import ValidationError
 from django.utils import six
+from django.forms.models import _get_foreign_key
 
 from piston.utils import list_to_dict, dict_to_list, join_dicts
 
@@ -24,7 +25,6 @@ from is_core.utils import flatten_fieldsets, str_to_class, get_new_class_name
 from is_core import config
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
-from django.forms.models import _get_foreign_key
 
 
 class ISCoreBase(type):
@@ -351,7 +351,8 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         if self.rest_fields:
             return self.rest_fields
 
-        rest_fields = list_to_dict(list(self.model._rest_meta.fields) + list(self.get_rest_extra_fields(request)))
+        rest_fields = list_to_dict(list(self.model._rest_meta.fields) + list(self.get_rest_extra_fields(request))
+                                   + list(self.rest_default_fields))
 
         rest_default_list_fields = list_to_dict(self.get_rest_list_fields(request))
         rest_default_obj_fields = list_to_dict(self.get_rest_obj_fields(request, obj=obj))
