@@ -19,6 +19,7 @@ def throttling_failure_view(request, exception):
                       Emitter.SERIALIZATION_TYPES.RAW)
         return HttpResponse(content=srl.render(request), status=429)
 
-    response = render_to_response('429.html', context_instance=RequestContext(request))
+    response = render_to_response('429.html', {'description': force_text(exception)},
+                                  context_instance=RequestContext(request))
     response.status_code = 429
     return response
