@@ -11,6 +11,7 @@ from . import config
 from .loading import get_cores
 from .patterns import RestPattern
 from .auth_token.auth_resource import AuthResource
+from .rest.resource import EntryPointResource
 
 
 sites = {}
@@ -65,9 +66,7 @@ class ISSite(object):
     def _set_items_urls(self, items, urlpatterns):
         for item in items:
             urlpatterns += patterns('',
-                url(r'^%s' % (item.get_url_prefix()),
-                        include(item.get_urls())
-                    )
+                url(r'^', include(item.get_urls()))
             )
 
     def get_urls(self):
@@ -83,8 +82,11 @@ class ISSite(object):
 
         if config.AUTH_USE_TOKENS:
             AuthResource.form_class = str_to_class(config.AUTH_FORM_CLASS)
-            pattern = RestPattern('api-login', self.name, r'^%sapi/$' % settings.LOGIN_URL[1:], AuthResource)
+            pattern = RestPattern('api-login', self.name, r'^api/%s$' % settings.LOGIN_URL[1:], AuthResource)
             urlpatterns += patterns('', pattern.get_url())
+
+        pattern = RestPattern('api', self.name, r'^api/$', EntryPointResource)
+        urlpatterns += patterns('', pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)
         return urlpatterns

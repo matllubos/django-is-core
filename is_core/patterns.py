@@ -2,10 +2,9 @@ from __future__ import unicode_literals
 
 import logging
 
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, resolve, Resolver404
 from django.conf.urls import url
 
-# from is_core.rest.resource import DynamicRestHandlerResource
 from is_core.utils import get_new_class_name
 from is_core.auth import RestPermWrapper, RestAuthPermWrapper, UIAuthPermWrapper, UIPermWrapper
 
@@ -23,6 +22,17 @@ def reverse_ui_view(name):
 
 def reverse_pattern(name):
     return patterns.get(name)
+
+
+def pattern_from_request(request):
+    return reverse_pattern(resolve(request.path).url_name)
+
+
+def is_rest_request(request):
+    try:
+        return isinstance(pattern_from_request(request), RestPattern)
+    except Resolver404:
+        return False
 
 
 class Pattern(object):
@@ -51,6 +61,8 @@ class ViewPattern(Pattern):
         self.url_pattern = url_pattern
         self.site_name = site_name
         self.core = core
+        if self.core:
+            self.url_prefix = self.core.get_url_prefix()
 
     @property
     def pattern(self):
@@ -71,7 +83,13 @@ class ViewPattern(Pattern):
         raise NotImplemented
 
     def get_url(self):
-        return url(self.url_pattern, self.get_view(), name=self.name)
+        url_pattern = self.url_pattern
+        if self.url_prefix:
+            url_pattern = self.url_pattern
+            if url_pattern.startswith('^'):
+                url_pattern = url_pattern[1:]
+            url_pattern = '^%s%s' % (self.url_prefix, url_pattern)
+        return url(url_pattern, self.get_view(), name=self.name)
 
 
 class UIPattern(ViewPattern):
@@ -98,6 +116,8 @@ class RestPattern(ViewPattern):
         self.methods = methods
         if core:
             self.resource.__init_core__(core, self)
+        if self.url_prefix:
+            self.url_prefix = 'api/%s' % self.url_prefix
 
     def get_view(self):
         if self.resource.login_required:
@@ -106,5 +126,5 @@ class RestPattern(ViewPattern):
             wrapper_class = RestPermWrapper
         return self.resource.as_wrapped_view(wrapper_class, self.methods)
 
-    def get_allowed_methods(self, user, obj):
-        return self.resource.get_allowed_methods(user, obj, self.methods)
+    def get_allowed_methods(self, request, obj):
+        return self.resource.get_allowed_methods(request, obj, self.methods)

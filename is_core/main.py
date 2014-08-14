@@ -67,7 +67,6 @@ class ISCore(six.with_metaclass(ISCoreBase)):
     def get_urlpatterns(self, patterns):
         urls = []
         for pattern in patterns.values():
-            pattern.url_prefix = self.get_url_prefix()
             url = pattern.get_url()
             if url:
                 urls.append(url)
@@ -398,10 +397,10 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_resource_patterns(self):
         resource_patterns = SortedDict()
         resource_patterns['api-resource'] = RestPattern('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                                        self.site_name, r'^/api/(?P<pk>[-\w]+)/?$', self.rest_resource,
+                                                        self.site_name, r'^/(?P<pk>[-\w]+)/?$', self.rest_resource,
                                                         self, ('GET', 'PUT', 'DELETE'))
         resource_patterns['api'] = RestPattern('api-%s' % self.get_menu_group_pattern_name(),
-                                                self.site_name, r'^/api/?$', self.rest_resource, self, ('GET', 'POST'))
+                                                self.site_name, r'^/?$', self.rest_resource, self, ('GET', 'POST'))
         return resource_patterns
 
     def get_list_actions(self, request, obj):

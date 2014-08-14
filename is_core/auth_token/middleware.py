@@ -13,6 +13,7 @@ def get_user(request):
         request._cached_user = auth_token.get_user(request)
     return request._cached_user
 
+
 def get_token(request):
     if not hasattr(request, '_cached_token'):
         request._cached_token = auth_token.get_token(request)

@@ -14,6 +14,8 @@ from is_core.utils.models import get_model_field_names, get_object_or_none
 from is_core.rest.paginator import Paginator
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
+from is_core.patterns import RestPattern, patterns
+from django.core.urlresolvers import NoReverseMatch
 
 
 class RestResponse(HeadersResult):
@@ -300,23 +302,46 @@ class RestCoreResourceMixin(object):
 
     @classmethod
     def has_read_permission(cls, request, obj=None, via=None):
-        return super(RestCoreResourceMixin, cls).has_read_permission(request, obj) \
-                and cls.core.has_rest_read_permission(request, obj, via)
+        return ((not cls.login_required or request.user.is_authenticated()) and
+                super(RestCoreResourceMixin, cls).has_read_permission(request, obj) and
+                cls.core.has_rest_read_permission(request, obj, via))
 
     @classmethod
     def has_create_permission(cls, request, obj=None, via=None):
-        return super(RestCoreResourceMixin, cls).has_create_permission(request, obj) \
-                and cls.core.has_rest_create_permission(request, obj, via)
+        return ((not cls.login_required or request.user.is_authenticated()) and
+                super(RestCoreResourceMixin, cls).has_create_permission(request, obj) and
+                cls.core.has_rest_create_permission(request, obj, via))
 
     @classmethod
     def has_update_permission(cls, request, obj=None, via=None):
-        return super(RestCoreResourceMixin, cls).has_update_permission(request, obj) \
-                and cls.core.has_rest_update_permission(request, obj, via)
+        return ((not cls.login_required or request.user.is_authenticated()) and
+                super(RestCoreResourceMixin, cls).has_update_permission(request, obj) and
+                cls.core.has_rest_update_permission(request, obj, via))
 
     @classmethod
     def has_delete_permission(cls, request, obj=None, via=None):
-        return super(RestCoreResourceMixin, cls).has_delete_permission(request, obj) \
-                and cls.core.has_rest_delete_permission(request, obj, via)
+        return ((not cls.login_required or request.user.is_authenticated()) and
+                super(RestCoreResourceMixin, cls).has_delete_permission(request, obj) and
+                cls.core.has_rest_delete_permission(request, obj, via))
+
+
+class EntryPointResource(RestResource):
+    login_required = False
+    allowed_methods = ('GET',)
+
+    def read(self, request, *args, **kwargs):
+        out = {}
+        for pattern_name, pattern in patterns.items():
+            if isinstance(pattern, RestPattern):
+                try:
+                    url = pattern.get_url_string(request)
+                    allowed_methods = pattern.get_allowed_methods(request, None)
+                    if allowed_methods:
+                        out[pattern_name] = {'url': url, 'methods': allowed_methods}
+                except NoReverseMatch:
+                    pass
+
+        return out
 
 
 class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
@@ -356,7 +381,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             if url:
                 allowed_methods = pattern.get_allowed_methods(request, obj)
                 if allowed_methods:
-                    rest_links[pattern.name] = {'url': url, 'methods': pattern.get_allowed_methods(request, obj)}
+                    rest_links[pattern.name] = {'url': url, 'methods': allowed_methods}
         return rest_links
 
     @classmethod

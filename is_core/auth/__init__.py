@@ -24,7 +24,7 @@ class Auth(object):
         self.kwargs = kwargs
 
     def is_authenticated(self, request):
-        if not request.user or not request.user.is_active:
+        if not hasattr(request, 'user') or not request.user or not request.user.is_authenticated():
             return False
 
         return self.has_permissions(request)
@@ -55,7 +55,7 @@ class Auth(object):
 class PermWrapper(Auth):
 
     def _check_permissions(self, request):
-        raise NotImplemented
+        raise NotImplemented()
 
     def _forbidden(self, request):
         return HttpResponseForbidden()
@@ -94,11 +94,6 @@ class UIAuthPermWrapper(UIPermWrapper):
 
 class RestPermWrapper(PermWrapper):
 
-    def is_authenticated(self, request):
-        if config.AUTH_USE_TOKENS and not request.token.is_from_header:
-            return False
-        return super(RestPermWrapper, self).has_permissions(request)
-
     def _check_permissions(self, request):
         return self.has_permissions(request)
 
@@ -106,4 +101,4 @@ class RestPermWrapper(PermWrapper):
 class RestAuthPermWrapper(RestPermWrapper):
 
     def _check_permissions(self, request):
-        return request.user.is_authenticated() and self.is_authenticated(request)
+        return self.is_authenticated(request)

@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from is_core.auth_token.models import Token, AnonymousToken
 from is_core import config
+from is_core.patterns import is_rest_request
 
 
 def login(request, user, expiration=True):
@@ -50,12 +51,13 @@ def get_token(request):
     Returns the token model instance associated with the given request token key.
     If no user is retrieved AnonymousToken is returned.
     """
-    auth_token = request.META.get(config.AUTH_HEADER_NAME) or request.COOKIES.get(config.AUTH_COOKIE_NAME)
+
+    auth_token = (request.META.get(config.AUTH_HEADER_NAME) if is_rest_request(request)
+                  else request.COOKIES.get(config.AUTH_COOKIE_NAME))
+
     try:
         token = Token.objects.get(key=auth_token, is_active=True)
         if not token.is_expired:
-            if auth_token == request.META.get(config.AUTH_HEADER_NAME):
-                token.is_from_header = True
             return token
     except ObjectDoesNotExist:
         pass
