@@ -61,8 +61,11 @@ class ViewPattern(Pattern):
         self.url_pattern = url_pattern
         self.site_name = site_name
         self.core = core
+        self.url_prefix = self.get_url_prefix()
+
+    def get_url_prefix(self):
         if self.core:
-            self.url_prefix = self.core.get_url_prefix()
+            return self.core.get_url_prefix()
 
     @property
     def pattern(self):
@@ -116,8 +119,11 @@ class RestPattern(ViewPattern):
         self.methods = methods
         if core:
             self.resource.__init_core__(core, self)
-        if self.url_prefix:
-            self.url_prefix = 'api/%s' % self.url_prefix
+
+    def get_url_prefix(self):
+        url_prefix = super(RestPattern, self).get_url_prefix()
+        if url_prefix:
+            return  'api/%s/' % url_prefix
 
     def get_view(self):
         if self.resource.login_required:
