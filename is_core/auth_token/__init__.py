@@ -52,12 +52,15 @@ def get_token(request):
     If no user is retrieved AnonymousToken is returned.
     """
 
-    auth_token = (request.META.get(config.AUTH_HEADER_NAME) if is_rest_request(request)
-                  else request.COOKIES.get(config.AUTH_COOKIE_NAME))
+    auth_token = request.META.get(config.AUTH_HEADER_NAME) or request.COOKIES.get(config.AUTH_COOKIE_NAME)
 
     try:
         token = Token.objects.get(key=auth_token, is_active=True)
         if not token.is_expired:
+            if auth_token == request.META.get(config.AUTH_HEADER_NAME):
+                token.is_from_header = True
+                if is_rest_request(request):
+                    request._dont_enforce_csrf_checks = True
             return token
     except ObjectDoesNotExist:
         pass
