@@ -29,3 +29,4 @@ PASSWORD = getattr(settings, 'PASSWORD', 'password')
 
 LOGOUT_URL = getattr(settings, 'LOGOUT_URL', '/logout')
 LOGIN_URL = getattr(settings, 'LOGIN_URL', '/login')
+LOGIN_API_URL = getattr(settings, 'LOGIN_API_URL', '/api/%s' % LOGIN_URL[1:])
