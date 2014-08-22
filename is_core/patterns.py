@@ -123,7 +123,7 @@ class RestPattern(ViewPattern):
     def get_url_prefix(self):
         url_prefix = super(RestPattern, self).get_url_prefix()
         if url_prefix:
-            return  'api/%s/' % url_prefix
+            return 'api/%s' % url_prefix
 
     def get_view(self):
         if self.resource.login_required:
