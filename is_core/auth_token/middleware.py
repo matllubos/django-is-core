@@ -6,6 +6,7 @@ from django.utils.functional import SimpleLazyObject
 from django.utils.http import cookie_date
 
 from is_core import config, auth_token
+from django.middleware.csrf import CsrfViewMiddleware
 
 
 def get_user(request):

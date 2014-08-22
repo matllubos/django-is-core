@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, SingleRelatedObjectDescriptor
 from django.db import transaction
 from django.db.utils import InterfaceError, DatabaseError
+from django.core.urlresolvers import NoReverseMatch
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_resource_of_model, rc, HeadersResult
@@ -15,7 +16,7 @@ from is_core.rest.paginator import Paginator
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
 from is_core.patterns import RestPattern, patterns
-from django.core.urlresolvers import NoReverseMatch
+from is_core.utils.decorators import classproperty
 
 
 class RestResponse(HeadersResult):
@@ -277,6 +278,10 @@ class DataPostprocessor(DataProcessor):
 
 class RestResource(BaseResource):
     login_required = True
+
+    @classproperty
+    def csrf_exempt(cls):
+        return not cls.login_required
 
     def dispatch(self, request, *args, **kwargs):
         if hasattr(self, 'core'):
