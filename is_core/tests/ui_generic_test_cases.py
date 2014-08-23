@@ -22,7 +22,7 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
         # Must be here, because hanlers is not registered
         import urls
         from is_core.site import registered_model_cores
-        from is_core.main import *
+        from is_core.main import UIRestModelISCore
 
         ui_main_views = []
         for main_view in [model_view for model_view in registered_model_cores.values() if isinstance(model_view,
@@ -32,7 +32,7 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
                 ui_main_views.append((main_view, model))
             else:
                 cls.logger.warning('Model %s has not created factory class' % model)
-
+        print ui_main_views
         return ui_main_views
 
     def list_url(self, site_name, menu_groups):
