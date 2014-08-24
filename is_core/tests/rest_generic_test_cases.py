@@ -114,7 +114,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
             resp = self.delete(url)
             self.assert_http_accepted(resp, 'REST delete of model: %s\n response: %s' % (model, resp))
             resp = self.get(url)
-            self.assert_http_not_found(self.get(url), 'REST get (should not found) of model: %s\n response: %s' %
+            self.assert_http_not_found(resp, 'REST get (should not found) of model: %s\n response: %s' %
                                        (model, resp))
 
     @data_provider(get_rest_resources)

@@ -3,6 +3,7 @@ from django.template.context import RequestContext
 from django.core.urlresolvers import resolve
 from django.http.response import HttpResponse
 from django.utils.encoding import force_text
+from django.conf import settings
 
 from piston.serializer import determine_emitter
 from piston.emitters import Emitter
