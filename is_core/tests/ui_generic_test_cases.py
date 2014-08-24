@@ -32,7 +32,6 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
                 ui_main_views.append((main_view, model))
             else:
                 cls.logger.warning('Model %s has not created factory class' % model)
-        print ui_main_views
         return ui_main_views
 
     def list_url(self, site_name, menu_groups):

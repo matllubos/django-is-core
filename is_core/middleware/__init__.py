@@ -4,6 +4,10 @@ from django.core.urlresolvers import resolve
 from django.contrib.auth.middleware import AuthenticationMiddleware as DjangoAuthenticationMiddleware
 from django.contrib.auth import get_user
 from django.http.response import HttpResponseRedirect
+from django.core.exceptions import ValidationError
+from django.shortcuts import render_to_response
+from django.template.context import RequestContext
+from django.utils.encoding import force_text
 
 from is_core.exceptions import HttpRedirectException
 
@@ -19,3 +23,6 @@ class HttpExceptionsMiddleware(object):
     def process_exception(self, request, exception):
         if isinstance(exception, HttpRedirectException):
             return HttpResponseRedirect(exception.url)
+        if isinstance(exception, ValidationError):
+            return render_to_response('422.html', {'description': ', '.join(exception.messages)},
+                                      context_instance=RequestContext(request))

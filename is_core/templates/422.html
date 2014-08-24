@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+	<h2 class="unprocessable-entity-422">{% trans 'Unprocessable Entity (422)' %}</h2>
+	<p>{{ description }}</p>
+{% endblock %}
