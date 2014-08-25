@@ -28,6 +28,7 @@ class TokenAuthenticationMiddlewares(object):
         """
         request.token = SimpleLazyObject(lambda: get_token(request))
         request.user = SimpleLazyObject(lambda: get_user(request))
+        request._dont_enforce_csrf_checks = auth_token.dont_enforce_csrf_checks(request)
 
     def process_response(self, request, response):
         """

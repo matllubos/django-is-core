@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.middleware.csrf import rotate_token
+from django.middleware.csrf import rotate_token, CsrfViewMiddleware
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.backends import ModelBackend
@@ -59,12 +59,15 @@ def get_token(request):
         if not token.is_expired:
             if auth_token == request.META.get(config.AUTH_HEADER_NAME):
                 token.is_from_header = True
-                if is_rest_request(request):
-                    request._dont_enforce_csrf_checks = True
             return token
     except ObjectDoesNotExist:
         pass
     return AnonymousToken()
+
+
+def dont_enforce_csrf_checks(request):
+    return (getattr(request, '_dont_enforce_csrf_checks', False) or
+            (request.META.get(config.AUTH_HEADER_NAME) and is_rest_request(request)))
 
 
 def get_user(request):
