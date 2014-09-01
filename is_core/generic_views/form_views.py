@@ -235,6 +235,14 @@ class DefaultModelFormView(DefaultFormView):
         if fieldsets is not None:
             return flatten_fieldsets(fieldsets)
         return self.get_fields()
+    
+    def generate_model_fields(self):
+        fields = self.generate_fields()
+        model_fields = []
+        for field in self.model._meta.fields:
+            if field.editable and (not fields or field.name in fields):
+                model_fields.append(field.name)
+        return model_fields
 
     def get_form_class(self):
         return self.form_class or ModelForm
@@ -277,7 +285,7 @@ class DefaultModelFormView(DefaultFormView):
         return form.has_changed()
 
     def get(self, request, *args, **kwargs):
-        fields = self.generate_fields()
+        fields = self.generate_model_fields()
         readonly_fields = self.generate_readonly_fields()
 
         form_class = self.generate_form_class(fields, readonly_fields)
@@ -288,7 +296,7 @@ class DefaultModelFormView(DefaultFormView):
                                                              inline_form_views=inline_form_views))
 
     def post(self, request, *args, **kwargs):
-        fields = self.generate_fields()
+        fields = self.generate_model_fields()
         readonly_fields = self.generate_readonly_fields()
 
         form_class = self.generate_form_class(fields, readonly_fields)
