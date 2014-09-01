@@ -37,6 +37,8 @@ def is_rest_request(request):
 
 class Pattern(object):
 
+    send_in_rest = True
+
     def __init__(self, name):
         self.name = name
         self.url_prefix = None

@@ -304,7 +304,8 @@ class UIModelISCore(ModelISCore, UIISCore):
         return self.api_url_name
 
     def get_add_url(self, request):
-        return self.ui_patterns.get('add').get_url_string(request)
+        if 'add' in self.ui_patterns:
+            return self.ui_patterns.get('add').get_url_string(request)
 
     def get_api_url(self, request):
         return reverse(self.get_api_url_name())

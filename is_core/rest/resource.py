@@ -373,20 +373,22 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
     def _web_links(cls, obj, request):
         web_links = {}
         for pattern in cls.core.web_link_patterns(request):
-            url = pattern.get_url_string(request, obj=obj)
-            if url:
-                web_links[pattern.name] = url
+            if pattern.send_in_rest:
+                url = pattern.get_url_string(request, obj=obj)
+                if url:
+                    web_links[pattern.name] = url
         return web_links
 
     @classmethod
     def _rest_links(cls, obj, request):
         rest_links = {}
         for pattern in cls.core.resource_patterns.values():
-            url = pattern.get_url_string(request, obj=obj)
-            if url:
-                allowed_methods = pattern.get_allowed_methods(request, obj)
-                if allowed_methods:
-                    rest_links[pattern.name] = {'url': url, 'methods': allowed_methods}
+            if pattern.send_in_rest:
+                url = pattern.get_url_string(request, obj=obj)
+                if url:
+                    allowed_methods = pattern.get_allowed_methods(request, obj)
+                    if allowed_methods:
+                        rest_links[pattern.name] = {'url': url, 'methods': allowed_methods}
         return rest_links
 
     @classmethod
