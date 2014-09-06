@@ -9,6 +9,8 @@ from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join, conditional_escape
 from django.utils.translation import ugettext_lazy as _
+from sorl.thumbnail import default
+from django.db.models.fields.files import FieldFile
 
 
 def flat_data_attrs(attrs):
@@ -119,10 +121,18 @@ class ClearableFileInput(forms.ClearableFileInput):
 
 class DragAndDropFileInput(ClearableFileInput):
 
+    def _get_thumbnail(self, value):
+        return default.backend.get_thumbnail(value, '64x64', crop='center')
+
     def render(self, name, value, attrs={}):
         id = attrs.get('id')
         output = ['<div class="drag-and-drop-wrapper">']
         output.append('<div class="drag-and-drop-placeholder"%s></div>' % (id and 'data-for="%s"' % id or ''))
+        output.append('<div class="thumbnail-wrapper">')
+        if value and isinstance(value, FieldFile):
+            thumbnail = self._get_thumbnail(value)
+            output.append('<img src="%s" alt="%s">' % (thumbnail.url, thumbnail.name))
+        output.append('</div><div class=file-input-wrapper>')
         output.append(super(DragAndDropFileInput, self).render(name, value, attrs=attrs))
-        output.append('</div>')
+        output.append(2 * '</div>')
         return mark_safe('\n'.join(output))
