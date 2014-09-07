@@ -21,11 +21,25 @@ class OptionsLazy(object):
 
 class Options(object):
 
+    meta_name = None
+
     def __init__(self, model):
         self.model = model
 
+    def _getattr(self, name, default_value):
+        meta_models = [b for b in self.model.__mro__ if issubclass(b, models.Model)]
+        for model in meta_models:
+            meta = getattr(model, self.meta_name, None)
+            if meta:
+                value = getattr(meta, name, None)
+                if value is not None:
+                    return value
+        return default_value
+
 
 class UIOptions(Options):
+
+    meta_name = 'UIMeta'
 
     def __init__(self, model):
         super(UIOptions, self).__init__(model)
@@ -37,28 +51,25 @@ class UIOptions(Options):
         self.placeholders = {}
 
         if hasattr(model, 'UIMeta'):
-            self.extra_selecbox_fields = getattr(model.UIMeta, 'extra_selecbox_fields', self.extra_selecbox_fields)
-            self.list_verbose_name = getattr(model.UIMeta, 'list_verbose_name', self.list_verbose_name)
-            self.add_verbose_name = getattr(model.UIMeta, 'add_verbose_name', self.add_verbose_name)
-            self.edit_verbose_name = getattr(model.UIMeta, 'edit_verbose_name', self.edit_verbose_name)
-            self.filter_placeholders = getattr(model.UIMeta, 'filter_placeholders', self.filter_placeholders)
-            self.placeholders = getattr(model.UIMeta, 'placeholders', self.placeholders)
+            self.extra_selecbox_fields = self._getattr('extra_selecbox_fields', self.extra_selecbox_fields)
+            self.list_verbose_name = self._getattr('list_verbose_name', self.list_verbose_name)
+            self.add_verbose_name = self._getattr('add_verbose_name', self.add_verbose_name)
+            self.edit_verbose_name = self._getattr('edit_verbose_name', self.edit_verbose_name)
+            self.filter_placeholders = self._getattr('filter_placeholders', self.filter_placeholders)
+            self.placeholders = self._getattr('placeholders', self.placeholders)
 
 
 class RestOptions(Options):
 
+    meta_name = 'RestMeta'
+
     def __init__(self, model):
+        super(RestOptions, self).__init__(model)
         from piston.utils import model_default_rest_fields
 
-        self.fields = model_default_rest_fields(model)
-
-        if hasattr(model, 'RestMeta'):
-            self.fields = getattr(model.RestMeta, 'fields', self.fields)
-            self.default_list_fields = getattr(model.RestMeta, 'default_list_fields' , self.fields)
-            self.default_obj_fields = getattr(model.RestMeta, 'default_obj_fields', self.fields)
-        else:
-            self.default_list_fields = self.fields
-            self.default_obj_fields = self.fields
+        self.fields = self._getattr('fields', model_default_rest_fields(model))
+        self.default_list_fields = self._getattr('default_list_fields' , self.fields)
+        self.default_obj_fields = self._getattr('default_obj_fields', self.fields)
 
         self.fields = set(self.fields)
         self.default_list_fields = set(self.default_list_fields)
