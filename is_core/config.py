@@ -4,6 +4,7 @@ AUTH_COOKIE_NAME = getattr(settings, 'AUTH_COOKIE_NAME', 'Authorization')
 # Age of cookie, in seconds (default: 2 weeks).
 AUTH_COOKIE_AGE = getattr(settings, 'AUTH_COOKIE_AGE', 60 * 60 * 24 * 7 * 2)
 AUTH_COOKIE_HTTPONLY = getattr(settings, 'AUTH_COOKIE_HTTPONLY', False)
+AUTH_COOKIE_SECURE = getattr(settings, 'AUTH_COOKIE_SECURE', False)
 AUTH_HEADER_NAME = getattr(settings, 'AUTH_HEADER_NAME', 'HTTP_AUTHORIZATION')
 # Default token expiration time (default: 1 hour)
 AUTH_DEFAULT_TOKEN_AGE = getattr(settings, 'AUTH_DEFAULT_TOKEN_AGE', 60 * 60)
