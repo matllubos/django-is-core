@@ -239,7 +239,7 @@ class DefaultModelFormView(DefaultFormView):
     def generate_model_fields(self):
         fields = self.generate_fields()
         model_fields = []
-        for field in self.model._meta.fields:
+        for field in self.model._meta.fields + self.model._meta.many_to_many:
             if field.editable and (not fields or field.name in fields):
                 model_fields.append(field.name)
         return model_fields
