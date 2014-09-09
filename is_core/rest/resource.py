@@ -1,5 +1,10 @@
 from __future__ import unicode_literals
 
+import sys
+import base64
+import cStringIO
+
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import modelform_factory, ModelMultipleChoiceField
 from django.utils.translation import ugettext_lazy as _
@@ -7,6 +12,7 @@ from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, Sin
 from django.db import transaction
 from django.db.utils import InterfaceError, DatabaseError
 from django.core.urlresolvers import NoReverseMatch
+from django.forms.fields import FileField
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_resource_of_model, rc, HeadersResult
@@ -17,6 +23,8 @@ from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
 from is_core.patterns import RestPattern, patterns
 from is_core.utils.decorators import classproperty
+from is_core.forms.patch import FileField
+from pip._vendor.requests.models import CONTENT_CHUNK_SIZE
 
 
 class RestResponse(HeadersResult):
@@ -77,11 +85,11 @@ class DataProcessor(object):
     def _process_field(self, data, key, data_item):
         pass
 
-    def clear_data(self, data):
-        return data
+    def clear_data(self, data, files):
+        return data, files
 
-    def process_data(self, data):
-        data = self.clear_data(data)
+    def process_data(self, data, files):
+        data, files = self.clear_data(data, files)
 
         self.errors = {}
         for key, data_item in data.items():
@@ -89,7 +97,7 @@ class DataProcessor(object):
 
         if self.errors:
             raise DataInvalidException(self.errors)
-        return data
+        return data, files
 
 
 class DataPreprocessor(DataProcessor):
@@ -168,8 +176,24 @@ class DataPreprocessor(DataProcessor):
                 else:
                     self._process_dict_field(resource, data, key, data_item, rel_model)
 
-    def clear_data(self, data):
-        return data
+    def clear_data(self, data, files):
+        for name, field in self.form_fields.items():
+            if isinstance(field, FileField):
+                value = data.get(name)
+                if (value and isinstance(value, dict) and 
+                    {'filename', 'content', 'content_type'}.issubset(set(value.keys()))):
+                    filename = value.get('filename')
+                    file_content = cStringIO.StringIO(base64.b64decode(value.get('content')))
+                    content_type = value.get('content_type')
+                    charset = value.get('charset')
+                    files[name] = InMemoryUploadedFile(file_content,
+                                                field_name=name,
+                                                name=filename,
+                                                content_type=content_type,
+                                                size=sys.getsizeof(file_content),
+                                                charset=charset)
+        return data, files
+
 
 
 class DataPostprocessor(DataProcessor):
@@ -468,7 +492,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             exclude.extend(form_class._meta.exclude)
         return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields)
 
-    def get_form(self, request, fields=None, inst=None, data=None, initial={}):
+    def get_form(self, request, fields=None, inst=None, data=None, files=None, initial={}):
         # When is send PUT (resource instance exists), it is possible send only changed values.
         exclude = []
 
@@ -477,7 +501,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             kwargs['instance'] = inst
         if data:
             kwargs['data'] = data
-            kwargs['files'] = request.FILES
+            kwargs['files'] = files
 
         form_class = self.generate_form_class(request, inst, exclude)
         form = form_class(initial=initial, **kwargs)
@@ -514,9 +538,10 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         form_fields = self.get_form(request, inst=inst, data=data, initial={'_user': request.user,
                                                                             '_request': request}).fields
         preprocesor = DataPreprocessor(request, self.model, form_fields, inst, via + [self])
-        data = preprocesor.process_data(data)
-        form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, initial={'_user': request.user,
-                                                                                                '_request': request})
+        files = request.FILES
+        data, files = preprocesor.process_data(data, files)
+        form = self.get_form(request, fields=form_fields.keys(), inst=inst, data=data, files=files,
+                             initial={'_user': request.user, '_request': request})
 
         errors = form.is_invalid()
         if errors:
@@ -533,7 +558,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             form.save_m2m()
         # Core view event after save object
         postprocesor = DataPostprocessor(request, self.model, form_fields, inst, via + [self])
-        data = postprocesor.process_data(data)
+        data, files = postprocesor.process_data(data, files)
 
         self.core.post_save_model(request, inst, form, change)
         return inst
