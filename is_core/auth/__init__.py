@@ -1,10 +1,13 @@
 from __future__ import unicode_literals
 
+from functools import wraps
+
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseForbidden
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
 from django.utils.functional import SimpleLazyObject
+from django.utils.decorators import available_attrs
 
 from is_core.utils.models import get_object_or_none
 from is_core import config
@@ -71,7 +74,7 @@ class PermWrapper(Auth):
 
             return self._wrap(func, request, *args, **kwargs)
 
-        return wrapper
+        return wraps(func, assigned=available_attrs(func))(wrapper)
 
 
 class UIPermWrapper(PermWrapper):
