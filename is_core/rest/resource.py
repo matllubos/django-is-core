@@ -12,7 +12,7 @@ from django.db.models.fields.related import ForeignRelatedObjectsDescriptor, Sin
 from django.db import transaction
 from django.db.utils import InterfaceError, DatabaseError
 from django.core.urlresolvers import NoReverseMatch
-from django.forms.fields import FileField
+from django.forms.fields import FileField as OriginFileFiel
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_resource_of_model, rc, HeadersResult
@@ -23,8 +23,8 @@ from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
 from is_core.patterns import RestPattern, patterns
 from is_core.utils.decorators import classproperty
+from django.forms.fields import FileField
 from is_core.forms.patch import FileField
-from pip._vendor.requests.models import CONTENT_CHUNK_SIZE
 
 
 class RestResponse(HeadersResult):
@@ -178,9 +178,9 @@ class DataPreprocessor(DataProcessor):
 
     def clear_data(self, data, files):
         for name, field in self.form_fields.items():
-            if isinstance(field, FileField):
+            if isinstance(field, (FileField, OriginFileFiel)):
                 value = data.get(name)
-                if (value and isinstance(value, dict) and 
+                if (value and isinstance(value, dict) and
                     {'filename', 'content', 'content_type'}.issubset(set(value.keys()))):
                     filename = value.get('filename')
                     file_content = cStringIO.StringIO(base64.b64decode(value.get('content')))
@@ -320,6 +320,7 @@ class RestResource(BaseResource):
     @classmethod
     def as_wrapped_view(cls, wrapper_class, allowed_methods, **initkwargs):
         wrapper = cls.as_view(**initkwargs)
+
 
         auth_wrapper = wrapper_class(cls.get_permission_validators(allowed_methods),
                                      **initkwargs).wrap(wrapper)
