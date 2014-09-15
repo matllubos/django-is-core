@@ -1,15 +1,19 @@
 from __future__ import unicode_literals
 
+from .exceptions import GenericViewException
+
 
 class ListParentMixin(object):
 
     def list_bread_crumbs_menu_item(self):
         from is_core.menu import LinkMenuItem
 
+        list_pattern = self.core.ui_patterns.get('list')
+        list_view = list_pattern.view
         return LinkMenuItem(self.model._ui_meta.list_verbose_name %
-                            {'verbose_name': self.model._meta.verbose_name,
-                             'verbose_name_plural': self.model._meta.verbose_name_plural},
-                             self.core.ui_patterns.get('list').get_url_string(self.request),
+                            {'verbose_name': list_view.model._meta.verbose_name,
+                             'verbose_name_plural': list_view.model._meta.verbose_name_plural},
+                             list_pattern.get_url_string(self.request),
                              active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
@@ -28,12 +32,17 @@ class EditParentMixin(ListParentMixin):
     def edit_bread_crumbs_menu_item(self):
         from is_core.menu import LinkMenuItem
 
+        edit_pattern = self.core.ui_patterns.get('edit')
+        edit_view = edit_pattern.view
+        parent_obj = self.get_parent_obj()
+        if not isinstance(parent_obj, edit_view.model):
+            raise GenericViewException('Parent obj must be instance of edit view model')
+
         return LinkMenuItem(self.model._ui_meta.edit_verbose_name %
-                            {'verbose_name': self.model._meta.verbose_name,
-                             'verbose_name_plural': self.model._meta.verbose_name_plural,
-                             'obj': self.get_obj()},
-                             self.core.ui_patterns.get('edit')
-                                .get_url_string(self.request, kwargs={'pk':self.request.kwargs.get('pk')}),
+                            {'verbose_name': edit_view.model._meta.verbose_name,
+                             'verbose_name_plural': edit_view.model._meta.verbose_name_plural,
+                             'obj': parent_obj},
+                             edit_pattern.get_url_string(self.request, kwargs={'pk':parent_obj.pk}),
                              active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
@@ -43,6 +52,8 @@ class EditParentMixin(ListParentMixin):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 
+    def get_parent_obj(self):
+        return self.get_obj()
 
 class TabsViewMixin(object):
 

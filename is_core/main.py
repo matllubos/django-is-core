@@ -214,10 +214,13 @@ class UIISCore(PermissionsUIMixin, ISCore):
     def get_show_in_menu(self, request):
         return self.has_ui_read_permission(request)
 
+    def is_active_menu_item(self, request, active_group):
+        return active_group == self.menu_group
+
     def get_menu_item(self, request, active_group):
         if self.get_show_in_menu(request):
             return LinkMenuItem(self.verbose_name_plural, self.menu_url(request),
-                                self.menu_group, active_group == self.menu_group)
+                                self.menu_group, self.is_active_menu_item(request, active_group))
 
 
 class HomeUIISCore(UIISCore):
