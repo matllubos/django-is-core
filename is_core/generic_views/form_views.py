@@ -235,7 +235,7 @@ class DefaultModelFormView(DefaultFormView):
         if fieldsets is not None:
             return flatten_fieldsets(fieldsets)
         return self.get_fields()
-    
+
     def generate_model_fields(self):
         fields = self.generate_fields()
         model_fields = []

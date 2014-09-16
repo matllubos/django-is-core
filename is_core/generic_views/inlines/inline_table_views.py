@@ -1,7 +1,8 @@
+from django.forms.models import _get_foreign_key
+
 from is_core.generic_views.table_views import TableViewMixin
 from is_core.generic_views.inlines import InlineView
 from is_core.site import get_model_core
-from django.forms.models import _get_foreign_key
 
 
 class InlineTableView(TableViewMixin, InlineView):

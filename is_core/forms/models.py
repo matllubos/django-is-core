@@ -6,9 +6,10 @@ from django.forms.fields import ChoiceField
 
 from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
+from is_core.forms.formsets import BaseFormSetMixin
 
 
-class BaseInlineFormSet(models.BaseInlineFormSet):
+class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
 
     def save_existing_objects(self, commit=True):
         self.changed_objects = []
@@ -39,13 +40,6 @@ class BaseInlineFormSet(models.BaseInlineFormSet):
                 if not commit:
                     self.saved_forms.append(form)
         return saved_instances
-
-    def all_forms(self):
-        for form in self.forms:
-            yield form
-
-        if self.can_add:
-            yield self.empty_form
 
 
 class ModelChoice(list):
