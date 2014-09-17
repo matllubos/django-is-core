@@ -132,7 +132,7 @@ class InlineFormView(InlineView):
         return formset
 
     def form_class_names(self, form):
-        if form.instance.pk:
+        if not form.instance.pk:
             return ['empty']
         return []
 

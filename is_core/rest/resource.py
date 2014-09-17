@@ -23,7 +23,6 @@ from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.exceptions import FilterException
 from is_core.patterns import RestPattern, patterns
 from is_core.utils.decorators import classproperty
-from django.forms.fields import FileField
 from is_core.forms.patch import FileField
 
 

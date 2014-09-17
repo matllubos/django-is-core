@@ -23,6 +23,7 @@
 							{% endfor %}
 						</tr>
 					</thead>
+					<tbody>
 				{% endblock %}
 			{% endif %}
 			<tr class="inline-line {% cycle odd,even %} {{ form.class_names|join:' ' }}">
@@ -41,6 +42,7 @@
 					</td>
 				{% endfor %}
 			</tr>
+			{% if forloop.last %}</tbody>{% endif %}
 		{% endfor %}
 	</table>
 	{% block below-table %}
