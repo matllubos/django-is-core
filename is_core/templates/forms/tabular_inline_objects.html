@@ -1,0 +1,29 @@
+{% load i18n forms %}
+
+<fieldset class="inline tabular-inline {{ class_names|join:' ' }}">
+	{% block inline-title %}{% if title %}<legend>{{ title }}</legend>{% endif %}{% endblock %}
+	{% block above-table %}{% endblock %}
+	<table class="form">
+		{% for row in data_list %}
+			{% if forloop.first %}
+				{% block inline-thead %}
+					<thead>
+						<tr>
+							{% for field_name, field_value in header_list %}
+								<th class="field-{{ field_name }}">{{ field_value }}</th>
+							{% endfor %}
+						</tr>
+					</thead>
+				{% endblock %}
+			{% endif %}
+			<tr class="inline-line {% cycle odd,even %} {{ form.class_names|join:' ' }}">
+				{% for field_name, field_value in row %}
+				<td class="field field-{{ field_name }}">
+					{{ field_value }}
+				</td>
+				{% endfor %}
+			</tr>
+		{% endfor %}
+	</table>
+	{% block below-table %}{% endblock %}
+</fieldset>
