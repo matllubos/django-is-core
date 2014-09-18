@@ -7,4 +7,3 @@ class SaveObjectException(RestException):
 
 class GenericViewException(Exception):
     pass
-
