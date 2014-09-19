@@ -97,7 +97,6 @@ def display_for_field_value(instance, field, value, callable_value, request):
         if hasattr(getattr(instance, humanize_method_name, None), '__call__'):
             return mark_safe('<span title="%s">%s</span>' % (force_text(value), getattr(instance,
                                                                                         humanize_method_name)()))
-
     return value
 
 

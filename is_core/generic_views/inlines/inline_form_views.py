@@ -106,7 +106,7 @@ class InlineFormView(InlineView):
                                      can_delete=self.get_can_delete(), exclude=exclude,
                                      fields=fields, max_num=self.max_num)
 
-    def get_queryset(self, instance):
+    def get_queryset(self):
         return self.model.objects.all()
 
     def get_formset(self, instance, data, files):
@@ -115,11 +115,11 @@ class InlineFormView(InlineView):
 
         if data:
             formset = self.get_formset_factory(fields, readonly_fields)(data=data, files=files, instance=instance,
-                                                                        queryset=self.get_queryset(instance),
+                                                                        queryset=self.get_queryset(),
                                                                         prefix=self.get_prefix())
         else:
             formset = self.get_formset_factory(fields, readonly_fields)(instance=instance,
-                                                                        queryset=self.get_queryset(instance),
+                                                                        queryset=self.get_queryset(),
                                                                         initial=self.get_initial(),
                                                                         prefix=self.get_prefix())
 
