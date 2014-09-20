@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load forms i18n %}
+{% load forms i18n snippets %}
 
 {% block header-content %}
 	{{ block.super }}
@@ -10,7 +10,9 @@
 	<div class="clearfix page-view {% block view-class %}form-view{% endblock %}">
 		{% block above-form %}{% endblock %}
 		{% block form %}
-			{% form_renderer form fieldsets=fieldsets template=form_template class_attr=form_class_names action=action %}
+			{% snippet form_snippet_name 'replace' %}
+				{% form_renderer form fieldsets=fieldsets template=form_template class_attr=form_class_names action=action %}
+			{% endsnippet %}
 		{% endblock %}
 		{% block below-form %}{% endblock %}
 	</div>

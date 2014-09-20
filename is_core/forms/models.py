@@ -77,11 +77,21 @@ class ModelChoiceFieldMixin(object):
 
     widget = widgets.Select
 
+    def __init__(self, queryset, *args, **kwargs):
+        self.model = queryset.model
+        super(ModelChoiceFieldMixin, self).__init__(queryset, *args, **kwargs)
+
     def _get_choices(self):
         if hasattr(self, '_choices'):
             return self._choices
         return ModelChoiceIterator(self)
     choices = property(_get_choices, ChoiceField._set_choices)
+
+    def widget_attrs(self, widget):
+        attrs = super(ModelChoiceFieldMixin, self).widget_attrs(widget)
+        options = self.model._meta
+        attrs['data-model'] = '%s.%s' % (options.app_label, options.object_name)
+        return attrs
 
 
 class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):

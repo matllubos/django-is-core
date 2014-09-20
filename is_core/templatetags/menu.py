@@ -5,7 +5,6 @@ from django import template
 from is_core.site import get_site_by_name
 from is_core import config
 from is_core.utils import str_to_class
-from is_core.menu import MenuItem
 
 register = template.Library()
 

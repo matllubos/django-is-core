@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from django.contrib import messages
 from django.forms.models import modelform_factory, ModelForm
 from django.http.response import HttpResponseRedirect
 from django.utils.datastructures import SortedDict
@@ -16,6 +15,7 @@ from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
+from is_core.response import JsonHttpResponse
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -27,15 +27,11 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 'error': _('Please correct the error below.')}
     readonly_fields = None
 
-    def render_to_response(self, context, **response_kwargs):
-        if self.has_snippet():
-            extra_content = response_kwargs['extra_content'] = response_kwargs.get('extra_content', {})
-            extra_content_messages = extra_content['messages'] = {}
-            for message in get_messages(self.request):
-                extra_content_messages[message.tags] = force_text(message)
-        return super(DefaultFormView, self).render_to_response(context, **response_kwargs)
-
     def get_success_url(self, obj):
+        """
+        URL string for redirect after saving
+        """
+
         return ''
 
     def get_has_file_field(self, form, **kwargs):
@@ -54,43 +50,83 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def get_readonly_fields(self):
         return self.readonly_fields or ()
 
-    def get_message(self, type, obj=None):
-        msg_dict = {}
+    def get_message_kwargs(self, obj):
+        return {'obj': force_text(obj)}
+
+    def get_message(self, msg_type_or_level, obj=None):
+        msg_kwargs = {}
         if obj:
-            msg_dict = {'obj': force_text(obj)}
-        return self.messages.get(type) % msg_dict
+            msg_kwargs = self.get_message_kwargs(obj)
+
+        msg_type = (isinstance(msg_type_or_level, int) and constants.DEFAULT_TAGS.get(msg_type_or_level)
+                    or msg_type_or_level)
+        return self.messages.get(msg_type) % msg_kwargs
 
     def is_changed(self, form, **kwargs):
+        """
+        Retrun true if form was changed
+        """
         return form.has_changed()
 
     def save_obj(self, obj, form, change):
-        raise NotImplemented
+        """
+        Must be added for non model forms
+        this method should save object or raise exception
+        """
 
-    def form_valid(self, form, msg=None):
+        raise NotImplementedError
+
+    def save_form(self, form, **kwargs):
+        """
+        Contains formset save, prepare obj for saving
+        """
+
         obj = form.save(commit=False)
-
         change = obj.pk is not None
-
         try:
             self.save_obj(obj, form, change)
         except SaveObjectException as ex:
             return self.form_invalid(form, force_text(ex))
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
+        return obj
 
-        msg = msg or self.get_message('success', obj)
+    def form_valid(self, form, msg=None, msg_level=None, **kwargs):
+        try:
+            obj = self.save_form(form, **kwargs)
+        except SaveObjectException as ex:
+            return self.form_invalid(form, msg=force_text(ex), **kwargs)
+        return self.success_render_to_response(obj, msg, msg_level)
 
-        messages.success(self.request, msg)
-        return HttpResponseRedirect(self.get_success_url(obj))
-
-    def form_invalid(self, form, msg=None, msg_level=constants.ERROR):
-        msg = msg or self.get_message('error')
+    def form_invalid(self, form, msg=None, msg_level=None, **kwargs):
+        msg_level = msg_level or constants.ERROR
+        msg = msg or self.get_message(msg_level)
         add_message(self.request, msg_level, msg)
-        return self.render_to_response(self.get_context_data(form=form))
+        return self.render_to_response(self.get_context_data(form=form, msg=msg, msg_level=msg_level, **kwargs))
+
+    def get_popup_obj(self, obj):
+        return {'_obj_name': force_text(obj)}
 
     @property
     def is_ajax_form(self):
+        """
+        Return if form will be rendered for ajax
+        """
         return self.has_snippet()
+
+    @property
+    def is_popup_form(self):
+        """
+        Return if form will be rendnered as popup
+        """
+        return 'popup' in self.request.GET
+
+    @property
+    def form_snippet_name(self):
+        """
+        Return name for name for snippet which surround form
+        """
+        return '%s-%s' % (self.view_name, 'form')
 
     def get_form_class_names(self):
         class_names = ['-'.join((self.view_type, self.site_name,
@@ -111,6 +147,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                                 'form_class_names': self.get_form_class_names(),
                                 'has_file_field': self.get_has_file_field(form, **kwargs),
                                 'action': self.get_form_action(),
+                                'form_snippet_name': self.form_snippet_name
                              })
         return context_data
 
@@ -152,6 +189,34 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 return self.form_invalid(form, msg=_('No changes have been submitted.'), msg_level=constants.INFO)
             return self.form_invalid(form)
 
+    def get_snippet_names(self):
+        if self.is_popup_form:
+            return [self.form_snippet_name]
+        else:
+            return super(DefaultFormView, self).get_snippet_names()
+
+    def success_render_to_response(self, obj, msg, msg_level):
+        msg_level = msg_level or constants.SUCCESS
+        msg = msg or self.get_message(msg_level, obj)
+        if self.is_popup_form:
+            return JsonHttpResponse({'messages': {msg_level: msg}, 'obj': self.get_popup_obj(obj)})
+        else:
+            add_message(self.request, msg_level, msg)
+            response = HttpResponseRedirect(self.get_success_url(obj))
+            if self.is_ajax_form:
+                response.status_code = 204
+            return response
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.has_snippet():
+            extra_content = response_kwargs['extra_content'] = response_kwargs.get('extra_content', {})
+            extra_content_messages = {}
+            for message in get_messages(self.request):
+                extra_content_messages[message.tags] = force_text(message)
+            if extra_content_messages:
+                extra_content['messages'] = extra_content_messages
+        return super(DefaultFormView, self).render_to_response(context, **response_kwargs)
+
     @classmethod
     def has_post_permission(cls, request, **kwargs):
         return True
@@ -178,11 +243,8 @@ class DefaultModelFormView(DefaultFormView):
             form_field.widget.placeholder = placeholder
         return form_field
 
-    def get_message(self, type, obj=None):
-        msg_dict = {}
-        if obj:
-            msg_dict = {'obj': force_text(obj), 'name': force_text(obj._meta.verbose_name)}
-        return self.messages.get(type) % msg_dict
+    def get_message_kwargs(self, obj):
+        return {'obj': force_text(obj), 'name': force_text(obj._meta.verbose_name)}
 
     def get_exclude(self):
         return self.exclude or ()
@@ -272,9 +334,6 @@ class DefaultModelFormView(DefaultFormView):
     def get_cancel_url(self):
         return None
 
-    def get_success_url(self, obj):
-        return ''
-
     def has_save_button(self):
         return self.has_post_permission(self.request, obj=self.get_obj())
 
@@ -301,7 +360,6 @@ class DefaultModelFormView(DefaultFormView):
 
         form_class = self.generate_form_class(fields, readonly_fields)
         form = self.get_form(form_class)
-        inline_form_views = SortedDict()
         inline_forms_is_valid = True
 
         inline_views = self.init_inline_views(form.instance)
@@ -315,13 +373,15 @@ class DefaultModelFormView(DefaultFormView):
         is_changed = self.is_changed(form, inline_form_views=inline_form_views)
 
         if is_valid and inline_forms_is_valid and is_changed:
-            return self.form_valid(form, inline_form_views, inline_views)
+            return self.form_valid(form, inline_form_views=inline_form_views,
+                                   inline_views=inline_views)
         else:
             if is_valid and not is_changed:
-                return self.form_invalid(form, inline_form_views, inline_views,
+                return self.form_invalid(form, inline_form_views=inline_form_views,
+                                         inline_views=inline_views,
                                          msg=_('No changes have been submitted.'),
                                          msg_level=constants.INFO)
-            return self.form_invalid(form, inline_form_views, inline_views)
+            return self.form_invalid(form, inline_form_views=inline_form_views, inline_views=inline_views)
 
     def get_obj(self, cached=True):
         return None
@@ -331,7 +391,9 @@ class DefaultModelFormView(DefaultFormView):
         kwargs['instance'] = self.get_obj()
         return kwargs
 
-    def save_form(self, form, inline_form_views):
+    def save_form(self, form, inline_form_views=None, **kwargs):
+        inline_form_views = inline_form_views or {}
+
         obj = form.save(commit=False)
         change = obj.pk is not None
 
@@ -346,26 +408,10 @@ class DefaultModelFormView(DefaultFormView):
         self.post_save_obj(obj, form, change)
         return obj
 
-    def form_valid(self, form, inline_form_views, inline_views, msg=None):
-        try:
-            obj = self.save_form(form, inline_form_views)
-        except SaveObjectException as ex:
-            return self.form_invalid(form, inline_form_views, inline_views, force_text(ex))
-
-        msg = msg or self.get_message('success', obj)
-        messages.success(self.request, msg)
-
-        return HttpResponseRedirect(self.get_success_url(obj))
-
-    def form_invalid(self, form, inline_form_views, inline_views, msg=None, msg_level=constants.ERROR):
-        msg = msg or self.get_message('error')
-        add_message(self.request, msg_level, msg)
-        return self.render_to_response(self.get_context_data(form=form, inline_views=inline_views,
-                                                             inline_form_views=inline_form_views))
-
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
         context_data = super(DefaultModelFormView, self).get_context_data(form=form,
-                                                                          inline_form_views=inline_form_views, **kwargs)
+                                                                          inline_form_views=inline_form_views,
+                                                                          **kwargs)
         context_data.update({
                                 'module_name': self.model._meta.module_name,
                                 'cancel_url': self.get_cancel_url(),
@@ -385,6 +431,11 @@ class DefaultModelFormView(DefaultFormView):
     def has_post_permission(cls, request, **kwargs):
         return cls.has_permission(request, **kwargs)
 
+    def get_popup_obj(self, obj):
+        app_label = self.model._meta.app_label
+        model_name = self.model._meta.object_name
+        return {'_obj_name': force_text(obj), 'pk': obj.pk, '_model': '%s.%s' % (app_label, model_name)}
+
 
 class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
@@ -398,12 +449,6 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     def post_save_obj(self, obj, form, change):
         self.core.post_save_model(self.request, obj, form, change)
-
-    def get_message(self, type, obj=None):
-        msg_dict = {}
-        if obj:
-            msg_dict = {'obj': force_text(obj), 'name': force_text(self.core.verbose_name)}
-        return self.messages.get(type) % msg_dict
 
     def get_exclude(self):
         return (self.exclude is not None and self.exclude or
@@ -445,8 +490,6 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
                self.core.ui_patterns.get(self.view_type).view.has_post_permission(self.request, obj=self.get_obj())
 
     def get_success_url(self, obj):
-        menu_group = self.core.get_menu_group_pattern_name()
-        info = self.site_name, menu_group
         if 'list' in self.core.ui_patterns \
                 and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
                 and 'save' in self.request.POST:
