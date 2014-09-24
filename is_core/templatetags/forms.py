@@ -8,7 +8,6 @@ from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignKey, ManyToManyRel
-from django.contrib.admin.util import display_for_value
 from django.utils.html import linebreaks, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
@@ -17,6 +16,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from block_snippets.templatetags import SnippetsIncludeNode
 
+from .utils import display_for_value
 
 register = template.Library()
 

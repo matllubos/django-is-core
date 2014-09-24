@@ -4,6 +4,10 @@ import json as serializer
 import os
 
 from django.template.base import Library
+from django.contrib.admin.util import display_for_value as admin_display_for_value
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
+
 
 register = Library()
 
@@ -24,3 +28,11 @@ def json(value):
 @register.filter
 def filename(value):
     return os.path.basename(value.file.name)
+
+
+def display_for_value(value, boolean=False):
+    if isinstance(value, dict):
+        return mark_safe('<ul>%s</ul>' % '\n'.join('<li>%s: %s</li>' % (escape(key), escape(val))
+                                                   for key, val in value.items()))
+    else:
+        return admin_display_for_value(value, boolean)

@@ -4,10 +4,11 @@ from is_core.auth_token.default.views import TokenLoginView as DefaultTokenLogin
 
 from security.middleware import SecurityData
 from security.models import LoggedRequest
+from security.decorators import hide_request_body_all
 
 
+@hide_request_body_all
 class TokenLoginView(DefaultTokenLoginView):
-
 
     def form_invalid(self, form):
         self.request._security_data = SecurityData(LoggedRequest.UNSUCCESSFUL_LOGIN_REQUEST)

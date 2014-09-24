@@ -4,8 +4,10 @@ from is_core.auth_token.default.resource import AuthResource as DefaultAuthResou
 
 from security.middleware import SecurityData
 from security.models import LoggedRequest
+from security.decorators import hide_request_body_all
 
 
+@hide_request_body_all
 class AuthResource(DefaultAuthResource):
 
     def _sucessful_login(self, request):
