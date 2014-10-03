@@ -262,6 +262,8 @@ class DataPostprocessor(DataProcessor):
         """
         Create or update reverse ForeignKey field
         """
+        errors = []
+        existing_related = []
 
         if isinstance(data_items, dict):
             existing_related = list(resource.model.objects.filter(**{related_obj.field.name: self.inst}).values_list('pk', flat=True))
@@ -275,9 +277,7 @@ class DataPostprocessor(DataProcessor):
                 errors['add'] = add_errors
             if remove_errors:
                 errors['remove'] = remove_errors
-        else:
-            errors = []
-            existing_related = []
+        elif hasattr(data_items, '__iter__'):
             self._add_related_items(resource, data_items, existing_related, errors, related_obj)
 
         self._remove_other_related_objects(resource, related_obj, existing_related)
