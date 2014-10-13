@@ -1,0 +1,1 @@
+/Users/lubos/Workspace/Django/django-is-core/example/bower_components/d3/d3.min.js

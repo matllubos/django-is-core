@@ -1,3 +1,11 @@
-https://github.com/matllubos/django-is-core/tarball/0.5.9#egg=django-is-core-0.5.9
-https://github.com/jezdez/django_compressor/tarball/develop#egg=django_compressor-dev
-django-apptemplates==0.0.1
+Django==1.6
+South==0.8.2
+django-extensions==1.2.4
+django-jenkins==0.14.1
+pep8==1.4.6
+pyflakes==0.7.3
+six==1.5.2
+https://github.com/LukasRychtecky/germanium/tarball/0.1.5#egg=germanium-0.1.5
+https://github.com/matllubos/django-is-core/tarball/0.6.69#egg=django-is-core-0.6.69
+pyaml==14.05.7
+mimeparse==0.1.3

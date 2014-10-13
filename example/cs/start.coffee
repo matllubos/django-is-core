@@ -2,19 +2,8 @@ goog.provide 'app.start'
 
 goog.require 'app'
 goog.require 'app.ui'
-goog.require 'app.ui.form'
-goog.require 'app.ui.grid'
-goog.require 'app.ui.inlineform'
-goog.require 'app.ui.dropup'
-goog.require 'app.ui.dropdown'
-goog.require 'app.ui.dialog'
-goog.require 'app.ui.zippy'
-goog.require 'app.ui.richtooltip'
+goog.require 'app.ui.popup'
 goog.require 'wzk.ui'
-goog.require 'app.ui.tab'
-goog.require 'app.ui.changes'
-goog.require 'app.ui.chart'
-goog.require 'app.ui.report'
 
 ###*
   @param {Window} win

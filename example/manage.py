@@ -11,4 +11,6 @@ if __name__ == "__main__":
 
     from django.core.management import execute_from_command_line
 
+    sys.path.append(os.path.join(PROJECT_DIR, 'dj', 'apps'))
+
     execute_from_command_line(sys.argv)
