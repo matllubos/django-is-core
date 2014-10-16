@@ -1,4 +1,6 @@
 
 
 class SaveObjectException(Exception):
-    pass
+    
+    def __unicode__(self):
+        return self.message
