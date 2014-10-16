@@ -203,8 +203,6 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         else:
             add_message(self.request, msg_level, msg)
             response = HttpResponseRedirect(self.get_success_url(obj))
-            if self.is_ajax_form:
-                response.status_code = 204
             return response
 
     def render_to_response(self, context, **response_kwargs):
