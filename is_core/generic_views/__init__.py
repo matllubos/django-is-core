@@ -1,14 +1,46 @@
 from __future__ import unicode_literals
 
+import re
+
 from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 
-from is_core.menu import LinkMenuItem
-
 from block_snippets.views import JsonSnippetTemplateResponseMixin
 
+from is_core.menu import LinkMenuItem
+from is_core.exceptions import HttpForbiddenException
+from is_core.generic_views.exceptions import GenericViewException
 
-class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
+
+class PermissionsViewMixin(object):
+
+    def dispatch(self, request, *args, **kwargs):
+        rm = request.method.lower()
+        if rm in self.http_method_names:
+            self._check_permission(rm)
+            handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
+        else:
+            handler = self.http_method_not_allowed
+        return handler(request, *args, **kwargs)
+
+    def __getattr__(self, name):
+        m = re.match(r'_check_(\w+)_permission', name)
+        if m:
+            def _call_check(**kwargs):
+                return self._check_permission(m.group(1), **kwargs)
+            return _call_check
+
+        raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
+
+    def _check_permission(self, name, **kwargs):
+        if not hasattr(self, 'has_%s_permission' % name):
+            raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
+
+        if not getattr(self, 'has_%s_permission' % name)(**kwargs):
+            raise HttpForbiddenException
+
+
+class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
 
     site_name = None
     menu_groups = None
@@ -35,25 +67,6 @@ class DefaultViewMixin(JsonSnippetTemplateResponseMixin):
         extra_context_data.update(context_data)
         return extra_context_data
 
-    @classmethod
-    def get_permission_validators(cls):
-        return {
-                    'GET': cls.has_get_permission,
-                    'POST': cls.has_post_permission,
-                }
-
-    @classmethod
-    def has_get_permission(cls, request, **kwargs):
-        return True
-
-    @classmethod
-    def has_post_permission(cls, request, **kwargs):
-        return False
-
-    @classmethod
-    def as_wrapped_view(cls, wrapper_class, allowed_methods=None, **initkwargs):
-        return wrapper_class(cls.get_permission_validators(), **initkwargs).wrap(cls.as_view(**initkwargs))
-
     def bread_crumbs_menu_items(self):
         if self.add_current_to_breadcrumbs:
             return [LinkMenuItem(self.get_title(), self.request.path, True)]
@@ -70,6 +83,11 @@ class DefaultCoreViewMixin(DefaultViewMixin):
         super(DefaultCoreViewMixin, self).__init__()
         self.site_name = self.core.site_name
         self.menu_groups = self.core.get_menu_groups()
+
+    @classmethod
+    def __init_core__(cls, core, pattern):
+        cls.core = core
+        cls.pattern = pattern
 
     def dispatch(self, request, *args, **kwargs):
         self.core.init_ui_request(request)
@@ -97,11 +115,6 @@ class DefaultCoreViewMixin(DefaultViewMixin):
                               }
         extra_context_data.update(context_data)
         return extra_context_data
-
-    @classmethod
-    def __init_core__(cls, core, pattern):
-        cls.core = core
-        cls.pattern = pattern
 
 
 class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
@@ -131,3 +144,6 @@ class HomeView(DefaultCoreViewMixin, TemplateView):
 
     def get_title(self):
         return _('Home')
+
+    def has_get_permission(self):
+        return True

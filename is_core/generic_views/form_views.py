@@ -9,6 +9,8 @@ from django.views.generic.edit import FormView
 from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
 
+from piston.utils import get_object_or_none
+
 from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets
@@ -215,9 +217,14 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 extra_content['messages'] = extra_content_messages
         return super(DefaultFormView, self).render_to_response(context, **response_kwargs)
 
-    @classmethod
-    def has_post_permission(cls, request, **kwargs):
+    def has_permission(self):
         return True
+
+    def has_get_permission(self):
+        return self.has_permission()
+
+    def has_post_permission(self):
+        return self.has_permission()
 
 
 class DefaultModelFormView(DefaultFormView):
@@ -248,7 +255,7 @@ class DefaultModelFormView(DefaultFormView):
         return self.exclude or ()
 
     def generate_readonly_fields(self):
-        if not self.has_post_permission(self.request, obj=self.get_obj()):
+        if not self.has_post_permission():
             return list(self.generate_form_class().base_fields.keys()) + list(self.get_readonly_fields())
         return self.get_readonly_fields()
 
@@ -318,8 +325,8 @@ class DefaultModelFormView(DefaultFormView):
     def formfield_for_dbfield(self, db_field, **kwargs):
         return db_field.formfield(**kwargs)
 
-    def get_has_file_field(self, form, inline_form_views=(), **kwargs):
-        if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
+    def gethas_file_field(self, form, inline_form_views=(), **kwargs):
+        if super(DefaultModelFormView, self).ghas_s_file_field(form, **kwargs):
             return True
 
         inline_form_views = inline_form_views and inline_form_views.values() or ()
@@ -333,7 +340,7 @@ class DefaultModelFormView(DefaultFormView):
         return None
 
     def has_save_button(self):
-        return self.has_post_permission(self.request, obj=self.get_obj())
+        return self.has_post_permission()
 
     def is_changed(self, form, inline_form_views, **kwargs):
         for inline_form_view_instance in inline_form_views.values():
@@ -417,18 +424,6 @@ class DefaultModelFormView(DefaultFormView):
                              })
         return context_data
 
-    @classmethod
-    def has_permission(cls, request, **kwargs):
-        return True
-
-    @classmethod
-    def has_get_permission(cls, request, **kwargs):
-        return cls.has_permission(request, **kwargs)
-
-    @classmethod
-    def has_post_permission(cls, request, **kwargs):
-        return cls.has_permission(request, **kwargs)
-
     def get_popup_obj(self, obj):
         app_label = self.model._meta.app_label
         model_name = self.model._meta.object_name
@@ -473,27 +468,26 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     def get_cancel_url(self):
         if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
+                and self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() \
                 and not self.has_snippet():
             return self.core.ui_patterns.get('list').get_url_string(self.request)
         return None
 
     def has_save_and_continue_button(self):
         return 'list' in self.core.ui_patterns and not self.has_snippet() \
-                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
+                and self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() \
                 and self.show_save_and_continue
 
     def has_save_button(self):
-        return self.view_type in self.core.ui_patterns and \
-               self.core.ui_patterns.get(self.view_type).view.has_post_permission(self.request, obj=self.get_obj())
+        return self.view_type in self.core.ui_patterns and self.has_post_permission()
 
     def get_success_url(self, obj):
         if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').view.has_get_permission(self.request) \
+                and self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() \
                 and 'save' in self.request.POST:
             return self.core.ui_patterns.get('list').get_url_string(self.request)
         elif 'edit' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request, obj=obj) \
+                and self.core.ui_patterns.get('edit').get_view(self.request).has_get_permission(obj=obj) \
                 and 'save-and-continue' in self.request.POST:
             return self.core.ui_patterns.get('edit').get_url_string(self.request, kwargs={'pk': obj.pk})
         return ''
@@ -519,13 +513,8 @@ class AddModelFormView(DefaultCoreModelFormView):
         return self.model._ui_meta.add_verbose_name % {'verbose_name': self.model._meta.verbose_name,
                                                        'verbose_name_plural': self.model._meta.verbose_name_plural}
 
-    @classmethod
-    def has_get_permission(cls, request, **kwargs):
-        return cls.core.has_ui_create_permission(request, **kwargs)
-
-    @classmethod
-    def has_post_permission(cls, request, **kwargs):
-        return cls.core.has_ui_create_permission(request, **kwargs)
+    def has_permission(self):
+        return self.core.has_ui_create_permission(self.request)
 
 
 class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
@@ -534,6 +523,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     view_type = 'edit'
     messages = {'success': _('The %(name)s "%(obj)s" was changed successfully.'),
                 'error': _('Please correct the error below.')}
+    pk_name = 'pk'
 
     def get_title(self):
         return self.model._ui_meta.edit_verbose_name % {'verbose_name': self.model._meta.verbose_name,
@@ -542,14 +532,17 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
 
     def link(self, arguments=None, **kwargs):
         if arguments is None:
-            arguments = (self.kwargs['pk'],)
+            arguments = (self.kwargs[self.pk_name],)
         return super(EditModelFormView, self).link(arguments=arguments, **kwargs)
 
-    @classmethod
-    def has_get_permission(cls, request, **kwargs):
-        return cls.core.has_ui_update_permission(request, **kwargs) \
-                or cls.core.has_ui_read_permission(request, **kwargs)
+    def _get_perm_obj_or_none(self, pk=None):
+        return get_object_or_none(self.core.model, pk=(pk or self.kwargs.get(self.pk_name)))
 
-    @classmethod
-    def has_post_permission(cls, request, **kwargs):
-        return cls.core.has_ui_update_permission(request, **kwargs)
+    def has_get_permission(self, obj=None):
+        obj = obj or self._get_perm_obj_or_none()
+        return self.core.has_ui_update_permission(self.request, obj=obj) \
+                or self.core.has_ui_read_permission(self.request, obj=obj)
+
+    def has_post_permission(self, obj=None):
+        obj = obj or self._get_perm_obj_or_none()
+        return self.core.has_ui_update_permission(self.request, obj=obj)

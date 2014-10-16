@@ -9,9 +9,13 @@ from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join, conditional_escape
 from django.utils.translation import ugettext_lazy as _
-from sorl.thumbnail import default
 from django.db.models.fields.files import FieldFile
+from django.core.exceptions import ImproperlyConfigured
 
+try:
+    from sorl.thumbnail import default
+except ImportError:
+    default = None
 
 def flat_data_attrs(attrs):
     return format_html_join('', ' data-{0}="{1}"', sorted(attrs.items()))
@@ -121,18 +125,28 @@ class ClearableFileInput(forms.ClearableFileInput):
 
 class DragAndDropFileInput(ClearableFileInput):
 
-    def _get_thumbnail(self, value):
-        return default.backend.get_thumbnail(value, '64x64', crop='center')
+    def _render_value(self, value):
+        return '<a href="%s">%s</a>' % (value.url, value.name)
 
     def render(self, name, value, attrs={}):
-        id = attrs.get('id')
         output = ['<div class="drag-and-drop-wrapper">']
         output.append('<div class="drag-and-drop-placeholder"%s></div>' % (id and 'data-for="%s"' % id or ''))
         output.append('<div class="thumbnail-wrapper">')
         if value and isinstance(value, FieldFile):
-            thumbnail = self._get_thumbnail(value)
-            output.append('<img src="%s" alt="%s">' % (thumbnail.url, thumbnail.name))
+            output.append(self._render_value(value))
         output.append('</div><div class=file-input-wrapper>')
         output.append(super(DragAndDropFileInput, self).render(name, value, attrs=attrs))
         output.append(2 * '</div>')
         return mark_safe('\n'.join(output))
+
+
+class DragAndDropImageInput(DragAndDropFileInput):
+
+    def _get_thumbnail(self, value):
+        if not default:
+            raise ImproperlyConfigured('Please install sorl.thumbnail before using drag-and-drop file input')
+        return default.backend.get_thumbnail(value, '64x64', crop='center')
+
+    def _render_value(self, value):
+        thumbnail = self._get_thumbnail(value)
+        return '<img src="%s" alt="%s">' % (thumbnail.url, thumbnail.name)

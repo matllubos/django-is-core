@@ -1,9 +1,9 @@
-from germanium.rest import ClientTestCase
+from django.contrib.auth.models import User
 
+from germanium.rest import ClientTestCase
 from germanium.anotations import login
 
 from .test_case import HelperTestCase, AsSuperuserTestCase
-from django.contrib.auth.models import User
 
 
 class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase):
@@ -24,9 +24,9 @@ class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase)
         self.assert_http_ok(resp)
 
     @login(is_superuser=False)
-    def test_only_superuser_can_read_users_grid(self):
+    def test_ouser_can_read_users_grid(self):
         resp = self.get(self.USER_UI_URL)
-        self.assert_http_forbidden(resp)
+        self.assert_http_ok(resp)
 
     @login(is_superuser=True)
     def test_superuser_may_edit_user(self):

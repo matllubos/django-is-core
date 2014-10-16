@@ -134,9 +134,8 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
                             })
         return context_data
 
-    @classmethod
-    def has_get_permission(cls, request, **kwargs):
-        return cls.core.has_ui_read_permission(request)
+    def has_get_permission(self):
+        return self.core.has_ui_read_permission(self.request)
 
     def get_menu_group_pattern_name(self):
         return self.core.get_menu_group_pattern_name()

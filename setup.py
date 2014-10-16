@@ -39,7 +39,9 @@ setup(
         'Unidecode>=0.04.16',
         'factory-boy>=2.3.1',
         'django-project-info==0.2.4',
-        'mimeparse==0.1.3'
+        'mimeparse==0.1.3',
+        'sorl-thumbnail==11.12',
+        'pillow==2.3.0'
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/0.4.16#egg=django-piston-0.4.16',

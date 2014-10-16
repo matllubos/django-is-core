@@ -77,7 +77,6 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
         list_url = resource._resource_list_url()
 
         if not resource.has_read_permission(self.get_request_with_user(self.r_factory.get(list_url))):
-            return
 
             resp = self.get(list_url)
             started_total_count = int(resp['X-Total'])

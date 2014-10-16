@@ -6,6 +6,7 @@ from germanium.auth import UserProxy
 class HelperTestCase(object):
 
     user_index = 1
+    issue_index = 1
 
     def get_pk(self, resp):
         return self.deserialize(resp).get('id')
@@ -18,6 +19,19 @@ class HelperTestCase(object):
         }
         self.user_index += 1
         return result
+
+    def get_issue_data(self, prefix='', exclude=None):
+        exclude = exclude or []
+        result = {
+            'name': 'Issue %s' % self.issue_index,
+            'created_by': self.get_user_data(prefix),
+            'leader': self.get_user_data(prefix)
+        }
+        self.issue_index += 1
+        for field in exclude:
+            del result[field]
+        return result
+
 
     def get_user_obj(self):
         user_data = self.get_user_data()

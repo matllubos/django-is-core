@@ -328,7 +328,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_guest_fields = ('id', '_obj_name')
 
     form_class = RestModelForm
-    rest_allowed_methods = ('GET', 'DELETE', 'POST', 'PUT')
+    rest_allowed_methods = ('get', 'delete', 'post', 'put')
     rest_obj_class_names = ()
 
     rest_resource_class = RestModelResource
@@ -404,9 +404,9 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         Pattern = self.rest_resource_pattern_class
         resource_patterns['api-resource'] = Pattern('api-resource-%s' % self.get_menu_group_pattern_name(),
                                                     self.site_name, r'^/(?P<pk>[-\w]+)/?$', self.rest_resource,
-                                                    self, ('GET', 'PUT', 'DELETE'))
+                                                    self, ('get', 'put', 'delete'))
         resource_patterns['api'] = Pattern('api-%s' % self.get_menu_group_pattern_name(),
-                                           self.site_name, r'^/?$', self.rest_resource, self, ('GET', 'POST'))
+                                           self.site_name, r'^/?$', self.rest_resource, self, ('get', 'post'))
         return resource_patterns
 
     def get_list_actions(self, request, obj):

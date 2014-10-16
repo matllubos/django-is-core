@@ -9,7 +9,7 @@ class ListParentMixin(object):
         from is_core.menu import LinkMenuItem
 
         list_pattern = self.core.ui_patterns.get('list')
-        list_view = list_pattern.view
+        list_view = list_pattern.get_view(self.request)
         return LinkMenuItem(self.model._ui_meta.list_verbose_name %
                             {'verbose_name': list_view.model._meta.verbose_name,
                              'verbose_name_plural': list_view.model._meta.verbose_name_plural},
@@ -19,7 +19,7 @@ class ListParentMixin(object):
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
         if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').view.has_get_permission(self.request):
+                and self.core.ui_patterns.get('list').get_view(self.request).has_get_permission():
             menu_items.append(self.list_bread_crumbs_menu_item())
         return menu_items
 
@@ -33,7 +33,7 @@ class EditParentMixin(ListParentMixin):
         from is_core.menu import LinkMenuItem
 
         edit_pattern = self.core.ui_patterns.get('edit')
-        edit_view = edit_pattern.view
+        edit_view = edit_pattern.get_view(self.request)
         parent_obj = self.get_parent_obj()
         if not isinstance(parent_obj, edit_view.model):
             raise GenericViewException('Parent obj must be instance of edit view model')
@@ -48,7 +48,7 @@ class EditParentMixin(ListParentMixin):
     def parent_bread_crumbs_menu_items(self):
         menu_items = super(EditParentMixin, self).parent_bread_crumbs_menu_items()
         if 'edit' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('edit').view.has_get_permission(self.request, obj=self.get_obj()):
+                and self.core.ui_patterns.get('edit').get_view(self.request).has_get_permission(obj=self.get_obj()):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 
