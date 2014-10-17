@@ -126,7 +126,10 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
                 if url:
                     allowed_methods = pattern.get_allowed_methods(self.request, obj)
                     if allowed_methods:
-                        rest_links[pattern.name] = {'url': url, 'methods': allowed_methods}
+                        rest_links[pattern.name] = {
+                            'url': url,
+                            'methods': [method.upper() for method in allowed_methods]
+                        }
         return rest_links
 
     def _default_action(self, obj):

@@ -48,6 +48,8 @@ class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
     allowed_snippets = ('content',)
     view_name = None
     add_current_to_breadcrumbs = True
+    kwargs = {}
+    args = {}
 
     def __init__(self):
         super(DefaultViewMixin, self).__init__()

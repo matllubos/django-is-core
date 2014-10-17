@@ -11,7 +11,7 @@ from django.contrib.messages import constants
 
 from piston.utils import get_object_or_none
 
-from is_core.generic_views.exceptions import SaveObjectException
+from is_core.generic_views.exceptions import SaveObjectException, GenericViewException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
@@ -538,11 +538,17 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     def _get_perm_obj_or_none(self, pk=None):
         return get_object_or_none(self.core.model, pk=(pk or self.kwargs.get(self.pk_name)))
 
-    def has_get_permission(self, obj=None):
-        obj = obj or self._get_perm_obj_or_none()
+    def has_get_permission(self, obj=None, pk=None):
+        obj = obj or self._get_perm_obj_or_none(pk)
+        if not obj:
+            raise GenericViewException('For permission validation of edit view must exists object')
+
         return self.core.has_ui_update_permission(self.request, obj=obj) \
                 or self.core.has_ui_read_permission(self.request, obj=obj)
 
-    def has_post_permission(self, obj=None):
-        obj = obj or self._get_perm_obj_or_none()
+    def has_post_permission(self, obj=None, pk=None):
+        obj = obj or self._get_perm_obj_or_none(pk)
+        if not obj:
+            raise GenericViewException('For permission validation of edit view must exists object')
+
         return self.core.has_ui_update_permission(self.request, obj=obj)

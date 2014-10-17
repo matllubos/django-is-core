@@ -15,10 +15,10 @@ logger = logging.getLogger('is-core')
 patterns = {}
 
 
-def reverse_ui_view(name):
+def reverse_ui_view(name, request):
     pattern = patterns.get(name)
     if isinstance(pattern, UIPattern):
-        return pattern.view
+        return pattern.get_view(request)
 
 
 def reverse_pattern(name):

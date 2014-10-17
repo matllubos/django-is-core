@@ -39,7 +39,7 @@ class InlineFormView(InlineView):
             self.formset.forms[i].empty_permitted = False
 
     def is_readonly(self):
-        return not self.parent_view.has_post_permission(self.request, obj=self.parent_view.get_obj())
+        return not self.parent_view.has_post_permission(obj=self.parent_view.get_obj())
 
     def get_context_data(self, **kwargs):
         context_data = super(InlineFormView, self).get_context_data(**kwargs)
