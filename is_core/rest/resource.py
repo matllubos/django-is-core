@@ -59,7 +59,11 @@ class RestModelCoreResourcePermissionsMixin(object):
                 self.core.has_rest_delete_permission(self.request, obj, via))
 
     def _get_perm_obj_or_none(self, pk=None):
-        return get_object_or_none(self.core.model, pk=(pk or self.kwargs.get(self.pk_name)))
+        pk = pk or  self.kwargs.get(self.pk_name)
+        if pk:
+            return get_object_or_none(self.core.model, pk=pk)
+        else:
+            return None
 
 
 class RestModelCoreMixin(RestModelCoreResourcePermissionsMixin):
@@ -101,10 +105,10 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         return self.core.get_rest_fields(self.request, obj=obj)
 
     def get_default_detailed_fields(self, obj=None):
-        return self.core.get_rest_obj_fields(self.request, obj=obj)
+        return self.core.get_rest_detailed_fields(self.request, obj=obj)
 
     def get_default_general_fields(self, obj=None):
-        return self.core.get_rest_list_fields(self.request)
+        return self.core.get_rest_general_fields(self.request)
 
     def get_guest_fields(self, request):
         return self.core.get_rest_guest_fields(request)
@@ -180,6 +184,16 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
 
     def _get_form_initial(self, obj):
         return {'_request': self.request, '_user': self.request.user}
+
+
+    def _pre_save_obj(self, obj, form, change):
+        self.core.pre_save_model(self.request, obj, form, change)
+
+    def _save_obj(self, obj, form, change):
+        self.core.save_model(self.request, obj, form, change)
+
+    def _post_save_obj(self, obj, form, change):
+        self.core.post_save_model(self.request, obj, form, change)
 
     def _pre_delete_obj(self, obj):
         self.core.pre_delete_model(self.request, obj)

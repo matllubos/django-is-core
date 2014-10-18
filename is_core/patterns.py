@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 
 from is_core.utils import get_new_class_name
 from is_core.auth import rest_login_required
+from django.utils.datastructures import SortedDict
 
 
 logger = logging.getLogger('is-core')
@@ -80,7 +81,7 @@ class ViewPattern(Pattern):
         return {}
 
     def get_url_string(self, request, obj=None, kwargs=None):
-        kwargs = kwargs or {}
+        kwargs = (kwargs or {}).copy()
         if obj:
             kwargs.update(self._get_try_kwarg(obj))
         return reverse(self.pattern, kwargs=kwargs)
@@ -142,4 +143,27 @@ class RestPattern(ViewPattern):
         return dispatch
 
     def get_allowed_methods(self, request, obj):
+        print self.methods
         return self.resource_class(request).get_allowed_methods(obj, self.methods)
+
+
+class DoubleRestPattern(object):
+
+    def __init__(self, resource_class, pattern_class, core):
+        self.resource_class = resource_class
+        self.pattern_class = pattern_class
+        self.core = core
+
+    @property
+    def patterns(self):
+        result = SortedDict()
+        result['api-resource'] = self.pattern_class(
+            'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/(?P<pk>[-\w]+)/?$',
+            self.resource_class, self.core, ('get', 'put', 'delete')
+        )
+        result['api'] = self.pattern_class(
+            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/?$', self.resource_class, self.core,
+             ('get', 'post')
+        )
+        return result
+

@@ -20,11 +20,12 @@ from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
-from is_core.patterns import UIPattern, RestPattern
-from is_core.utils import flatten_fieldsets, str_to_class, get_new_class_name
+from is_core.patterns import UIPattern, RestPattern, DoubleRestPattern
+from is_core.utils import flatten_fieldsets, str_to_class
 from is_core import config
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
+from is_core.rest.factory import modelrest_factory
 
 
 class ISCoreBase(type):
@@ -319,12 +320,12 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
     # Allowed rest fields
     rest_fields = None
-    rest_obj_fields = None
-    rest_list_fields = None
+    rest_detailed_fields = None
+    rest_general_fields = None
     # Default rest fields for list, obj and guest
     rest_default_fields = ('_rest_links', '_actions', '_class_names', '_obj_name')
-    rest_default_obj_fields = ('_rest_links', '_obj_name')
-    rest_default_list_fields = ('_rest_links', '_obj_name')
+    rest_default_detailed_fields = ('id', '_rest_links', '_obj_name')
+    rest_default_general_fields = ('id', '_rest_links', '_obj_name')
     rest_guest_fields = ('id', '_obj_name')
 
     form_class = RestModelForm
@@ -358,18 +359,18 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         rest_fields = list_to_dict(list(self.model._rest_meta.fields) + list(self.get_rest_extra_fields(request))
                                    + list(self.rest_default_fields))
 
-        rest_default_list_fields = list_to_dict(self.get_rest_list_fields(request))
-        rest_default_obj_fields = list_to_dict(self.get_rest_obj_fields(request, obj=obj))
+        rest_default_list_fields = list_to_dict(self.get_rest_general_fields(request))
+        rest_default_obj_fields = list_to_dict(self.get_rest_detailed_fields(request, obj=obj))
 
         return dict_to_list(join_dicts(join_dicts(rest_fields, rest_default_list_fields), rest_default_obj_fields))
 
-    def get_rest_list_fields(self, request):
-        return self.rest_list_fields or set(tuple(self.model._rest_meta.default_list_fields) +
-                                            tuple(self.rest_default_list_fields))
+    def get_rest_general_fields(self, request):
+        return self.rest_general_fields or set(tuple(self.model._rest_meta.default_general_fields) +
+                                            tuple(self.rest_default_general_fields))
 
-    def get_rest_obj_fields(self, request, obj=None):
-        return self.rest_obj_fields or set(tuple(self.model._rest_meta.default_obj_fields) +
-                                            tuple(self.rest_default_obj_fields))
+    def get_rest_detailed_fields(self, request, obj=None):
+        return self.rest_detailed_fields or set(tuple(self.model._rest_meta.default_detailed_fields) +
+                                            tuple(self.rest_default_detailed_fields))
 
     def get_rest_guest_fields(self, request):
         return self.rest_guest_fields
@@ -386,28 +387,9 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
             self._resource_patterns = self.get_resource_patterns()
         return self._resource_patterns
 
-    _rest_resource = None
-    @property
-    def rest_resource(self):
-        if not self._rest_resource:
-            resource_kwargs = {
-                      'model': self.model, 'site_name': self.site_name, 'menu_group': self.menu_group, 'core': self,
-                      'register': True
-                      }
-            self._rest_resource = type(str(get_new_class_name('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                                              self.rest_resource_class)),
-                                       (self.rest_resource_class,), resource_kwargs)
-        return self._rest_resource
-
     def get_resource_patterns(self):
-        resource_patterns = SortedDict()
-        Pattern = self.rest_resource_pattern_class
-        resource_patterns['api-resource'] = Pattern('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                                    self.site_name, r'^/(?P<pk>[-\w]+)/?$', self.rest_resource,
-                                                    self, ('get', 'put', 'delete'))
-        resource_patterns['api'] = Pattern('api-%s' % self.get_menu_group_pattern_name(),
-                                           self.site_name, r'^/?$', self.rest_resource, self, ('get', 'post'))
-        return resource_patterns
+        return DoubleRestPattern(modelrest_factory(self.model, self.rest_resource_class),
+                                 self.rest_resource_pattern_class, self).patterns
 
     def get_list_actions(self, request, obj):
         list_actions = super(RestModelISCore, self).get_list_actions(request, obj)

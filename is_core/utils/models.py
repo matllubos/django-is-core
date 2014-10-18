@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import _get_queryset
+from django.db.models.fields import FieldDoesNotExist
 
 
 def get_object_or_none(klass, *args, **kwargs):
@@ -13,6 +14,13 @@ def get_object_or_none(klass, *args, **kwargs):
 
 def get_model_field_names(model):
     return [model_field.name for model_field in model._meta.fields] + ['pk']
+
+
+def get_model_field_by_name(model, field_name):
+    try:
+        return model._meta.get_field_by_name(field_name)[0]
+    except FieldDoesNotExist:
+        return None
 
 
 def get_model_field_value(field_name, instance):

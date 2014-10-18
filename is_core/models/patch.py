@@ -67,13 +67,9 @@ class RestOptions(Options):
         super(RestOptions, self).__init__(model)
         from piston.utils import model_default_rest_fields
 
-        self.fields = self._getattr('fields', model_default_rest_fields(model))
-        self.default_list_fields = self._getattr('default_list_fields' , self.fields)
-        self.default_obj_fields = self._getattr('default_obj_fields', self.fields)
-
-        self.fields = set(self.fields)
-        self.default_list_fields = set(self.default_list_fields)
-        self.default_obj_fields = set(self.default_obj_fields)
+        self.fields = set(self._getattr('fields', model_default_rest_fields(model)))
+        self.default_general_fields = set(self._getattr('default_general_fields' , ('id', '_obj_name', '_rest_links')))
+        self.default_detailed_fields = set(self._getattr('default_detailed_fields', self.fields))
 
 
 OPTIONS = {'_rest_meta': RestOptions, '_ui_meta': UIOptions}
