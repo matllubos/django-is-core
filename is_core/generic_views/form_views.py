@@ -217,14 +217,14 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 extra_content['messages'] = extra_content_messages
         return super(DefaultFormView, self).render_to_response(context, **response_kwargs)
 
-    def has_permission(self):
+    def has_permission(self, **kwargs):
         return True
 
-    def has_get_permission(self):
-        return self.has_permission()
+    def has_get_permission(self, **kwargs):
+        return self.has_permission(**kwargs)
 
-    def has_post_permission(self):
-        return self.has_permission()
+    def has_post_permission(self, **kwargs):
+        return self.has_permission(**kwargs)
 
 
 class DefaultModelFormView(DefaultFormView):
@@ -513,7 +513,7 @@ class AddModelFormView(DefaultCoreModelFormView):
         return self.model._ui_meta.add_verbose_name % {'verbose_name': self.model._meta.verbose_name,
                                                        'verbose_name_plural': self.model._meta.verbose_name_plural}
 
-    def has_permission(self):
+    def has_permission(self, **kwargs):
         return self.core.has_ui_create_permission(self.request)
 
 
@@ -538,7 +538,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     def _get_perm_obj_or_none(self, pk=None):
         return get_object_or_none(self.core.model, pk=(pk or self.kwargs.get(self.pk_name)))
 
-    def has_get_permission(self, obj=None, pk=None):
+    def has_get_permission(self, obj=None, pk=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none(pk)
         if not obj:
             raise GenericViewException('For permission validation of edit view must exists object')
@@ -546,7 +546,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         return self.core.has_ui_update_permission(self.request, obj=obj) \
                 or self.core.has_ui_read_permission(self.request, obj=obj)
 
-    def has_post_permission(self, obj=None, pk=None):
+    def has_post_permission(self, obj=None, pk=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none(pk)
         if not obj:
             raise GenericViewException('For permission validation of edit view must exists object')

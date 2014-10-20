@@ -143,7 +143,6 @@ class RestPattern(ViewPattern):
         return dispatch
 
     def get_allowed_methods(self, request, obj):
-        print self.methods
         return self.resource_class(request).get_allowed_methods(obj, self.methods)
 
 

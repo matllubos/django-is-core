@@ -6,19 +6,18 @@ from django.db.models.fields.files import FieldFile
 from germanium.rest import RESTTestCase
 from germanium.anotations import login_all, data_provider
 
-from piston.utils import model_resources_to_dict
-
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RestAuthMixin
+from piston.utils import model_resources_to_dict
 
 
 def add_urls_to_resource(resource):
 
     def get_resource_list_url(self):
-        return reverse('%s:api-%s' % (self.site_name, self.core.get_menu_group_pattern_name()))
+        return reverse('%s:api-%s' % (self.core.site_name, self.core.get_menu_group_pattern_name()))
 
     def get_resource_url(self, pk):
-        return reverse('%s:api-resource-%s' % (self.site_name, self.core.get_menu_group_pattern_name()), args=(pk,))
+        return reverse('%s:api-resource-%s' % (self.core.site_name, self.core.get_menu_group_pattern_name()), args=(pk,))
 
     resource._resource_url = types.MethodType(get_resource_url, resource)
     resource._resource_list_url = types.MethodType(get_resource_list_url, resource)
@@ -57,7 +56,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
     def get_serialized_data(self, request, resource, update=False):
         inst = self.new_instance(resource.model)
 
-        form_class = resource().generate_form_class(request=request, inst=update and inst or None)
+        form_class = resource(request)._generate_form_class(inst=update and inst or None)
         form = form_class(initial={'_user': self.logged_user.user, '_request': None}, instance=inst)
         data = {}
 
@@ -76,16 +75,17 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
     def test_should_return_data_from_resource_list(self, resource_name, resource, model):
         list_url = resource._resource_list_url()
 
-        if not resource.has_read_permission(self.get_request_with_user(self.r_factory.get(list_url))):
+        if not resource(self.get_request_with_user(self.r_factory.get(list_url))).has_get_permission():
+            return
 
+        resp = self.get(list_url)
+        started_total_count = int(resp['X-Total'])
+
+        for i in range(self.iteration):
+            self.new_instance(model)
             resp = self.get(list_url)
-            started_total_count = int(resp['X-Total'])
-
-            for i in range(self.iteration):
-                self.new_instance(model)
-
-                self.assert_valid_JSON_response(resp, 'REST get list of model: %s\n response: %s' % (model, resp))
-                self.assertEqual(int(resp['X-Total']) - i, started_total_count + 1)
+            self.assert_valid_JSON_response(resp, 'REST get list of model: %s\n response: %s' % (model, resp))
+            self.assertEqual(int(resp['X-Total']) - i, started_total_count + 1)
 
     @data_provider(get_rest_resources)
     def test_should_return_data_from_resource(self, resource_name, resource, model):
@@ -94,7 +94,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             url = resource._resource_url(inst.pk)
 
-            if not resource.has_read_permission(self.get_request_with_user(self.r_factory.get(url)), inst):
+            if not resource(self.get_request_with_user(self.r_factory.get(url))).has_get_permission(inst):
                 break
 
             resp = self.get(url)
@@ -107,7 +107,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             url = resource._resource_url(inst.pk)
 
-            if not resource.has_delete_permission(self.get_request_with_user(self.r_factory.delete(url)), inst):
+            if not resource(self.get_request_with_user(self.r_factory.delete(url))).has_delete_permission(inst):
                 break
 
             resp = self.delete(url)
@@ -122,7 +122,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
             list_url = resource._resource_list_url()
 
             request = self.get_request_with_user(self.r_factory.post(list_url))
-            if not resource.has_create_permission(request):
+            if not resource(request).has_post_permission():
                 break
 
             data, inst = self.get_serialized_data(request, resource)
@@ -144,7 +144,7 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             request = self.get_request_with_user(self.r_factory.put(url))
 
-            if not resource.has_update_permission(request, inst_from):
+            if not resource(request).has_put_permission(inst_from):
                 break
 
             data, _ = self.get_serialized_data(request, resource, True)

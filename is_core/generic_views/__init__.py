@@ -147,5 +147,5 @@ class HomeView(DefaultCoreViewMixin, TemplateView):
     def get_title(self):
         return _('Home')
 
-    def has_get_permission(self):
+    def has_get_permission(self, **kwargs):
         return True

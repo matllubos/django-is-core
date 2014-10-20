@@ -13,8 +13,8 @@ from django.utils import six
 from django.forms.models import _get_foreign_key
 
 from piston.utils import list_to_dict, dict_to_list, join_dicts
+from piston.forms import RestModelForm
 
-from is_core.forms import RestModelForm
 from is_core.actions import WebAction, ConfirmRestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
@@ -411,16 +411,16 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
 
-    def get_rest_list_fields(self, request):
-        rest_list_fields_dict = list_to_dict(super(UIRestModelISCore, self).get_rest_list_fields(request))
+    def get_rest_general_fields(self, request):
+        rest_general_fields_dict = list_to_dict(super(UIRestModelISCore, self).get_rest_general_fields(request))
 
         for display in self.get_rest_list_display_fields(request):
-            rest_dict = rest_list_fields_dict
+            rest_dict = rest_general_fields_dict
             for val in display.split('__'):
                 rest_dict[val] = rest_dict.get(val, {})
                 rest_dict = rest_dict[val]
 
-        return dict_to_list(rest_list_fields_dict)
+        return dict_to_list(rest_general_fields_dict)
 
     def get_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())

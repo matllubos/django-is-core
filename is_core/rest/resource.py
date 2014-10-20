@@ -2,9 +2,10 @@ from __future__ import unicode_literals
 
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import NoReverseMatch
+from django.http.response import Http404
 
 from piston.resource import BaseResource, BaseModelResource
-from piston.utils import rc, get_object_or_none
+from piston.utils import get_object_or_none
 from piston.exception import RestException
 
 from is_core.filters import get_model_field_or_method_filter
@@ -73,6 +74,12 @@ class RestModelCoreMixin(RestModelCoreResourcePermissionsMixin):
 
     def _get_obj_or_none(self, pk=None):
         return get_object_or_none(self._get_queryset(), pk=(pk or self.kwargs.get(self.pk_name)))
+
+    def _get_obj_or_404(self, pk=None):
+        obj = self._get_obj_or_none(pk)
+        if not obj:
+            raise Http404
+        return obj
 
 
 class EntryPointResource(RestResource):
@@ -172,7 +179,6 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         else:
             raise RestException(_('Cannot resolve X-Order value "%s" into field') % order_field)
 
-
     def _get_exclude(self, obj=None):
         return self.core.get_rest_form_exclude(self.request, obj)
 
@@ -184,7 +190,6 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
 
     def _get_form_initial(self, obj):
         return {'_request': self.request, '_user': self.request.user}
-
 
     def _pre_save_obj(self, obj, form, change):
         self.core.pre_save_model(self.request, obj, form, change)
