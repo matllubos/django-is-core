@@ -48,7 +48,7 @@ class RestModelCoreResourcePermissionsMixin(object):
                 self.core.has_rest_create_permission(self.request, obj, via))
 
     def has_put_permission(self, obj=None, via=None):
-        obj = obj or self._get_obj_or_none()
+        obj = obj or self._get_perm_obj_or_none()
         return ((not self.login_required or self.request.user.is_authenticated()) and
                 super(RestModelCoreResourcePermissionsMixin, self).has_put_permission(obj) and
                 self.core.has_rest_update_permission(self.request, obj, via))
@@ -60,7 +60,7 @@ class RestModelCoreResourcePermissionsMixin(object):
                 self.core.has_rest_delete_permission(self.request, obj, via))
 
     def _get_perm_obj_or_none(self, pk=None):
-        pk = pk or  self.kwargs.get(self.pk_name)
+        pk = pk or self.kwargs.get(self.pk_name)
         if pk:
             return get_object_or_none(self.core.model, pk=pk)
         else:

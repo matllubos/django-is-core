@@ -103,6 +103,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'is_core.middleware.RequestKwargsMiddleware',
     'is_core.middleware.HttpExceptionsMiddleware',
+    'security.middleware.LogMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -147,6 +148,9 @@ INSTALLED_APPS = (
     'is_core.auth_token',
     'block_snippets',
 
+    # Django-security
+    'security',
+
 )
 
 # A sample logging configuration. The only tangible logging
@@ -179,3 +183,5 @@ LOGGING = {
 }
 
 AUTH_USE_TOKENS = True
+
+THROTTLING_FAILURE_VIEW = 'is_core.throttling.views.throttling_failure_view'

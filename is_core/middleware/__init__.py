@@ -8,8 +8,11 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.utils.encoding import force_text
+from django.utils.translation import ugettext_lazy as _
 
-from is_core.exceptions import HttpRedirectException, HttpUnauthorizedException, HttpForbiddenException
+from is_core.exceptions import (HttpRedirectException, HttpUnauthorizedException, HttpForbiddenException,
+                                ResponseException)
+from is_core.exceptions.response import responseexception_factory
 
 
 class RequestKwargsMiddleware(object):
@@ -18,16 +21,11 @@ class RequestKwargsMiddleware(object):
         request.kwargs = resolve(request.path).kwargs
 
 
+# Not working with piston exceptions
 class HttpExceptionsMiddleware(object):
 
-    # TODO: serialize exceptions according to Accept
     def process_exception(self, request, exception):
-        if isinstance(exception, HttpRedirectException):
-            return HttpResponseRedirect(exception.url)
+        if isinstance(exception, ResponseException):
+            return exception.get_response(request)
         if isinstance(exception, ValidationError):
-            return render_to_response('422.html', {'description': ', '.join(exception.messages)},
-                                      context_instance=RequestContext(request))
-        if isinstance(exception, HttpUnauthorizedException):
-            return HttpResponse(status=401)
-        if isinstance(exception, HttpForbiddenException):
-            return HttpResponse(status=403)
+            return responseexception_factory(request, 422, _('Unprocessable Entity'), exception.messages)

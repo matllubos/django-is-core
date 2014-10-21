@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block content %}<h2 class="not-found-404">{% trans 'Not Nound (404)' %}</h2>{% endblock %}
+{% block content %}
+	<h2 class="error-404">{% trans 'Not Found (404)' %}</h2>
+	<p>{{ description }}</p>
+{% endblock %}
