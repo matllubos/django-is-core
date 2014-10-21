@@ -375,9 +375,9 @@ class EntryPointResource(RestResource):
 
 class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
 
-    fields = ('_rest_links', '_actions', '_class_names', '_obj_name')
-    default_obj_fields = ('_rest_links', '_obj_name')
-    default_list_fields = ('_rest_links', '_obj_name')
+    fields = ('id', '_rest_links', '_actions', '_class_names', '_obj_name')
+    default_obj_fields = ('id', '_rest_links', '_obj_name')
+    default_list_fields = ('id', '_rest_links', '_obj_name')
     register = False
     form_class = None
 

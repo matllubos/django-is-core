@@ -322,9 +322,9 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_obj_fields = None
     rest_list_fields = None
     # Default rest fields for list, obj and guest
-    rest_default_fields = ('_rest_links', '_actions', '_class_names', '_obj_name')
-    rest_default_obj_fields = ('_rest_links', '_obj_name')
-    rest_default_list_fields = ('_rest_links', '_obj_name')
+    rest_default_fields = ('id', '_rest_links', '_actions', '_class_names', '_obj_name')
+    rest_default_obj_fields = ('id', '_rest_links', '_obj_name')
+    rest_default_list_fields = ('id', '_rest_links', '_obj_name')
     rest_guest_fields = ('id', '_obj_name')
 
     form_class = RestModelForm
