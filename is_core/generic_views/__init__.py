@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from block_snippets.views import JsonSnippetTemplateResponseMixin
 
 from is_core.menu import LinkMenuItem
-from is_core.exceptions import HttpForbiddenException
+from is_core.exceptions import HttpForbiddenResponseException
 from is_core.generic_views.exceptions import GenericViewException
 
 
@@ -37,7 +37,7 @@ class PermissionsViewMixin(object):
             raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
 
         if not getattr(self, 'has_%s_permission' % name)(**kwargs):
-            raise HttpForbiddenException
+            raise HttpForbiddenResponseException
 
 
 class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):

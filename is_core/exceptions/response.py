@@ -1,9 +1,10 @@
 import mimeparse
 
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, HttpResponseRedirect
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
 from django.utils.encoding import force_text
+from django.utils.translation import ugettext_lazy as _
 
 from piston.converter import get_converter_from_request, get_supported_mime_types
 
@@ -33,5 +34,58 @@ def responseexception_factory(request, response_code, title, message, response_c
             resp_message = force_text(title)
 
         converter, ct = get_converter_from_request(request)
-        content = converter().encode(request, {'message': resp_message}, None, message, ())
+        content = converter().encode(request, {'error': resp_message}, None, message, ())
     return response_class(content, status=response_code, content_type=ct)
+
+
+class ResponseException(Exception):
+
+    def __init__(self, message=None):
+        self.message = message
+
+    def get_response(self, request):
+        return responseexception_factory(request, self.status_code, self.title, self.message)
+
+
+class HttpRedirectResponseException(ResponseException):
+
+    def __init__(self, url):
+        self.url = url
+
+    def get_response(self, request):
+        return HttpResponseRedirect(self.url)
+
+
+class HttpBadRequestResponseException(ResponseException):
+
+    title = _('Bad Request')
+    status_code = 400
+
+
+class HttpUnauthorizedResponseException(ResponseException):
+
+    title = _('Unauthorized')
+    status_code = 401
+
+
+class HttpForbiddenResponseException(ResponseException):
+
+    title = _('Forbidden')
+    status_code = 403
+
+class HttpUnsupportedMediaTypeResponseException(ResponseException):
+
+    title = _('Unsupported Media Type')
+    status_code = 415
+
+
+class HttpMethodNotAllowedResponseException(ResponseException):
+
+    title = _('Method Not Allowed')
+    status_code = 405
+
+
+class HttpDuplicateResponseException(ResponseException):
+
+    title = _('Conflict/Duplicate')
+    status_code = 409

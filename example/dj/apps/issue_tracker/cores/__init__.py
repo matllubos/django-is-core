@@ -15,8 +15,6 @@ class UserIsCore(UIRestModelISCore):
     form_class = UserForm
 
     def has_read_permission(self, request, obj=None):
-        print obj.pk == request.user.pk
-        print request.user.pk
         return request.user.is_superuser or not obj or obj.pk == request.user.pk
 
     def has_create_permission(self, request, obj=None):

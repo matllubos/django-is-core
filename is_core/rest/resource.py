@@ -6,12 +6,17 @@ from django.http.response import Http404
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_object_or_none
-from piston.exception import RestException
+from piston.exception import (RestException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
+                              ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
+                              ConflictException)
 
 from is_core.filters import get_model_field_or_method_filter
 from is_core.patterns import RestPattern, patterns
 from is_core.utils.decorators import classproperty
 from is_core.utils.models import get_model_field_names
+from is_core.exceptions import HttpForbiddenResponseException
+from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUnsupportedMediaTypeResponseException,
+                                         HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
 
 
 class RestResource(BaseResource):
@@ -32,8 +37,28 @@ class RestResource(BaseResource):
         cls.core = core
         cls.pattern = pattern
 
+    def _get_error_response(self, exception):
+        """
+        Trasform piston exceptions to Is-core exceptions and raise it
+        """
+        response_exceptions = {
+            MimerDataException: HttpBadRequestResponseException,
+            NotAllowedException: HttpForbiddenResponseException,
+            UnsupportedMediaTypeException: HttpUnsupportedMediaTypeResponseException,
+            Http404: Http404,
+            ResourceNotFoundException: Http404,
+            NotAllowedMethodException: HttpMethodNotAllowedResponseException,
+            DuplicateEntryException: HttpDuplicateResponseException,
+            ConflictException: HttpDuplicateResponseException,
+        }
+        response_exception = response_exceptions.get(type(exception))
+        if response_exception:
+            raise response_exception
+        return super(RestResource, self)._get_error_response(exception)
+
 
 class RestModelCoreResourcePermissionsMixin(object):
+
     pk_name = 'pk'
 
     def has_get_permission(self, obj=None, via=None):
