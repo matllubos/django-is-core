@@ -21,5 +21,9 @@ class Issue(models.Model):
     leader = models.OneToOneField(AUTH_USER_MODEL, verbose_name=_('Leader'), null=False, blank=False,
                                   related_name='leading_issue')
 
+    def watched_by_string(self):
+        return ', '.join(self.watched_by.all())
+    watched_by_string.order_by = 'watched_by'
+
     def __unicode__(self):
         return 'issue: %s' % self.name

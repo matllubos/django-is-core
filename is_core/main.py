@@ -323,7 +323,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_detailed_fields = None
     rest_general_fields = None
     # Default rest fields for list, obj and guest
-    rest_default_fields = ('_rest_links', '_actions', '_class_names', '_obj_name')
+    rest_default_fields = ('id', '_rest_links', '_actions', '_class_names', '_obj_name')
     rest_default_detailed_fields = ('id', '_rest_links', '_obj_name')
     rest_default_general_fields = ('id', '_rest_links', '_obj_name')
     rest_guest_fields = ('id', '_obj_name')

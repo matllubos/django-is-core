@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import NoReverseMatch
 from django.http.response import Http404
+from django.utils.encoding import force_text
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_object_or_none
@@ -13,7 +14,6 @@ from piston.exception import (RestException, MimerDataException, NotAllowedExcep
 from is_core.filters import get_model_field_or_method_filter
 from is_core.patterns import RestPattern, patterns
 from is_core.utils.decorators import classproperty
-from is_core.utils.models import get_model_field_names
 from is_core.exceptions import HttpForbiddenResponseException
 from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUnsupportedMediaTypeResponseException,
                                          HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
@@ -128,9 +128,9 @@ class EntryPointResource(RestResource):
 
 class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
 
-    fields = ('_rest_links', '_actions', '_class_names', '_obj_name')
-    default_detailed_fields = ('_rest_links', '_obj_name')
-    default_general_fields = ('_rest_links', '_obj_name')
+    fields = ('id', '_rest_links', '_actions', '_class_names', '_obj_name')
+    default_detailed_fields = ('id', '_rest_links', '_obj_name')
+    default_general_fields = ('id', '_rest_links', '_obj_name')
     form_class = None
 
     def get_fields(self, obj=None):
@@ -183,9 +183,15 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
 
     def _filter_queryset(self, qs):
         filter_terms = self.request.GET.dict()
+
         for filter_temr, filter_val in filter_terms.items():
-            filter = get_model_field_or_method_filter(filter_temr, self.model, filter_val)
-            qs = filter.filter_queryset(qs, self.request)
+            try:
+                filter = get_model_field_or_method_filter(filter_temr, self.model, filter_val)
+                qs = filter.filter_queryset(qs, self.request)
+                force_text(qs.query)
+            except:
+                raise RestException(_('Cannot resolve filter "%s"') % filter_temr)
+
         return qs
 
     def _order_by(self, qs, order_field):
@@ -199,10 +205,13 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         if not 'HTTP_X_ORDER' in self.request.META:
             return qs
         order_field = self.request.META.get('HTTP_X_ORDER')
-        if order_field in get_model_field_names(self.model):
-            return self._order_by(qs, order_field)
-        else:
+        qs = self._order_by(qs, order_field)
+        try:
+            # Queryset validation, there is no other option
+            force_text(qs.query)
+        except Exception as ex:
             raise RestException(_('Cannot resolve X-Order value "%s" into field') % order_field)
+        return qs
 
     def _get_exclude(self, obj=None):
         return self.core.get_rest_form_exclude(self.request, obj)

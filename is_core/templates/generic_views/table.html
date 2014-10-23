@@ -17,8 +17,8 @@
 				<div class="row paginator" style="visibility: hidden" data-base="20" data-paging="simple">
 					<div class="col-sm-4">
 						{% block paginator-result %}
-						<span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span>
-						<span class="result-total"><span class="result-caption">{% trans 'of' %}</span><span class="result-number">%d</span></span>
+							<span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span>
+							<span class="result-total"><span class="result-caption">{% trans 'of' %}</span><span class="result-number">%d</span></span>
 						{% endblock %}
 					</div>
 					<div class="col-sm-8">
@@ -40,7 +40,7 @@
 							<tr>
 								{% for header in headers %}
 									<th class="{{ header.field_name }}">
-										<span{% if header.sortable %} class="sortable" data-col="{{ header.field_name }}"{% endif %}>{{ header.text|capfirst }}</span><div class="sort-direction"><div class="triangle"></div></div>
+										<span{% if header.order_by %} class="sortable" data-col="{{ header.order_by }}"{% endif %}>{{ header.text|capfirst }}</span><div class="sort-direction"><div class="triangle"></div></div>
 										{{ header.filter }}
 									</th>
 								{% endfor %}

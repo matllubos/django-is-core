@@ -116,3 +116,7 @@ def m2m_formfield(self, **kwargs):
 
 ForeignKey.formfield = fk_formfield
 ManyToManyField.formfield = m2m_formfield
+
+
+# because it is not translated in Django
+_('(None)')
