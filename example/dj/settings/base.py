@@ -184,4 +184,6 @@ LOGGING = {
 
 AUTH_USE_TOKENS = True
 
-THROTTLING_FAILURE_VIEW = 'is_core.throttling.views.throttling_failure_view'
+THROTTLING_FAILURE_VIEW = 'is_core.views.throttling.throttling_failure_view'
+CSRF_FAILURE_VIEW = 'is_core.views.csrf.csrf_failure'
+

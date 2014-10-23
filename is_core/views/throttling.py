@@ -5,4 +5,4 @@ from is_core.exceptions.response import responseexception_factory
 
 
 def throttling_failure_view(request, exception):
-    return responseexception_factory(request, 429, _('Csrf Token expired'), force_text(exception))
+    return responseexception_factory(request, 429, _('Too Many Requests'), force_text(exception))

@@ -1,12 +1,10 @@
 from germanium.rest import RESTTestCase
 from germanium.anotations import login
 
-from is_core.tests.auth_test_cases import RestAuthMixin
-
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 
-class HttpExceptionsTestCase(AsSuperuserTestCase, RestAuthMixin, HelperTestCase, RESTTestCase):
+class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
     ISSUE_API_URL = '/api/issue'
     USER_API_URL = '/api/user'
 
@@ -34,11 +32,22 @@ class HttpExceptionsTestCase(AsSuperuserTestCase, RestAuthMixin, HelperTestCase,
             self.assert_in(accept_type, resp['Content-Type'])
             self.assert_http_not_found(resp)
 
-    '''@login(is_superuser=False)
+    @login(is_superuser=True)
+    def test_403_csrf_exception(self):
+        self.c = self.client_class(enforce_csrf_checks=True)
+        for accept_type in ('application/json', 'text/xml', 'application/x-yaml',
+                            'application/python-pickle', 'text/csv', 'text/html'):
+            resp = self.post(self.ISSUE_API_URL, self.serialize({}), headers={'HTTP_ACCEPT': accept_type, 'CONTENT_TYPE': 'application/json'})
+            self.assert_in(accept_type, resp['Content-Type'])
+            self.assert_http_forbidden(resp)
+
+    @login(is_superuser=False)
     def test_429_exception(self):
         for accept_type in ('application/json', 'text/xml', 'application/x-yaml',
                             'application/python-pickle', 'text/csv', 'text/html'):
             [self.get(self.ISSUE_API_URL, headers={'HTTP_ACCEPT': accept_type}) for _ in range(100)]
             resp = self.get(self.ISSUE_API_URL, headers={'HTTP_ACCEPT': accept_type})
             self.assert_in(accept_type, resp['Content-Type'])
-            self.assert_http_too_many_requests(resp)'''
+            self.assert_http_too_many_requests(resp)
+
+
