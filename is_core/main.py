@@ -286,7 +286,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return 'list' in self.view_classes and self.show_in_menu and self.has_ui_read_permission(request)
 
     def get_rest_list_display_fields(self, request):
-        return self.list_display
+        return list(self.get_list_display())
 
     def get_form_inline_views(self, request, obj=None):
         return self.form_inline_views
