@@ -29,3 +29,9 @@ DateTimeInput.class_name = 'datetime'
 
 FileField.widget = DragAndDropFileInput
 ImageField.widget = DragAndDropImageInput
+
+try:
+    from sorl.thumbnail.fields import ImageFormField
+    ImageFormField.widget = DragAndDropImageInput
+except ImportError:
+    pass

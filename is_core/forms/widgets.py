@@ -97,7 +97,6 @@ class MultipleSelect(SelectMixin, forms.SelectMultiple):
 class ClearableFileInput(forms.ClearableFileInput):
 
     def render(self, name, value, attrs=None):
-
         substitutions = {
             'initial_text': self.initial_text,
             'input_text': self.input_text,
