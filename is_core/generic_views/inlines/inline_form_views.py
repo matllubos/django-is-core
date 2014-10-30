@@ -150,7 +150,10 @@ class InlineFormView(InlineView):
         return self.model.__name__
 
     def get_button_value(self):
-        return '%s %s ' % (_('Add'), self.get_name())
+        return (self.model._ui_meta.add_inline_button_verbose_name % {
+            'verbose_name': self.model._meta.verbose_name,
+            'verbose_name_plural': self.model._meta.verbose_name_plural
+        })
 
     def form_valid(self, request):
         instances = self.formset.save(commit=False)

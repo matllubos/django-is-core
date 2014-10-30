@@ -2,9 +2,9 @@
 	<ul class="breadcrumb">
 		{% for menu_item in menu_items %}
 			{% if not menu_item.active %}
-				<li><a href="{{ menu_item.url }}">{{ menu_item.title }}</a></li>
+				<li><a href="{{ menu_item.url }}">{{ menu_item.title|capfirst }}</a></li>
 			{% else %}
-				<li class="active">{{ menu_item.title }}</li>
+				<li class="active">{{ menu_item.title|capfirst }}</li>
 			{% endif %}
 		{% endfor %}
 	</ul>

@@ -9,6 +9,7 @@ from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
 
 from is_core.filters.default_filters import *
+from django.utils.encoding import force_text
 
 
 class Header(object):
@@ -161,7 +162,7 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
         context_data.update({
                                 'add_url': self._get_add_url(),
                                 'view_type': self.view_type,
-                                'add_button_value': self.core.model._ui_meta.add_verbose_name %
+                                'add_button_value': self.core.model._ui_meta.add_button_verbose_name %
                                                     {'verbose_name': self.core.model._meta.verbose_name,
                                                      'verbose_name_plural': self.core.model._meta.verbose_name_plural}
                             })

@@ -5,7 +5,7 @@ django-jenkins==0.14.1
 pep8==1.4.6
 pyflakes==0.7.3
 six==1.5.2
-https://github.com/matllubos/django-is-core/tarball/0.7.5#egg=django-is-core-0.7.5
+https://github.com/matllubos/django-is-core/tarball/0.7.6#egg=django-is-core-0.7.6
 https://github.com/matllubos/django-security/tarball/0.0.11#egg=django-security-0.0.11
 pyaml==14.05.7
 mimeparse==0.1.3

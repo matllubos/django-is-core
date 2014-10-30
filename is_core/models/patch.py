@@ -45,7 +45,9 @@ class UIOptions(Options):
         super(UIOptions, self).__init__(model)
         self.extra_selecbox_fields = {}
         self.list_verbose_name = _('%(verbose_name_plural)s')
-        self.add_verbose_name = _('Add %(verbose_name)s')
+        self.add_verbose_name = _('add %(verbose_name)s')
+        self.add_button_verbose_name = self.add_verbose_name
+        self.add_inline_button_verbose_name = self.add_verbose_name
         self.edit_verbose_name = _('%(obj)s')
         self.filter_placeholders = {}
         self.placeholders = {}
@@ -54,6 +56,8 @@ class UIOptions(Options):
             self.extra_selecbox_fields = self._getattr('extra_selecbox_fields', self.extra_selecbox_fields)
             self.list_verbose_name = self._getattr('list_verbose_name', self.list_verbose_name)
             self.add_verbose_name = self._getattr('add_verbose_name', self.add_verbose_name)
+            self.add_button_verbose_name = self._getattr('add_button_verbose_name', self.add_verbose_name)
+            self.add_inline_button_verbose_name = self._getattr('add_inline_button_verbose_name', self.add_verbose_name)
             self.edit_verbose_name = self._getattr('edit_verbose_name', self.edit_verbose_name)
             self.filter_placeholders = self._getattr('filter_placeholders', self.filter_placeholders)
             self.placeholders = self._getattr('placeholders', self.placeholders)
