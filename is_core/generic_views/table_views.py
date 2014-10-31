@@ -7,9 +7,7 @@ from django.forms.forms import pretty_name
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
-
 from is_core.filters.default_filters import *
-from django.utils.encoding import force_text
 
 
 class Header(object):

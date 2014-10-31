@@ -286,7 +286,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return 'list' in self.view_classes and self.show_in_menu and self.has_ui_read_permission(request)
 
     def get_rest_list_display_fields(self, request):
-        return list(self.get_list_display())
+        return list(self.get_list_display(request))
 
     def get_form_inline_views(self, request, obj=None):
         return self.form_inline_views
@@ -298,11 +298,11 @@ class UIModelISCore(ModelISCore, UIISCore):
     def menu_url_name(self):
         return 'list-%s' % self.get_menu_group_pattern_name()
 
-    def get_list_display(self):
+    def get_list_display(self, request):
         return self.list_display
 
     def get_ui_list_display(self, request):
-        return list(self.get_list_display())
+        return list(self.get_list_display(request))
 
     def get_api_url_name(self):
         return self.api_url_name
@@ -359,10 +359,11 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         rest_fields = list_to_dict(list(self.model._rest_meta.fields) + list(self.get_rest_extra_fields(request))
                                    + list(self.rest_default_fields))
 
-        rest_default_list_fields = list_to_dict(self.get_rest_general_fields(request))
-        rest_default_obj_fields = list_to_dict(self.get_rest_detailed_fields(request, obj=obj))
+        rest_default_general_fields = list_to_dict(self.get_rest_general_fields(request))
+        rest_default_detailed_fields = list_to_dict(self.get_rest_detailed_fields(request, obj=obj))
 
-        return dict_to_list(join_dicts(join_dicts(rest_fields, rest_default_list_fields), rest_default_obj_fields))
+        return dict_to_list(join_dicts(join_dicts(rest_fields, rest_default_general_fields),
+                                       rest_default_detailed_fields))
 
     def get_rest_general_fields(self, request):
         return self.rest_general_fields or set(tuple(self.model._rest_meta.default_general_fields) +
