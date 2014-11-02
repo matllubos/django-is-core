@@ -184,13 +184,14 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     def _filter_queryset(self, qs):
         filter_terms = self.request.GET.dict()
 
-        for filter_temr, filter_val in filter_terms.items():
+        for filter_term, filter_val in filter_terms.items():
             try:
-                filter = get_model_field_or_method_filter(filter_temr, self.model, filter_val)
-                qs = filter.filter_queryset(qs, self.request)
-                force_text(qs.query)
+                if not filter_term.startswith('_'):
+                    filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
+                    qs = filter.filter_queryset(qs, self.request)
+                    force_text(qs.query)
             except:
-                raise RestException(_('Cannot resolve filter "%s"') % filter_temr)
+                raise RestException(_('Cannot resolve filter "%s"') % filter_term)
 
         return qs
 
