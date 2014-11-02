@@ -7,6 +7,8 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 from piston.converter import get_converter_from_request, get_supported_mime_types
+from piston.utils import set_rest_context_to_request
+from piston.resource import BaseResource
 
 
 def responseexception_factory(request, response_code, title, message, response_class=HttpResponse):
@@ -32,7 +34,7 @@ def responseexception_factory(request, response_code, title, message, response_c
                 resp_message = force_text(resp_message)
         else:
             resp_message = force_text(title)
-
+        set_rest_context_to_request(request, BaseResource.DEFAULT_REST_CONTEXT_MAPPING)
         converter, ct = get_converter_from_request(request)
         content = converter().encode(request, {'error': resp_message}, None, message, ())
     return response_class(content, status=response_code, content_type=ct)

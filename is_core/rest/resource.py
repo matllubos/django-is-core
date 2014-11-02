@@ -181,37 +181,45 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     def get_queryset(self):
         return self.core.get_queryset(self.request)
 
+    def _get_headers_queryset_context_mapping(self):
+        mapping = super(RestModelResource, self)._get_headers_queryset_context_mapping()
+        mapping.update({
+            'direction': ('HTTP_X_DIRECTION', '_direction'),
+            'order': ('HTTP_X_ORDER', '_order')
+        })
+        return mapping
+
     def _filter_queryset(self, qs):
         filter_terms = self.request.GET.dict()
 
         for filter_term, filter_val in filter_terms.items():
-            try:
-                if not filter_term.startswith('_'):
+            if not filter_term.startswith('_'):
+                try:
                     filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
                     qs = filter.filter_queryset(qs, self.request)
                     force_text(qs.query)
-            except:
-                raise RestException(_('Cannot resolve filter "%s"') % filter_term)
+                except:
+                    raise RestException(_('Cannot resolve filter "%s"') % filter_term)
 
         return qs
 
     def _order_by(self, qs, order_field):
-        dir = self.request.META.get('HTTP_X_DIRECTION', 'ASC')
+        dir = self.request._rest_context.get('direction', 'ASC')
 
         if dir.upper() == 'DESC':
             order_field = '-' + order_field
         return qs.order_by(order_field)
 
     def _order_queryset(self, qs):
-        if not 'HTTP_X_ORDER' in self.request.META:
+        if not 'order' in self.request._rest_context:
             return qs
-        order_field = self.request.META.get('HTTP_X_ORDER')
+        order_field = self.request._rest_context.get('order')
         qs = self._order_by(qs, order_field)
         try:
             # Queryset validation, there is no other option
             force_text(qs.query)
-        except Exception as ex:
-            raise RestException(_('Cannot resolve X-Order value "%s" into field') % order_field)
+        except Exception:
+            raise RestException(_('Cannot resolve Order value "%s" into field') % order_field)
         return qs
 
     def _get_exclude(self, obj=None):
