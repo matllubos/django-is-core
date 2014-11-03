@@ -108,7 +108,7 @@ class DefaultFieldFilter(DefaultFilter):
         if formfield:
             if hasattr(formfield, 'empty_label'):
                 formfield.empty_label = self.get_placeholder() or self.EMPTY_LABEL
-            elif hasattr(formfield, 'choices') and formfield.choices and formfield.choices[0][0]:
+            elif hasattr(formfield, 'choices') and formfield.choices and not formfield.choices[0][0] == '':
                 formfield.choices.insert(0, ('', self.get_placeholder() or self.EMPTY_LABEL))
             return formfield.widget
         return forms.TextInput()
