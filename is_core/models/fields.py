@@ -1,10 +1,12 @@
 from django.db.models import FileField as OriginFileField
+from django.db.models.fields import DecimalField as OriginDecimalField
 from django.forms import forms
 from django.template.defaultfilters import filesizeformat
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text
 
 from is_core import config
+from is_core.forms.fields import DecimalField as DecimalFormField
 
 try:
     from sorl.thumbnail import ImageField as OriginImageField
@@ -54,3 +56,24 @@ class FileField(RestrictedFileFieldMixin, OriginFileField):
 
 class ImageField(RestrictedFileFieldMixin, OriginImageField):
     pass
+
+
+class DecimalField(OriginDecimalField):
+
+    def __init__(self, *args, **kwargs):
+        self.step = kwargs.pop('step', 'any')
+        super(DecimalField, self).__init__(*args, **kwargs)
+
+    def formfield(self, **kwargs):
+        defaults = {
+            'step': self.step,
+            'form_class': DecimalFormField,
+        }
+        defaults.update(kwargs)
+        return super(DecimalField, self).formfield(**defaults)
+
+    def south_field_triple(self):
+        from south.modelsinspector import introspector
+        cls_name = '%s.%s' % (self.__class__.__module__ , self.__class__.__name__)
+        args, kwargs = introspector(self)
+        return (cls_name, args, kwargs)
