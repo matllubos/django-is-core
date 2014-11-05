@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.utils import six
 from django.forms.models import _get_foreign_key
 
-from piston.utils import list_to_dict, dict_to_list, join_dicts
+from piston.utils import rfs, RFS
 from piston.forms import RestModelForm
 
 from is_core.actions import WebAction, ConfirmRestAction
@@ -320,7 +320,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     abstract = True
 
     # Allowed rest fields
-    rest_fields = None
+    rest_extra_fields = None
     rest_detailed_fields = None
     rest_general_fields = None
     # Default rest fields for list, obj and guest
@@ -350,32 +350,23 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_exclude(request, obj)
 
-    def get_rest_extra_fields(self, request):
-        return ()
-
-    def get_rest_fields(self, request, obj=None):
-        if self.rest_fields:
-            return self.rest_fields
-
-        rest_fields = list_to_dict(list(self.model._rest_meta.fields) + list(self.get_rest_extra_fields(request))
-                                   + list(self.rest_default_fields))
-
-        rest_default_general_fields = list_to_dict(self.get_rest_general_fields(request))
-        rest_default_detailed_fields = list_to_dict(self.get_rest_detailed_fields(request, obj=obj))
-
-        return dict_to_list(join_dicts(join_dicts(rest_fields, rest_default_general_fields),
-                                       rest_default_detailed_fields))
+    def get_rest_extra_fields(self, request, obj=None):
+        return rfs(self.rest_extra_fields)
 
     def get_rest_general_fields(self, request):
-        return self.rest_general_fields or set(tuple(self.model._rest_meta.default_general_fields) +
-                                            tuple(self.rest_default_general_fields))
+        if self.rest_general_fields:
+            return rfs(self.rest_general_fields)
+        else:
+            return rfs(self.model._rest_meta.default_general_fields).join(rfs(self.rest_default_general_fields))
 
     def get_rest_detailed_fields(self, request, obj=None):
-        return self.rest_detailed_fields or set(tuple(self.model._rest_meta.default_detailed_fields) +
-                                            tuple(self.rest_default_detailed_fields))
+        if self.rest_detailed_fields:
+            return rfs(self.rest_detailed_fields)
+        else:
+            return rfs(self.model._rest_meta.default_detailed_fields).join(rfs(self.rest_default_detailed_fields))
 
     def get_rest_guest_fields(self, request):
-        return self.rest_guest_fields
+        return rfs(self.rest_guest_fields)
 
     def get_rest_obj_class_names(self, request, obj):
         return list(self.rest_obj_class_names)
@@ -409,20 +400,18 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
 class UIRestModelISCore(RestModelISCore, UIModelISCore):
     abstract = True
+    rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
+
+
+    def _get_list_display(self):
+        return self.list_display
+
+    def get_rest_extra_fields(self, request, obj=None):
+        fieldset = super(UIRestModelISCore, self).get_rest_extra_fields(request, obj)
+        return fieldset.join(RFS.create_from_flat_list(self.list_display))
 
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
-
-    def get_rest_general_fields(self, request):
-        rest_general_fields_dict = list_to_dict(super(UIRestModelISCore, self).get_rest_general_fields(request))
-
-        for display in self.get_rest_list_display_fields(request):
-            rest_dict = rest_general_fields_dict
-            for val in display.split('__'):
-                rest_dict[val] = rest_dict.get(val, {})
-                rest_dict = rest_dict[val]
-
-        return dict_to_list(rest_general_fields_dict)
 
     def get_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
@@ -432,9 +421,6 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
 
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)
-
-    def get_rest_extra_fields(self, request):
-        return ('_web_links', '_default_action')
 
     def get_list_actions(self, request, obj):
         list_actions = super(UIRestModelISCore, self).get_list_actions(request, obj)

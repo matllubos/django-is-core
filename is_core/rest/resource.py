@@ -128,13 +128,12 @@ class EntryPointResource(RestResource):
 
 class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
 
-    fields = ('id', '_rest_links', '_actions', '_class_names', '_obj_name')
     default_detailed_fields = ('id', '_rest_links', '_obj_name')
     default_general_fields = ('id', '_rest_links', '_obj_name')
     form_class = None
 
-    def get_fields(self, obj=None):
-        return self.core.get_rest_fields(self.request, obj=obj)
+    def get_extra_fields(self, obj=None):
+        return self.core.get_rest_extra_fields(self.request, obj=obj)
 
     def get_default_detailed_fields(self, obj=None):
         return self.core.get_rest_detailed_fields(self.request, obj=obj)

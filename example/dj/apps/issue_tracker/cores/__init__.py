@@ -42,7 +42,7 @@ class UserIsCore(UIRestModelISCore):
 
 class IssueIsCore(UIRestModelISCore):
     model = Issue
-    list_display = ('id', '_obj_name', 'watched_by_string')
+    list_display = ('id', '_obj_name', 'watched_by_string', 'leader__email', 'leader__last_name')
 
     def has_rest_create_permission(self, request, obj=None, via=None):
         return bool(via) and via[0].model == User

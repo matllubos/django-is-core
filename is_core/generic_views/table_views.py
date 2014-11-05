@@ -4,6 +4,8 @@ from django.views.generic.base import TemplateView
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 
+from piston.utils import RF, RFS
+
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
@@ -27,6 +29,7 @@ class Header(object):
 
 class TableViewMixin(object):
     list_display = ()
+    list_display_extra = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
     list_filter = None
     model = None
     api_url = ''
@@ -98,6 +101,19 @@ class TableViewMixin(object):
     def _get_list_display(self):
         return self.list_display
 
+    def _get_list_display_extra(self):
+        return list(self.list_display_extra)
+
+    def _get_rest_field(self, full_field_name):
+        if '__' in full_field_name:
+            full_field_name, subfield_name = full_field_name.split('__', 1)
+            return RF(full_field_name, RFS(self._get_rest_field(subfield_name)))
+        else:
+            return RF(full_field_name)
+
+    def _generate_rest_fieldset(self):
+        return list(self._get_list_display_extra()) + list(self._get_list_display())
+
     def _get_headers(self):
         headers = []
         for field in self._get_list_display():
@@ -133,6 +149,7 @@ class TableViewMixin(object):
                                 'api_url': self._get_api_url(),
                                 'module_name': self.model._meta.module_name,
                                 'list_display': self._get_list_display(),
+                                'rest_fieldset': self._generate_rest_fieldset(),
                                 'query_string_filter': self._get_query_string_filter(),
                                 'menu_group_pattern_name': self._get_menu_group_pattern_name(),
                             })
