@@ -154,6 +154,7 @@ class ModelISCore(PermissionsMixin, ISCore):
         return str(self.model._meta.module_name)
     menu_group = property(menu_group)
 
+    # TODO: remove this function
     def get_obj(self, request, **filters):
         try:
             return get_object_or_404(self.get_queryset(request), **filters)

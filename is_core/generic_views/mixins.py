@@ -85,11 +85,13 @@ class TabsViewMixin(object):
 
 
 class GetCoreObjViewMixin(object):
+    pk_name = 'pk'
 
     def get_obj_filters(self):
-        filters = {'pk': self.kwargs.get('pk')}
+        filters = {'pk': self.kwargs.get(self.pk_name)}
         return filters
 
+    # TODO: should contains own implementation (not use get_obj from main)
     _obj = None
     def get_obj(self, cached=True):
         if cached and self._obj:

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.forms.models import modelform_factory, ModelForm
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, Http404
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -11,7 +11,7 @@ from django.contrib.messages import constants
 
 from piston.utils import get_object_or_none
 
-from is_core.generic_views.exceptions import SaveObjectException, GenericViewException
+from is_core.generic_views.exceptions import SaveObjectException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
@@ -535,20 +535,34 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
             arguments = (self.kwargs[self.pk_name],)
         return super(EditModelFormView, self).link(arguments=arguments, **kwargs)
 
-    def _get_perm_obj_or_none(self, pk=None):
-        return get_object_or_none(self.core.model, pk=(pk or self.kwargs.get(self.pk_name)))
-
-    def has_get_permission(self, obj=None, pk=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_none(pk)
+    # TODO: get_obj should not be inside cor. get_obj and _get_perm_obj_or_404 should have same implementation
+    # this object shoul return None if object does not exists. Becouase has_get_permission and has_post_permission
+    # should be called outside
+    def _get_perm_obj_or_404(self, pk=None):
+        """
+        If is send parameter pk is returned object according this pk,
+        else is returned object from get_obj method, but it search only inside filtered values for current user,
+        finally if object is still None is returned according the input key from all objects.
+        
+        If object does not exist is raised Http404
+        """
+        if pk:
+            obj = get_object_or_none(self.core.model, pk=pk)
+        else:
+            try:
+                obj = self.get_obj(False)
+            except Http404:
+                obj = get_object_or_none(self.core.model, **self.get_obj_filters())
         if not obj:
-            raise GenericViewException('For permission validation of edit view must exists object')
+            raise Http404
+        return obj
 
+    # Should return false if object does not exists and 404 should be resolved with different way
+    def has_get_permission(self, obj=None, pk=None, **kwargs):
+        obj = obj or self._get_perm_obj_or_404(pk)
         return self.core.has_ui_update_permission(self.request, obj=obj) \
                 or self.core.has_ui_read_permission(self.request, obj=obj)
 
     def has_post_permission(self, obj=None, pk=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_none(pk)
-        if not obj:
-            raise GenericViewException('For permission validation of edit view must exists object')
-
+        obj = obj or self._get_perm_obj_or_404(pk)
         return self.core.has_ui_update_permission(self.request, obj=obj)
