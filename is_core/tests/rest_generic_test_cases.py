@@ -27,7 +27,7 @@ def add_urls_to_resource(resource):
 @login_all
 class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
-    iteration = 10
+    iteration = 5
 
     @classmethod
     def setUpClass(cls):

@@ -88,7 +88,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         try:
             self.save_obj(obj, form, change)
         except SaveObjectException as ex:
-            return self.form_invalid(form, force_text(ex))
+            return self.form_invalid(form, force_text(ex.message))
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
         return obj
@@ -97,7 +97,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         try:
             obj = self.save_form(form, **kwargs)
         except SaveObjectException as ex:
-            return self.form_invalid(form, msg=force_text(ex), **kwargs)
+            return self.form_invalid(form, msg=force_text(ex.message), **kwargs)
         return self.success_render_to_response(obj, msg, msg_level)
 
     def form_invalid(self, form, msg=None, msg_level=None, **kwargs):
