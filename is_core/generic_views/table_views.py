@@ -137,6 +137,8 @@ class TableViewMixin(object):
         for key, val in exclude_vals.items():
             filter_vals[key + '__not'] = val
 
+
+        filter_vals['_fields'] = ','.join(self._generate_rest_fieldset())
         return query_string_from_dict(filter_vals)
 
     def _get_menu_group_pattern_name(self):
@@ -149,7 +151,7 @@ class TableViewMixin(object):
                                 'api_url': self._get_api_url(),
                                 'module_name': self.model._meta.module_name,
                                 'list_display': self._get_list_display(),
-                                'rest_fieldset': self._generate_rest_fieldset(),
+                                'rest_fieldset': ','.join(self._generate_rest_fieldset()),
                                 'query_string_filter': self._get_query_string_filter(),
                                 'menu_group_pattern_name': self._get_menu_group_pattern_name(),
                             })
