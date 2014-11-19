@@ -325,8 +325,8 @@ class DefaultModelFormView(DefaultFormView):
     def formfield_for_dbfield(self, db_field, **kwargs):
         return db_field.formfield(**kwargs)
 
-    def gethas_file_field(self, form, inline_form_views=(), **kwargs):
-        if super(DefaultModelFormView, self).ghas_s_file_field(form, **kwargs):
+    def get_has_file_field(self, form, inline_form_views=(), **kwargs):
+        if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
             return True
 
         inline_form_views = inline_form_views and inline_form_views.values() or ()

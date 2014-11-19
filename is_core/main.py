@@ -402,13 +402,9 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
     abstract = True
     rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
 
-
-    def _get_list_display(self):
-        return self.list_display
-
     def get_rest_extra_fields(self, request, obj=None):
         fieldset = super(UIRestModelISCore, self).get_rest_extra_fields(request, obj)
-        return fieldset.join(RFS.create_from_flat_list(self.list_display))
+        return fieldset.join(RFS.create_from_flat_list(self.get_list_display(request)))
 
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
