@@ -351,7 +351,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return self.get_form_exclude(request, obj)
 
     def get_rest_extra_fields(self, request, obj=None):
-        return rfs(self.rest_extra_fields)
+        return self.rest_extra_fields and rfs(self.rest_extra_fields) or RFS()
 
     def get_rest_general_fields(self, request):
         if self.rest_general_fields:
