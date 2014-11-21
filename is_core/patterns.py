@@ -5,10 +5,10 @@ import logging
 from django.core.urlresolvers import reverse, resolve, Resolver404
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
+from django.utils.datastructures import SortedDict
 
 from is_core.utils import get_new_class_name
 from is_core.auth import rest_login_required
-from django.utils.datastructures import SortedDict
 
 
 logger = logging.getLogger('is-core')

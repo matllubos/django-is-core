@@ -11,7 +11,7 @@ from django.contrib.messages import constants
 
 from piston.utils import get_object_or_none
 
-from is_core.generic_views.exceptions import SaveObjectException
+from is_core.exceptions import SaveObjectException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field

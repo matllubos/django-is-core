@@ -6,8 +6,8 @@ from django.template.context import RequestContext
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
-from piston.converter import get_converter_from_request, get_supported_mime_types
 from piston.utils import set_rest_context_to_request
+from piston.converter import get_converter_from_request, get_supported_mime_types
 from piston.resource import BaseResource
 
 
