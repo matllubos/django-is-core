@@ -413,13 +413,23 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
 
+    # TODO: fix this code in new version of is-core
     def get_rest_general_fields(self, request):
         rest_general_fields_dict = list_to_dict(super(UIRestModelISCore, self).get_rest_general_fields(request))
 
         for display in self.get_rest_list_display_fields(request):
             rest_dict = rest_general_fields_dict
-            for val in display.split('__'):
-                rest_dict[val] = rest_dict.get(val, {})
+
+            splitted_display = display.split('__')
+            for i in range(0, len(splitted_display)):
+                val = splitted_display[i]
+                is_last = len(splitted_display) == i + 1
+
+                field = rest_dict.get(val, {})
+                if rest_dict.has_key(val) and ((is_last and field) or (not is_last and not field)):
+                    field['_obj_name'] = {}
+
+                rest_dict[val] = field
                 rest_dict = rest_dict[val]
 
         return dict_to_list(rest_general_fields_dict)

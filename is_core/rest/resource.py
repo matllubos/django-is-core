@@ -197,8 +197,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
                 try:
                     filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
                     qs = filter.filter_queryset(qs, self.request)
-                    force_text(qs.query)
-                except:
+                except Exception:
                     raise RestException(_('Cannot resolve filter "%s"') % filter_term)
 
         return qs
@@ -217,7 +216,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         qs = self._order_by(qs, order_field)
         try:
             # Queryset validation, there is no other option
-            force_text(qs.query)
+            unicode(qs.query)
         except Exception:
             raise RestException(_('Cannot resolve Order value "%s" into field') % order_field)
         return qs
