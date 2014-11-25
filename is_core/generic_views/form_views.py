@@ -29,6 +29,9 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 'error': _('Please correct the error below.')}
     readonly_fields = None
 
+    save_button_label = _('Save')
+    save_button_title = ''
+
     def get_success_url(self, obj):
         """
         URL string for redirect after saving
@@ -149,9 +152,21 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                                 'form_class_names': self.get_form_class_names(),
                                 'has_file_field': self.get_has_file_field(form, **kwargs),
                                 'action': self.get_form_action(),
-                                'form_snippet_name': self.form_snippet_name
+                                'form_snippet_name': self.form_snippet_name,
+                                'buttons': self.get_buttons()
                              })
         return context_data
+
+    def get_buttons(self):
+        buttons = {}
+        for key, value in self.get_buttons_dict().iteritems():
+            buttons[key] = {'label': value['label'],
+                            'title': value['title']}
+        return buttons
+
+    def get_buttons_dict(self):
+            return {'save': {'label': self.save_button_label,
+                             'title': self.save_button_title}}
 
     def generate_fieldsets(self):
         fieldsets = self.get_fieldsets()
@@ -433,6 +448,22 @@ class DefaultModelFormView(DefaultFormView):
 class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     show_save_and_continue = True
+
+    save_button_title = _('Save and navigate to the list')
+
+    save_and_continue_button_title = _('Save and stay on the same page')
+    save_and_continue_button_label = _("Save and continue")
+
+    cancel_button_title = _('Do not save and go back to the list')
+    cancel_button_label = _("Back")
+
+    def get_buttons_dict(self):
+        buttons_dict = super(DefaultCoreModelFormView, self).get_buttons_dict()
+        buttons_dict.update({'save_and_continue': {'label': self.save_and_continue_button_label,
+                                                   'title':  self.save_and_continue_button_title},
+                             'cancel': {'label':  self.cancel_button_label,
+                                        'title': self.cancel_button_title}})
+        return buttons_dict
 
     def save_obj(self, obj, form, change):
         self.core.save_model(self.request, obj, form, change)
