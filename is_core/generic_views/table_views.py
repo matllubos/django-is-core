@@ -9,6 +9,7 @@ from piston.utils import RF, RFS
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
+from is_core.rest.datastructures import ModelRestFieldset
 from is_core.filters.default_filters import *
 
 
@@ -105,7 +106,9 @@ class TableViewMixin(object):
         return list(self.list_display_extra)
 
     def _generate_rest_fieldset(self):
-        return RFS.create_from_flat_list(list(self._get_list_display_extra()) + list(self._get_list_display()))
+        return ModelRestFieldset.create_from_flat_list(
+            list(self._get_list_display_extra()) + list(self._get_list_display()), self.model
+        )
 
     def _get_headers(self):
         headers = []

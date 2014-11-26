@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import NoReverseMatch
 from django.http.response import Http404
-from django.utils.encoding import force_text
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.utils import get_object_or_none
@@ -196,7 +195,6 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
                 try:
                     filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
                     qs = filter.filter_queryset(qs, self.request)
-                    force_text(qs.query)
                 except:
                     raise RestException(_('Cannot resolve filter "%s"') % filter_term)
 
@@ -216,7 +214,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         qs = self._order_by(qs, order_field)
         try:
             # Queryset validation, there is no other option
-            force_text(qs.query)
+            unicode(qs.query)
         except Exception:
             raise RestException(_('Cannot resolve Order value "%s" into field') % order_field)
         return qs

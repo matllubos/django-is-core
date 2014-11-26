@@ -26,6 +26,7 @@ from is_core import config
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
+from is_core.rest.datastructures import ModelRestFieldset
 
 
 class ISCoreBase(type):
@@ -404,7 +405,9 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
 
     def get_rest_extra_fields(self, request, obj=None):
         fieldset = super(UIRestModelISCore, self).get_rest_extra_fields(request, obj)
-        return fieldset.join(RFS.create_from_flat_list(self.get_list_display(request)))
+        return fieldset.join(
+            ModelRestFieldset.create_from_flat_list(self.get_list_display(request), self.model)
+        )
 
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
