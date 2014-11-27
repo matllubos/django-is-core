@@ -4,8 +4,6 @@ from django.views.generic.base import TemplateView
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 
-from piston.utils import RF, RFS
-
 from is_core.utils import query_string_from_dict
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
@@ -133,7 +131,6 @@ class TableViewMixin(object):
         for key, val in exclude_vals.items():
             filter_vals[key + '__not'] = val
 
-        filter_vals['_fields'] = self._generate_rest_fieldset()
         return query_string_from_dict(filter_vals)
 
     def _get_menu_group_pattern_name(self):

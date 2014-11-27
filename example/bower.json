@@ -4,7 +4,7 @@
     "dependencies": {
         "closure-compiler": "http://dl.google.com/closure-compiler/compiler-20140303.zip",
         "closure-library": "https://github.com/google/closure-library.git#f26bb3122769eb1b19c6fb5adbd9448e36996627",
-        "werkzeug": "http://github.com/LukasRychtecky/werkzeug.git#0.3.97",
+        "werkzeug": "http://github.com/LukasRychtecky/werkzeug.git#0.5.0",
         "bootstrap-sass": "https://github.com/twbs/bootstrap-sass.git#3.1.1",
         "d3": "3.4.5",
         "c3": "0.2.4",
