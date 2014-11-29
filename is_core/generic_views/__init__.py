@@ -4,6 +4,7 @@ import re
 
 from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 from block_snippets.views import JsonSnippetTemplateResponseMixin
 
@@ -16,9 +17,9 @@ class PermissionsViewMixin(object):
 
     def dispatch(self, request, *args, **kwargs):
         rm = request.method.lower()
-        if rm in self.http_method_names:
+        if rm in self.http_method_names and hasattr(self, rm):
             self._check_permission(rm)
-            handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
+            handler = getattr(self, rm)
         else:
             handler = self.http_method_not_allowed
         return handler(request, *args, **kwargs)
@@ -34,10 +35,16 @@ class PermissionsViewMixin(object):
 
     def _check_permission(self, name, **kwargs):
         if not hasattr(self, 'has_%s_permission' % name):
-            raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
+            if settings.DEBUG:
+                raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
+            else:
+                raise HttpForbiddenResponseException
 
         if not getattr(self, 'has_%s_permission' % name)(**kwargs):
             raise HttpForbiddenResponseException
+
+    def has_options_permission(self, **kwargs):
+        return True
 
 
 class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
