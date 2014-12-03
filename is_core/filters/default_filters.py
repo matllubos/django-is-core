@@ -205,7 +205,7 @@ class DateFilter(DefaultFieldFilter):
         parse = DEFAULTPARSER._parse(self.value, dayfirst=True)
         if parse is None:
             raise ValueError()
-        res, _ = parse
+        res = parse[0] if isinstance(parse, tuple) else parse
         filter_terms = {}
 
         for attr in self.extra_suffixes:
