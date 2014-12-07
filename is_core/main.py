@@ -27,6 +27,7 @@ from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
 from is_core.rest.datastructures import ModelRestFieldset
+from piston.serializer import Serializer
 
 
 class ISCoreBase(type):
@@ -257,6 +258,8 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     # list view params
     list_display = ('_obj_name',)
+    export_display = ()
+    export_types = config.GRID_EXPORT
     default_list_filter = {}
 
     # add/edit view params
@@ -301,10 +304,13 @@ class UIModelISCore(ModelISCore, UIISCore):
         return 'list-%s' % self.get_menu_group_pattern_name()
 
     def get_list_display(self, request):
-        return self.list_display
+        return list(self.list_display)
 
-    def get_ui_list_display(self, request):
-        return list(self.get_list_display(request))
+    def get_export_display(self, request):
+        return list(self.export_display) or self.get_list_display(request)
+
+    def get_export_types(self, request):
+        return self.export_types
 
     def get_api_url_name(self):
         return self.api_url_name
@@ -337,7 +343,6 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_resource_class = RestModelResource
     rest_resource_pattern_class = RestPattern
     _resource_patterns = None
-
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)

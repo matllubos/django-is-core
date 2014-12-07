@@ -34,6 +34,21 @@
 				</div>
 			{% endblock %}
 			{% block table %}
+				{% block export-menu %}
+					{% if export_types %}
+						<div><span class="clearfix"></span></div>
+						<div class="dropdown pull-right">
+							<button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Exports' %}<span class="caret"></span></button>
+							<ul class="dropdown-menu" role="menu">
+								{% for title, type, serialization_format in export_types %}
+									<li>
+										<a href="{{ api_url }}?_serialization_format={{ serialization_format }}&_fields={{ rest_export_fieldset }}{% if query_string_filter %}&{{ query_string_filter }}{% endif %}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
+									</li>
+								{% endfor %}
+							</ul>
+						</div>
+					{% endif %}
+				{% endblock %}
 				<table class="{% block table-classes %}grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}">
 					<thead>
 						{% block table-header %}

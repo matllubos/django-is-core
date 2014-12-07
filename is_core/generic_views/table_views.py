@@ -28,6 +28,7 @@ class Header(object):
 
 class TableViewMixin(object):
     list_display = ()
+    export_display = ()
     list_display_extra = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
     list_filter = None
     model = None
@@ -100,12 +101,20 @@ class TableViewMixin(object):
     def _get_list_display(self):
         return self.list_display
 
+    def _get_export_display(self):
+        return self.export_display or self.list_display
+
     def _get_list_display_extra(self):
         return list(self.list_display_extra)
 
     def _generate_rest_fieldset(self):
         return ModelRestFieldset.create_from_flat_list(
             list(self._get_list_display_extra()) + list(self._get_list_display()), self.model
+        )
+
+    def _generate_rest_export_fieldset(self):
+        return ModelRestFieldset.create_from_flat_list(
+            list(self._get_export_display()), self.model
         )
 
     def _get_headers(self):
@@ -144,6 +153,7 @@ class TableViewMixin(object):
                                 'module_name': self.model._meta.module_name,
                                 'list_display': self._get_list_display(),
                                 'rest_fieldset': self._generate_rest_fieldset(),
+                                'rest_export_fieldset': self._generate_rest_export_fieldset(),
                                 'query_string_filter': self._get_query_string_filter(),
                                 'menu_group_pattern_name': self._get_menu_group_pattern_name(),
                             })
@@ -153,9 +163,16 @@ class TableViewMixin(object):
 class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
     template_name = 'generic_views/table.html'
     view_type = 'list'
+    export_types = None
 
     def _get_list_display(self):
-        return self.list_display or self.core.get_ui_list_display(self.request)
+        return self.list_display or self.core.get_list_display(self.request)
+
+    def _get_export_display(self):
+        return self.export_display or self.core.get_export_display(self.request)
+
+    def _get_export_types(self):
+        return self.export_types or self.core.get_export_types(self.request)
 
     def _get_api_url(self):
         return self.api_url or self.core.get_api_url(self.request)
@@ -173,7 +190,8 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
                                 'view_type': self.view_type,
                                 'add_button_value': self.core.model._ui_meta.add_button_verbose_name %
                                                     {'verbose_name': self.core.model._meta.verbose_name,
-                                                     'verbose_name_plural': self.core.model._meta.verbose_name_plural}
+                                                     'verbose_name_plural': self.core.model._meta.verbose_name_plural},
+                                'export_types': self._get_export_types()
                             })
         return context_data
 
