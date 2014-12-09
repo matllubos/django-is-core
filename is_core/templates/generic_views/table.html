@@ -59,7 +59,7 @@
 										{{ header.filter }}
 									</th>
 								{% endfor %}
-								<th>{% trans 'Actions' %}</th>
+								{% if render_actions %}<th class="actions">{% trans 'Actions' %}</th>{% endif %}
 							</tr>
 						{% endblock %}
 					</thead>
