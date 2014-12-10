@@ -34,6 +34,7 @@ class TableViewMixin(object):
     model = None
     api_url = ''
     menu_group_pattern_name = None
+    render_actions = True
 
     def get_title(self):
         return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
@@ -156,6 +157,7 @@ class TableViewMixin(object):
                                 'rest_export_fieldset': self._generate_rest_export_fieldset(),
                                 'query_string_filter': self._get_query_string_filter(),
                                 'menu_group_pattern_name': self._get_menu_group_pattern_name(),
+                                'render_actions': self.render_actions,
                             })
         return context_data
 
