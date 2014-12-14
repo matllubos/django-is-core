@@ -11,7 +11,7 @@ from django.contrib.messages import constants
 
 from piston.utils import get_object_or_none
 
-from is_core.exceptions import SaveObjectException
+from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets
 from is_core.utils.forms import formset_has_file_field
@@ -90,7 +90,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         change = obj.pk is not None
         try:
             self.save_obj(obj, form, change)
-        except SaveObjectException as ex:
+        except PersistenceException as ex:
             return self.form_invalid(form, force_text(ex.message))
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
@@ -99,7 +99,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def form_valid(self, form, msg=None, msg_level=None, **kwargs):
         try:
             obj = self.save_form(form, **kwargs)
-        except SaveObjectException as ex:
+        except PersistenceException as ex:
             return self.form_invalid(form, msg=force_text(ex.message), **kwargs)
         return self.success_render_to_response(obj, msg, msg_level)
 

@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django.forms.models import inlineformset_factory, ModelForm
-from django.utils.translation import ugettext_lazy as _
 
 from is_core.forms.models import BaseInlineFormSet
 from is_core.utils.forms import formset_has_file_field
