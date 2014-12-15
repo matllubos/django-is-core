@@ -424,10 +424,6 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
         return flatten_fieldsets(self.get_form_fieldsets(request, obj) or ()) or self.get_form_fields(request, obj)
 
     def get_rest_form_exclude(self, request, obj=None):
-        print self.get_form_readonly_fields(request, obj)
-        print self.get_form_exclude(request, obj)
-
-
         return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)
 
     def get_list_actions(self, request, obj):
