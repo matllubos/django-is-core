@@ -9,7 +9,7 @@ from django.views.generic.edit import FormView
 from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
 
-from chamber.models.shortcuts import get_object_or_none
+from chamber.shortcuts import get_object_or_none
 
 from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin

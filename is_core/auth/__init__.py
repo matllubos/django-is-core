@@ -9,7 +9,7 @@ from django.template.context import RequestContext
 from django.utils.functional import SimpleLazyObject
 from django.utils.decorators import available_attrs
 
-from chamber.models.shortcuts import get_object_or_none
+from chamber.shortcuts import get_object_or_none
 
 from is_core import config
 from is_core.exceptions import HttpUnauthorizedResponseException

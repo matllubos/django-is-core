@@ -27,7 +27,6 @@ from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
 from is_core.rest.datastructures import ModelRestFieldset
-from piston.serializer import Serializer
 
 
 class ISCoreBase(type):

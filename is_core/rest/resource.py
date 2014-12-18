@@ -9,7 +9,7 @@ from piston.exception import (RestException, MimerDataException, NotAllowedExcep
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
                               ConflictException)
 
-from chamber.models.shortcuts import get_object_or_none
+from chamber.shortcuts import get_object_or_none
 
 from is_core.filters import get_model_field_or_method_filter
 from is_core.patterns import RestPattern, patterns
