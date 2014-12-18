@@ -6,8 +6,8 @@ from django.utils.datastructures import SortedDict
 from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
 
-from .utils import str_to_class
 from . import config
+from .utils import str_to_class
 from .loading import get_cores
 from .patterns import RestPattern
 from .auth_token.auth_resource import AuthResource

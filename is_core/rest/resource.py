@@ -5,17 +5,19 @@ from django.core.urlresolvers import NoReverseMatch
 from django.http.response import Http404
 
 from piston.resource import BaseResource, BaseModelResource
-from piston.utils import get_object_or_none
 from piston.exception import (RestException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
                               ConflictException)
 
+from chamber.models.shortcuts import get_object_or_none
+
 from is_core.filters import get_model_field_or_method_filter
 from is_core.patterns import RestPattern, patterns
-from is_core.utils.decorators import classproperty
 from is_core.exceptions import HttpForbiddenResponseException
 from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUnsupportedMediaTypeResponseException,
                                          HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
+
+from chamber.utils.decorators import classproperty
 
 
 class RestResource(BaseResource):

@@ -3,8 +3,9 @@ from __future__ import unicode_literals
 from django.forms.models import inlineformset_factory, ModelForm
 
 from is_core.forms.models import BaseInlineFormSet
-from is_core.utils.forms import formset_has_file_field
 from is_core.generic_views.inlines import InlineView
+
+from chamber.utils.forms import formset_has_file_field
 
 
 class InlineFormView(InlineView):

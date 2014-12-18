@@ -22,7 +22,6 @@ AUTH_LOGOUT_VIEW = getattr(settings, 'AUTH_LOGOUT_VIEW', AUTH_USE_TOKENS \
                                                           or 'is_core.generic_views.auth_views.LoginView')
 HOME_IS_CORE = getattr(settings, 'HOME_IS_CORE', 'is_core.main.HomeUIISCore')
 HOME_VIEW = getattr(settings, 'HOME_VIEW', 'is_core.generic_views.HomeView')
-MAX_UPLOAD_SIZE = getattr(settings, 'MAX_UPLOAD_SIZE', 20)
 MENU_GENERATOR = getattr(settings, 'MENU_GENERATOR', 'is_core.menu.MenuGenerator')
 
 USERNAME = getattr(settings, 'USERNAME', 'username')
