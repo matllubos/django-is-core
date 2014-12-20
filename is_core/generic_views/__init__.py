@@ -11,6 +11,7 @@ from block_snippets.views import JsonSnippetTemplateResponseMixin
 from is_core.menu import LinkMenuItem
 from is_core.exceptions import HttpForbiddenResponseException
 from is_core.generic_views.exceptions import GenericViewException
+from django.http.response import Http404
 
 
 class PermissionsViewMixin(object):
@@ -25,13 +26,28 @@ class PermissionsViewMixin(object):
         return handler(request, *args, **kwargs)
 
     def __getattr__(self, name):
-        m = re.match(r'_check_(\w+)_permission', name)
-        if m:
-            def _call_check(**kwargs):
-                return self._check_permission(m.group(1), **kwargs)
-            return _call_check
-
+        for regex, method in (
+                (r'_check_(\w+)_permission', self._check_permission),
+                (r'can_call_(\w+)', self._check_call)
+            ):
+            m = re.match(regex, name)
+            if m:
+                def _call(**kwargs):
+                    return method(m.group(1), **kwargs)
+                return _call
         raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
+
+    def _check_call(self, name, **kwargs):
+        if not hasattr(self, 'has_%s_permission' % name):
+            if settings.DEBUG:
+                raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
+            else:
+                return False
+
+        try:
+            return getattr(self, 'has_%s_permission' % name)(**kwargs)
+        except Http404:
+            return False
 
     def _check_permission(self, name, **kwargs):
         if not hasattr(self, 'has_%s_permission' % name):
@@ -111,17 +127,17 @@ class DefaultCoreViewMixin(DefaultViewMixin):
 
     def get_permissions(self):
         return {
-                    'read': self.core.has_ui_read_permission,
-                    'create': self.core.has_ui_create_permission,
-                    'update': self.core.has_ui_update_permission,
-                    'delete': self.core.has_ui_delete_permission,
-                }
+            'read': self.core.has_ui_read_permission,
+            'create': self.core.has_ui_create_permission,
+            'update': self.core.has_ui_update_permission,
+            'delete': self.core.has_ui_delete_permission,
+        }
 
     def get_context_data(self, **kwargs):
         context_data = super(DefaultCoreViewMixin, self).get_context_data(**kwargs)
         extra_context_data = {
-                                'permissions': self.get_permissions(),
-                              }
+            'permissions': self.get_permissions(),
+        }
         extra_context_data.update(context_data)
         return extra_context_data
 
@@ -141,8 +157,8 @@ class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
     def get_context_data(self, **kwargs):
         context_data = super(DefaultModelCoreViewMixin, self).get_context_data(**kwargs)
         extra_context_data = {
-                                'core': self.core
-                              }
+            'core': self.core
+        }
         extra_context_data.update(context_data)
         return extra_context_data
 

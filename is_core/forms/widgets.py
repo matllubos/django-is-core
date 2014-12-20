@@ -17,6 +17,7 @@ try:
 except ImportError:
     default = None
 
+
 def flat_data_attrs(attrs):
     return format_html_join('', ' data-{0}="{1}"', sorted(attrs.items()))
 
