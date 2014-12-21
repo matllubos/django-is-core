@@ -101,10 +101,12 @@ class InlineFormView(InlineView):
     def get_formset_factory(self, fields=None, readonly_fields=()):
         extra = self.get_extra()
         exclude = list(self.get_exclude()) + list(readonly_fields)
-        return inlineformset_factory(self.parent_model, self.model, form=self.form_class,
-                                     fk_name=self.fk_name, extra=extra, formset=self.base_inline_formset_class,
-                                     can_delete=self.get_can_delete(), exclude=exclude,
-                                     fields=fields, max_num=self.max_num)
+        formset = inlineformset_factory(self.parent_model, self.model, form=self.form_class,
+                                        fk_name=self.fk_name, extra=extra, formset=self.base_inline_formset_class,
+                                        can_delete=self.get_can_delete(), exclude=exclude,
+                                        fields=fields, max_num=self.max_num)
+        formset.form._meta.readonly_fields = readonly_fields
+        return formset
 
     def get_queryset(self):
         return self.model.objects.all()

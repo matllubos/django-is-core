@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
-from django.forms.fields import ImageField, FileField
+from django.forms.fields import ImageField, FileField, Field
 
 from is_core.forms.utils import add_class_name
 from is_core.forms.widgets import DragAndDropFileInput, DragAndDropImageInput
@@ -35,3 +35,5 @@ try:
     ImageFormField.widget = DragAndDropImageInput
 except ImportError:
     pass
+
+Field.is_readonly = False

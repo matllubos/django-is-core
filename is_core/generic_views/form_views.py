@@ -11,7 +11,6 @@ from django.contrib.messages import constants
 
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
-from chamber.forms.widgets import ReadonlyWidget
 
 from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
@@ -194,8 +193,6 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         return initial
 
     def form_field(self, form, field_name, form_field):
-        if form.readonly:
-            form_field.widget = ReadonlyWidget(form_field.widget)
         return form_field
 
     def get(self, request, *args, **kwargs):
@@ -345,8 +342,10 @@ class DefaultModelFormView(DefaultFormView):
         exclude = list(self.get_exclude()) + list(readonly_fields)
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
-        return modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields,
-                                 formfield_callback=self.formfield_for_dbfield)
+        model_form = modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields,
+                                       formfield_callback=self.formfield_for_dbfield)
+        model_form._meta.readonly_fields = readonly_fields
+        return model_form
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         return db_field.formfield(**kwargs)

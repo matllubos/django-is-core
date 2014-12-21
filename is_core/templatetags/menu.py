@@ -25,6 +25,7 @@ def submenu(context, menu_items):
 
 @register.inclusion_tag('menu/menu.html', takes_context=True)
 def menu(context, site_name):
+    print 'a'
     site = get_site_by_name(site_name)
     request = context.get('request')
 
@@ -33,6 +34,7 @@ def menu(context, site_name):
     menu_generator = str_to_class(config.MENU_GENERATOR)(request, site, active_menu_groups)
     menu_items = menu_generator.get_menu_items(menu_generator.get_menu_structure())
     context.update({'menu_items': menu_items, 'site_name': site_name})
+    print 'b'
     return context
 
 

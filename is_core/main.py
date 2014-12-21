@@ -215,7 +215,10 @@ class UIISCore(PermissionsUIMixin, ISCore):
         return self.get_urlpatterns(self.ui_patterns)
 
     def get_show_in_menu(self, request):
-        return self.has_ui_read_permission(request)
+        try:
+            return self.has_ui_read_permission(request)
+        except Http404:
+            return False
 
     def is_active_menu_item(self, request, active_group):
         return active_group == self.menu_group
