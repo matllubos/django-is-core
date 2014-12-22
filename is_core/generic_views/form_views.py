@@ -376,7 +376,6 @@ class DefaultModelFormView(DefaultFormView):
     def get(self, request, *args, **kwargs):
         fields = self.generate_model_fields()
         readonly_fields = self.generate_readonly_fields()
-
         form_class = self.generate_form_class(fields, readonly_fields)
         form = self.get_form(form_class)
         inline_views = self.init_inline_views(form.instance)

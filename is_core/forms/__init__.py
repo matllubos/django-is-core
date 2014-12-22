@@ -18,19 +18,26 @@ class ReadonlyBoundField(BoundField):
     def as_widget(self, widget=None, attrs=None, only_initial=False):
         if not widget:
             widget = self.field.widget
-        return super(ReadonlyBoundField, self).as_widget(ReadonlyWidget(widget), attrs, only_initial)
+        return super(ReadonlyBoundField, self).as_widget(self.form._get_readonly_widget(self.name, self.field,
+                                                                                        widget), attrs, only_initial)
 
 
-class ReadonlyFormMixin(object):
+class SmartFormMixin(object):
 
     def __init__(self, *args, **kwargs):
-        super(ReadonlyFormMixin, self).__init__(*args, **kwargs)
-        self._set_readonly_fields()
+        super(SmartFormMixin, self).__init__(*args, **kwargs)
+        self._set_fields()
 
-    def _set_readonly_fields(self):
+    def _set_fields(self):
+
+        readonly_fields = getattr(self._meta, 'readonly_fields', ())
+        exclude_fields = getattr(self._meta, 'exclude', ())
+
         for name, field in self.fields.items():
-            if name in self._meta.readonly_fields:
+            if name in readonly_fields:
                 field.is_readonly = True
+            elif name in exclude_fields:
+                del self.fields[name]
 
     def __getitem__(self, name):
         "Returns a BoundField with the given name."
@@ -43,6 +50,9 @@ class ReadonlyFormMixin(object):
             return ReadonlyBoundField(self, field, name)
         else:
             return BoundField(self, field, name)
+
+    def _get_readonly_widget(self, field_name, field, widget):
+        return ReadonlyWidget(widget)
 
     def _clean_fields(self):
         for name, field in self.fields.items():

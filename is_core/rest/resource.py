@@ -224,8 +224,15 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     def _get_exclude(self, obj=None):
         return self.core.get_rest_form_exclude(self.request, obj)
 
+    def _generate_model_fields(self, fields):
+        model_fields = []
+        for field in self.model._meta.fields + self.model._meta.many_to_many:
+            if field.editable and (not fields or field.name in fields):
+                model_fields.append(field.name)
+        return model_fields
+
     def _get_form_fields(self, obj=None):
-        return self.core.get_rest_form_fields(self.request, obj)
+        return self._generate_model_fields(self.core.get_rest_form_fields(self.request, obj))
 
     def _get_form_class(self, obj=None):
         return self.form_class or self.core.get_rest_form_class(self.request, obj)
