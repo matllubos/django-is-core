@@ -46,7 +46,7 @@ class ReadonlyFormMixin(object):
 
     def _clean_fields(self):
         for name, field in self.fields.items():
-            if field.is_readonly:
+            if not field.is_readonly:
                 # value_from_datadict() gets the data from the data dictionaries.
                 # Each widget type knows how to retrieve its own data, because some
                 # widgets split data over several HTML fields.

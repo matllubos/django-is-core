@@ -44,7 +44,6 @@ class MenuGenerator(object):
             if isinstance(item, MenuItem):
                 menu_items.append(item)
             else:
-                print item
                 item = self.site._registry[item]
                 menu_item = item.get_menu_item(self.request, group)
                 if menu_item:
