@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.forms.models import modelform_factory, ModelForm
+from django.forms.models import ModelForm
 from django.http.response import HttpResponseRedirect, Http404
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
@@ -18,6 +18,9 @@ from is_core.utils import flatten_fieldsets
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse
+from is_core.forms.models import smartmodelform_factory
+from is_core.utils import get_field_value_and_label
+from is_core.forms.fields import ReadonlyField, SmartReadonlyField
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -278,8 +281,6 @@ class DefaultModelFormView(DefaultFormView):
         return self.exclude or ()
 
     def generate_readonly_fields(self):
-        if not self.has_post_permission():
-            return list(self.generate_form_class().base_fields.keys()) + list(self.get_readonly_fields())
         return self.get_readonly_fields()
 
     def get_inline_views(self):
@@ -339,16 +340,23 @@ class DefaultModelFormView(DefaultFormView):
 
     def generate_form_class(self, fields=None, readonly_fields=()):
         form_class = self.get_form_class()
-        exclude = list(self.get_exclude()) + list(readonly_fields)
+        exclude = list(self.get_exclude())
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
-        model_form = modelform_factory(self.model, form=form_class, exclude=exclude, fields=fields,
-                                       formfield_callback=self.formfield_for_dbfield)
-        model_form._meta.readonly_fields = readonly_fields
-        return model_form
+        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields,
+                                      formfield_callback=self.formfield_for_dbfield,
+                                      readonly_fields=readonly_fields,
+                                      formreadonlyfield_callback=self.formfield_for_readonlyfield,
+                                      readonly=not self.has_post_permission())
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         return db_field.formfield(**kwargs)
+
+    def formfield_for_readonlyfield(self, name, **kwargs):
+        def get_val_and_label_fun(instance):
+            return get_field_value_and_label(name, (self, self.core, instance),
+                                                     {'request':self.request}, self.request)
+        return SmartReadonlyField(get_val_and_label_fun)
 
     def get_has_file_field(self, form, inline_form_views=(), **kwargs):
         if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
@@ -442,10 +450,10 @@ class DefaultModelFormView(DefaultFormView):
                                                                           inline_form_views=inline_form_views,
                                                                           **kwargs)
         context_data.update({
-                                'module_name': self.model._meta.module_name,
-                                'cancel_url': self.get_cancel_url(),
-                                'show_save_button': self.has_save_button()
-                             })
+            'module_name': self.model._meta.module_name,
+            'cancel_url': self.get_cancel_url(),
+            'show_save_button': self.has_save_button()
+        })
         return context_data
 
     def get_popup_obj(self, obj):

@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import inspect
+
 from django import template
 
 from is_core.site import get_site_by_name

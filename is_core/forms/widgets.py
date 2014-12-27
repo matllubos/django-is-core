@@ -11,6 +11,8 @@ from django.utils.html import format_html, format_html_join, conditional_escape
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
+from django.forms.widgets import Widget
+
 
 try:
     from sorl.thumbnail import default
@@ -150,3 +152,35 @@ class DragAndDropImageInput(DragAndDropFileInput):
     def _render_value(self, value):
         thumbnail = self._get_thumbnail(value)
         return '<img src="%s" alt="%s">' % (thumbnail.url, thumbnail.name)
+
+
+class SmartWidgetMixin(object):
+
+    def smart_render(self, request, *args, **kwargs):
+        return self.render(*args, **kwargs)
+
+
+class ReadonlyWidget(SmartWidgetMixin, Widget):
+
+    def __init__(self, widget=None):
+        super(ReadonlyWidget, self).__init__()
+        self.widget = widget
+
+    def _get_value(self, value):
+        from is_core.utils import display_for_value
+
+        if self.widget and hasattr(self.widget, 'choices'):
+            result = dict(self.widget.choices).get(value)
+        else:
+            result = value
+        return display_for_value(result or '')
+
+    def render(self, name, value, attrs=None, choices=()):
+        if isinstance(value, (list, tuple)):
+            out = ', '.join(self._get_value(value))
+        else:
+            out = self._get_value(value)
+        return mark_safe('<p>%s</p>' % conditional_escape(out))
+
+
+

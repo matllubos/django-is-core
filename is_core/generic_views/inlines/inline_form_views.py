@@ -1,15 +1,15 @@
 from __future__ import unicode_literals
 
-from django.forms.models import inlineformset_factory, ModelForm
-
-from is_core.forms.models import BaseInlineFormSet
-from is_core.generic_views.inlines import InlineView
-
 from chamber.utils.forms import formset_has_file_field
+
+from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
+from is_core.generic_views.inlines import InlineView
+from is_core.utils import get_field_value_and_label
+from is_core.forms.fields import SmartReadonlyField
 
 
 class InlineFormView(InlineView):
-    form_class = ModelForm
+    form_class = SmartModelForm
     model = None
     fk_name = None
     template_name = None
@@ -57,13 +57,12 @@ class InlineFormView(InlineView):
             class_names.append('without-title')
 
         context_data.update({
-                            'formset': formset,
-                            'fieldset': fieldset,
-                            'name': self.get_name(),
-                            'button_value': self.get_button_value(),
-                            'class_names': class_names,
-                        })
-
+            'formset': formset,
+            'fieldset': fieldset,
+            'name': self.get_name(),
+            'button_value': self.get_button_value(),
+            'class_names': class_names,
+        })
         return context_data
 
     def get_exclude(self):
@@ -98,15 +97,21 @@ class InlineFormView(InlineView):
             fields.append('DELETE')
         return fields
 
+    def formfield_for_readonlyfield(self, name, **kwargs):
+        def get_val_and_label_fun(instance):
+            return get_field_value_and_label(name, (self, self.core, instance),
+                                                     {'request':self.request}, self.request)
+        return SmartReadonlyField(get_val_and_label_fun)
+
     def get_formset_factory(self, fields=None, readonly_fields=()):
         extra = self.get_extra()
-        exclude = list(self.get_exclude()) + list(readonly_fields)
-        formset = inlineformset_factory(self.parent_model, self.model, form=self.form_class,
-                                        fk_name=self.fk_name, extra=extra, formset=self.base_inline_formset_class,
-                                        can_delete=self.get_can_delete(), exclude=exclude,
-                                        fields=fields, max_num=self.max_num)
-        formset.form._meta.readonly_fields = readonly_fields
-        return formset
+        exclude = self.get_exclude()
+        return smartinlineformset_factory(
+            self.parent_model, self.model, self.request, form=self.form_class, fk_name=self.fk_name, extra=extra,
+            formset=self.base_inline_formset_class, can_delete=self.get_can_delete(), exclude=exclude,
+            fields=fields, max_num=self.max_num, readonly_fields=readonly_fields, readonly=self.readonly,
+            formreadonlyfield_callback=self.formfield_for_readonlyfield
+        )
 
     def get_queryset(self):
         return self.model.objects.all()

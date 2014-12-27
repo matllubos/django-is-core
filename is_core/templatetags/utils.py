@@ -8,6 +8,7 @@ from django.contrib.admin.util import display_for_value as admin_display_for_val
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
+from is_core.utils import display_for_value as utils_display_for_value
 
 register = Library()
 
@@ -30,9 +31,9 @@ def filename(value):
     return os.path.basename(value.file.name)
 
 
-def display_for_value(value, boolean=False):
+def display_for_value(value):
     if isinstance(value, dict):
         return mark_safe('<ul>%s</ul>' % '\n'.join('<li>%s: %s</li>' % (escape(key), escape(val))
                                                    for key, val in value.items()))
     else:
-        return admin_display_for_value(value, boolean)
+        return utils_display_for_value(value)
