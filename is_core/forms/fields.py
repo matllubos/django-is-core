@@ -4,11 +4,13 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from chamber.forms.widgets import ReadonlyWidget
+from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, ButtonWidget
 
 
 class ReadonlyField(forms.Field):
     widget = ReadonlyWidget
+    readonly_widget = ReadonlyWidget
+
     is_readonly = True
 
     def __init__(self, required=True, widget=None, label=None, initial=None,
@@ -22,6 +24,22 @@ class ReadonlyField(forms.Field):
 
     def validate(self, value):
         raise ValidationError(_('Readonly field can not be validated'))
+
+
+class EmptyReadonlyField(ReadonlyField):
+    widget = EmptyWidget
+    readonly_widget = EmptyWidget
+
+    def __init__(self):
+        super(ReadonlyField, self).__init__()
+
+
+class ButtonField(ReadonlyField):
+    widget = ButtonWidget
+    readonly_widget = None
+
+    def __init__(self, label, attrs):
+        super(ButtonField, self).__init__(required=False, label='', initial=label, widget=ButtonWidget(attrs=attrs))
 
 
 class SmartReadonlyField(ReadonlyField):

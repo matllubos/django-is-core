@@ -8,6 +8,8 @@ from germanium.anotations import login_all, data_provider
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RestAuthMixin
+from is_core.forms.forms import SmartBoundField
+
 from piston.utils import model_resources_to_dict
 
 
@@ -61,10 +63,11 @@ class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
         data = {}
 
         for field in form:
-            value = field.value()
-            if isinstance(value, FieldFile):
-                value = None
-            data[field.name] = value
+            if not isinstance(field, SmartBoundField) or not field.is_readonly:
+                value = field.value()
+                if isinstance(value, FieldFile):
+                    value = None
+                data[field.name] = value
 
         # Removed instance (must be created because FK)
         inst.delete()

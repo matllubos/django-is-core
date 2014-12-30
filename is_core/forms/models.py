@@ -124,6 +124,7 @@ class SmartFormMetaclass(ModelFormMetaclass):
         opts = getattr(new_class, 'Meta', None)
         if opts:
             exclude_fields = getattr(opts, 'exclude', None) or ()
+            non_model_fields = getattr(opts, 'non_model_fields', None) or ()
             readonly_fields = getattr(opts, 'readonly_fields', None) or ()
             readonly = getattr(opts, 'readonly', None) or False
             fields = getattr(opts, 'fields', None) or ()
@@ -136,7 +137,7 @@ class SmartFormMetaclass(ModelFormMetaclass):
                 elif readonly:
                     field.is_readonly = True
 
-            for field_name in set(fields).union(set(readonly_fields)):
+            for field_name in set(fields).union(set(readonly_fields)).union(set(non_model_fields)):
 
                 if field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs:
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
@@ -168,7 +169,9 @@ class SmartFormMixin(six.with_metaclass(SmartFormMetaclass, object)):
             return SmartBoundField(self, field, name)
 
     def _get_readonly_widget(self, field_name, field, widget):
-        return widgets.ReadonlyWidget(widget)
+        if field.readonly_widget:
+            return field.readonly_widget(widget)
+        return field.widget
 
     def _clean_fields(self):
         for name, field in self.fields.items():
@@ -215,13 +218,23 @@ class SmartModelForm(SmartFormMixin, RestModelForm):
     pass
 
 
+def get_model_fields(model, fields):
+    model_fields = []
+    for field in model._meta.fields + model._meta.many_to_many:
+        if field.editable and (not fields or field.name in fields):
+            model_fields.append(field.name)
+    return model_fields
+
+
 def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, readonly_fields=None, exclude=None,
                            formfield_callback=None, widgets=None, localized_fields=None,
                            labels=None, help_texts=None, error_messages=None, formreadonlyfield_callback=None,
                            readonly=False):
     attrs = {'model': model}
     if fields is not None:
-        attrs['fields'] = fields
+        model_fields = get_model_fields(model, fields)
+        attrs['fields'] = model_fields
+        attrs['non_model_fields'] = set(fields) - set(model_fields)
     if exclude is not None:
         attrs['exclude'] = exclude
     if widgets is not None:

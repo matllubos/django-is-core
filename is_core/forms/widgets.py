@@ -12,6 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Widget
+from django.forms.util import flatatt
 
 
 try:
@@ -162,8 +163,8 @@ class SmartWidgetMixin(object):
 
 class ReadonlyWidget(SmartWidgetMixin, Widget):
 
-    def __init__(self, widget=None):
-        super(ReadonlyWidget, self).__init__()
+    def __init__(self, widget=None, attrs=None):
+        super(ReadonlyWidget, self).__init__(attrs)
         self.widget = widget
 
     def _get_value(self, value):
@@ -183,4 +184,18 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         return mark_safe('<p>%s</p>' % conditional_escape(out))
 
 
+class EmptyWidget(ReadonlyWidget):
+
+    def render(self, name, value, attrs=None):
+        return ''
+
+
+class ButtonWidget(ReadonlyWidget):
+
+    def render(self, name, value, attrs=None):
+        final_attrs = self.build_attrs(attrs)
+        class_name = final_attrs.pop('class', '')
+        return format_html('<div class="%(class_name)s btn btn-primary btn-small" '
+                           '%(attrs)s>%(value)s</div>' %
+                           {'class_name': class_name, 'value': value, 'attrs': flatatt(final_attrs)})
 

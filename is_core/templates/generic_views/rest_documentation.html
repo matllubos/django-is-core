@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% load i18n utils permissions %}
+
+{% block content %}
+	{% for pattern_name, pattern in pattern_list.items %}
+		<div>
+			<h3>{{ pattern_name }}</h3>
+			
+		</div>
+	{% endfor %}
+{% endblock %}

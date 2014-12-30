@@ -18,6 +18,7 @@ from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUn
                                          HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
 
 from chamber.utils.decorators import classproperty
+from is_core.forms.models import smartmodelform_factory
 
 
 class RestResource(BaseResource):
@@ -224,15 +225,8 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     def _get_exclude(self, obj=None):
         return self.core.get_rest_form_exclude(self.request, obj)
 
-    def _generate_model_fields(self, fields):
-        model_fields = []
-        for field in self.model._meta.fields + self.model._meta.many_to_many:
-            if field.editable and (not fields or field.name in fields):
-                model_fields.append(field.name)
-        return model_fields
-
     def _get_form_fields(self, obj=None):
-        return self._generate_model_fields(self.core.get_rest_form_fields(self.request, obj))
+        return self.core.get_rest_form_fields(self.request, obj)
 
     def _get_form_class(self, obj=None):
         return self.form_class or self.core.get_rest_form_class(self.request, obj)
@@ -257,3 +251,11 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
 
     def _post_delete_obj(self, obj):
         self.core.post_delete_model(self.request, obj)
+
+    def generate_form_class(self, inst, exclude=[]):
+        form_class = self._get_form_class(inst)
+        exclude = list(self._get_exclude(inst)) + exclude
+        fields = self._get_form_fields(inst)
+        if hasattr(form_class, '_meta') and form_class._meta.exclude:
+            exclude.extend(form_class._meta.exclude)
+        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields)

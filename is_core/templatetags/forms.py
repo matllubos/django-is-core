@@ -1,23 +1,11 @@
 from __future__ import unicode_literals
 
-import inspect
-
 from django import template
 from django.forms import CheckboxInput
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
-from django.db.models.fields import FieldDoesNotExist
-from django.db.models.fields.related import ForeignKey, ManyToManyRel
-from django.utils.html import linebreaks, conditional_escape
-from django.utils.safestring import mark_safe
-from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import ObjectDoesNotExist
 
 from block_snippets.templatetags import SnippetsIncludeNode
-
-from .utils import display_for_value
-
 register = template.Library()
 
 
@@ -53,8 +41,6 @@ def fieldset_renderer(context, form, fieldset):
 
 @register.assignment_tag(takes_context=True)
 def get_field(context, form, field_name):
-    request = context['request']
-
     search_instances = []
 
     view = context.get('view')

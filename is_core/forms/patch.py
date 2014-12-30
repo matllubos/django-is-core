@@ -4,7 +4,7 @@ from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
 from django.forms.fields import ImageField, FileField, Field
 
 from is_core.forms.utils import add_class_name
-from is_core.forms.widgets import DragAndDropFileInput, DragAndDropImageInput
+from is_core.forms.widgets import DragAndDropFileInput, DragAndDropImageInput, ReadonlyWidget
 
 
 def build_attrs(self, extra_attrs=None, **kwargs):
@@ -37,3 +37,4 @@ except ImportError:
     pass
 
 Field.is_readonly = False
+Field.readonly_widget = ReadonlyWidget
