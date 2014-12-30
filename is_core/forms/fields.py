@@ -52,4 +52,3 @@ class SmartReadonlyField(ReadonlyField):
 
     def _set_val_and_label(self, instance):
         self.initial, self.label = self._get_val_and_label_fun(instance)
-

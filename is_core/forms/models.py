@@ -257,10 +257,8 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
         parent = (form.Meta, object)
     Meta = type(str('Meta'), parent, attrs)
 
-    # Give this new form class a reasonable name.
     class_name = model.__name__ + str('Form')
 
-    # Class attributes for the new form class.
     form_class_attrs = {
         'Meta': Meta,
         'formfield_callback': formfield_callback,
@@ -268,15 +266,11 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
         '_request': request,
     }
 
-    # The ModelFormMetaclass will trigger a similar warning/error, but this will
-    # be difficult to debug for code that needs updating, so we produce the
-    # warning here too.
     if (getattr(Meta, 'fields', None) is None and
         getattr(Meta, 'exclude', None) is None):
         warnings.warn("Calling modelform_factory without defining 'fields' or "
                       "'exclude' explicitly is deprecated",
                       PendingDeprecationWarning, stacklevel=2)
-    # Instatiate type(form) in order to use the same metaclass as form.
     form_class = type(form)(class_name, (form,), form_class_attrs)
     form_class._meta.readonly_fields = readonly_fields or ()
     return form_class
@@ -289,15 +283,6 @@ def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback
                               labels=None, help_texts=None, error_messages=None,
                               formreadonlyfield_callback=None, readonly_fields=None,
                               readonly=False):
-    """
-    Returns a FormSet class for the given Django model class.
-    """
-    # modelform_factory will produce the same warning/error, but that will be
-    # difficult to debug for code that needs upgrading, so we produce the
-    # warning here too. This logic is reproducing logic inside
-    # modelform_factory, but it can be removed once the deprecation cycle is
-    # complete, since the validation exception will produce a helpful
-    # stacktrace.
     meta = getattr(form, 'Meta', None)
     if meta is None:
         meta = type(str('Meta'), (object,), {})
@@ -329,12 +314,6 @@ def smartinlineformset_factory(parent_model, model, request, form=ModelForm,
                                labels=None, help_texts=None, error_messages=None,
                                formreadonlyfield_callback=None, readonly_fields=None,
                                readonly=False):
-    """
-    Returns an ``InlineFormSet`` for the given kwargs.
-
-    You must provide ``fk_name`` if ``model`` has more than one ``ForeignKey``
-    to ``parent_model``.
-    """
     fk = _get_foreign_key(parent_model, model, fk_name=fk_name)
     # enforce a max_num=1 when the foreign key to the parent model is unique.
     if fk.unique:

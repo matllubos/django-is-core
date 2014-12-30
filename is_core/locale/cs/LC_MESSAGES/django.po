@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-22 20:28-0500\n"
+"POT-Creation-Date: 2014-12-30 22:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -17,47 +17,64 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 #: actions.py:47 filters/default_filters.py:147
-#: templates/forms/inline_table.html:26 templates/generic_views/table.html:37
-#: templatetags/forms.py:119
+#: templates/forms/inline_table.html:26 templates/generic_views/table.html:52
+#: utils/__init__.py:126
 msgid "Yes"
 msgstr "Ano"
 
 #: actions.py:48 filters/default_filters.py:147
-#: templates/forms/inline_table.html:26 templates/generic_views/table.html:37
-#: templatetags/forms.py:119
+#: templates/forms/inline_table.html:26 templates/generic_views/table.html:52
+#: utils/__init__.py:126
 msgid "No"
 msgstr "Ne"
 
 #: actions.py:49 templates/forms/inline_table.html:26
-#: templates/generic_views/table.html:37
+#: templates/generic_views/table.html:52
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
+
+#: main.py:233 generic_views/__init__.py:171
+msgid "Home"
+msgstr "Home"
+
+#: main.py:396
+#, python-format
+msgid "Do you really want to delete \"%s\""
+msgstr "Opravdu chcete odstranit položku \"%s\""
+
+#: main.py:399
+msgid "Delete"
+msgstr "Smazat"
+
+#: main.py:431
+msgid "Edit"
+msgstr "Upravit"
 
 #: auth_token/forms.py:32
 msgid "Remember user"
 msgstr "Zapamatovat uživatele"
 
-#: exceptions/response.py:61
+#: exceptions/response.py:63
 msgid "Bad Request"
 msgstr "Špatný požadavek"
 
-#: exceptions/response.py:67
+#: exceptions/response.py:69
 msgid "Unauthorized"
 msgstr "Neoprávněný přístup"
 
-#: exceptions/response.py:73
+#: exceptions/response.py:75
 msgid "Forbidden"
 msgstr "Přístup odepřen"
 
-#: exceptions/response.py:78
+#: exceptions/response.py:80
 msgid "Unsupported Media Type"
 msgstr "Nepodporovaný Media Type"
 
-#: exceptions/response.py:84
+#: exceptions/response.py:86
 msgid "Method Not Allowed"
 msgstr "Metoda není povolena"
 
-#: exceptions/response.py:90
+#: exceptions/response.py:92
 msgid "Conflict/Duplicate"
 msgstr "Konflikt/Duplikace"
 
@@ -71,53 +88,60 @@ msgstr "Neplatný filter: %s"
 msgid "Not valid filter: %(filter_key)s=%(filter_value)s"
 msgstr "Neplatný filter: %(filter_key)s=%(filter_value)s"
 
-#: forms/widgets.py:88 forms/widgets.py:94
+#: forms/fields.py:26
+msgid "Readonly field can not be validated"
+msgstr ""
+
+#: forms/widgets.py:92 forms/widgets.py:98
 msgid "Search..."
 msgstr "Hledat..."
 
-#: generic_views/__init__.py:148 main.py:230
-msgid "Home"
-msgstr "Home"
-
-#: generic_views/form_views.py:28
+#: generic_views/form_views.py:31
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:29 generic_views/form_views.py:510
-#: generic_views/form_views.py:525
+#: generic_views/form_views.py:32 generic_views/form_views.py:556
+#: generic_views/form_views.py:571
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:191 generic_views/form_views.py:387
+#: generic_views/form_views.py:35
+msgid "Save"
+msgstr "Uložit"
+
+#: generic_views/form_views.py:217 generic_views/form_views.py:411
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
-#: generic_views/form_views.py:509
+#: generic_views/form_views.py:461
+msgid "Save and navigate to the list"
+msgstr "Uložit a vrátit se zpět do tabulky záznamů"
+
+#: generic_views/form_views.py:463
+msgid "Save and stay on the same page"
+msgstr "Uložit a pokračovat v úpravách"
+
+#: generic_views/form_views.py:464
+msgid "Save and continue"
+msgstr "Uložit a pokračovat"
+
+#: generic_views/form_views.py:466
+msgid "Do not save and go back to the list"
+msgstr "Neukládat a vrátit se na seznam"
+
+#: generic_views/form_views.py:467
+msgid "Back"
+msgstr "Zpět"
+
+#: generic_views/form_views.py:555
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:524
+#: generic_views/form_views.py:570
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
-
-#: generic_views/inlines/inline_form_views.py:153
-msgid "Add"
-msgstr "Přidat"
-
-#: main.py:397
-#, python-format
-msgid "Do you really want to delete \"%s\""
-msgstr "Opravdu chcete odstranit položku \"%s\""
-
-#: main.py:400
-msgid "Delete"
-msgstr "Smazat"
-
-#: main.py:439
-msgid "Edit"
-msgstr "Upravit"
 
 #: middleware/__init__.py:31
 msgid "Unprocessable Entity"
@@ -127,46 +151,34 @@ msgstr "Nezpracovatelná entita"
 msgid "Not Found"
 msgstr "Nenalezeno"
 
-#: models/fields.py:30
-#, python-format
-msgid "Please keep filesize under %(max)s. Current filesize %(current)s"
-msgstr ""
-"Prosíme vkládejte soubory menší než %(max)s. Velikost souboru je %(current)s"
-
 #: models/patch.py:47
 #, python-format
 msgid "%(verbose_name_plural)s"
 msgstr "%(verbose_name_plural)s"
 
 #: models/patch.py:48
-#, python-format
-msgid "Add %(verbose_name)s"
+#, fuzzy, python-format
+msgid "add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
 
-#: models/patch.py:49
+#: models/patch.py:51
 #, python-format
 msgid "%(obj)s"
 msgstr "%(obj)s"
 
-#: models/patch.py:122
+#: models/patch.py:126
 msgid "(None)"
 msgstr "---"
 
-#: rest/resource.py:193
+#: rest/resource.py:202
 #, python-format
 msgid "Cannot resolve filter \"%s\""
 msgstr "Není možné filtrovat data dle hodnoty: \"%s\""
 
-#: rest/resource.py:213
-#, python-format
-msgid "Cannot resolve X-Order value \"%s\" into field"
+#: rest/resource.py:222
+#, fuzzy, python-format
+msgid "Cannot resolve Order value \"%s\" into field"
 msgstr "Není možné řadit dle hodnoty hlavičky X-Order: \"%s\""
-
-#: templates/404.html:5
-#, fuzzy
-#| msgid "Not Nound (404)"
-msgid "Not Found (404)"
-msgstr "Nenalezeno (404)"
 
 #: templates/500.html:5
 msgid "Internal Server Error (500)"
@@ -180,14 +192,13 @@ msgstr "Interní chyba. Služba je dočasně nedostupná."
 msgid "Loading..."
 msgstr "Načítám..."
 
+#: templates/home.html:4
+msgid "Welcome"
+msgstr "Vítejte"
+
 #: templates/forms/default_form.html:27
 msgid "Fields marked with <span class=\"required\">*</span> are required"
 msgstr "Položky označené <span class=\"required\">*</span> jsou povinné"
-
-#: templates/forms/default_form.html:33
-#: templates/forms/model_default_form.html:9
-msgid "Save"
-msgstr "Uložit"
 
 #: templates/forms/inline_table.html:9 templates/generic_views/table.html:20
 msgid "Displayed"
@@ -209,15 +220,15 @@ msgstr "Předchozí"
 msgid "Next"
 msgstr "Následující"
 
-#: templates/forms/inline_table.html:26 templates/generic_views/table.html:37
+#: templates/forms/inline_table.html:26 templates/generic_views/table.html:52
 msgid "Do you really want to delete &#37;s?"
 msgstr "Opravdu chcete odstranit položku &#37;s?"
 
-#: templates/forms/inline_table.html:36 templates/generic_views/table.html:47
+#: templates/forms/inline_table.html:36 templates/generic_views/table.html:62
 msgid "Actions"
 msgstr "Akce"
 
-#: templates/forms/inline_table.html:46 templates/generic_views/table.html:57
+#: templates/forms/inline_table.html:46 templates/generic_views/table.html:72
 msgid "There are no items."
 msgstr "Žádné položky"
 
@@ -225,29 +236,9 @@ msgstr "Žádné položky"
 msgid "Login"
 msgstr "Login"
 
-#: templates/forms/model_default_form.html:9
-msgid "Save and navigate to the list"
-msgstr "Uložit a vrátit se zpět do tabulky záznamů"
-
-#: templates/forms/model_default_form.html:11
-msgid "Save and stay on the same page"
-msgstr "Uložit a pokračovat v úpravách"
-
-#: templates/forms/model_default_form.html:11
-msgid "Save and continue"
-msgstr "Uložit a pokračovat"
-
-#: templates/forms/model_default_form.html:15
-msgid "Do not save and go back to the list"
-msgstr "Neukládat a vrátit se na seznam"
-
-#: templates/forms/model_default_form.html:15
-msgid "Back"
-msgstr "Zpět"
-
-#: templates/home.html:4
-msgid "Welcome"
-msgstr "Vítejte"
+#: templates/generic_views/table.html:41
+msgid "Exports"
+msgstr "Export"
 
 #: templates/registration/login.html:14
 msgid "Please Sign In"
@@ -269,6 +260,10 @@ msgstr "Děkujeme za čas strávený s tímto webem."
 msgid "Log in again"
 msgstr "Přihlásit se znovu"
 
-#: throttling/views.py:8
+#: views/csrf.py:7
 msgid "Csrf Token expired"
 msgstr "Neplatný Csrf Token"
+
+#: views/throttling.py:8
+msgid "Too Many Requests"
+msgstr "Příliš mnoho požadavků"
