@@ -13,7 +13,6 @@ from django.utils import six
 from django.forms.models import _get_foreign_key
 
 from piston.utils import rfs, RFS
-from piston.forms import RestModelForm
 
 from is_core.actions import WebAction, ConfirmRestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
@@ -336,7 +335,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_default_general_fields = ('id', '_rest_links', '_obj_name')
     rest_guest_fields = ('id', '_obj_name')
 
-    form_class = RestModelForm
+    form_class = SmartModelForm
     rest_allowed_methods = ('get', 'delete', 'post', 'put')
     rest_obj_class_names = ()
 

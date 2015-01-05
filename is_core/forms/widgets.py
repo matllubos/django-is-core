@@ -13,12 +13,16 @@ from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Widget
 from django.forms.util import flatatt
+from django.core.validators import EMPTY_VALUES
 
 
 try:
     from sorl.thumbnail import default
 except ImportError:
     default = None
+
+
+EMPTY_VALUE = '--'
 
 
 def flat_data_attrs(attrs):
@@ -174,7 +178,10 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
             result = dict(self.widget.choices).get(value)
         else:
             result = value
-        return display_for_value(result or '')
+
+        if result in EMPTY_VALUES:
+            result = EMPTY_VALUE
+        return display_for_value(result)
 
     def render(self, name, value, attrs=None, choices=()):
         if isinstance(value, (list, tuple)):

@@ -138,7 +138,6 @@ class SmartFormMetaclass(ModelFormMetaclass):
                     field.is_readonly = True
 
             for field_name in set(fields).union(set(readonly_fields)).union(set(non_model_fields)):
-
                 if field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs:
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
         return new_class
