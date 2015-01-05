@@ -20,7 +20,7 @@ from is_core.generic_views.inlines.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.utils import get_field_value_and_label
-from is_core.forms.fields import ReadonlyField, SmartReadonlyField
+from is_core.forms.fields import SmartReadonlyField
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -229,9 +229,9 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         if self.is_popup_form:
             return JsonHttpResponse({'messages': {msg_level: msg}, 'obj': self.get_popup_obj(obj)})
         else:
+            status_code = self.is_ajax_form and 202 or 302
             add_message(self.request, msg_level, msg)
-            response = HttpResponseRedirect(self.get_success_url(obj))
-            return response
+            return HttpResponseRedirect(self.get_success_url(obj), status=status_code)
 
     def render_to_response(self, context, **response_kwargs):
         if self.has_snippet():
