@@ -228,10 +228,15 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         msg = msg or self.get_message(msg_level, obj)
         if self.is_popup_form:
             return JsonHttpResponse({'messages': {msg_level: msg}, 'obj': self.get_popup_obj(obj)})
-        else:
-            status_code = self.is_ajax_form and 202 or 302
+        elif self.is_ajax_form:
             add_message(self.request, msg_level, msg)
-            return HttpResponseRedirect(self.get_success_url(obj), status=status_code)
+            location = self.get_success_url(obj)
+            response = JsonHttpResponse({'location': location}, status=202)
+            response['Location'] = location
+            return response
+        else:
+            add_message(self.request, msg_level, msg)
+            return HttpResponseRedirect(self.get_success_url(obj))
 
     def render_to_response(self, context, **response_kwargs):
         if self.has_snippet():
