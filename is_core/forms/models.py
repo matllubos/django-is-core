@@ -129,17 +129,19 @@ class SmartFormMetaclass(ModelFormMetaclass):
             readonly = getattr(opts, 'readonly', None) or False
             fields = getattr(opts, 'fields', None) or ()
 
+            base_readonly_fields = []
             for name, field in new_class.base_fields.items():
-                if name in readonly_fields:
-                    field.is_readonly = True
-                elif name in exclude_fields:
+                if name in exclude_fields:
                     del new_class.base_fields[name]
-                elif readonly:
-                    field.is_readonly = True
+                elif name in exclude_fields or readonly or field.is_readonly:
+                    base_readonly_fields.append(name)
 
             for field_name in set(fields).union(set(readonly_fields)).union(set(non_model_fields)):
                 if field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs:
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
+                    base_readonly_fields.append(field_name)
+
+            new_class.base_readonly_fields = base_readonly_fields
         return new_class
 
 
@@ -162,7 +164,7 @@ class SmartFormMixin(six.with_metaclass(SmartFormMetaclass, object)):
         except KeyError:
             raise KeyError('Key %r not found in Form' % name)
 
-        if field.is_readonly:
+        if name in self.base_readonly_fields:
             return ReadonlyBoundField(self, field, name)
         else:
             return SmartBoundField(self, field, name)
@@ -174,7 +176,7 @@ class SmartFormMixin(six.with_metaclass(SmartFormMetaclass, object)):
 
     def _clean_fields(self):
         for name, field in self.fields.items():
-            if not field.is_readonly:
+            if name not in self.base_readonly_fields:
                 # value_from_datadict() gets the data from the data dictionaries.
                 # Each widget type knows how to retrieve its own data, because some
                 # widgets split data over several HTML fields.
@@ -193,6 +195,10 @@ class SmartFormMixin(six.with_metaclass(SmartFormMetaclass, object)):
                     self._errors[name] = self.error_class(e.messages)
                     if name in self.cleaned_data:
                         del self.cleaned_data[name]
+
+    def _set_readonly(self, field_name):
+        if field_name not in self.base_readonly_fields:
+            self.base_readonly_fields.append(field_name)
 
     def post_save(self):
         pass
