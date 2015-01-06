@@ -35,6 +35,9 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     save_button_label = _('Save')
     save_button_title = ''
 
+    cancel_button_label = _('Back')
+    cancel_button_title = ''
+
     def get_success_url(self, obj):
         """
         URL string for redirect after saving
@@ -176,6 +179,10 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
             'save': {
                 'label': self.save_button_label,
                 'title': self.save_button_title
+            },
+            'cancel': {
+                'label':  self.cancel_button_label,
+                'title': self.cancel_button_title
             }
         }
 
@@ -469,7 +476,6 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
     save_and_continue_button_label = _("Save and continue")
 
     cancel_button_title = _('Do not save and go back to the list')
-    cancel_button_label = _("Back")
 
     def get_buttons_dict(self):
         buttons_dict = super(DefaultCoreModelFormView, self).get_buttons_dict()
@@ -477,10 +483,6 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
             'save_and_continue': {
                 'label': self.save_and_continue_button_label,
                 'title':  self.save_and_continue_button_title
-            },
-            'cancel': {
-                'label':  self.cancel_button_label,
-                'title': self.cancel_button_title
             }
         })
         return buttons_dict
@@ -548,8 +550,8 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
                                                                               inline_form_views=inline_form_views,
                                                                               **kwargs)
         context_data.update({
-                                'show_save_and_continue': self.has_save_and_continue_button()
-                             })
+            'show_save_and_continue': self.has_save_and_continue_button()
+        })
         return context_data
 
 
@@ -577,9 +579,11 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     pk_name = 'pk'
 
     def get_title(self):
-        return self.model._ui_meta.edit_verbose_name % {'verbose_name': self.model._meta.verbose_name,
-                                                        'verbose_name_plural': self.model._meta.verbose_name_plural,
-                                                        'obj': self.get_obj(True)}
+        return self.model._ui_meta.edit_verbose_name % {
+            'verbose_name': self.model._meta.verbose_name,
+            'verbose_name_plural': self.model._meta.verbose_name_plural,
+            'obj': self.get_obj(True)
+        }
 
     def link(self, arguments=None, **kwargs):
         if arguments is None:

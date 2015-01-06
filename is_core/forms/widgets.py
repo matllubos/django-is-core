@@ -14,7 +14,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Widget
 from django.forms.util import flatatt
 from django.core.validators import EMPTY_VALUES
-
+from django.db.models.fields.files import FieldFile
 
 try:
     from sorl.thumbnail import default
@@ -133,7 +133,7 @@ class ClearableFileInput(forms.ClearableFileInput):
 class DragAndDropFileInput(ClearableFileInput):
 
     def _render_value(self, value):
-        return '<a href="%s">%s</a>' % (value.url, value.name)
+        return '<a href="%s">%s</a>' % (value.url, os.path.basename(value.name))
 
     def render(self, name, value, attrs={}):
         output = ['<div class="drag-and-drop-wrapper">']
@@ -181,6 +181,9 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
 
         if result in EMPTY_VALUES:
             result = EMPTY_VALUE
+
+        if isinstance(result, FieldFile):
+            return mark_safe('<a href="%s">%s</a>' % (value.url, os.path.basename(value.name)))
         return display_for_value(result)
 
     def render(self, name, value, attrs=None, choices=()):
