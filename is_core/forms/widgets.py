@@ -22,7 +22,7 @@ except ImportError:
     default = None
 
 
-EMPTY_VALUE = '--'
+EMPTY_VALUE = '---'
 
 
 def flat_data_attrs(attrs):
