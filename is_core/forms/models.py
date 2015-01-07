@@ -133,7 +133,7 @@ class SmartFormMetaclass(ModelFormMetaclass):
             for name, field in new_class.base_fields.items():
                 if name in exclude_fields:
                     del new_class.base_fields[name]
-                elif name in exclude_fields or readonly or field.is_readonly:
+                elif name in readonly_fields or readonly or field.is_readonly:
                     base_readonly_fields.append(name)
 
             for field_name in set(fields).union(set(readonly_fields)).union(set(non_model_fields)):
