@@ -65,3 +65,9 @@ class ReadonlyBoundField(SmartBoundField):
             widget = self.field.widget
         return super(ReadonlyBoundField, self).as_widget(self.form._get_readonly_widget(self.name, self.field,
                                                                                         widget), attrs, only_initial)
+
+    def value(self):
+        data = self.form.initial.get(self.name, self.field.initial)
+        if callable(data):
+            data = data()
+        return self.field.prepare_value(data)
