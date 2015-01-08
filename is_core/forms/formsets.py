@@ -9,3 +9,9 @@ class BaseFormSetMixin(object):
 
         if self.can_add:
             yield self.empty_form
+
+    def total_form_count(self):
+        total_form_count = super(BaseFormSetMixin, self).total_form_count()
+        if total_form_count < self.min_num:
+            return self.min_num
+        return total_form_count

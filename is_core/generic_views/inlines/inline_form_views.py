@@ -30,9 +30,6 @@ class InlineFormView(InlineView):
         self.core = parent_view.core
         self.parent_instance = parent_instance
         self.readonly = self.is_readonly()
-        if self.extra < self.min_num:
-            self.extra = self.min_num
-
         self.formset = self.get_formset(parent_instance, self.request.POST, self.request.FILES)
 
         for i in range(self.min_num):
@@ -107,8 +104,8 @@ class InlineFormView(InlineView):
         return smartinlineformset_factory(
             self.parent_model, self.model, self.request, form=self.form_class, fk_name=self.fk_name, extra=extra,
             formset=self.base_inline_formset_class, can_delete=self.get_can_delete(), exclude=exclude,
-            fields=fields, max_num=self.max_num, readonly_fields=readonly_fields, readonly=self.readonly,
-            formreadonlyfield_callback=self.formfield_for_readonlyfield
+            fields=fields, min_num=self.min_num, max_num=self.max_num, readonly_fields=readonly_fields,
+            readonly=self.readonly, formreadonlyfield_callback=self.formfield_for_readonlyfield
         )
 
     def get_queryset(self):

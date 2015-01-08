@@ -8,7 +8,7 @@ from django.forms.fields import ChoiceField, FileField
 from django.core.exceptions import ValidationError
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
 from django.utils import six
-from django.forms.formsets import formset_factory
+from django.forms.formsets import DEFAULT_MAX_NUM, BaseFormSet as OriginBaseFormSet
 
 from piston.forms import RestModelForm
 
@@ -16,6 +16,10 @@ from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 from is_core.forms.formsets import BaseFormSetMixin
 from is_core.forms.forms import ReadonlyBoundField, SmartBoundField
+
+
+class BaseFormSet(BaseFormSetMixin, OriginBaseFormSet):
+    pass
 
 
 class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
@@ -281,9 +285,28 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
     return form_class
 
 
+def smartformset_factory(form, formset=BaseFormSet, extra=1, can_order=False,
+                    can_delete=False, min_num=None, max_num=None, validate_max=False):
+    """Return a FormSet for the given form class."""
+    if max_num is None:
+        max_num = DEFAULT_MAX_NUM
+    # hard limit on forms instantiated, to prevent memory-exhaustion attacks
+    # limit is simply max_num + DEFAULT_MAX_NUM (which is 2*DEFAULT_MAX_NUM
+    # if max_num is None in the first place)
+    absolute_max = max_num + DEFAULT_MAX_NUM
+    if min_num is None:
+        min_num = 0
+
+    attrs = {'form': form, 'extra': extra,
+             'can_order': can_order, 'can_delete': can_delete, 'min_num': min_num,
+             'max_num': max_num, 'absolute_max': absolute_max,
+             'validate_max' : validate_max}
+    return type(form.__name__ + str('FormSet'), (formset,), attrs)
+
+
 def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback=None,
                               formset=BaseModelFormSet, extra=1, can_delete=False,
-                              can_order=False, max_num=None, fields=None, exclude=None,
+                              can_order=False, min_num=None, max_num=None, fields=None, exclude=None,
                               widgets=None, validate_max=False, localized_fields=None,
                               labels=None, help_texts=None, error_messages=None,
                               formreadonlyfield_callback=None, readonly_fields=None,
@@ -303,8 +326,8 @@ def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback
         error_messages=error_messages, formreadonlyfield_callback=formreadonlyfield_callback,
         readonly_fields=readonly_fields, readonly=readonly
     )
-    FormSet = formset_factory(
-        form, formset, extra=extra, max_num=max_num, can_order=can_order, can_delete=can_delete,
+    FormSet = smartformset_factory(
+        form, formset, extra=extra, min_num=min_num, max_num=max_num, can_order=can_order, can_delete=can_delete,
         validate_max=validate_max
     )
     FormSet.model = model
@@ -314,7 +337,7 @@ def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback
 def smartinlineformset_factory(parent_model, model, request, form=ModelForm,
                                formset=BaseInlineFormSet, fk_name=None,
                                fields=None, exclude=None, extra=3, can_order=False,
-                               can_delete=True, max_num=None, formfield_callback=None,
+                               can_delete=True, min_num=None, max_num=None, formfield_callback=None,
                                widgets=None, validate_max=False, localized_fields=None,
                                labels=None, help_texts=None, error_messages=None,
                                formreadonlyfield_callback=None, readonly_fields=None,
@@ -333,6 +356,7 @@ def smartinlineformset_factory(parent_model, model, request, form=ModelForm,
         'fields': fields,
         'exclude': exclude,
         'max_num': max_num,
+        'min_num': min_num,
         'widgets': widgets,
         'validate_max': validate_max,
         'localized_fields': localized_fields,
