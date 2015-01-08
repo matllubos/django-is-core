@@ -224,7 +224,14 @@ class SmartFormMixin(six.with_metaclass(SmartFormMetaclass, object)):
 
 
 class SmartModelForm(SmartFormMixin, RestModelForm):
-    pass
+
+    def _get_validation_exclusions(self):
+        exclude = super(SmartModelForm, self)._get_validation_exclusions()
+        for f in self.instance._meta.fields:
+            field = f.name
+            if field in self.base_readonly_fields and field not in exclude:
+                exclude.append(field)
+        return exclude
 
 
 def get_model_fields(model, fields):
