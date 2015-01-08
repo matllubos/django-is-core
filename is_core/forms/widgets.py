@@ -14,7 +14,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Widget
 from django.forms.util import flatatt
 from django.core.validators import EMPTY_VALUES
-from django.db.models.fields.files import FieldFile
+from django.utils.datastructures import SortedDict
 
 try:
     from sorl.thumbnail import default
@@ -188,7 +188,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
 
     def render(self, name, value, attrs=None, choices=()):
         if isinstance(value, (list, tuple)):
-            out = ', '.join(self._get_value(value))
+            out = ', '.join([self._get_value(val) for val in value])
         else:
             out = self._get_value(value)
         return mark_safe('<p>%s</p>' % conditional_escape(out))
