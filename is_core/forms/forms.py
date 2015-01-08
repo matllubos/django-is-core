@@ -1,7 +1,13 @@
+import re
+
 from django.forms.forms import BoundField
 
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
+
+
+def pretty_class_name(class_name):
+    return re.sub(r'(\w)([A-Z])', r'\1-\2', class_name).lower()
 
 
 class SmartBoundField(BoundField):
@@ -36,6 +42,13 @@ class SmartBoundField(BoundField):
         if isinstance(widget, SmartWidgetMixin):
             return widget.smart_render(self.form._request, name, self.value(), attrs=attrs)
         return widget.render(name, self.value(), attrs=attrs)
+
+    @property
+    def type(self):
+        if self.is_readonly:
+            return 'readonly'
+        else:
+            return pretty_class_name(self.field.widget.__class__.__name__)
 
 
 class ReadonlyBoundField(SmartBoundField):
