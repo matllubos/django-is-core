@@ -11,10 +11,10 @@ from django.utils.html import format_html, format_html_join, conditional_escape
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
-from django.forms.widgets import Widget
+from django.forms.widgets import Widget, URLInput
 from django.forms.util import flatatt
 from django.core.validators import EMPTY_VALUES
-from django.utils.datastructures import SortedDict
+
 
 try:
     from sorl.thumbnail import default
@@ -182,8 +182,10 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         if result in EMPTY_VALUES:
             result = EMPTY_VALUE
 
+        if result and isinstance(self.widget, URLInput):
+            return mark_safe('<a href="%s">%s</a>' % (result, result))
         if isinstance(result, FieldFile):
-            return mark_safe('<a href="%s">%s</a>' % (value.url, os.path.basename(value.name)))
+            return mark_safe('<a href="%s">%s</a>' % (result.url, os.path.basename(result.name)))
         return display_for_value(result)
 
     def render(self, name, value, attrs=None, choices=()):

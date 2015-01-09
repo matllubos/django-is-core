@@ -4,22 +4,16 @@ import warnings
 
 from django import forms
 from django.forms import models
-from django.forms.fields import ChoiceField, FileField
-from django.core.exceptions import ValidationError
+from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
 from django.utils import six
-from django.forms.formsets import DEFAULT_MAX_NUM, BaseFormSet as OriginBaseFormSet
 
 from piston.forms import RestModelForm
 
 from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
-from is_core.forms.formsets import BaseFormSetMixin
-from is_core.forms.forms import ReadonlyBoundField, SmartBoundField
-
-
-class BaseFormSet(BaseFormSetMixin, OriginBaseFormSet):
-    pass
+from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
+from is_core.forms.forms import SmartFormMixin
 
 
 class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
@@ -118,11 +112,11 @@ class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceF
     widget = widgets.MultipleSelect
 
 
-class SmartFormMetaclass(ModelFormMetaclass):
+class SmartModelFormMetaclass(ModelFormMetaclass):
 
     def __new__(cls, name, bases,
                 attrs):
-        new_class = super(SmartFormMetaclass, cls).__new__(cls, name, bases,
+        new_class = super(SmartModelFormMetaclass, cls).__new__(cls, name, bases,
                 attrs)
 
         opts = getattr(new_class, 'Meta', None)
@@ -149,60 +143,15 @@ class SmartFormMetaclass(ModelFormMetaclass):
         return new_class
 
 
-class SmartFormMixin(six.with_metaclass(SmartFormMetaclass, object)):
+class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin), RestModelForm):
 
-    def __init__(self, *args, **kwargs):
-        super(SmartFormMixin, self).__init__(*args, **kwargs)
-        for field_name, field in self.fields.items():
-            if hasattr(self, '_init_%s' % field_name):
-                getattr(self, '_init_%s' % field_name)(field)
-        self._init_fields()
-
-    def _init_fields(self):
-        pass
-
-    def __getitem__(self, name):
-        "Returns a BoundField with the given name."
-        try:
-            field = self.fields[name]
-        except KeyError:
-            raise KeyError('Key %r not found in Form' % name)
-
-        if name in self.base_readonly_fields:
-            return ReadonlyBoundField(self, field, name)
-        else:
-            return SmartBoundField(self, field, name)
-
-    def _get_readonly_widget(self, field_name, field, widget):
-        if field.readonly_widget:
-            return field.readonly_widget(widget)
-        return field.widget
-
-    def _clean_fields(self):
-        for name, field in self.fields.items():
-            if name not in self.base_readonly_fields:
-                # value_from_datadict() gets the data from the data dictionaries.
-                # Each widget type knows how to retrieve its own data, because some
-                # widgets split data over several HTML fields.
-                value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
-                try:
-                    if isinstance(field, FileField):
-                        initial = self.initial.get(name, field.initial)
-                        value = field.clean(value, initial)
-                    else:
-                        value = field.clean(value)
-                    self.cleaned_data[name] = value
-                    if hasattr(self, 'clean_%s' % name):
-                        value = getattr(self, 'clean_%s' % name)()
-                        self.cleaned_data[name] = value
-                except ValidationError as e:
-                    self._errors[name] = self.error_class(e.messages)
-                    if name in self.cleaned_data:
-                        del self.cleaned_data[name]
-
-    def _set_readonly(self, field_name):
-        if field_name not in self.base_readonly_fields:
-            self.base_readonly_fields.append(field_name)
+    def _get_validation_exclusions(self):
+        exclude = super(SmartModelForm, self)._get_validation_exclusions()
+        for f in self.instance._meta.fields:
+            field = f.name
+            if field in self.base_readonly_fields and field not in exclude:
+                exclude.append(field)
+        return exclude
 
     def post_save(self):
         pass
@@ -218,20 +167,9 @@ class SmartFormMixin(six.with_metaclass(SmartFormMetaclass, object)):
             self.save_m2m = post_save_m2m
 
     def save(self, commit=True):
-        obj = super(SmartFormMixin, self).save(commit)
+        obj = super(SmartModelForm, self).save(commit)
         self.set_post_save(commit)
         return obj
-
-
-class SmartModelForm(SmartFormMixin, RestModelForm):
-
-    def _get_validation_exclusions(self):
-        exclude = super(SmartModelForm, self)._get_validation_exclusions()
-        for f in self.instance._meta.fields:
-            field = f.name
-            if field in self.base_readonly_fields and field not in exclude:
-                exclude.append(field)
-        return exclude
 
 
 def get_model_fields(model, fields):
@@ -288,27 +226,7 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
                       "'exclude' explicitly is deprecated",
                       PendingDeprecationWarning, stacklevel=2)
     form_class = type(form)(class_name, (form,), form_class_attrs)
-    form_class._meta.readonly_fields = readonly_fields or ()
     return form_class
-
-
-def smartformset_factory(form, formset=BaseFormSet, extra=1, can_order=False,
-                    can_delete=False, min_num=None, max_num=None, validate_max=False):
-    """Return a FormSet for the given form class."""
-    if max_num is None:
-        max_num = DEFAULT_MAX_NUM
-    # hard limit on forms instantiated, to prevent memory-exhaustion attacks
-    # limit is simply max_num + DEFAULT_MAX_NUM (which is 2*DEFAULT_MAX_NUM
-    # if max_num is None in the first place)
-    absolute_max = max_num + DEFAULT_MAX_NUM
-    if min_num is None:
-        min_num = 0
-
-    attrs = {'form': form, 'extra': extra,
-             'can_order': can_order, 'can_delete': can_delete, 'min_num': min_num,
-             'max_num': max_num, 'absolute_max': absolute_max,
-             'validate_max' : validate_max}
-    return type(form.__name__ + str('FormSet'), (formset,), attrs)
 
 
 def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback=None,
