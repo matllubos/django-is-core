@@ -44,11 +44,11 @@ class UIOptions(Options):
     def __init__(self, model):
         super(UIOptions, self).__init__(model)
         self.extra_selecbox_fields = {}
-        self.list_verbose_name = _('%(verbose_name_plural)s')
+        self.list_verbose_name = '%(verbose_name_plural)s'
         self.add_verbose_name = _('add %(verbose_name)s')
         self.add_button_verbose_name = self.add_verbose_name
         self.add_inline_button_verbose_name = self.add_verbose_name
-        self.edit_verbose_name = _('%(obj)s')
+        self.edit_verbose_name = '%(obj)s'
         self.filter_placeholders = {}
         self.placeholders = {}
 

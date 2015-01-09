@@ -6,6 +6,10 @@ from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 
 from block_snippets.templatetags import SnippetsIncludeNode
+
+from is_core.forms.widgets import WrapperWidget
+
+
 register = template.Library()
 
 
@@ -79,4 +83,6 @@ def split(value, delimiter=','):
 
 @register.filter
 def is_checkbox(field):
-    return hasattr(field, 'field') and hasattr(field.field, 'widget') and isinstance(field.field.widget, CheckboxInput)
+    return (hasattr(field, 'field') and hasattr(field.field, 'widget') and
+            (isinstance(field.field.widget, CheckboxInput) or
+             (isinstance(field.field.widget, WrapperWidget) and isinstance(field.field.widget.widget, CheckboxInput))))

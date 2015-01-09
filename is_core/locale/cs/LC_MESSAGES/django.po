@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-12-30 22:41+0100\n"
+"POT-Creation-Date: 2015-01-09 12:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language: Czech\n"
@@ -32,23 +32,6 @@ msgstr "Ne"
 #: templates/generic_views/table.html:52
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
-
-#: main.py:233 generic_views/__init__.py:171
-msgid "Home"
-msgstr "Home"
-
-#: main.py:396
-#, python-format
-msgid "Do you really want to delete \"%s\""
-msgstr "Opravdu chcete odstranit položku \"%s\""
-
-#: main.py:399
-msgid "Delete"
-msgstr "Smazat"
-
-#: main.py:431
-msgid "Edit"
-msgstr "Upravit"
 
 #: auth_token/forms.py:32
 msgid "Remember user"
@@ -92,16 +75,20 @@ msgstr "Neplatný filter: %(filter_key)s=%(filter_value)s"
 msgid "Readonly field can not be validated"
 msgstr ""
 
-#: forms/widgets.py:92 forms/widgets.py:98
+#: forms/widgets.py:96 forms/widgets.py:102
 msgid "Search..."
 msgstr "Hledat..."
+
+#: generic_views/__init__.py:171 main.py:232
+msgid "Home"
+msgstr "Home"
 
 #: generic_views/form_views.py:31
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:32 generic_views/form_views.py:556
-#: generic_views/form_views.py:571
+#: generic_views/form_views.py:32 generic_views/form_views.py:563
+#: generic_views/form_views.py:578
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
@@ -109,39 +96,52 @@ msgstr "Prosím opravte níže uvedené chyby."
 msgid "Save"
 msgstr "Uložit"
 
-#: generic_views/form_views.py:217 generic_views/form_views.py:411
-msgid "No changes have been submitted."
-msgstr "Nebyly odeslány žádné změny."
-
-#: generic_views/form_views.py:461
-msgid "Save and navigate to the list"
-msgstr "Uložit a vrátit se zpět do tabulky záznamů"
-
-#: generic_views/form_views.py:463
-msgid "Save and stay on the same page"
-msgstr "Uložit a pokračovat v úpravách"
-
-#: generic_views/form_views.py:464
-msgid "Save and continue"
-msgstr "Uložit a pokračovat"
-
-#: generic_views/form_views.py:466
-msgid "Do not save and go back to the list"
-msgstr "Neukládat a vrátit se na seznam"
-
-#: generic_views/form_views.py:467
+#: generic_views/form_views.py:38
 msgid "Back"
 msgstr "Zpět"
 
-#: generic_views/form_views.py:555
+#: generic_views/form_views.py:224 generic_views/form_views.py:423
+msgid "No changes have been submitted."
+msgstr "Nebyly odeslány žádné změny."
+
+#: generic_views/form_views.py:473
+msgid "Save and navigate to the list"
+msgstr "Uložit a vrátit se zpět do tabulky záznamů"
+
+#: generic_views/form_views.py:475
+msgid "Save and stay on the same page"
+msgstr "Uložit a pokračovat v úpravách"
+
+#: generic_views/form_views.py:476
+msgid "Save and continue"
+msgstr "Uložit a pokračovat"
+
+#: generic_views/form_views.py:478
+msgid "Do not save and go back to the list"
+msgstr "Neukládat a vrátit se na seznam"
+
+#: generic_views/form_views.py:562
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:570
+#: generic_views/form_views.py:577
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
+
+#: main.py:395
+#, python-format
+msgid "Do you really want to delete \"%s\""
+msgstr "Opravdu chcete odstranit položku \"%s\""
+
+#: main.py:398
+msgid "Delete"
+msgstr "Smazat"
+
+#: main.py:430
+msgid "Edit"
+msgstr "Upravit"
 
 #: middleware/__init__.py:31
 msgid "Unprocessable Entity"
@@ -151,20 +151,10 @@ msgstr "Nezpracovatelná entita"
 msgid "Not Found"
 msgstr "Nenalezeno"
 
-#: models/patch.py:47
-#, python-format
-msgid "%(verbose_name_plural)s"
-msgstr "%(verbose_name_plural)s"
-
 #: models/patch.py:48
-#, fuzzy, python-format
+#, python-format
 msgid "add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
-
-#: models/patch.py:51
-#, python-format
-msgid "%(obj)s"
-msgstr "%(obj)s"
 
 #: models/patch.py:126
 msgid "(None)"
@@ -176,7 +166,7 @@ msgid "Cannot resolve filter \"%s\""
 msgstr "Není možné filtrovat data dle hodnoty: \"%s\""
 
 #: rest/resource.py:222
-#, fuzzy, python-format
+#, python-format
 msgid "Cannot resolve Order value \"%s\" into field"
 msgstr "Není možné řadit dle hodnoty hlavičky X-Order: \"%s\""
 
@@ -191,10 +181,6 @@ msgstr "Interní chyba. Služba je dočasně nedostupná."
 #: templates/base.html:68
 msgid "Loading..."
 msgstr "Načítám..."
-
-#: templates/home.html:4
-msgid "Welcome"
-msgstr "Vítejte"
 
 #: templates/forms/default_form.html:27
 msgid "Fields marked with <span class=\"required\">*</span> are required"
@@ -239,6 +225,10 @@ msgstr "Login"
 #: templates/generic_views/table.html:41
 msgid "Exports"
 msgstr "Export"
+
+#: templates/home.html:4
+msgid "Welcome"
+msgstr "Vítejte"
 
 #: templates/registration/login.html:14
 msgid "Please Sign In"

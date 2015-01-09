@@ -46,6 +46,6 @@
 		{% endfor %}
 	</table>
 	{% block below-table %}
-			{% if formset.can_add %}<button type="button" class="dynamic btn btn-default">{{ button_value }}</button>{% endif %}
+			{% if formset.can_add %}<button type="button" class="dynamic btn btn-default">{{ button_value|capfirst }}</button>{% endif %}
 	{% endblock %}
 </fieldset>
