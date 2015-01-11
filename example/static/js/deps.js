@@ -1,1 +1,0 @@
-/Users/lubos/Workspace/Django/django-is-core/example/var/cs/deps.js

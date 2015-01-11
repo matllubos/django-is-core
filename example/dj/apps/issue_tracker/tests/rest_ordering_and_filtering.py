@@ -34,7 +34,7 @@ class RestOrderingAndFilteringTestCase(AsSuperuserTestCase, RestAuthMixin, Helpe
     def test_user_querystring_ordering_by_id(self):
         [self.get_user_obj() for _ in range(10)]
 
-        querystring = {'_order': '-id'}
+        querystring = {'_order': 'id'}
         resp = self.get('%s?%s' % (self.USER_API_URL, urllib.urlencode(querystring)))
         self.assert_valid_JSON_response(resp)
         output = self.deserialize(resp)
