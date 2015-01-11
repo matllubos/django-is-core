@@ -16,14 +16,14 @@ class RestOrderingAndFilteringTestCase(AsSuperuserTestCase, RestAuthMixin, Helpe
     def test_user_headers_ordering_by_id(self):
         [self.get_user_obj() for _ in range(10)]
 
-        headers = {'HTTP_X_ORDER': 'id', 'HTTP_X_DIRECTION': 'asc'}
+        headers = {'HTTP_X_ORDER': 'id'}
         resp = self.get(self.USER_API_URL, headers=headers)
         self.assert_valid_JSON_response(resp)
         output = self.deserialize(resp)
         pk_list = [obj.get('id') for obj in output]
         self.assert_true(all(pk_list[i] < pk_list[i + 1] for i in xrange(len(pk_list) - 1)))
 
-        headers = {'HTTP_X_ORDER': 'id', 'HTTP_X_DIRECTION': 'desc'}
+        headers = {'HTTP_X_ORDER': '-id'}
         resp = self.get(self.USER_API_URL, headers=headers)
         self.assert_valid_JSON_response(resp)
         output = self.deserialize(resp)
@@ -34,14 +34,14 @@ class RestOrderingAndFilteringTestCase(AsSuperuserTestCase, RestAuthMixin, Helpe
     def test_user_querystring_ordering_by_id(self):
         [self.get_user_obj() for _ in range(10)]
 
-        querystring = {'_order': 'id', '_direction': 'asc'}
+        querystring = {'_order': '-id'}
         resp = self.get('%s?%s' % (self.USER_API_URL, urllib.urlencode(querystring)))
         self.assert_valid_JSON_response(resp)
         output = self.deserialize(resp)
         pk_list = [obj.get('id') for obj in output]
         self.assert_true(all(pk_list[i] < pk_list[i + 1] for i in xrange(len(pk_list) - 1)))
 
-        querystring = {'_order': 'id', '_direction': 'desc'}
+        querystring = {'_order': '-id'}
         resp = self.get('%s?%s' % (self.USER_API_URL, urllib.urlencode(querystring)))
         self.assert_valid_JSON_response(resp)
         output = self.deserialize(resp)

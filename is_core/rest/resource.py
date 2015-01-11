@@ -203,23 +203,16 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
 
         return qs
 
-    def _order_by(self, qs, order_field):
-        dir = self.request._rest_context.get('direction', 'ASC')
-
-        if dir.upper() == 'DESC':
-            order_field = '-' + order_field
-        return qs.order_by(order_field)
-
     def _order_queryset(self, qs):
         if not 'order' in self.request._rest_context:
             return qs
         order_field = self.request._rest_context.get('order')
-        qs = self._order_by(qs, order_field)
         try:
+            qs = qs.order_by(*order_field.split(','))
             # Queryset validation, there is no other option
             unicode(qs.query)
         except Exception:
-            raise RestException(_('Cannot resolve Order value "%s" into field') % order_field)
+            raise RestException(_('Cannot resolve Order value "%s" into fields') % order_field)
         return qs
 
     def _get_exclude(self, obj=None):

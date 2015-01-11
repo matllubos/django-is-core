@@ -10,7 +10,6 @@ class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
     ACCEPT_TYPES = ('application/json', 'text/xml', 'text/csv',
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-
     def test_401_exception(self):
         for accept_type in self.ACCEPT_TYPES:
             resp = self.get(self.ISSUE_API_URL, headers={'HTTP_ACCEPT': accept_type})
@@ -47,5 +46,3 @@ class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
             resp = self.get(self.ISSUE_API_URL, headers={'HTTP_ACCEPT': accept_type})
             self.assert_in(accept_type, resp['Content-Type'])
             self.assert_http_too_many_requests(resp)
-
-
