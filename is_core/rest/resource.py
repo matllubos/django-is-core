@@ -190,6 +190,9 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         })
         return mapping
 
+    def _preload_queryset(self, qs):
+        return self.core.preload_queryset(self.request, qs)
+
     def _filter_queryset(self, qs):
         filter_terms = self.request.GET.dict()
 

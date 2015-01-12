@@ -168,6 +168,9 @@ class ModelISCore(PermissionsMixin, ISCore):
     def get_queryset(self, request):
         return self.model._default_manager.get_queryset().order_by(*self.get_ordering())
 
+    def preload_queryset(self, request, qs):
+        return qs
+
     def get_list_actions(self, request, obj):
         return list(self.list_actions)
 
@@ -288,9 +291,6 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     def get_show_in_menu(self, request):
         return 'list' in self.view_classes and self.show_in_menu and self.has_ui_read_permission(request)
-
-    def get_rest_list_display_fields(self, request):
-        return list(self.get_list_display(request))
 
     def get_form_inline_views(self, request, obj=None):
         return self.form_inline_views
