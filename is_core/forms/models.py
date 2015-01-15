@@ -126,6 +126,8 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
             readonly_fields = getattr(opts, 'readonly_fields', None) or ()
             readonly = getattr(opts, 'readonly', None) or False
             fields = getattr(opts, 'fields', None) or ()
+            all_fields = getattr(opts, 'all_fields', None) or ()
+            has_all_fields = hasattr(opts, 'all_fields')
 
             base_readonly_fields = []
             for name, field in new_class.base_fields.items():
@@ -134,7 +136,12 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
                 elif name in readonly_fields or readonly or field.is_readonly:
                     base_readonly_fields.append(name)
 
-            for field_name in set(fields).union(set(readonly_fields)).union(set(non_model_fields)):
+            if has_all_fields:
+                test_readonly_fields = all_fields
+            else:
+                test_readonly_fields = readonly_fields
+
+            for field_name in test_readonly_fields:
                 if field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs:
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
                     base_readonly_fields.append(field_name)
@@ -175,18 +182,19 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin)
 def get_model_fields(model, fields):
     model_fields = []
     for field in model._meta.fields + model._meta.many_to_many:
-        if field.editable and (not fields or field.name in fields):
+        if field.editable and (fields is None or field.name in fields):
             model_fields.append(field.name)
     return model_fields
 
 
 def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, readonly_fields=None, exclude=None,
-                           formfield_callback=None, widgets=None, localized_fields=None,
+                           formfield_callback=None, widgets=None, localized_fields=None, required_fields=None,
                            labels=None, help_texts=None, error_messages=None, formreadonlyfield_callback=None,
                            readonly=False):
     attrs = {'model': model}
     if fields is not None:
         model_fields = get_model_fields(model, fields)
+        attrs['all_fields'] = fields
         attrs['fields'] = model_fields
         attrs['non_model_fields'] = set(fields) - set(model_fields)
     if exclude is not None:
@@ -203,6 +211,8 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
         attrs['error_messages'] = error_messages
     if readonly_fields is not None:
         attrs['readonly_fields'] = readonly_fields
+    if required_fields is not None:
+        attrs['required_fields'] = required_fields
     attrs['readonly'] = readonly
     # If parent form class already has an inner Meta, the Meta we're
     # creating needs to inherit from the parent's inner meta.

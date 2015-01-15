@@ -38,7 +38,8 @@ class ButtonField(ReadonlyField):
     widget = ButtonWidget
     readonly_widget = None
 
-    def __init__(self, label, attrs):
+    def __init__(self, label, attrs=None):
+        attrs = attrs or {}
         super(ButtonField, self).__init__(required=False, label='', initial=label, widget=ButtonWidget(attrs=attrs))
 
 

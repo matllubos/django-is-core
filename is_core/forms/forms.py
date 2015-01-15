@@ -117,7 +117,9 @@ class SmartFormMixin(object):
         self._init_fields()
 
     def _init_fields(self):
-        pass
+        for required_field_name in getattr(self.Meta, 'required_fields'):
+            if required_field_name in self.fields:
+                self.fields[required_field_name].required = True
 
     def __getitem__(self, name):
         "Returns a BoundField with the given name."
@@ -167,13 +169,15 @@ class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin), RestForm
     pass
 
 
-def smartform_factory(request, form, readonly_fields=None, exclude=None, formreadonlyfield_callback=None,
+def smartform_factory(request, form, readonly_fields=None, required_fields=None, exclude=None, formreadonlyfield_callback=None,
                       readonly=False):
     attrs = {}
     if exclude is not None:
         attrs['exclude'] = exclude
     if readonly_fields is not None:
         attrs['readonly_fields'] = readonly_fields
+    if required_fields is not None:
+        attrs['required_fields'] = required_fields
     attrs['readonly'] = readonly
     # If parent form class already has an inner Meta, the Meta we're
     # creating needs to inherit from the parent's inner meta.
