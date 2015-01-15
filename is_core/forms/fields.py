@@ -4,7 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, ButtonWidget
+from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, DivButtonWidget
 
 
 class ReadonlyField(forms.Field):
@@ -35,12 +35,13 @@ class EmptyReadonlyField(ReadonlyField):
 
 
 class ButtonField(ReadonlyField):
-    widget = ButtonWidget
+    widget = DivButtonWidget
     readonly_widget = None
 
-    def __init__(self, label, attrs=None):
+    def __init__(self, label, attrs=None, widget=None):
         attrs = attrs or {}
-        super(ButtonField, self).__init__(required=False, label='', initial=label, widget=ButtonWidget(attrs=attrs))
+        widget = widget or self.widget
+        super(ButtonField, self).__init__(required=False, label='', initial=label, widget=widget(attrs=attrs))
 
 
 class SmartReadonlyField(ReadonlyField):

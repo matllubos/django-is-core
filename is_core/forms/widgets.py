@@ -205,6 +205,15 @@ class EmptyWidget(ReadonlyWidget):
 class ButtonWidget(ReadonlyWidget):
 
     def render(self, name, value, attrs=None):
+        final_attrs = self.build_attrs(attrs, name=name)
+
+        return format_html('<button %(attrs)s>%(value)s</button>' %
+                           {'value': value, 'attrs': flatatt(final_attrs)})
+
+
+class DivButtonWidget(ReadonlyWidget):
+
+    def render(self, name, value, attrs=None):
         final_attrs = self.build_attrs(attrs)
         class_name = final_attrs.pop('class', '')
         return format_html('<div class="%(class_name)s btn btn-primary btn-small" '
