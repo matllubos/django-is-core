@@ -329,11 +329,13 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_extra_fields = None
     rest_detailed_fields = None
     rest_general_fields = None
+    rest_guest_fields = None
+
     # Default rest fields for list, obj and guest
-    rest_default_fields = ('id', '_rest_links', '_actions', '_class_names', '_obj_name')
     rest_default_detailed_fields = ('id', '_rest_links', '_obj_name')
     rest_default_general_fields = ('id', '_rest_links', '_obj_name')
-    rest_guest_fields = ('id', '_obj_name')
+    rest_default_guest_fields = ()
+    rest_default_extra_fields = ()
 
     form_class = SmartModelForm
     rest_allowed_methods = ('get', 'delete', 'post', 'put')
@@ -356,7 +358,10 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return self.get_form_exclude(request, obj)
 
     def get_rest_extra_fields(self, request, obj=None):
-        return self.rest_extra_fields and rfs(self.rest_extra_fields) or RFS()
+        if self.rest_extra_fields:
+            return rfs(self.rest_extra_fields)
+        else:
+            return rfs(self.model._rest_meta.extra_fields).join(rfs(self.rest_default_extra_fields))
 
     def get_rest_general_fields(self, request):
         if self.rest_general_fields:
@@ -371,6 +376,11 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
             return rfs(self.model._rest_meta.default_detailed_fields).join(rfs(self.rest_default_detailed_fields))
 
     def get_rest_guest_fields(self, request):
+        if self.rest_extra_fields:
+            return rfs(self.rest_guest_fields)
+        else:
+            return rfs(self.model._rest_meta.guest_fields).join(rfs(self.rest_default_guest_fields))
+
         return rfs(self.rest_guest_fields)
 
     def get_rest_obj_class_names(self, request, obj):

@@ -179,8 +179,8 @@ class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin), RestForm
     pass
 
 
-def smartform_factory(request, form, readonly_fields=None, required_fields=None, exclude=None, formreadonlyfield_callback=None,
-                      readonly=False):
+def smartform_factory(request, form, readonly_fields=None, required_fields=None, exclude=None,
+                      formreadonlyfield_callback=None, readonly=False):
     attrs = {}
     if exclude is not None:
         attrs['exclude'] = exclude
