@@ -141,10 +141,10 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         return self.core.get_rest_detailed_fields(self.request, obj=obj)
 
     def get_default_general_fields(self, obj=None):
-        return self.core.get_rest_general_fields(self.request)
+        return self.core.get_rest_general_fields(self.request, obj=obj)
 
-    def get_guest_fields(self, request):
-        return self.core.get_rest_guest_fields(request)
+    def get_guest_fields(self, obj=None):
+        return self.core.get_rest_guest_fields(self.request, obj=obj)
 
     def _web_links(self, obj):
         web_links = {}

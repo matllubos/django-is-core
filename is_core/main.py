@@ -363,7 +363,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         else:
             return rfs(self.model._rest_meta.extra_fields).join(rfs(self.rest_default_extra_fields))
 
-    def get_rest_general_fields(self, request):
+    def get_rest_general_fields(self, request, obj=None):
         if self.rest_general_fields:
             return rfs(self.rest_general_fields)
         else:
@@ -375,7 +375,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         else:
             return rfs(self.model._rest_meta.default_detailed_fields).join(rfs(self.rest_default_detailed_fields))
 
-    def get_rest_guest_fields(self, request):
+    def get_rest_guest_fields(self, request, obj=None):
         if self.rest_guest_fields:
             return rfs(self.rest_guest_fields)
         else:
