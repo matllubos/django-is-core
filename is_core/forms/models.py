@@ -114,27 +114,29 @@ class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceF
 
 class SmartModelFormMetaclass(ModelFormMetaclass):
 
-    def __new__(cls, name, bases,
-                attrs):
-        new_class = super(SmartModelFormMetaclass, cls).__new__(cls, name, bases,
-                attrs)
+    def __new__(cls, name, bases, attrs):
+        new_class = super(SmartModelFormMetaclass, cls).__new__(cls, name, bases, attrs)
+
+        base_readonly_fields = getattr(new_class, 'base_readonly_fields', set())
+        base_required_fields = getattr(new_class, 'base_required_fields', set())
 
         opts = getattr(new_class, 'Meta', None)
         if opts:
             exclude_fields = getattr(opts, 'exclude', None) or ()
-            non_model_fields = getattr(opts, 'non_model_fields', None) or ()
             readonly_fields = getattr(opts, 'readonly_fields', None) or ()
             readonly = getattr(opts, 'readonly', None) or False
-            fields = getattr(opts, 'fields', None) or ()
             all_fields = getattr(opts, 'all_fields', None) or ()
             has_all_fields = hasattr(opts, 'all_fields')
+            required_fields = getattr(opts, 'required_fields', None) or ()
 
-            base_readonly_fields = []
-            for name, field in new_class.base_fields.items():
-                if name in exclude_fields:
-                    del new_class.base_fields[name]
-                elif name in readonly_fields or readonly or field.is_readonly:
-                    base_readonly_fields.append(name)
+            for field_name, field in new_class.base_fields.items():
+                if field_name in exclude_fields:
+                    del new_class.base_fields[field_name]
+                elif ((field_name in readonly_fields or readonly or field.is_readonly) and
+                      field_name not in base_readonly_fields):
+                    base_readonly_fields.add(field_name)
+                elif field_name in required_fields and field_name not in base_required_fields:
+                    base_required_fields.add(field_name)
 
             if has_all_fields:
                 test_readonly_fields = all_fields
@@ -142,11 +144,13 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
                 test_readonly_fields = readonly_fields
 
             for field_name in test_readonly_fields:
-                if field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs:
+                if (field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs and
+                    attrs['formreadonlyfield_callback'] is not None):
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
-                    base_readonly_fields.append(field_name)
+                    base_readonly_fields.add(field_name)
 
-            new_class.base_readonly_fields = base_readonly_fields
+        new_class.base_readonly_fields = base_readonly_fields
+        new_class.base_required_fields = base_required_fields
         return new_class
 
 

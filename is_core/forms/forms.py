@@ -44,7 +44,7 @@ class SmartBoundField(BoundField):
         else:
             name = self.html_initial_name
 
-        if isinstance(widget, SmartWidgetMixin):
+        if isinstance(widget, SmartWidgetMixin) and hasattr(self.form, '_request'):
             return widget.smart_render(self.form._request, name, self.value(), attrs=attrs)
         return widget.render(name, self.value(), attrs=attrs)
 
@@ -80,30 +80,36 @@ class ReadonlyBoundField(SmartBoundField):
 
 class SmartFormMetaclass(DeclarativeFieldsMetaclass):
 
-    def __new__(cls, name, bases,
-                attrs):
-        new_class = super(SmartFormMetaclass, cls).__new__(cls, name, bases,
-                attrs)
+    def __new__(cls, name, bases, attrs):
+        new_class = super(SmartFormMetaclass, cls).__new__(cls, name, bases, attrs)
+
+        base_readonly_fields = getattr(new_class, 'base_readonly_fields', set())
+        base_required_fields = getattr(new_class, 'base_required_fields', set())
 
         opts = getattr(new_class, 'Meta', None)
         if opts:
             exclude_fields = getattr(opts, 'exclude', None) or ()
             readonly_fields = getattr(opts, 'readonly_fields', None) or ()
             readonly = getattr(opts, 'readonly', None) or False
+            required_fields = getattr(opts, 'required_fields', None) or ()
 
-            base_readonly_fields = []
-            for name, field in new_class.base_fields.items():
-                if name in exclude_fields:
-                    del new_class.base_fields[name]
-                elif name in readonly_fields or readonly or field.is_readonly:
-                    base_readonly_fields.append(name)
+            for field_name, field in new_class.base_fields.items():
+                if field_name in exclude_fields:
+                    del new_class.base_fields[field_name]
+                elif ((field_name in readonly_fields or readonly or field.is_readonly) and
+                      field_name not in base_readonly_fields):
+                    base_readonly_fields.add(field_name)
+                elif field_name in required_fields and field_name not in base_required_fields:
+                    base_required_fields.add(field_name)
 
             for field_name in set(readonly_fields):
-                if field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs:
+                if (field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs and
+                    attrs['formreadonlyfield_callback'] is not None):
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
-                    base_readonly_fields.append(field_name)
+                    base_readonly_fields.add(field_name)
 
-            new_class.base_readonly_fields = base_readonly_fields
+        new_class.base_readonly_fields = base_readonly_fields
+        new_class.base_required_fields = base_required_fields
         return new_class
 
 
@@ -111,15 +117,19 @@ class SmartFormMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(SmartFormMixin, self).__init__(*args, **kwargs)
+        self._pre_init_fields()
         for field_name, field in self.fields.items():
             if hasattr(self, '_init_%s' % field_name):
                 getattr(self, '_init_%s' % field_name)(field)
         self._init_fields()
 
-    def _init_fields(self):
-        for required_field_name in getattr(self.Meta, 'required_fields'):
+    def _pre_init_fields(self):
+        for required_field_name in self.base_required_fields:
             if required_field_name in self.fields:
                 self.fields[required_field_name].required = True
+
+    def _init_fields(self):
+        pass
 
     def __getitem__(self, name):
         "Returns a BoundField with the given name."
