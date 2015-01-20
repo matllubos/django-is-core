@@ -83,8 +83,8 @@ class SmartFormMetaclass(DeclarativeFieldsMetaclass):
     def __new__(cls, name, bases, attrs):
         new_class = super(SmartFormMetaclass, cls).__new__(cls, name, bases, attrs)
 
-        base_readonly_fields = getattr(new_class, 'base_readonly_fields', set())
-        base_required_fields = getattr(new_class, 'base_required_fields', set())
+        base_readonly_fields = set(getattr(new_class, 'base_readonly_fields', ()))
+        base_required_fields = set(getattr(new_class, 'base_required_fields', ()))
 
         opts = getattr(new_class, 'Meta', None)
         if opts:
