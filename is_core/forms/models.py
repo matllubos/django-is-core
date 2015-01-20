@@ -250,6 +250,7 @@ def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback
                               labels=None, help_texts=None, error_messages=None,
                               formreadonlyfield_callback=None, readonly_fields=None,
                               readonly=False):
+
     meta = getattr(form, 'Meta', None)
     if meta is None:
         meta = type(str('Meta'), (object,), {})

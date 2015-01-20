@@ -99,13 +99,12 @@ class InlineFormView(InlineView):
         return SmartReadonlyField(get_val_and_label_fun)
 
     def get_formset_factory(self, fields=None, readonly_fields=()):
-        extra = self.get_extra()
-        exclude = self.get_exclude()
         return smartinlineformset_factory(
-            self.parent_model, self.model, self.request, form=self.form_class, fk_name=self.fk_name, extra=extra,
-            formset=self.base_inline_formset_class, can_delete=self.get_can_delete(), exclude=exclude,
-            fields=fields, min_num=self.min_num, max_num=self.max_num, readonly_fields=readonly_fields,
-            readonly=self.readonly, formreadonlyfield_callback=self.formfield_for_readonlyfield
+            self.parent_model, self.model, self.request, form=self.form_class, fk_name=self.fk_name,
+            extra=self.get_extra(), formset=self.base_inline_formset_class, can_delete=self.get_can_delete(),
+            exclude=self.get_exclude(), fields=fields, min_num=self.min_num, max_num=self.max_num,
+            readonly_fields=readonly_fields, readonly=self.readonly,
+            formreadonlyfield_callback=self.formfield_for_readonlyfield
         )
 
     def get_queryset(self):
