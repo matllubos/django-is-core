@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.utils import six
 from django.forms.models import _get_foreign_key
 
-from piston.utils import rfs, RFS
+from piston.utils import rfs
 
 from is_core.actions import WebAction, ConfirmRestAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
@@ -395,9 +395,11 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
             self._resource_patterns = self.get_resource_patterns()
         return self._resource_patterns
 
+    def get_rest_class(self):
+        return modelrest_factory(self.model, self.rest_resource_class)
+
     def get_resource_patterns(self):
-        return DoubleRestPattern(modelrest_factory(self.model, self.rest_resource_class),
-                                 self.rest_resource_pattern_class, self).patterns
+        return DoubleRestPattern(self.get_rest_class(), self.rest_resource_pattern_class, self).patterns
 
     def get_list_actions(self, request, obj):
         list_actions = super(RestModelISCore, self).get_list_actions(request, obj)
