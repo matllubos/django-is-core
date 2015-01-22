@@ -6,12 +6,19 @@ class BaseFormSetMixin(object):
     Mixin that add method all_forms which return existing forms and empty form in one list
     """
 
-    def all_forms(self):
-        for form in self.forms:
-            yield form
+    def __init__(self, *args, **kwargs):
+        super(BaseFormSetMixin, self).__init__(*args, **kwargs)
+        self._all_forms = None
 
-        if self.can_add:
-            yield self.empty_form
+    def all_forms(self):
+        if self._all_forms is None:
+            self._all_forms = []
+            for form in self.forms:
+                self._all_forms.append(form)
+
+            if self.can_add:
+                self._all_forms.append(self.empty_form)
+        return self._all_forms
 
     def total_form_count(self):
         total_form_count = super(BaseFormSetMixin, self).total_form_count()

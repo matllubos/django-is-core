@@ -92,6 +92,9 @@ class InlineFormView(InlineView):
             fields.append('DELETE')
         return fields
 
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        return db_field.formfield(**kwargs)
+
     def formfield_for_readonlyfield(self, name, **kwargs):
         def get_val_and_label_fun(instance):
             return get_field_value_and_label(name, (self, self.core, instance),
@@ -104,7 +107,7 @@ class InlineFormView(InlineView):
             extra=self.get_extra(), formset=self.base_inline_formset_class, can_delete=self.get_can_delete(),
             exclude=self.get_exclude(), fields=fields, min_num=self.min_num, max_num=self.max_num,
             readonly_fields=readonly_fields, readonly=self.readonly,
-            formreadonlyfield_callback=self.formfield_for_readonlyfield
+            formreadonlyfield_callback=self.formfield_for_readonlyfield, formfield_callback=self.formfield_for_dbfield
         )
 
     def get_queryset(self):
@@ -127,7 +130,7 @@ class InlineFormView(InlineView):
         formset.can_add = self.get_can_add()
         formset.can_delete = self.get_can_delete()
 
-        for form in formset:
+        for form in formset.all_forms():
             form.class_names = self.form_class_names(form)
             self.form_fields(form)
         return formset
