@@ -1,11 +1,14 @@
 from __future__ import unicode_literals
 
+from django.db import models
+
 from chamber.utils.forms import formset_has_file_field
 
 from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
 from is_core.generic_views.inlines import InlineView
 from is_core.utils import get_field_value_and_label
 from is_core.forms.fields import SmartReadonlyField
+from is_core.forms.widgets import ModelChoiceReadonlyWidget
 
 
 class InlineFormView(InlineView):
@@ -93,7 +96,10 @@ class InlineFormView(InlineView):
         return fields
 
     def formfield_for_dbfield(self, db_field, **kwargs):
-        return db_field.formfield(**kwargs)
+        field = db_field.formfield(**kwargs)
+        if isinstance(db_field, (models.ForeignKey, models.OneToOneField)):
+            field.readonly_widget = ModelChoiceReadonlyWidget
+        return field
 
     def formfield_for_readonlyfield(self, name, **kwargs):
         def get_val_and_label_fun(instance):

@@ -196,6 +196,30 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         return mark_safe('<p>%s</p>' % conditional_escape(out))
 
 
+class ModelChoiceReadonlyWidget(ReadonlyWidget):
+
+    def _get_choice(self, value):
+        for choice in self.widget.choices:
+            if choice[0] == value:
+                return choice
+
+    def smart_render(self, request, name, value, attrs=None, choices=()):
+        choice = self._get_choice(value)
+
+        out = []
+        if choice:
+            if (choice.obj and hasattr(getattr(choice.obj, 'get_absolute_url', None), '__call__')
+                and hasattr(getattr(choice.obj, 'can_see_edit_link', None), '__call__')
+                and choice.obj.can_see_edit_link(request)):
+                value = '<a href="%s">%s</a>' % (choice.obj.get_absolute_url(), force_text(choice[1]))
+        else:
+            if value in EMPTY_VALUES:
+                value = EMPTY_VALUE
+
+        out.append(value)
+        return mark_safe('<p>%s</p>' % '\n'.join(out))
+
+
 class EmptyWidget(ReadonlyWidget):
 
     def render(self, name, value, attrs=None):

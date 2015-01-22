@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.db import models
 from django.forms.models import ModelForm
 from django.http.response import HttpResponseRedirect, Http404
 from django.utils.datastructures import SortedDict
@@ -21,6 +22,7 @@ from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.utils import get_field_value_and_label
 from is_core.forms.fields import SmartReadonlyField
+from is_core.forms.widgets import ModelChoiceReadonlyWidget
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -354,7 +356,10 @@ class DefaultModelFormView(DefaultFormView):
                                       readonly=not self.has_post_permission())
 
     def formfield_for_dbfield(self, db_field, **kwargs):
-        return db_field.formfield(**kwargs)
+        field = db_field.formfield(**kwargs)
+        if isinstance(db_field, (models.ForeignKey, models.OneToOneField)):
+            field.readonly_widget = ModelChoiceReadonlyWidget
+        return field
 
     def formfield_for_readonlyfield(self, name, **kwargs):
         def get_val_and_label_fun(instance):
