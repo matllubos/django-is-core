@@ -1,4 +1,5 @@
 import re
+import warnings
 
 from django.utils import six
 from django.forms.forms import BoundField, DeclarativeFieldsMetaclass, Form
@@ -113,6 +114,7 @@ class SmartFormMetaclass(DeclarativeFieldsMetaclass):
         return new_class
 
 
+# TODO: check django version
 class SmartFormMixin(object):
 
     def __init__(self, *args, **kwargs):
@@ -173,6 +175,44 @@ class SmartFormMixin(object):
     def _set_readonly(self, field_name):
         if field_name not in self.base_readonly_fields:
             self.base_readonly_fields.append(field_name)
+
+    @property
+    def changed_data(self):
+        if self._changed_data is None:
+            self._changed_data = []
+            # XXX: For now we're asking the individual widgets whether or not the
+            # data has changed. It would probably be more efficient to hash the
+            # initial data, store it in a hidden field, and compare a hash of the
+            # submitted data, but we'd need a way to easily get the string value
+            # for a given field. Right now, that logic is embedded in the render
+            # method of each widget.
+            for name, field in self.fields.items():
+                if name not in self.base_readonly_fields:
+                    prefixed_name = self.add_prefix(name)
+                    data_value = field.widget.value_from_datadict(self.data, self.files, prefixed_name)
+                    if not field.show_hidden_initial:
+                        initial_value = self.initial.get(name, field.initial)
+                        if callable(initial_value):
+                            initial_value = initial_value()
+                    else:
+                        initial_prefixed_name = self.add_initial_prefix(name)
+                        hidden_widget = field.hidden_widget()
+                        try:
+                            initial_value = field.to_python(hidden_widget.value_from_datadict(
+                                self.data, self.files, initial_prefixed_name))
+                        except ValidationError:
+                            # Always assume data has changed if validation fails.
+                            self._changed_data.append(name)
+                            continue
+                    if hasattr(field.widget, '_has_changed'):
+                        warnings.warn("The _has_changed method on widgets is deprecated,"
+                            " define it at field level instead.",
+                            PendingDeprecationWarning, stacklevel=2)
+                        if field.widget._has_changed(initial_value, data_value):
+                            self._changed_data.append(name)
+                    elif field._has_changed(initial_value, data_value):
+                        self._changed_data.append(name)
+        return self._changed_data
 
 
 class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin), RestFormMixin, Form):

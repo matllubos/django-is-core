@@ -44,14 +44,14 @@ class InlineObjectsView(InlineView):
         return self.get_fields()
 
     def get_class_names(self):
-        return [self.__class__.__name__.lower(),]
+        return [self.__class__.__name__.lower(), ]
 
     def get_context_data(self, **kwargs):
         context_data = super(InlineObjectsView, self).get_context_data(**kwargs)
         context_data.update({
             'data_list': self.get_data_list(self.get_fields(), self.get_objects()),
             'header_list': self.get_header_list(self.get_fields()),
-            'class_names': [self.get_class_names()],
+            'class_names': self.get_class_names(),
             })
         return context_data
 
