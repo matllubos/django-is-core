@@ -51,7 +51,7 @@ class InlineObjectsView(InlineView):
         context_data.update({
             'data_list': self.get_data_list(self.get_fields(), self.get_objects()),
             'header_list': self.get_header_list(self.get_fields()),
-            'class_names': [self.get_class_names()],
+            'class_names': self.get_class_names(),
             })
         return context_data
 
