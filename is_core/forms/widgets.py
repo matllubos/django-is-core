@@ -195,6 +195,9 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
             out = self._get_value(value)
         return mark_safe('<p>%s</p>' % conditional_escape(out))
 
+    def _has_changed(self, initial, data):
+        return False
+
 
 class ModelChoiceReadonlyWidget(ReadonlyWidget):
 
