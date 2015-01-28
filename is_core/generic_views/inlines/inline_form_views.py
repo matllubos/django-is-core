@@ -1,11 +1,14 @@
 from __future__ import unicode_literals
 
+from django.db import models
+
 from chamber.utils.forms import formset_has_file_field
 
 from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
 from is_core.generic_views.inlines import InlineView
 from is_core.utils import get_field_value_and_label
 from is_core.forms.fields import SmartReadonlyField
+from is_core.forms.widgets import ModelChoiceReadonlyWidget
 
 
 class InlineFormView(InlineView):
@@ -92,6 +95,12 @@ class InlineFormView(InlineView):
             fields.append('DELETE')
         return fields
 
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        field = db_field.formfield(**kwargs)
+        if isinstance(db_field, (models.ForeignKey, models.OneToOneField)):
+            field.readonly_widget = ModelChoiceReadonlyWidget
+        return field
+
     def formfield_for_readonlyfield(self, name, **kwargs):
         def get_val_and_label_fun(instance):
             return get_field_value_and_label(name, (self, self.core, instance),
@@ -104,8 +113,8 @@ class InlineFormView(InlineView):
         return smartinlineformset_factory(
             self.parent_model, self.model, self.request, form=self.form_class, fk_name=self.fk_name, extra=extra,
             formset=self.base_inline_formset_class, can_delete=self.get_can_delete(), exclude=exclude,
-            fields=fields, min_num=self.min_num, max_num=self.max_num, readonly_fields=readonly_fields,
-            readonly=self.readonly, formreadonlyfield_callback=self.formfield_for_readonlyfield
+            fields=fields, formfield_callback=self.formfield_for_dbfield, min_num=self.min_num, max_num=self.max_num,
+            readonly_fields=readonly_fields, readonly=self.readonly, formreadonlyfield_callback=self.formfield_for_readonlyfield
         )
 
     def get_queryset(self):
