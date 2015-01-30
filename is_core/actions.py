@@ -28,17 +28,19 @@ class WebAction(Action):
 
 class RestAction(Action):
 
-    def __init__(self, name, verbose_name, method, data=None, class_name=None):
+    def __init__(self, name, verbose_name, method, data=None, class_name=None, success_text=None):
         super(RestAction, self).__init__(name, verbose_name, 'rest', class_name)
         self.method = method
         if data:
             self.data = data
+        if success_text:
+            self.success_text = success_text
 
 
 class ConfirmRestAction(RestAction):
 
-    def __init__(self, name, verbose_name, method, data=None, class_name=None, confirm_dialog=None):
-        super(ConfirmRestAction, self).__init__(name, verbose_name, method, data, class_name)
+    def __init__(self, name, verbose_name, method, data=None, class_name=None, confirm_dialog=None, success_text=None):
+        super(ConfirmRestAction, self).__init__(name, verbose_name, method, data, class_name, success_text)
         self.confirm = confirm_dialog
 
     class ConfirmDialog(JsonObj):

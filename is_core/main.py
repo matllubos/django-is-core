@@ -404,11 +404,10 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_list_actions(self, request, obj):
         list_actions = super(RestModelISCore, self).get_list_actions(request, obj)
         if self.has_delete_permission(request, obj):
-            confirm_dialog = ConfirmRestAction.ConfirmDialog(_('Do you really want to delete "%s"') %
-                                                             obj)
+            confirm_dialog = ConfirmRestAction.ConfirmDialog(_('Do you really want to delete "%s"') % obj)
             list_actions.append(ConfirmRestAction('api-resource-%s' % self.get_menu_group_pattern_name(),
                                                   _('Delete') , 'DELETE', confirm_dialog=confirm_dialog,
-                                                  class_name='delete'))
+                                                  class_name='delete', success_text=_('Record "%s" was deleted') % obj))
         return list_actions
 
     def web_link_patterns(self, request):
