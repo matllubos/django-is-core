@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 from chamber.utils.forms import formset_has_file_field
 
@@ -26,6 +27,7 @@ class InlineFormView(InlineView):
     fields = None
     initial = []
     base_inline_formset_class = BaseInlineFormSet
+    no_items_text = _('There are no items')
 
     def __init__(self, request, parent_view, parent_instance):
         super(InlineFormView, self).__init__(request, parent_view, parent_instance)
@@ -62,6 +64,7 @@ class InlineFormView(InlineView):
             'name': self.get_name(),
             'button_value': self.get_button_value(),
             'class_names': class_names,
+            'no_items_text': self.no_items_text
         })
         return context_data
 
