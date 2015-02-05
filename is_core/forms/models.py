@@ -14,6 +14,8 @@ from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
 from is_core.forms.forms import SmartFormMixin
+import itertools
+from is_core.utils import field_humanized_value
 
 
 class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
@@ -154,7 +156,47 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
         return new_class
 
 
+def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None):
+    """
+    Returns a dict containing the humanized data in ``instance`` suitable for passing as
+    a Form's ``initial`` keyword argument.
+
+    ``fields`` is an optional list of field names. If provided, only the named
+    fields will be included in the returned dict.
+
+    ``exclude`` is an optional list of field names. If provided, the named
+    fields will be excluded from the returned dict, even if they are listed in
+    the ``fields`` argument.
+    """
+    opts = instance._meta
+    data = {}
+    for f in opts.concrete_fields + opts.virtual_fields + opts.many_to_many:
+        if not getattr(f, 'editable', False):
+            continue
+        if fields and not f.name in fields:
+            continue
+        if f.name not in readonly_fields:
+            continue
+        if exclude and f.name in exclude:
+            continue
+
+        humanized_value = field_humanized_value(instance, f)
+        if humanized_value:
+            data[f.name] = humanized_value
+    return data
+
+
 class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin), RestModelForm):
+
+    def __init__(self, *args, **kwargs):
+        # Set values must be ommited
+        readonly_exclude = kwargs.get('initials', {}).keys()
+
+        super(SmartModelForm, self).__init__(*args, **kwargs)
+
+        opts = self._meta
+        self.humanized_data = humanized_model_to_dict(self.instance, self.base_readonly_fields, opts.fields,
+                                                      itertools.chain(opts.exclude, readonly_exclude))
 
     def _get_validation_exclusions(self):
         exclude = super(SmartModelForm, self)._get_validation_exclusions()

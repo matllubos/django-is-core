@@ -8,8 +8,10 @@ from django.forms.fields import FileField
 
 from piston.forms import RestFormMixin
 
-from is_core.forms.fields import SmartReadonlyField
+from is_core.forms.fields import SmartReadonlyField, ReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
+from django.forms.models import ModelForm
+from django.utils.encoding import force_text
 
 
 def pretty_class_name(class_name):
@@ -57,13 +59,20 @@ class SmartBoundField(BoundField):
             return pretty_class_name(self.field.widget.__class__.__name__)
 
 
+class ReadonlyValue(object):
+
+    def __init__(self, value, humanized_value):
+        self.value = value
+        self.humanized_value = humanized_value
+
+
 class ReadonlyBoundField(SmartBoundField):
 
     is_readonly = True
 
     def __init__(self, form, field, name):
         if isinstance(field, SmartReadonlyField):
-            field._set_val_and_label(form.instance)
+            field._set_readonly_field(form.instance)
         super(ReadonlyBoundField, self).__init__(form, field, name)
 
     def as_widget(self, widget=None, attrs=None, only_initial=False):
@@ -74,9 +83,15 @@ class ReadonlyBoundField(SmartBoundField):
 
     def value(self):
         data = self.form.initial.get(self.name, self.field.initial)
+
         if callable(data):
             data = data()
-        return self.field.prepare_value(data)
+
+        value = self.field.prepare_value(data)
+        if hasattr(self.form, 'humanized_data') and self.name in self.form.humanized_data:
+            humanized_value = self.form.humanized_data.get(self.name)
+            return ReadonlyValue(value, humanized_value)
+        return value
 
 
 class SmartFormMetaclass(DeclarativeFieldsMetaclass):
@@ -147,7 +162,10 @@ class SmartFormMixin(object):
 
     def _get_readonly_widget(self, field_name, field, widget):
         if field.readonly_widget:
-            return field.readonly_widget(widget)
+            if isinstance(field.readonly_widget, type):
+                return field.readonly_widget(widget)
+            else:
+                return field.readonly_widget
         return field.widget
 
     def _clean_fields(self):

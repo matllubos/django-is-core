@@ -11,9 +11,10 @@ from django.utils.html import format_html, format_html_join, conditional_escape
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
-from django.forms.widgets import Widget, URLInput
+from django.forms.widgets import Widget
 from django.forms.util import flatatt
 from django.core.validators import EMPTY_VALUES
+from django.db.models.base import Model
 
 
 try:
@@ -171,10 +172,17 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         super(ReadonlyWidget, self).__init__(attrs)
         self.widget = widget
 
+    def _get_widget(self):
+        widget = self.widget
+        while isinstance(widget, WrapperWidget):
+            widget = widget.widget
+        return widget
+
     def _get_value(self, value):
         from is_core.utils import display_for_value
 
-        if self.widget and hasattr(self.widget, 'choices'):
+        widget = self._get_widget()
+        if widget and hasattr(widget, 'choices'):
             result = dict(self.widget.choices).get(value)
         else:
             result = value
@@ -182,30 +190,68 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         if result in EMPTY_VALUES:
             result = EMPTY_VALUE
 
-        if result and isinstance(self.widget, URLInput):
-            return mark_safe('<a href="%s">%s</a>' % (result, result))
-        if isinstance(result, FieldFile):
-            return mark_safe('<a href="%s">%s</a>' % (result.url, os.path.basename(result.name)))
         return display_for_value(result)
 
-    def render(self, name, value, attrs=None, choices=()):
+    def _render(self, name, value, attrs=None, choices=()):
         if isinstance(value, (list, tuple)):
             out = ', '.join([self._get_value(val) for val in value])
         else:
             out = self._get_value(value)
         return mark_safe('<p>%s</p>' % conditional_escape(out))
 
+    def _smart_render(self, request, name, value, attrs=None, choices=()):
+        return self._render(name, value, attrs, choices)
+
+    def _render_readonly_value(self, readonly_value):
+        return mark_safe('<p><span title="%s">%s</span></p>' % (conditional_escape(force_text(readonly_value.value)),
+                                                                conditional_escape(readonly_value.humanized_value)))
+
+    def render(self, name, value, attrs=None, choices=()):
+        from is_core.forms.forms import ReadonlyValue
+
+        if isinstance(value, ReadonlyValue):
+            return self._render_readonly_value(value)
+        else:
+            return self._render(self, name, value, attrs, choices)
+
+    def smart_render(self, request, name, value, attrs=None, choices=()):
+        from is_core.forms.forms import ReadonlyValue
+
+        if isinstance(value, ReadonlyValue):
+            return self._render_readonly_value(value)
+        else:
+            return self._smart_render(request, name, value, attrs, choices)
+
     def _has_changed(self, initial, data):
         return False
 
 
-class ModelChoiceReadonlyWidget(ReadonlyWidget):
+class ModelObjectReadonlyWidget(ReadonlyWidget):
 
-    def _get_widget(self):
-        widget = self.widget
-        while isinstance(widget, WrapperWidget):
-            widget = widget.widget
-        return widget
+    def _render_object(self, request, obj, display_value=None):
+        if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__')
+            and hasattr(getattr(obj, 'can_see_edit_link', None), '__call__')
+            and obj.can_see_edit_link(request)):
+                return '<a href="%s">%s</a>' % (obj.get_absolute_url(), display_value or force_text(obj))
+        return display_value or force_text(obj)
+
+    def _smart_render(self, request, name, value, *args, **kwargs):
+        if value and isinstance(value, Model):
+            return mark_safe('<p>%s</p>' % self._render_object(request, value))
+        else:
+            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, *args, **kwargs)
+
+
+class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
+
+    def _smart_render(self, request, name, value, *args, **kwargs):
+        if value and isinstance(value, (list, tuple)):
+            return mark_safe(', '.join((self._render_object(request, obj) for obj in value)))
+        else:
+            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, *args, **kwargs)
+
+
+class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
 
     def _get_choice(self, value):
         widget = self._get_widget()
@@ -214,22 +260,57 @@ class ModelChoiceReadonlyWidget(ReadonlyWidget):
                 if choice[0] == value:
                     return choice
 
-    def smart_render(self, request, name, value, attrs=None, choices=()):
+    def _smart_render(self, request, name, value, attrs=None, choices=()):
         choice = self._get_choice(value)
 
         out = []
         if choice:
             value = force_text(choice[1])
-            if (choice.obj and hasattr(getattr(choice.obj, 'get_absolute_url', None), '__call__')
-                and hasattr(getattr(choice.obj, 'can_see_edit_link', None), '__call__')
-                and choice.obj.can_see_edit_link(request)):
-                value = '<a href="%s">%s</a>' % (choice.obj.get_absolute_url(), value)
+            if choice.obj:
+                value = self._render_object(request, choice.obj, value) or value
+
         else:
             if value in EMPTY_VALUES:
                 value = EMPTY_VALUE
 
         out.append(value)
         return mark_safe('<p>%s</p>' % '\n'.join(out))
+
+
+class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
+
+    def _smart_render(self, request, name, values, *args, **kwargs):
+        if values and isinstance(values, (list, tuple)):
+            rendered_values = []
+            for value in values:
+                choice = self._get_choice(value)
+                if choice:
+                    value = force_text(choice[1])
+                    if choice.obj:
+                        rendered_values.append(self._render_object(request, choice.obj, value))
+                    else:
+                        rendered_values.append(value)
+            return mark_safe('<p>%s</p>' % rendered_values and ', '.join(rendered_values) or EMPTY_VALUE)
+        else:
+            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, *args, **kwargs)
+
+
+class URLReadonlyWidget(ReadonlyWidget):
+
+    def _render(self, name, value, *args, **kwargs):
+        if value:
+            return mark_safe('<a href="%s">%s</a>' % (value, value))
+        else:
+            return super(URLReadonlyWidget, self)._render(name, value, *args, **kwargs)
+
+
+class FileReadonlyWidget(ReadonlyWidget):
+
+    def _render(self, name, value, *args, **kwargs):
+        if value and isinstance(value, FieldFile):
+            return mark_safe('<a href="%s">%s</a>' % (value.url, os.path.basename(value.name)))
+        else:
+            return super(FileReadonlyWidget, self)._render(name, value, *args, **kwargs)
 
 
 class EmptyWidget(ReadonlyWidget):

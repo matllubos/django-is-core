@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 
 from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
-from django.forms.fields import ImageField, FileField, Field
+from django.forms.fields import ImageField, FileField, Field, URLField
 
 from is_core.forms.utils import add_class_name
-from is_core.forms.widgets import DragAndDropFileInput, DragAndDropImageInput, ReadonlyWidget
+from is_core.forms.widgets import (DragAndDropFileInput, DragAndDropImageInput, ReadonlyWidget, URLReadonlyWidget,
+                                   FileReadonlyWidget, ModelChoiceReadonlyWidget, ModelMultipleReadonlyWidget)
+from is_core.forms.models import ModelMultipleChoiceField, ModelChoiceField
 
 
 def build_attrs(self, extra_attrs=None, **kwargs):
@@ -38,3 +40,8 @@ except ImportError:
 
 Field.is_readonly = False
 Field.readonly_widget = ReadonlyWidget
+URLField.readonly_widget = URLReadonlyWidget
+FileField.readonly_widget = FileReadonlyWidget
+ModelChoiceField.readonly_widget = ModelChoiceReadonlyWidget
+ModelMultipleChoiceField.readonly_widget = ModelMultipleReadonlyWidget
+

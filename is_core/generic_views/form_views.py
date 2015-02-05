@@ -15,12 +15,11 @@ from chamber.utils.forms import formset_has_file_field
 
 from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
-from is_core.utils import flatten_fieldsets
+from is_core.utils import flatten_fieldsets, get_readonly_field_data
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
-from is_core.utils import get_field_value_and_label
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import ModelChoiceReadonlyWidget
 
@@ -356,16 +355,13 @@ class DefaultModelFormView(DefaultFormView):
                                       readonly=not self.has_post_permission())
 
     def formfield_for_dbfield(self, db_field, **kwargs):
-        field = db_field.formfield(**kwargs)
-        if isinstance(db_field, (models.ForeignKey, models.OneToOneField)):
-            field.readonly_widget = ModelChoiceReadonlyWidget
-        return field
+        return db_field.formfield(**kwargs)
 
     def formfield_for_readonlyfield(self, name, **kwargs):
-        def get_val_and_label_fun(instance):
-            return get_field_value_and_label(name, (self, self.core, instance),
-                                                     {'request':self.request}, self.request)
-        return SmartReadonlyField(get_val_and_label_fun)
+        def _get_readonly_field_data(instance):
+            return get_readonly_field_data(name, (self, self.core, instance),
+                                           {'request':self.request}, self.request)
+        return SmartReadonlyField(_get_readonly_field_data)
 
     def get_has_file_field(self, form, inline_form_views=(), **kwargs):
         if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
