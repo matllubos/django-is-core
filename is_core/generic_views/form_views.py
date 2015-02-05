@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
-from django.db import models
 
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
@@ -21,7 +20,6 @@ from is_core.generic_views.inlines.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
-from is_core.forms.widgets import ModelChoiceReadonlyWidget
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):

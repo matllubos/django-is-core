@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from chamber.utils.forms import formset_has_file_field
@@ -8,7 +7,6 @@ from chamber.utils.forms import formset_has_file_field
 from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
 from is_core.generic_views.inlines import InlineView
 from is_core.forms.fields import SmartReadonlyField
-from is_core.forms.widgets import ModelChoiceReadonlyWidget
 from is_core.utils import get_readonly_field_data
 
 
