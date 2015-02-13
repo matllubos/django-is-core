@@ -315,13 +315,16 @@ class FileReadonlyWidget(ReadonlyWidget):
 
 class EmptyWidget(ReadonlyWidget):
 
-    def render(self, name, value, attrs=None):
+    def render(self, *args, **kwargs):
+        return ''
+
+    def smart_render(self, *args, **kwargs):
         return ''
 
 
 class ButtonWidget(ReadonlyWidget):
 
-    def render(self, name, value, attrs=None):
+    def _render(self, name, value, attrs=None, *args, **kwargs):
         final_attrs = self.build_attrs(attrs, name=name)
 
         return format_html('<button %(attrs)s>%(value)s</button>' %
@@ -330,7 +333,7 @@ class ButtonWidget(ReadonlyWidget):
 
 class DivButtonWidget(ReadonlyWidget):
 
-    def render(self, name, value, attrs=None):
+    def _render(self, name, value, attrs=None, *args, **kwargs):
         final_attrs = self.build_attrs(attrs)
         class_name = final_attrs.pop('class', '')
         return format_html('<div class="%(class_name)s btn btn-primary btn-small" '
