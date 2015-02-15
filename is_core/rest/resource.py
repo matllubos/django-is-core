@@ -149,7 +149,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     def _web_links(self, obj):
         web_links = {}
         for pattern in self.core.web_link_patterns(self.request):
-            if pattern.send_in_rest:
+            if pattern.send_in_rest and pattern.get_view(self.request).can_call_get(obj=obj):
                 url = pattern.get_url_string(self.request, obj=obj)
                 if url:
                     web_links[pattern.name] = url
