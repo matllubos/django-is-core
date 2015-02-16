@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import re
 import logging
 
 from django.core.urlresolvers import reverse, resolve, Resolver404
@@ -87,7 +88,10 @@ class ViewPattern(Pattern):
         return reverse(self.pattern, kwargs=kwargs)
 
     def get_view_dispatch(self):
-        raise NotImplemented
+        raise NotImplementedError
+
+    def get_view(self, request, args=None, kwargs=None):
+        raise NotImplementedError
 
     def get_url(self):
         url_pattern = self.url_pattern
@@ -98,6 +102,20 @@ class ViewPattern(Pattern):
             url_pattern = '^%s%s' % (self.url_prefix, url_pattern)
         return url(url_pattern, self.get_view_dispatch(), name=self.name)
 
+    def __getattr__(self, name):
+        for regex in (r'_check_(\w+)_permission', r'can_call_(\w+)'):
+            m = re.match(regex, name)
+            if m:
+                def _call(request, obj=None, view_kwargs=None, **kwargs):
+                    view_kwargs = (view_kwargs or {}).copy()
+                    if obj:
+                        view_kwargs.update(self._get_try_kwarg(obj))
+
+                    view = self.get_view(request, None, view_kwargs)
+                    return getattr(view, name)(**kwargs)
+                return _call
+        raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
+
 
 class UIPattern(ViewPattern):
 
@@ -107,8 +125,12 @@ class UIPattern(ViewPattern):
         if core:
             self.view_class.__init_core__(core, self)
 
-    def get_view(self, request):
+    def get_view(self, request, args=None, kwargs=None):
         view = self.view_class()
+        if args:
+            view.args = args
+        if kwargs:
+            view.kwargs = kwargs
         view.request = request
         return view
 
@@ -133,8 +155,13 @@ class RestPattern(ViewPattern):
         if url_prefix:
             return 'api/%s' % url_prefix
 
-    def get_view(self, request):
-        return self.resource_class(request)
+    def get_view(self, request, args=None, kwargs=None):
+        view = self.resource_class(request)
+        if args:
+            view.args = args
+        if kwargs:
+            view.kwargs = kwargs
+        return view
 
     def get_view_dispatch(self):
         dispatch = self.resource_class.as_view(allowed_methods=self.methods)

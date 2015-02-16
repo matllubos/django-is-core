@@ -16,9 +16,9 @@ from is_core.patterns import RestPattern, patterns
 from is_core.exceptions import HttpForbiddenResponseException
 from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUnsupportedMediaTypeResponseException,
                                          HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
+from is_core.forms.models import smartmodelform_factory
 
 from chamber.utils.decorators import classproperty
-from is_core.forms.models import smartmodelform_factory
 
 
 class RestResource(BaseResource):
@@ -149,9 +149,9 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     def _web_links(self, obj):
         web_links = {}
         for pattern in self.core.web_link_patterns(self.request):
-            if pattern.send_in_rest and pattern.get_view(self.request).can_call_get(obj=obj):
+            if pattern.send_in_rest:
                 url = pattern.get_url_string(self.request, obj=obj)
-                if url:
+                if url and pattern.can_call_get(self.request, obj=obj):
                     web_links[pattern.name] = url
         return web_links
 

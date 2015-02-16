@@ -32,12 +32,12 @@ class PermissionsViewMixin(object):
             ):
             m = re.match(regex, name)
             if m:
-                def _call(**kwargs):
-                    return method(m.group(1), **kwargs)
+                def _call(*args, **kwargs):
+                    return method(m.group(1), *args, **kwargs)
                 return _call
         raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
-    def _check_call(self, name, **kwargs):
+    def _check_call(self, name, *args, **kwargs):
         if not hasattr(self, 'has_%s_permission' % name):
             if settings.DEBUG:
                 raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
@@ -45,18 +45,18 @@ class PermissionsViewMixin(object):
                 return False
 
         try:
-            return getattr(self, 'has_%s_permission' % name)(**kwargs)
+            return getattr(self, 'has_%s_permission' % name)(*args, **kwargs)
         except Http404:
             return False
 
-    def _check_permission(self, name, **kwargs):
+    def _check_permission(self, name, *args, **kwargs):
         if not hasattr(self, 'has_%s_permission' % name):
             if settings.DEBUG:
                 raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
             else:
                 raise HttpForbiddenResponseException
 
-        if not getattr(self, 'has_%s_permission' % name)(**kwargs):
+        if not getattr(self, 'has_%s_permission' % name)(*args, **kwargs):
             raise HttpForbiddenResponseException
 
     def has_options_permission(self, **kwargs):
