@@ -76,15 +76,14 @@ class ViewPattern(Pattern):
     def pattern(self):
         return '%s:%s' % (self.site_name, self.name)
 
-    def _get_try_kwarg(self, obj):
-        if'(?P<pk>[-\w]+)' in self.url_pattern or '(?P<pk>\d+)' in self.url_pattern:
+    def _get_try_kwargs(self, request, obj):
+        if obj and '(?P<pk>[-\w]+)' in self.url_pattern or '(?P<pk>\d+)' in self.url_pattern:
             return {'pk': obj.pk}
         return {}
 
     def get_url_string(self, request, obj=None, kwargs=None):
         kwargs = (kwargs or {}).copy()
-        if obj:
-            kwargs.update(self._get_try_kwarg(obj))
+        kwargs.update(self._get_try_kwargs(request, obj))
         return reverse(self.pattern, kwargs=kwargs)
 
     def get_view_dispatch(self):
@@ -102,17 +101,32 @@ class ViewPattern(Pattern):
             url_pattern = '^%s%s' % (self.url_prefix, url_pattern)
         return url(url_pattern, self.get_view_dispatch(), name=self.name)
 
+    def _get_called_permission_kwargs(self, request, obj):
+        kwargs = {}
+        if obj:
+            kwargs['obj'] = obj
+        return kwargs
+
     def __getattr__(self, name):
         for regex in (r'_check_(\w+)_permission', r'can_call_(\w+)'):
             m = re.match(regex, name)
             if m:
                 def _call(request, obj=None, view_kwargs=None, **kwargs):
                     view_kwargs = (view_kwargs or {}).copy()
-                    if obj:
-                        view_kwargs.update(self._get_try_kwarg(obj))
+                    bckp_request_kwargs = request.kwargs
 
-                    view = self.get_view(request, None, view_kwargs)
-                    return getattr(view, name)(**kwargs)
+                    # The request kwargs must be always returned back
+                    try:
+                        view_kwargs.update(self._get_try_kwargs(request, obj))
+                        request.kwargs = view_kwargs
+                        view = self.get_view(request, None, view_kwargs)
+                        permission_kwargs = self._get_called_permission_kwargs(request, obj)
+                        permission_kwargs.update(kwargs)
+                        result = getattr(view, name)(**permission_kwargs)
+                    finally:
+                        request.kwargs = bckp_request_kwargs
+                    return result
+
                 return _call
         raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
