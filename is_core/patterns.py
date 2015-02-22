@@ -107,26 +107,36 @@ class ViewPattern(Pattern):
             kwargs['obj'] = obj
         return kwargs
 
+    def _call_view_method_with_request(self, method_name, request, request_kwargs=None,
+                                       method_args=None, method_kwargs=None, obj=None):
+        request_kwargs = request_kwargs if request_kwargs is not None else {}
+        method_args = method_args if method_args is not None else ()
+        method_kwargs = method_kwargs if method_kwargs is not None else {}
+
+        bckp_request_kwargs = request.kwargs
+
+        # The request kwargs must be always returned back
+        try:
+            request_kwargs.update(self._get_try_kwargs(request, obj))
+            request.kwargs = request_kwargs
+            view = self.get_view(request, None, request_kwargs)
+            result = getattr(view, method_name)(*method_args, **method_kwargs)
+        finally:
+            request.kwargs = bckp_request_kwargs
+        return result
+
     def __getattr__(self, name):
         for regex in (r'_check_(\w+)_permission', r'can_call_(\w+)'):
             m = re.match(regex, name)
             if m:
                 def _call(request, obj=None, view_kwargs=None, **kwargs):
                     view_kwargs = (view_kwargs or {}).copy()
-                    bckp_request_kwargs = request.kwargs
 
-                    # The request kwargs must be always returned back
-                    try:
-                        view_kwargs.update(self._get_try_kwargs(request, obj))
-                        request.kwargs = view_kwargs
-                        view = self.get_view(request, None, view_kwargs)
-                        permission_kwargs = self._get_called_permission_kwargs(request, obj)
-                        permission_kwargs.update(kwargs)
-                        result = getattr(view, name)(**permission_kwargs)
-                    finally:
-                        request.kwargs = bckp_request_kwargs
-                    return result
+                    method_kwargs = self._get_called_permission_kwargs(request, obj)
+                    method_kwargs.update(kwargs)
 
+                    return self._call_view_method_with_request(name, request, request_kwargs=view_kwargs,
+                                                               method_kwargs=method_kwargs, obj=obj)
                 return _call
         raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
 
@@ -184,7 +194,8 @@ class RestPattern(ViewPattern):
         return dispatch
 
     def get_allowed_methods(self, request, obj):
-        return self.resource_class(request).get_allowed_methods(obj, self.methods)
+        return self._call_view_method_with_request('get_allowed_methods', request, method_args=(obj, self.methods),
+                                                   obj=obj)
 
 
 class DoubleRestPattern(object):
