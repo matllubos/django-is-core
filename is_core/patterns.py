@@ -77,7 +77,7 @@ class ViewPattern(Pattern):
         return '%s:%s' % (self.site_name, self.name)
 
     def _get_try_kwargs(self, request, obj):
-        if obj and '(?P<pk>[-\w]+)' in self.url_pattern or '(?P<pk>\d+)' in self.url_pattern:
+        if obj and ('(?P<pk>[-\w]+)' in self.url_pattern or '(?P<pk>\d+)' in self.url_pattern):
             return {'pk': obj.pk}
         return {}
 
