@@ -39,7 +39,6 @@ def is_rest_request(request):
 
 
 class Pattern(object):
-
     send_in_rest = True
 
     def __init__(self, name):
@@ -82,9 +81,10 @@ class ViewPattern(Pattern):
         return {}
 
     def get_url_string(self, request, obj=None, kwargs=None):
-        kwargs = (kwargs or {}).copy()
-        kwargs.update(self._get_try_kwargs(request, obj))
-        return reverse(self.pattern, kwargs=kwargs)
+        kwargs = kwargs or {}
+        try_kwargs = self._get_try_kwargs(request, obj)
+        try_kwargs.update(kwargs)
+        return reverse(self.pattern, kwargs=try_kwargs)
 
     def get_view_dispatch(self):
         raise NotImplementedError
@@ -117,9 +117,10 @@ class ViewPattern(Pattern):
 
         # The request kwargs must be always returned back
         try:
-            request_kwargs.update(self._get_try_kwargs(request, obj))
-            request.kwargs = request_kwargs
-            view = self.get_view(request, None, request_kwargs)
+            try_request_kwargs = self._get_try_kwargs(request, obj)
+            try_request_kwargs.update(request_kwargs)
+            request.kwargs = try_request_kwargs
+            view = self.get_view(request, None, try_request_kwargs)
             result = getattr(view, method_name)(*method_args, **method_kwargs)
         finally:
             request.kwargs = bckp_request_kwargs
@@ -198,6 +199,10 @@ class RestPattern(ViewPattern):
                                                    obj=obj)
 
 
+class HiddenRestPattern(RestPattern):
+    send_in_rest = False
+
+
 class DoubleRestPattern(object):
 
     def __init__(self, resource_class, pattern_class, core):
@@ -217,4 +222,3 @@ class DoubleRestPattern(object):
              ('get', 'post')
         )
         return result
-

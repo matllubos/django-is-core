@@ -69,7 +69,27 @@ class HtmlLinkExtractor(OriginalHtmlLinkExtractor):
     link_attr_names = ('href', 'src', 'data-resource')
 
 
+class TextPlainSnippetsExtractor(LinkExtractor):
+
+    def extract(self, content):
+        links = []
+
+        try:
+            data = json.loads(content)
+
+            html_extractor = HtmlLinkExtractor()
+            for html in data.get('snippets', {}).values():
+                links += html_extractor.extract(html)
+        except ValueError:
+            # I text/plain is not snippet return empty links
+            pass
+
+        return links
+
+
 class CrawlerTestCase(ClientTestCase):
+
+    REST_BASE = None
 
     def get_users(self):
         raise NotImplementedError
@@ -84,6 +104,8 @@ class CrawlerTestCase(ClientTestCase):
         def pre_request(url, referer, headers):
             if url.startswith('/api/'):
                 headers['HTTP_X_FIELDS'] = '_rest_links,_web_links'
+            if self.REST_BASE:
+                headers['HTTP_X_BASE'] = str(self.REST_BASE)
             return url, headers
 
         def post_response(url, referer, resp, exception):
@@ -98,6 +120,7 @@ class CrawlerTestCase(ClientTestCase):
                                 (url, referer, self.logged_user.user))
         Crawler(self.c, ('/',), ('/logout/',), pre_request, post_response,
                 extra_link_extractors={'application/json; charset=utf-8': JsonLinkExtractor(),
+                                       'text/plain': TextPlainSnippetsExtractor(),
                                        'default': HtmlLinkExtractor()}).run()
 
         self.logger.info('Completed with tested %s urls (warnings %s)' % (len(tested_urls), len(failed_urls)))

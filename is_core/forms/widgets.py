@@ -292,7 +292,7 @@ class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
                         rendered_values.append(value)
             return mark_safe('<p>%s</p>' % rendered_values and ', '.join(rendered_values) or EMPTY_VALUE)
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, *args, **kwargs)
+            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, values, *args, **kwargs)
 
 
 class URLReadonlyWidget(ReadonlyWidget):
