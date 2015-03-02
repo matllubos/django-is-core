@@ -162,8 +162,8 @@ class DragAndDropImageInput(DragAndDropFileInput):
 
 class SmartWidgetMixin(object):
 
-    def smart_render(self, request, *args, **kwargs):
-        return self.render(*args, **kwargs)
+    def smart_render(self, request, name, value, initial_value, *args, **kwargs):
+        return self.render(name, value, *args, **kwargs)
 
 
 class ReadonlyWidget(SmartWidgetMixin, Widget):
@@ -199,7 +199,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
             out = self._get_value(value)
         return mark_safe('<p>%s</p>' % conditional_escape(out))
 
-    def _smart_render(self, request, name, value, attrs=None, choices=()):
+    def _smart_render(self, request, name, value, initial_value, attrs=None, choices=()):
         return self._render(name, value, attrs, choices)
 
     def _render_readonly_value(self, readonly_value):
@@ -214,13 +214,13 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         else:
             return self._render(self, name, value, attrs, choices)
 
-    def smart_render(self, request, name, value, attrs=None, choices=()):
+    def smart_render(self, request, name, value, initial_value, attrs=None, choices=()):
         from is_core.forms.forms import ReadonlyValue
 
         if isinstance(value, ReadonlyValue):
             return self._render_readonly_value(value)
         else:
-            return self._smart_render(request, name, value, attrs, choices)
+            return self._smart_render(request, name, value, initial_value, attrs, choices)
 
     def _has_changed(self, initial, data):
         return False
@@ -235,20 +235,22 @@ class ModelObjectReadonlyWidget(ReadonlyWidget):
                 return '<a href="%s">%s</a>' % (obj.get_absolute_url(), display_value or force_text(obj))
         return display_value or force_text(obj)
 
-    def _smart_render(self, request, name, value, *args, **kwargs):
+    def _smart_render(self, request, name, value, initial_value, *args, **kwargs):
         if value and isinstance(value, Model):
             return mark_safe('<p>%s</p>' % self._render_object(request, value))
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, *args, **kwargs)
+            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, initial_value,
+                                                                        *args, **kwargs)
 
 
 class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
 
-    def _smart_render(self, request, name, value, *args, **kwargs):
+    def _smart_render(self, request, name, value, initial_value, *args, **kwargs):
         if value and isinstance(value, (list, tuple)):
             return mark_safe(', '.join((self._render_object(request, obj) for obj in value)))
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, *args, **kwargs)
+            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, initial_value,
+                                                                        *args, **kwargs)
 
 
 class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
@@ -260,7 +262,7 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
                 if choice[0] == value:
                     return choice
 
-    def _smart_render(self, request, name, value, attrs=None, choices=()):
+    def _smart_render(self, request, name, value, initial_value, attrs=None, choices=()):
         choice = self._get_choice(value)
 
         out = []
@@ -279,7 +281,7 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
 
 class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
 
-    def _smart_render(self, request, name, values, *args, **kwargs):
+    def _smart_render(self, request, name, values, initial_values, *args, **kwargs):
         if values and isinstance(values, (list, tuple)):
             rendered_values = []
             for value in values:
@@ -292,7 +294,8 @@ class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
                         rendered_values.append(value)
             return mark_safe('<p>%s</p>' % rendered_values and ', '.join(rendered_values) or EMPTY_VALUE)
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, values, *args, **kwargs)
+            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, values, initial_values,
+                                                                        *args, **kwargs)
 
 
 class URLReadonlyWidget(ReadonlyWidget):
@@ -339,4 +342,3 @@ class DivButtonWidget(ReadonlyWidget):
         return format_html('<div class="%(class_name)s btn btn-primary btn-small" '
                            '%(attrs)s>%(value)s</div>' %
                            {'class_name': class_name, 'value': value, 'attrs': flatatt(final_attrs)})
-

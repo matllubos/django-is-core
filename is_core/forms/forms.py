@@ -8,10 +8,8 @@ from django.forms.fields import FileField
 
 from piston.forms import RestFormMixin
 
-from is_core.forms.fields import SmartReadonlyField, ReadonlyField
+from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
-from django.forms.models import ModelForm
-from django.utils.encoding import force_text
 
 
 def pretty_class_name(class_name):
@@ -48,7 +46,7 @@ class SmartBoundField(BoundField):
             name = self.html_initial_name
 
         if isinstance(widget, SmartWidgetMixin) and hasattr(self.form, '_request'):
-            return widget.smart_render(self.form._request, name, self.value(), attrs=attrs)
+            return widget.smart_render(self.form._request, name, self.value(), self._initial_value(), attrs=attrs)
         return widget.render(name, self.value(), attrs=attrs)
 
     @property
@@ -57,6 +55,24 @@ class SmartBoundField(BoundField):
             return 'readonly'
         else:
             return pretty_class_name(self.field.widget.__class__.__name__)
+
+    def _bound_value(self):
+        data = self.field.bound_data(
+            self.data, self.form.initial.get(self.name, self.field.initial)
+        )
+        return self.field.prepare_value(data)
+
+    def _initial_value(self):
+        data = self.form.initial.get(self.name, self.field.initial)
+        if callable(data):
+            data = data()
+        return self.field.prepare_value(data)
+
+    def value(self):
+        if not self.form.is_bound:
+            return self._initial_value()
+        else:
+            return self._bound_value()
 
 
 class ReadonlyValue(object):
@@ -81,7 +97,7 @@ class ReadonlyBoundField(SmartBoundField):
         return super(ReadonlyBoundField, self).as_widget(self.form._get_readonly_widget(self.name, self.field,
                                                                                         widget), attrs, only_initial)
 
-    def value(self):
+    def _initial_value(self):
         data = self.form.initial.get(self.name, self.field.initial)
 
         if callable(data):
@@ -92,6 +108,9 @@ class ReadonlyBoundField(SmartBoundField):
             humanized_value = self.form.humanized_data.get(self.name)
             return ReadonlyValue(value, humanized_value)
         return value
+
+    def value(self):
+        return self._initial_value()
 
 
 class SmartFormMetaclass(DeclarativeFieldsMetaclass):
