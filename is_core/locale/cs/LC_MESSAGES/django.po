@@ -175,9 +175,9 @@ msgid "Cannot resolve filter \"%s\""
 msgstr "Není možné filtrovat data dle hodnoty: \"%s\""
 
 #: rest/resource.py:218
-#, fuzzy, python-format
+#, python-format
 msgid "Cannot resolve Order value \"%s\" into fields"
-msgstr "Není možné řadit dle hodnoty hlavičky X-Order: \"%s\""
+msgstr "Řadící hodnotě \"%s\" neodpovídá žádné pole"
 
 #: templates/500.html:5
 msgid "Internal Server Error (500)"
