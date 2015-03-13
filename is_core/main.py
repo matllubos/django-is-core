@@ -40,7 +40,7 @@ class ISCoreBase(type):
         model_module = sys.modules[new_class.__module__]
         app_label = model_module.__name__.split('.')[-2]
 
-        if name != 'NewBase' and not abstract:
+        if name != 'NewBase' and not abstract and new_class.can_register():
             register_core(app_label, new_class)
         return new_class
 
@@ -101,6 +101,10 @@ class ISCore(six.with_metaclass(ISCoreBase)):
 
     def get_menu_item(self, request, active_group):
         pass
+
+    @classmethod
+    def can_register(cls):
+        return True
 
 
 class ModelISCore(PermissionsMixin, ISCore):
