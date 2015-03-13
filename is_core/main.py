@@ -34,19 +34,19 @@ class ISCoreBase(type):
         name, _, attrs = args
 
         abstract = attrs.pop('abstract', False)
-
         super_new = super(ISCoreBase, cls).__new__
         new_class = super_new(cls, *args, **kwargs)
         model_module = sys.modules[new_class.__module__]
         app_label = model_module.__name__.split('.')[-2]
 
-        if name != 'NewBase' and not abstract:
+        if name != 'NewBase' and not abstract and new_class.register:
             register_core(app_label, new_class)
         return new_class
 
 
 class ISCore(six.with_metaclass(ISCoreBase)):
     abstract = True
+    register = True
 
     menu_url_name = None
     verbose_name = None
