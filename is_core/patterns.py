@@ -49,7 +49,8 @@ class Pattern(object):
     def _register(self):
         if self.name in patterns:
             logger.warning('Pattern with name %s has been registered yet' % self.name)
-        patterns[self.name] = self
+        else:
+            patterns[self.name] = self
 
     def get_url_string(self, request, obj=None, kwargs=None):
         raise NotImplemented
