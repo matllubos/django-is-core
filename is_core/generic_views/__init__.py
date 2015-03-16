@@ -94,7 +94,7 @@ class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
 
     def bread_crumbs_menu_items(self):
         if self.add_current_to_breadcrumbs:
-            return [LinkMenuItem(self.get_title(), self.request.path, True)]
+            return [LinkMenuItem(self.get_title(), self.request.path, active=True)]
         return []
 
 
