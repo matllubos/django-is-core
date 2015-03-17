@@ -26,6 +26,7 @@ class InlineFormView(InlineView):
     initial = []
     base_inline_formset_class = BaseInlineFormSet
     no_items_text = _('There are no items')
+    class_names = ['inline-js']
 
     def __init__(self, request, parent_view, parent_instance):
         super(InlineFormView, self).__init__(request, parent_view, parent_instance)
@@ -43,12 +44,22 @@ class InlineFormView(InlineView):
 
     def get_context_data(self, **kwargs):
         context_data = super(InlineFormView, self).get_context_data(**kwargs)
-        formset = self.formset
-        fieldset = self.get_fieldset(formset)
-        class_names = [self.get_name().lower()]
-        if formset.can_add:
+
+        context_data.update({
+            'formset': self.formset,
+            'fieldset': self.get_fieldset(self.formset),
+            'name': self.get_name(),
+            'button_value': self.get_button_value(),
+            'class_names': self.get_class_names(**kwargs),
+            'no_items_text': self.no_items_text
+        })
+        return context_data
+
+    def get_class_names(self, **kwargs):
+        class_names = self.class_names + [self.get_name().lower()]
+        if self.formset.can_add:
             class_names.append('can-add')
-        if formset.can_delete:
+        if self.formset.can_delete:
             class_names.append('can-delete')
 
         if kwargs.get('title'):
@@ -56,15 +67,7 @@ class InlineFormView(InlineView):
         else:
             class_names.append('without-title')
 
-        context_data.update({
-            'formset': formset,
-            'fieldset': fieldset,
-            'name': self.get_name(),
-            'button_value': self.get_button_value(),
-            'class_names': class_names,
-            'no_items_text': self.no_items_text
-        })
-        return context_data
+        return class_names
 
     def get_exclude(self):
         return self.exclude

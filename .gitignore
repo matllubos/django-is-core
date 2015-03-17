@@ -55,3 +55,8 @@ dj/static/js/app.js
 # Makefile config #
 ###################
 build/config
+
+# IDE #
+###################
+.idea
+*/.idea
