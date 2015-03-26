@@ -55,6 +55,7 @@ class EditParentMixin(ListParentMixin):
     def get_parent_obj(self):
         return self.get_obj()
 
+
 class TabsViewMixin(object):
 
     tabs = ()
