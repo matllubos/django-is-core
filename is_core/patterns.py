@@ -200,8 +200,16 @@ class RestPattern(ViewPattern):
                                                    obj=obj)
 
 
-class HiddenRestPattern(RestPattern):
+class HiddenPatternMixin(object):
     send_in_rest = False
+
+
+class HiddenRestPattern(HiddenPatternMixin, RestPattern):
+    pass
+
+
+class HiddenUIPattern(HiddenPatternMixin, UIPattern):
+    pass
 
 
 class DoubleRestPattern(object):

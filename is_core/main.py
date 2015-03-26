@@ -234,7 +234,7 @@ class HomeUIISCore(UIISCore):
     menu_url_name = 'index'
     verbose_name_plural = _('Home')
     menu_group = 'home'
-    abstract = config.HOME_VIEW != 'is_core.generic_views.HomeView'
+    abstract = config.HOME_IS_CORE != 'is_core.main.HomeUIISCore'
 
     def get_view_classes(self):
         HomeView = str_to_class(config.HOME_VIEW)
