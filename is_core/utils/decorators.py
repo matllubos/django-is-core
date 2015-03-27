@@ -23,7 +23,7 @@ def order_by(field_name):
     Sets 'field name' (this is used for grid ordering)
     """
     def decorator(func):
-        func.filter = filter_class
+        func.order_by = field_name
         return func
     return decorator
 
