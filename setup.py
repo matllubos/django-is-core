@@ -30,7 +30,7 @@ setup(
     install_requires=[
         'django>=1.6',
         'django-class-based-auth-views>=0.2',
-        'django-piston==1.1.12',
+        'django-piston==1.1.13',
         'germanium>=0.2.4',
         'django-block-snippets==0.0.11',
         'django-chamber>=0.0.9',
@@ -45,7 +45,7 @@ setup(
         'pillow==2.3.0'
     ],
     dependency_links=[
-        'https://github.com/matllubos/django-piston/tarball/1.1.12#egg=django-piston-1.1.12',
+        'https://github.com/matllubos/django-piston/tarball/1.1.13#egg=django-piston-1.1.13',
         'https://github.com/matllubos/django-chamber/tarball/0.0.9#egg=django-chamber-0.0.9',
         'https://github.com/matllubos/django-block-snippets/tarball/0.0.11#egg=django-block-snippets-0.0.11',
         'https://github.com/LukasRychtecky/germanium/tarball/0.2.4#egg=germanium-0.2.4',
