@@ -212,7 +212,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         if isinstance(value, ReadonlyValue):
             return self._render_readonly_value(value)
         else:
-            return self._render(self, name, value, attrs, choices)
+            return self._render(name, value, attrs, choices)
 
     def smart_render(self, request, name, value, initial_value, attrs=None, choices=()):
         from is_core.forms.forms import ReadonlyValue

@@ -267,7 +267,6 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 class DefaultModelFormView(DefaultFormView):
     model = None
     exclude = None
-    fieldset = None
     fields = None
     inline_views = None
     form_template = 'forms/model_default_form.html'
@@ -508,7 +507,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
                 self.core.get_form_inline_views(self.request, self.get_obj(True)))
 
     def get_fieldsets(self):
-        return (self.fieldset is not None and self.fieldset or
+        return (self.fieldsets is not None and self.fieldsets or
                 self.core.get_form_fieldsets(self.request, self.get_obj(True)))
 
     def get_fields(self):
