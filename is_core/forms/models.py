@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import warnings
+import itertools
 
 from django import forms
 from django.forms import models
@@ -14,7 +15,6 @@ from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
 from is_core.forms.forms import SmartFormMixin
-import itertools
 from is_core.utils import field_humanized_value
 
 
@@ -49,6 +49,29 @@ class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
                 if not commit:
                     self.saved_forms.append(form)
         return saved_instances
+
+    def post_save_form(self, form):
+        pass
+
+    def post_save(self):
+        pass
+
+    def set_post_save(self, commit):
+        if commit:
+            self.post_save()
+        else:
+            self.old_save_m2m = self.save_m2m
+            def post_save_m2m():
+                self.old_save_m2m()
+                for form in self.saved_forms:
+                    self.post_save_form(form)
+                self.post_save()
+            self.save_m2m = post_save_m2m
+
+    def save(self, commit=True):
+        obj = super(BaseInlineFormSet, self).save(commit)
+        self.set_post_save(commit)
+        return obj
 
 
 class ModelChoice(list):

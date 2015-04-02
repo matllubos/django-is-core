@@ -108,9 +108,12 @@ class InlineFormView(InlineView):
                                            {'request':self.request}, self.request)
         return SmartReadonlyField(_get_readonly_field_data)
 
+    def get_form_class(self):
+        return self.form_class
+
     def get_formset_factory(self, fields=None, readonly_fields=()):
         return smartinlineformset_factory(
-            self.parent_model, self.model, self.request, form=self.form_class, fk_name=self.fk_name,
+            self.parent_model, self.model, self.request, form=self.get_form_class(), fk_name=self.fk_name,
             extra=self.get_extra(), formset=self.base_inline_formset_class, can_delete=self.get_can_delete(),
             exclude=self.get_exclude(), fields=fields, min_num=self.min_num, max_num=self.max_num,
             readonly_fields=readonly_fields, readonly=self.readonly,
@@ -173,6 +176,7 @@ class InlineFormView(InlineView):
             self.save_obj(obj, change)
         for obj in self.formset.deleted_objects:
             self.delete_obj(obj)
+        self.formset.save_m2m()
 
     def get_has_file_field(self):
         return formset_has_file_field(self.formset.form)
