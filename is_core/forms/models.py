@@ -219,7 +219,7 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin)
 
         opts = self._meta
         self.humanized_data = humanized_model_to_dict(self.instance, self.base_readonly_fields, opts.fields,
-                                                      itertools.chain(opts.exclude, readonly_exclude))
+                                                      itertools.chain(opts.exclude or (), readonly_exclude or  ()))
 
     def _get_validation_exclusions(self):
         exclude = super(SmartModelForm, self)._get_validation_exclusions()
