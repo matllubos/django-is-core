@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField, Q
 from django.db.models.fields.related import RelatedField
-from django.db.models.fields import AutoField, DateField, DateTimeField, DecimalField
+from django.db.models.fields import AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField
 
 from dateutil.parser import DEFAULTPARSER
 
@@ -230,3 +230,4 @@ RelatedField.filter = RelatedFieldFilter
 AutoField.filter = NunberFieldFilter
 DateField.filter = DateFilter
 DateTimeField.filter = DateTimeFilter
+GenericIPAddressField.filter = CharFieldFilter
