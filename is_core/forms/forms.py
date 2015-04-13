@@ -209,9 +209,13 @@ class SmartFormMixin(object):
                     if name in self.cleaned_data:
                         del self.cleaned_data[name]
 
-    def _set_readonly(self, field_name):
+    def _register_readonly_field(self, field_name):
         if field_name not in self.base_readonly_fields:
             self.base_readonly_fields.append(field_name)
+
+    def _unregister_readonly_field(self, field_name):
+        if field_name in self.base_readonly_fields:
+            self.base_readonly_fields.remove(field_name)
 
     @property
     def changed_data(self):
