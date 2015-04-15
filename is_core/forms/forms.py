@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 import warnings
 
@@ -10,6 +12,7 @@ from piston.forms import RestFormMixin
 
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
+from django.utils.safestring import mark_safe
 
 
 def pretty_class_name(class_name):
@@ -96,6 +99,13 @@ class ReadonlyBoundField(SmartBoundField):
             widget = self.field.widget
         return super(ReadonlyBoundField, self).as_widget(self.form._get_readonly_widget(self.name, self.field,
                                                                                         widget), attrs, only_initial)
+
+    def as_hidden(self, attrs=None, **kwargs):
+        """
+        Returns a string of HTML for representing this as an <input type="hidden">.
+        Because readonly has not hidden input there must be returned empty string.
+        """
+        return mark_safe('')
 
     def _initial_value(self):
         data = self.form.initial.get(self.name, self.field.initial)
