@@ -122,7 +122,7 @@ def get_instance_readonly_field_data(field_name, instance, fun_kwargs, request):
         else:
             value_or_callable = getattr(instance, field_name)
             value = get_callable_value(value_or_callable, fun_kwargs) or value_or_callable
-            label = value_or_callable.short_description
+            label = get_class_method(instance, field_name).short_description
             widget = ReadonlyWidget
 
         return value, label, widget
@@ -132,7 +132,7 @@ def get_readonly_field_data(field_name, instances, fun_kwargs, request):
     for inst in instances:
         try:
             return get_instance_readonly_field_data(field_name, inst, fun_kwargs, request)
-        except AttributeError as ex:
+        except AttributeError:
             pass
 
     raise AttributeError('Field with name %s not found' % field_name)
@@ -147,3 +147,12 @@ def display_for_value(value):
         value = admin_display_for_value(value)
     return value
 
+
+def get_class_method(cls_or_inst, method_name):
+    cls = cls_or_inst
+    if not isinstance(cls, type):
+        cls = cls_or_inst.__class__
+    meth = getattr(cls, method_name)
+    if isinstance(meth, property):
+        meth = meth.fget
+    return meth

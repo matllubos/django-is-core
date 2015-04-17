@@ -7,6 +7,7 @@ from django.forms.forms import pretty_name
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
 from is_core.rest.datastructures import ModelRestFieldset, ModelFlatRestFields
+from is_core.utils import get_class_method
 from is_core.filters.default_filters import *
 
 from chamber.utils.http import query_string_from_dict
@@ -63,7 +64,7 @@ class TableViewMixin(object):
             field = model._meta.get_field(field_name)
             default_order_by = full_field_name
         except FieldDoesNotExist:
-            field = getattr(model(), field_name)
+            field = get_class_method(model, field_name)
             default_order_by = False
 
         order_by = getattr(field, 'order_by', None)
@@ -79,7 +80,8 @@ class TableViewMixin(object):
         try:
             return model._meta.get_field(field_name).verbose_name
         except FieldDoesNotExist:
-            return getattr(getattr(model(), field_name), 'short_description', pretty_name(field_name))
+            method = get_class_method(model, field_name)
+            return getattr(method, 'short_description', pretty_name(field_name))
 
     def _get_header(self, full_field_name, field_name=None, model=None):
         if not model:
