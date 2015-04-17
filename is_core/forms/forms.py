@@ -97,8 +97,13 @@ class ReadonlyBoundField(SmartBoundField):
     def as_widget(self, widget=None, attrs=None, only_initial=False):
         if not widget:
             widget = self.field.widget
-        return super(ReadonlyBoundField, self).as_widget(self.form._get_readonly_widget(self.name, self.field,
-                                                                                        widget), attrs, only_initial)
+
+        if widget.is_hidden:
+            return mark_safe('')
+        else:
+            return super(ReadonlyBoundField, self).as_widget(
+                self.form._get_readonly_widget(self.name, self.field, widget), attrs, only_initial
+            )
 
     def as_hidden(self, attrs=None, **kwargs):
         """
