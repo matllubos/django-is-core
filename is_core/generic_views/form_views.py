@@ -561,8 +561,9 @@ class AddModelFormView(DefaultCoreModelFormView):
                 'error': _('Please correct the error below.')}
 
     def get_title(self):
-        return self.model._ui_meta.add_verbose_name % {'verbose_name': self.model._meta.verbose_name,
-                                                       'verbose_name_plural': self.model._meta.verbose_name_plural}
+        return (self.title or
+                self.model._ui_meta.add_verbose_name % {'verbose_name': self.model._meta.verbose_name,
+                                                        'verbose_name_plural': self.model._meta.verbose_name_plural})
 
     def has_permission(self, **kwargs):
         return self.core.has_ui_create_permission(self.request)
@@ -577,11 +578,12 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     pk_name = 'pk'
 
     def get_title(self):
-        return self.model._ui_meta.edit_verbose_name % {
-            'verbose_name': self.model._meta.verbose_name,
-            'verbose_name_plural': self.model._meta.verbose_name_plural,
-            'obj': self.get_obj(True)
-        }
+        return (self.title or
+                self.model._ui_meta.edit_verbose_name % {
+                        'verbose_name': self.model._meta.verbose_name,
+                        'verbose_name_plural': self.model._meta.verbose_name_plural,
+                        'obj': self.get_obj(True)
+                    })
 
     def link(self, arguments=None, **kwargs):
         if arguments is None:
