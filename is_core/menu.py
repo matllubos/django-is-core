@@ -1,3 +1,4 @@
+from django.core.exceptions import ImproperlyConfigured
 
 class MenuItem(object):
 
@@ -43,12 +44,14 @@ class MenuGenerator(object):
         for item in items:
             if isinstance(item, MenuItem):
                 menu_items.append(item)
-            else:
-                item = self.site._registry[item]
+            elif self.site.has_is_core(item):
+                item = self.site.get_is_core(item)
                 menu_item = item.get_menu_item(self.request, group)
                 if menu_item:
                     menu_items.append(menu_item)
+            else:
+                raise ImproperlyConfigured('IS Core or Menu item not found for name "%s"' % item)
         return menu_items
 
     def get_menu_structure(self):
-        return self.site._registry.keys()
+        return self.site.get_is_core_names()

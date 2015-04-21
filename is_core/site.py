@@ -42,6 +42,17 @@ class ISSite(object):
         sites[name] = self
         self._registry = self._init_items()
 
+    def has_is_core(self, name):
+        return name in self._registry
+
+    def get_is_core(self, name):
+        if not self.has_is_core(name):
+            raise ImproperlyConfigured('IS Core "%s" not found' % name)
+        return self._registry[name]
+
+    def get_is_core_names(self):
+        return self._registry.keys()
+
     def _init_items(self):
         out = SortedDict()
 
