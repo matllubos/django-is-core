@@ -614,8 +614,8 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     # Should return false if object does not exists and 404 should be resolved with different way
     def has_get_permission(self, obj=None, pk=None, **kwargs):
         obj = obj or self._get_perm_obj_or_404(pk)
-        return self.core.has_ui_update_permission(self.request, obj=obj) \
-                or self.core.has_ui_read_permission(self.request, obj=obj)
+        return (self.core.has_ui_read_permission(self.request, obj=obj) or
+                self.core.has_ui_update_permission(self.request, obj=obj))
 
     def has_post_permission(self, obj=None, pk=None, **kwargs):
         obj = obj or self._get_perm_obj_or_404(pk)
