@@ -427,7 +427,7 @@ class DefaultModelFormView(DefaultFormView):
 
     def get_form_kwargs(self):
         kwargs = super(DefaultModelFormView, self).get_form_kwargs()
-        kwargs['instance'] = self.get_obj()
+        kwargs['instance'] = self.get_obj(False)
         return kwargs
 
     def save_form(self, form, inline_form_views=None, **kwargs):
