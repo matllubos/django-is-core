@@ -46,12 +46,15 @@ class DefaultFilter(Filter):
 
     def _check_suffix(self):
         if '__' in self.filter_key:
-            if self.filter_key.split('__', 1)[1] not in self.get_suffixes():
+            suffix = self.filter_key.split('__', 1)[1]
+            if suffix not in self.get_suffixes():
                 raise FilterException(_('Not valid filter: %(filter_key)s=%(filter_value)s' %
                                         {'filter_key': self.full_filter_key, 'filter_value': self.value}))
+            return suffix
 
     def get_filter_term(self, request):
         self._check_suffix()
+
         return {self.full_filter_key: self.value}
 
     def filter_queryset(self, queryset, request):
@@ -92,7 +95,7 @@ class DefaultFilter(Filter):
 
 class DefaultFieldFilter(DefaultFilter):
 
-    suffixes = []
+    suffixes = ['in']
     default_suffix = None
     EMPTY_LABEL = '---------'
 
@@ -128,10 +131,28 @@ class DefaultFieldFilter(DefaultFilter):
         return widget.render('filter__%s' % self.get_filter_name(), None,
                                         attrs=self.get_attrs_for_widget())
 
+    def _get_in_suffix_value(self, value):
+        for pattern in ('\[(.+)\]', '\((.+)\)'):
+            m = re.compile(pattern).match(value)
+            if m:
+                return set(m.group(1).split(','))
+
+        raise ValueError()
+
+    def get_filter_term(self, request):
+        suffix = self._check_suffix()
+
+        value = self.value
+
+        if suffix == 'in':
+            value = self._get_in_suffix_value(value)
+
+        return {self.full_filter_key: value}
+
 
 class CharFieldFilter(DefaultFieldFilter):
 
-    suffixes = ['startswith', 'endswith', 'contains', 'icontains']
+    suffixes = ['startswith', 'endswith', 'contains', 'icontains', 'in']
     default_suffix = 'icontains'
 
 
@@ -149,12 +170,10 @@ class BooleanFieldFilter(DefaultFieldFilter):
 
 class NunberFieldFilter(DefaultFieldFilter):
 
-    suffixes = ['gt', 'lt', 'gte', 'lte']
+    suffixes = ['gt', 'lt', 'gte', 'lte', 'in']
 
 
 class RelatedFieldFilter(DefaultFieldFilter):
-
-    suffixes = ['in']
 
     def get_widget(self):
         """ Turn off extra fields return """
@@ -168,11 +187,7 @@ class RelatedFieldFilter(DefaultFieldFilter):
         self._check_suffix()
         key, suffix = self.filter_key.split('__', 1)
         if suffix in 'in':
-            p = re.compile('\[(.+)\]')
-            m = p.match(self.value)
-            if not m:
-                raise ValueError()
-            value = set(m.group(1).split(','))
+            value = self._get_in_suffix_value(self.value)
             if 'null' in value:
                 value.remove('null')
                 return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % key: True}))
