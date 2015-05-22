@@ -2,11 +2,14 @@ from __future__ import unicode_literals
 
 import sys
 
+import django
+
+from collections import OrderedDict
+
 from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from django.utils.datastructures import SortedDict
 from django.http.response import Http404
 from django.core.exceptions import ValidationError
 from django.utils import six
@@ -152,7 +155,10 @@ class ModelISCore(PermissionsMixin, ISCore):
     verbose_name_plural = property(verbose_name_plural)
 
     def menu_group(self):
-        return str(self.model._meta.module_name)
+        if django.VERSION < (1, 7):
+            return str(self.model._meta.module_name)
+        else:
+            return str(self.model._meta.model_name)
     menu_group = property(menu_group)
 
     # TODO: remove this function
@@ -185,7 +191,7 @@ class UIISCore(PermissionsUIMixin, ISCore):
     show_in_menu = True
     menu_url_name = None
     _ui_patterns = None
-    view_classes = SortedDict()
+    view_classes = OrderedDict()
     default_ui_pattern_class = UIPattern
 
     def get_view_classes(self):
@@ -198,7 +204,7 @@ class UIISCore(PermissionsUIMixin, ISCore):
         return self._ui_patterns
 
     def get_ui_patterns(self):
-        ui_patterns = SortedDict()
+        ui_patterns = OrderedDict()
         for name, view_vals in self.get_view_classes().items():
             if len(view_vals) == 3:
                 pattern, view, ViewPatternClass = view_vals
@@ -238,9 +244,9 @@ class HomeUIISCore(UIISCore):
 
     def get_view_classes(self):
         HomeView = str_to_class(config.HOME_VIEW)
-        return SortedDict((
-                        ('index', (r'^$', HomeView)),
-                    ))
+        return OrderedDict((
+            ('index', (r'^$', HomeView)),
+        ))
 
     def menu_url(self, request):
         return '/'
@@ -252,11 +258,11 @@ class HomeUIISCore(UIISCore):
 class UIModelISCore(ModelISCore, UIISCore):
     abstract = True
 
-    view_classes = SortedDict((
-                        ('add', (r'^/add/$', AddModelFormView)),
-                        ('edit', (r'^/(?P<pk>[-\w]+)/$', EditModelFormView)),
-                        ('list', (r'^/?$', TableView)),
-                    ))
+    view_classes = OrderedDict((
+        ('add', (r'^/add/$', AddModelFormView)),
+        ('edit', (r'^/(?P<pk>[-\w]+)/$', EditModelFormView)),
+        ('list', (r'^/?$', TableView)),
+    ))
 
     # list view params
     list_display = ('_obj_name',)

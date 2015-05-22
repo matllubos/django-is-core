@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
 
+import django
+
 from django.views.generic.base import TemplateView
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
+from django.utils.encoding import python_2_unicode_compatible
 
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
@@ -13,6 +16,7 @@ from is_core.filters.default_filters import *
 from chamber.utils.http import query_string_from_dict
 
 
+@python_2_unicode_compatible
 class Header(object):
 
     def __init__(self, field_name, text, order_by, filter=''):
@@ -20,9 +24,6 @@ class Header(object):
         self.text = text
         self.order_by = order_by
         self.filter = filter
-
-    def __unicode__(self):
-        return self.text
 
     def __str__(self):
         return self.text
@@ -151,10 +152,16 @@ class TableViewMixin(object):
 
     def get_context_data(self, **kwargs):
         context_data = super(TableViewMixin, self).get_context_data(**kwargs)
+
+        if django.VERSION < (1, 7):
+            module_name = str(self.model._meta.module_name)
+        else:
+            module_name = str(self.model._meta.model_name)
+
         context_data.update({
                                 'headers': self._get_headers(),
                                 'api_url': self._get_api_url(),
-                                'module_name': self.model._meta.module_name,
+                                'module_name': module_name,
                                 'list_display': self._get_list_display(),
                                 'rest_fieldset': self._generate_rest_fieldset(),
                                 'rest_export_fieldset': self._generate_rest_export_fieldset(),
