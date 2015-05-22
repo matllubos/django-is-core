@@ -193,7 +193,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     """
     opts = instance._meta
     data = {}
-    for f in opts.concrete_fields + opts.virtual_fields + opts.many_to_many:
+    for f in itertools.chain(opts.concrete_fields, opts.virtual_fields, opts.many_to_many):
         if not getattr(f, 'editable', False):
             continue
         if fields and not f.name in fields:
@@ -209,7 +209,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     return data
 
 
-class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin), RestModelForm):
+class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin, RestModelForm)):
 
     def __init__(self, *args, **kwargs):
         # Set values must be ommited

@@ -4,7 +4,6 @@ import types
 import inspect
 
 from django.http.request import QueryDict
-from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ObjectDoesNotExist

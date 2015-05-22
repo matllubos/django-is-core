@@ -1,3 +1,5 @@
+from django.utils.encoding import python_2_unicode_compatible
+
 
 class MenuItem(object):
 
@@ -9,13 +11,14 @@ class MenuItem(object):
         self.active = active
 
 
+@python_2_unicode_compatible
 class LinkMenuItem(MenuItem):
 
     def __init__(self, title, url, group=None, active=False, submenu_items=[]):
         super(LinkMenuItem, self).__init__(title, False, group, active, submenu_items)
         self.url = url
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
 

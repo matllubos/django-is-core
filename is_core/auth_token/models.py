@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AnonymousUser
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 
 from is_core import config
 
@@ -16,6 +17,7 @@ from is_core import config
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
+@python_2_unicode_compatible
 class Token(models.Model):
     """
     The default authorization token model.
@@ -48,7 +50,7 @@ class Token(models.Model):
         token_age = self.expiration and config.AUTH_DEFAULT_TOKEN_AGE or config.AUTH_MAX_TOKEN_AGE
         return self.last_access + timedelta(seconds=token_age) < timezone.now()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.key
 
 

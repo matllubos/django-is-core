@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
+from collections import OrderedDict
+
 from django.conf import settings
 from django.conf.urls import patterns, url, include
-from django.utils.datastructures import SortedDict
 from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
 
@@ -43,7 +44,7 @@ class ISSite(object):
         self._registry = self._init_items()
 
     def _init_items(self):
-        out = SortedDict()
+        out = OrderedDict()
 
         for core in get_cores():
             generic_core = self.register(core(self.name, []))
