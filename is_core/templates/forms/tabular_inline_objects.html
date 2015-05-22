@@ -17,7 +17,7 @@
 					<tbody>
 				{% endblock %}
 			{% endif %}
-			<tr class="inline-line {% cycle odd,even %} {{ form.class_names|join:' ' }}">
+			<tr class="inline-line {% cycle odd,even %}{% if row.class_names %} {{ row.class_names|join:' ' }}{% endif %}{% if form.class_names %} {{ form.class_names|join:' ' }}{% endif %}">
 				{% for field_name, field_value in row %}
 				<td class="field field-{{ field_name }}">
 					{{ field_value }}

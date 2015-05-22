@@ -2,6 +2,13 @@ from is_core.generic_views.inlines import InlineView
 from is_core.utils import display_for_value
 
 
+class DataRow(list):
+
+    def __init__(self, values, class_names):
+        super(DataRow, self).__init__(values)
+        self.class_names = class_names
+
+
 class InlineObjectsView(InlineView):
     """
     This inline class behaves and displays like 'InlineFormView', which is read-only. No need of any form or queryset.
@@ -13,9 +20,13 @@ class InlineObjectsView(InlineView):
     # Tuple of tuples. The tuple consists of key and value (which will be displayed in template)
     # For eg: (('company_name', _('Company name')), ('zip', _('ZIP code')), ('...', '...'))
     fields = ()
+    obj_class_names = ()
 
     def get_fields(self):
         return list(self.fields)
+
+    def parse_object(self, obj):
+        return obj
 
     def get_objects(self):
         """
@@ -29,8 +40,16 @@ class InlineObjectsView(InlineView):
         raise NotImplementedError
 
     def get_data_list(self, fields, objects):
-        return [[(field_name, self.get_data_object(field_name, obj)) for field_name, _ in self.get_fields()]
-                for obj in objects]
+        out = []
+        for obj in objects:
+            normalized_obj = self.parse_object(obj)
+            out.append(DataRow([(field_name, self.get_data_object(field_name, normalized_obj))
+                                for field_name, _ in self.get_fields()],
+                        self.get_obj_class_names(obj)))
+        return out
+
+    def get_obj_class_names(self, obj):
+        return list(self.obj_class_names)
 
     def get_data_object(self, field_name, obj):
         humanize_method_name = 'get_%s_humanized' % field_name
