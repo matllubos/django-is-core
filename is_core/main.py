@@ -416,10 +416,11 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
 
 class UIRestModelISCore(RestModelISCore, UIModelISCore):
     abstract = True
-    rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
+    ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
 
     def get_rest_extra_fields(self, request, obj=None):
         fieldset = super(UIRestModelISCore, self).get_rest_extra_fields(request, obj)
+        fieldset.join(rfs(self.ui_rest_extra_fields))
         return fieldset.join(
             ModelRestFieldset.create_from_flat_list(self.get_list_display(request), self.model)
         )
