@@ -3,10 +3,11 @@ from __future__ import unicode_literals
 import re
 import logging
 
+from collections import OrderedDict
+
 from django.core.urlresolvers import reverse, resolve, Resolver404
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
-from django.utils.datastructures import SortedDict
 
 from is_core.utils import get_new_class_name
 from is_core.auth import rest_login_required
@@ -221,7 +222,7 @@ class DoubleRestPattern(object):
 
     @property
     def patterns(self):
-        result = SortedDict()
+        result = OrderedDict()
         result['api-resource'] = self.pattern_class(
             'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/(?P<pk>[-\w]+)/?$',
             self.resource_class, self.core, ('get', 'put', 'delete')

@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
 
+from collections import OrderedDict
+
+import django
+
 from django.forms.models import ModelForm
 from django.http.response import HttpResponseRedirect, Http404
-from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
@@ -11,8 +14,8 @@ from django.contrib.messages import constants
 
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
+from chamber.exceptions import PersistenceException
 
-from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets, get_readonly_field_data
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
@@ -166,7 +169,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
     def get_buttons(self):
         buttons = {}
-        for key, value in self.get_buttons_dict().iteritems():
+        for key, value in self.get_buttons_dict().items():
             buttons[key] = {
                 'label': value.get('label'),
                 'title': value.get('title')
@@ -297,13 +300,13 @@ class DefaultModelFormView(DefaultFormView):
         return self.inline_views or ()
 
     def init_inline_views(self, instance):
-        inline_views = SortedDict()
+        inline_views = OrderedDict()
         for inline_view in self.get_inline_views():
             inline_views[inline_view.__name__] = inline_view(self.request, self, instance)
         return inline_views
 
     def _filter_inline_form_views(self, inline_views):
-        inline_form_views = SortedDict()
+        inline_form_views = OrderedDict()
         for name, view in inline_views.items():
             if isinstance(view, InlineFormView):
                 inline_form_views[name] = view
@@ -451,8 +454,12 @@ class DefaultModelFormView(DefaultFormView):
         context_data = super(DefaultModelFormView, self).get_context_data(form=form,
                                                                           inline_form_views=inline_form_views,
                                                                           **kwargs)
+        if django.VERSION < (1, 7):
+            module_name = str(self.model._meta.module_name)
+        else:
+            module_name = str(self.model._meta.model_name)
         context_data.update({
-            'module_name': self.model._meta.module_name,
+            'module_name': module_name,
             'cancel_url': self.get_cancel_url(),
             'show_save_button': self.has_save_button()
         })
