@@ -1,5 +1,5 @@
 from is_core.generic_views.inlines import InlineView
-from is_core.utils import display_for_value
+from is_core.templatetags.utils import display_object_data
 
 
 class DataRow(list):
@@ -52,18 +52,7 @@ class InlineObjectsView(InlineView):
         return list(self.obj_class_names)
 
     def get_data_object(self, field_name, obj):
-        humanize_method_name = 'get_%s_humanized' % field_name
-        if hasattr(getattr(obj, humanize_method_name, None), '__call__'):
-            value = getattr(obj, humanize_method_name)()
-        elif hasattr(obj, field_name):
-            value = getattr(obj, field_name)
-        elif isinstance(obj, dict) and field_name in obj:
-            value = obj.get(field_name)
-
-        if hasattr(value, '__call__'):
-            value = value()
-
-        return display_for_value(value)
+        return display_object_data(obj, field_name)
 
     def get_header_list(self, fields):
         return self.get_fields()
