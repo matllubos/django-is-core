@@ -11,6 +11,7 @@ from django.db.models.fields import AutoField, DateField, DateTimeField, Decimal
 from dateutil.parser import DEFAULTPARSER
 
 from is_core.filters.exceptions import FilterException
+from django.utils.timezone import make_aware, get_current_timezone
 
 
 class Filter(object):
@@ -143,9 +144,12 @@ class DefaultFieldFilter(DefaultFilter):
         suffix = self._check_suffix()
 
         value = self.value
-
         if suffix == 'in':
-            value = self._get_in_suffix_value(value)
+            full_filter_key_without_suffix = self.full_filter_key.rsplit('__', 1)[0]
+            value = self._get_in_suffix_value(self.value)
+            if 'null' in value:
+                value.remove('null')
+                return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % full_filter_key_without_suffix: True}))
 
         return {self.full_filter_key: value}
 
@@ -180,22 +184,6 @@ class RelatedFieldFilter(DefaultFieldFilter):
         widget = super(RelatedFieldFilter, self).get_widget()
         return widget
 
-    def get_filter_term(self, request):
-        if '__' not in self.filter_key:
-            return super(RelatedFieldFilter, self).get_filter_term(request)
-
-        self._check_suffix()
-        key, suffix = self.filter_key.split('__', 1)
-        if suffix in 'in':
-            value = self._get_in_suffix_value(self.value)
-            if 'null' in value:
-                value.remove('null')
-                return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % key: True}))
-
-            return {self.full_filter_key: value}
-        else:
-            return super(RelatedFieldFilter, self).get_filter_term(request)
-
 
 class DateFilter(DefaultFieldFilter):
 
@@ -208,26 +196,26 @@ class DateFilter(DefaultFieldFilter):
         return suffixes
 
     def get_filter_term(self, request):
-        splitted_filter_key = self.filter_key.split('__')
+        suffix = self._check_suffix()
 
-        if len(splitted_filter_key) == 2 and splitted_filter_key[1] in self.comparators:
-            if splitted_filter_key[1] in self.comparators:
-                value = DEFAULTPARSER.parse(self.value, dayfirst=True)
-                return {self.filter_key: value}
-            else:
-                return super(DateFilter, self).get_filter_term(request)
+        if suffix in self.comparators:
+            value = DEFAULTPARSER.parse(self.value, dayfirst=True)
+            value = make_aware(value, get_current_timezone())
+            return {self.full_filter_key: value}
+        elif suffix:
+            return super(DateFilter, self).get_filter_term(request)
+        else:
+            parse = DEFAULTPARSER._parse(self.value, dayfirst=True)
+            if parse is None:
+                raise ValueError()
+            res = parse[0] if isinstance(parse, tuple) else parse
 
-        parse = DEFAULTPARSER._parse(self.value, dayfirst=True)
-        if parse is None:
-            raise ValueError()
-        res = parse[0] if isinstance(parse, tuple) else parse
-        filter_terms = {}
-
-        for attr in self.extra_suffixes:
-            value = getattr(res, attr)
-            if value:
-                filter_terms['__'.join((self.filter_key, attr))] = value
-        return filter_terms
+            filter_term = {}
+            for attr in self.extra_suffixes:
+                value = getattr(res, attr)
+                if value:
+                    filter_term['__'.join((self.full_filter_key, attr))] = value
+            return filter_term
 
 
 class DateTimeFilter(DateFilter):
