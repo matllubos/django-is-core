@@ -1,4 +1,4 @@
-VERSION = (1, 3, 49)
+VERSION = (1, 3, 50)
 
 def get_version():
     return '.'.join(map(str, VERSION))
