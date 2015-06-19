@@ -31,7 +31,7 @@ setup(
         'django>=1.6',
         'django-class-based-auth-views>=0.2',
         'django-piston==1.1.17',
-        'germanium>=0.2.5',
+        'germanium>=0.2.6',
         'django-block-snippets==0.0.11',
         'django-chamber>=0.0.12',
         'python-dateutil>=2.2',
@@ -48,7 +48,7 @@ setup(
         'https://github.com/matllubos/django-piston/tarball/1.1.17#egg=django-piston-1.1.17',
         'https://github.com/matllubos/django-chamber/tarball/0.0.12#egg=django-chamber-0.0.12',
         'https://github.com/matllubos/django-block-snippets/tarball/0.0.11#egg=django-block-snippets-0.0.11',
-        'https://github.com/LukasRychtecky/germanium/tarball/0.2.5#egg=germanium-0.2.5',
+        'https://github.com/LukasRychtecky/germanium/tarball/0.2.6#egg=germanium-0.2.6',
         'https://github.com/lukasrychtecky/django-project-info/tarball/0.2.4#egg=django-project-info-0.2.4'
     ],
     zip_safe=False
