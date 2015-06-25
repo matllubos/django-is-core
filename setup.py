@@ -33,7 +33,7 @@ setup(
         'django-piston==1.1.17',
         'germanium>=0.2.6',
         'django-block-snippets==0.0.11',
-        'django-chamber>=0.0.12',
+        'django-chamber>=0.0.13',
         'python-dateutil>=2.2',
         'pytz',
         'django-apptemplates',
@@ -46,7 +46,7 @@ setup(
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/1.1.17#egg=django-piston-1.1.17',
-        'https://github.com/matllubos/django-chamber/tarball/0.0.12#egg=django-chamber-0.0.12',
+        'https://github.com/matllubos/django-chamber/tarball/0.0.13#egg=django-chamber-0.0.13',
         'https://github.com/matllubos/django-block-snippets/tarball/0.0.11#egg=django-block-snippets-0.0.11',
         'https://github.com/LukasRychtecky/germanium/tarball/0.2.6#egg=germanium-0.2.6',
         'https://github.com/lukasrychtecky/django-project-info/tarball/0.2.4#egg=django-project-info-0.2.4'
