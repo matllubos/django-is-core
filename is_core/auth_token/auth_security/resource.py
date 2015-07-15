@@ -11,7 +11,7 @@ class AuthResource(DefaultAuthResource):
 
     def _sucessful_login(self, request):
         if getattr(self.request, '_logged_request', False):
-            self.request._logged_request.type = LoggedRequest.UNSUCCESSFUL_LOGIN_REQUEST
+            self.request._logged_request.type = LoggedRequest.SUCCESSFUL_LOGIN_REQUEST
 
     def _unsucessful_login(self, request):
         if getattr(self.request, '_logged_request', False):
