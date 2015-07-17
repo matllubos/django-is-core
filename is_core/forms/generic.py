@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import ModelForm
-from django.contrib.contenttypes.generic import BaseGenericInlineFormSet as OriginBaseGenericInlineFormSet
+from django.contrib.contenttypes.forms import BaseGenericInlineFormSet as OriginBaseGenericInlineFormSet
 
 from is_core.forms.models import smartmodelformset_factory
 from is_core.forms.formsets import BaseFormSetMixin
