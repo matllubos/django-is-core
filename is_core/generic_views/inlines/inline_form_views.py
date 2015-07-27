@@ -146,7 +146,7 @@ class InlineFormView(InlineView):
         for form in formset.all_forms():
             form.class_names = self.form_class_names(form)
             form._is_readonly = self.is_form_readonly(form)
-            if form._is_readonly:
+            if form._is_readonly and not self.readonly:
                 form.base_readonly_fields = set(form.fields.keys()) - set(('id',))
                 form.fields['DELETE'] = EmptyReadonlyField()
             self.form_fields(form)
