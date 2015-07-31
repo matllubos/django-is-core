@@ -105,30 +105,14 @@ class MultipleSelect(SelectMixin, forms.SelectMultiple):
 
 class ClearableFileInput(forms.ClearableFileInput):
 
-    def render(self, name, value, attrs=None):
-        substitutions = {
-            'initial_text': self.initial_text,
-            'input_text': self.input_text,
-            'clear_template': '',
-            'clear_checkbox_label': self.clear_checkbox_label,
+    def get_template_substitution_values(self, value):
+        """
+        Return value-related substitutions.
+        """
+        return {
+            'initial': os.path.basename(conditional_escape(value)),
+            'initial_url': conditional_escape(value.url),
         }
-        template = '%(input)s'
-        substitutions['input'] = super(forms.ClearableFileInput, self).render(name, value, attrs)
-
-        if value and hasattr(value, "url"):
-            template = self.template_with_initial
-            substitutions['initial'] = format_html(self.url_markup_template,
-                                                   value.url,
-                                                   os.path.basename(force_text(value)))
-            if not self.is_required:
-                checkbox_name = self.clear_checkbox_name(name)
-                checkbox_id = self.clear_checkbox_id(checkbox_name)
-                substitutions['clear_checkbox_name'] = conditional_escape(checkbox_name)
-                substitutions['clear_checkbox_id'] = conditional_escape(checkbox_id)
-                substitutions['clear'] = forms.CheckboxInput().render(checkbox_name, False, attrs={'id': checkbox_id})
-                substitutions['clear_template'] = self.template_with_clear % substitutions
-
-        return mark_safe(template % substitutions)
 
 
 class DragAndDropFileInput(ClearableFileInput):
