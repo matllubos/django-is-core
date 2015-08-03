@@ -39,7 +39,7 @@ setup(
         'django-apptemplates',
         'Unidecode>=0.04.17',
         'factory-boy>=2.5.2',
-        'django-project-info==0.2.4',
+        'django-project-info==0.2.5',
         'sorl-thumbnail==12.2',
         'pillow==2.8.1'
     ],
@@ -48,7 +48,7 @@ setup(
         'https://github.com/matllubos/django-chamber/tarball/0.1.2#egg=django-chamber-0.1.2',
         'https://github.com/matllubos/django-block-snippets/tarball/0.1.0#egg=django-block-snippets-0.1.0',
         'https://github.com/LukasRychtecky/germanium/tarball/1.0.0#egg=germanium-1.0.0',
-        'https://github.com/lukasrychtecky/django-project-info/tarball/0.2.4#egg=django-project-info-0.2.4'
+        'https://github.com/matllubos/django-project-info/tarball/0.2.5#egg=django-project-info-0.2.5'
     ],
     zip_safe=False
 )
