@@ -87,7 +87,7 @@ class RestModelCoreResourcePermissionsMixin(object):
                 self.core.has_rest_delete_permission(self.request, obj, via))
 
     def _get_perm_obj_or_none(self, pk=None):
-        pk = pk or self.kwargs.get(self.pk_name)
+        pk = pk or self._get_pk()
         if pk:
             return get_object_or_none(self.core.model, pk=pk)
         else:
@@ -100,7 +100,7 @@ class RestModelCoreMixin(RestModelCoreResourcePermissionsMixin):
         return self.core.get_queryset(self.request)
 
     def _get_obj_or_none(self, pk=None):
-        return get_object_or_none(self._get_queryset(), pk=(pk or self.kwargs.get(self.pk_name)))
+        return get_object_or_none(self._get_queryset(), pk=(pk or self._get_pk()))
 
     def _get_obj_or_404(self, pk=None):
         obj = self._get_obj_or_none(pk)
