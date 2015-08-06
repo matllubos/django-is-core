@@ -21,6 +21,8 @@ class InlineFormView(InlineView):
     can_delete = True
     max_num = None
     min_num = 0
+    validate_min = False
+    validate_max = False
     readonly_fields = ()
     fields = None
     initial = []
@@ -116,8 +118,9 @@ class InlineFormView(InlineView):
             self.parent_model, self.model, self.request, form=self.get_form_class(), fk_name=self.fk_name,
             extra=self.get_extra(), formset=self.base_inline_formset_class, can_delete=self.get_can_delete(),
             exclude=self.get_exclude(), fields=fields, min_num=self.min_num, max_num=self.max_num,
-            readonly_fields=readonly_fields, readonly=self.readonly,
-            formreadonlyfield_callback=self.formfield_for_readonlyfield, formfield_callback=self.formfield_for_dbfield
+            validate_min=self.validate_min, validate_max=self.validate_max, readonly_fields=readonly_fields,
+            readonly=self.readonly, formreadonlyfield_callback=self.formfield_for_readonlyfield,
+            formfield_callback=self.formfield_for_dbfield
         )
 
     def get_queryset(self):
@@ -140,7 +143,7 @@ class InlineFormView(InlineView):
         formset.can_add = self.get_can_add()
         formset.can_delete = self.get_can_delete()
 
-        for form in formset.all_forms():
+        for form in formset.all_forms:
             form.class_names = self.form_class_names(form)
             self.form_fields(form)
         return formset

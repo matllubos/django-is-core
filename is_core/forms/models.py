@@ -311,7 +311,7 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
 def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback=None,
                               formset=BaseModelFormSet, extra=1, can_delete=False,
                               can_order=False, min_num=None, max_num=None, fields=None, exclude=None,
-                              widgets=None, validate_max=False, localized_fields=None,
+                              widgets=None, validate_min=False, validate_max=False, localized_fields=None,
                               labels=None, help_texts=None, error_messages=None,
                               formreadonlyfield_callback=None, readonly_fields=None,
                               readonly=False):
@@ -333,7 +333,7 @@ def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback
     )
     FormSet = smartformset_factory(
         form, formset, extra=extra, min_num=min_num, max_num=max_num, can_order=can_order, can_delete=can_delete,
-        validate_max=validate_max
+        validate_min=validate_min, validate_max=validate_max
     )
     FormSet.model = model
     return FormSet
@@ -343,7 +343,7 @@ def smartinlineformset_factory(parent_model, model, request, form=ModelForm,
                                formset=BaseInlineFormSet, fk_name=None,
                                fields=None, exclude=None, extra=3, can_order=False,
                                can_delete=True, min_num=None, max_num=None, formfield_callback=None,
-                               widgets=None, validate_max=False, localized_fields=None,
+                               widgets=None, validate_min=False, validate_max=False, localized_fields=None,
                                labels=None, help_texts=None, error_messages=None,
                                formreadonlyfield_callback=None, readonly_fields=None,
                                readonly=False):
@@ -364,6 +364,7 @@ def smartinlineformset_factory(parent_model, model, request, form=ModelForm,
         'min_num': min_num,
         'widgets': widgets,
         'validate_max': validate_max,
+        'validate_min': validate_min,
         'localized_fields': localized_fields,
         'labels': labels,
         'help_texts': help_texts,

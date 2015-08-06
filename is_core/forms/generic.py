@@ -15,7 +15,7 @@ def smartgeneric_inlineformset_factory(model, request, form=ModelForm, formset=B
                                        ct_field="content_type", fk_field="object_id", fields=None, exclude=None,
                                        extra=3, can_order=False, can_delete=True, min_num=None, max_num=None,
                                        formfield_callback=None, formreadonlyfield_callback=None, readonly_fields=None,
-                                       readonly=False, validate_max=False, for_concrete_model=True):
+                                       readonly=False, validate_min=False, validate_max=False, for_concrete_model=True):
     """
     Returns a ``GenericInlineFormSet`` for the given kwargs.
 
@@ -46,6 +46,7 @@ def smartgeneric_inlineformset_factory(model, request, form=ModelForm, formset=B
         'max_num': max_num,
         'min_num': min_num,
         'validate_max': validate_max,
+        'validate_min': validate_min,
         'formreadonlyfield_callback': formreadonlyfield_callback,
         'readonly_fields': readonly_fields,
         'readonly': readonly,
