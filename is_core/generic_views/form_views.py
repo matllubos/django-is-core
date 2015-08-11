@@ -38,6 +38,8 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     cancel_button_label = _('Back')
     cancel_button_title = ''
 
+    atomic_save_form = True
+
     def get_success_url(self, obj):
         """
         URL string for redirect after saving
@@ -107,7 +109,10 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
     def form_valid(self, form, msg=None, msg_level=None, **kwargs):
         try:
-            obj = self._atomic_save_form(form, **kwargs)
+            if self.atomic_save_form:
+                obj = self._atomic_save_form(form, **kwargs)
+            else:
+                obj = self.save_form(form, **kwargs)
         except PersistenceException as ex:
             return self.form_invalid(form, msg=force_text(ex.message), **kwargs)
         return self.success_render_to_response(obj, msg, msg_level)
