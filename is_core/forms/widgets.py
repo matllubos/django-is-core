@@ -212,11 +212,16 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
 
 class ModelObjectReadonlyWidget(ReadonlyWidget):
 
+    def _get_obj_url(self, request, obj):
+        from is_core.utils import get_obj_url
+
+        return get_obj_url(request, obj)
+
     def _render_object(self, request, obj, display_value=None):
-        if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__')
-            and hasattr(getattr(obj, 'can_see_edit_link', None), '__call__')
-            and obj.can_see_edit_link(request)):
-                return '<a href="%s">%s</a>' % (obj.get_absolute_url(), display_value or force_text(obj))
+        obj_url = self._get_obj_url(request, obj)
+        if obj_url:
+            return '<a href="%s">%s</a>' % (obj_url, display_value or force_text(obj))
+
         return display_value or force_text(obj)
 
     def _smart_render(self, request, name, value, initial_value, *args, **kwargs):

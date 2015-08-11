@@ -14,6 +14,7 @@ from django.http.response import Http404
 from django.core.exceptions import ValidationError
 from django.utils import six
 from django.forms.models import _get_foreign_key
+from django.utils.functional import cached_property
 
 from piston.utils import rfs
 
@@ -197,11 +198,9 @@ class UIISCore(PermissionsUIMixin, ISCore):
     def get_view_classes(self):
         return self.view_classes.copy()
 
-    @property
+    @cached_property
     def ui_patterns(self):
-        if not self._ui_patterns:
-            self._ui_patterns = self.get_ui_patterns()
-        return self._ui_patterns
+        return self.get_ui_patterns()
 
     def get_ui_patterns(self):
         ui_patterns = OrderedDict()

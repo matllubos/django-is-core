@@ -12,6 +12,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import linebreaks, conditional_escape
 from django.db.models.fields.related import ManyToManyRel, ForeignKey
 from django.db.models.base import Model
+
 from is_core.forms.forms import ReadonlyValue
 
 
@@ -155,3 +156,20 @@ def get_class_method(cls_or_inst, method_name):
     if isinstance(meth, property):
         meth = meth.fget
     return meth
+
+
+def get_obj_url(request, obj):
+    if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__')
+        and hasattr(getattr(obj, 'can_see_edit_link', None), '__call__')
+        and obj.can_see_edit_link(request)):
+            return obj.get_absolute_url()
+    else:
+        from is_core.site import get_model_core
+        model_core = get_model_core(obj.__class__)
+
+        if model_core:
+            edit_pattern = model_core.ui_patterns.get('edit')
+            if edit_pattern and edit_pattern.can_call_get(request, obj=obj):
+                return edit_pattern.get_url_string(request, obj=obj)
+
+    return None
