@@ -6,7 +6,7 @@ from chamber.utils.forms import formset_has_file_field
 
 from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
 from is_core.generic_views.inlines import InlineView
-from is_core.forms.fields import SmartReadonlyField
+from is_core.forms.fields import SmartReadonlyField, EmptyReadonlyField
 from is_core.utils import get_readonly_field_data
 
 
@@ -43,6 +43,9 @@ class InlineFormView(InlineView):
 
     def is_readonly(self):
         return not self.parent_view.has_post_permission(obj=self.parent_view.get_obj())
+
+    def is_form_readonly(self, form):
+        return self.readonly
 
     def get_context_data(self, **kwargs):
         context_data = super(InlineFormView, self).get_context_data(**kwargs)
@@ -145,6 +148,10 @@ class InlineFormView(InlineView):
 
         for form in formset.all_forms:
             form.class_names = self.form_class_names(form)
+            form._is_readonly = self.is_form_readonly(form)
+            if form._is_readonly and not self.readonly:
+                form.base_readonly_fields = set(form.fields.keys()) - set(('id',))
+                form.fields['DELETE'] = EmptyReadonlyField()
             self.form_fields(form)
         return formset
 

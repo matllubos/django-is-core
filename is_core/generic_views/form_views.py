@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
+from django.db import transaction
 
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
@@ -39,6 +40,8 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
     cancel_button_label = _('Back')
     cancel_button_title = ''
+
+    atomic_save_form = True
 
     def get_success_url(self, obj):
         """
@@ -98,17 +101,21 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
         obj = form.save(commit=False)
         change = obj.pk is not None
-        try:
-            self.save_obj(obj, form, change)
-        except PersistenceException as ex:
-            return self.form_invalid(form, force_text(ex.message))
+        self.save_obj(obj, form, change)
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
         return obj
 
+    @transaction.atomic
+    def _atomic_save_form(self, *args, **kwargs):
+        return self.save_form(*args, **kwargs)
+
     def form_valid(self, form, msg=None, msg_level=None, **kwargs):
         try:
-            obj = self.save_form(form, **kwargs)
+            if self.atomic_save_form:
+                obj = self._atomic_save_form(form, **kwargs)
+            else:
+                obj = self.save_form(form, **kwargs)
         except PersistenceException as ex:
             return self.form_invalid(form, msg=force_text(ex.message), **kwargs)
         return self.success_render_to_response(obj, msg, msg_level)

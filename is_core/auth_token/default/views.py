@@ -1,13 +1,21 @@
 from __future__ import unicode_literals
 
+from django.http.response import HttpResponseRedirect
+
 from is_core.generic_views.auth_views import LogoutView, LoginView
 from is_core.auth_token import login, logout
 from is_core.auth_token.forms import TokenAuthenticationForm
 
+HttpResponseRedirect
 
 class TokenLoginView(LoginView):
 
     form_class = TokenAuthenticationForm
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user and request.user.is_authenticated():
+            return HttpResponseRedirect(self.get_success_url())
+        return super(TokenLoginView, self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         """
