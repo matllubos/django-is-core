@@ -139,7 +139,10 @@ def get_readonly_field_data(field_name, instances, fun_kwargs, request):
 
 
 def display_for_value(value):
-    from django.contrib.admin.util import display_for_value as admin_display_for_value
+    try:
+        from django.contrib.admin.utils import display_for_value as admin_display_for_value
+    except ImportError:
+        from django.contrib.admin.util import display_for_value as admin_display_for_value
 
     if isinstance(value, bool):
         value = _('Yes') if value else _('No')

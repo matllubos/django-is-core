@@ -6,7 +6,6 @@ from is_core.generic_views.auth_views import LogoutView, LoginView
 from is_core.auth_token import login, logout
 from is_core.auth_token.forms import TokenAuthenticationForm
 
-HttpResponseRedirect
 
 class TokenLoginView(LoginView):
 
