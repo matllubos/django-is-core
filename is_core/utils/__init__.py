@@ -13,6 +13,8 @@ from django.utils.html import linebreaks, conditional_escape
 from django.db.models.fields.related import ManyToManyRel, ForeignKey
 from django.db.models.base import Model
 
+from chamber.utils import get_class_method
+
 from is_core.forms.forms import ReadonlyValue
 
 
@@ -149,16 +151,6 @@ def display_for_value(value):
     else:
         value = admin_display_for_value(value)
     return value
-
-
-def get_class_method(cls_or_inst, method_name):
-    cls = cls_or_inst
-    if not isinstance(cls, type):
-        cls = cls_or_inst.__class__
-    meth = getattr(cls, method_name)
-    if isinstance(meth, property):
-        meth = meth.fget
-    return meth
 
 
 def get_obj_url(request, obj):
