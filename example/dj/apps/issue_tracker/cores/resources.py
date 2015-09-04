@@ -1,7 +1,7 @@
-from is_core.rest.resource import RestResource, RestModelCoreMixin
+from is_core.rest.resource import RESTResource, RESTModelCoreMixin
 
 
-class NumberOfUserIssuesResource(RestModelCoreMixin, RestResource):
+class NumberOfUserIssuesResource(RESTModelCoreMixin, RESTResource):
 
     def get(self):
         user = self._get_obj_or_404()

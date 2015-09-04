@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_text
 from django.conf import settings
 
 
@@ -22,7 +23,7 @@ class Issue(models.Model):
                                   related_name='leading_issue')
 
     def watched_by_string(self):
-        return ', '.join(self.watched_by.all())
+        return ', '.join((force_text(user) for user in self.watched_by.all()))
     watched_by_string.order_by = 'watched_by'
 
     def __unicode__(self):

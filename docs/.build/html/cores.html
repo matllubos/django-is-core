@@ -1,0 +1,427 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Cores &mdash; django-is-core 1.4 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="django-is-core 1.4 documentation" href="index.html" />
+    <link rel="next" title="Views" href="views.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cores">
+<h1>Cores<a class="headerlink" href="#cores" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="uirestmodeliscore-objects">
+<h2>UIRESTModelISCore objects<a class="headerlink" href="#uirestmodeliscore-objects" title="Permalink to this headline">¶</a></h2>
+<p>The UIRESTModelISCore class is the representation of a model in the django-is-core interface. These representations are
+stored in a file named cores.py in your application. We will start with the most common cose when you want to create
+three typical views for information system:</p>
+<blockquote>
+<div><ul class="simple">
+<li>table view for printing objects</li>
+<li>view for creating new objects</li>
+<li>view for editing objects</li>
+</ul>
+</div></blockquote>
+<p>As example project we use Issue tracker. Firstly for every application you need management of users. We use default
+django user model.</p>
+<p>For creating add, edit and table views you must only create file cores.py inside specific application that contains:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">User</span>
+
+<span class="kn">from</span> <span class="nn">is_core.main</span> <span class="kn">import</span> <span class="n">UIRESTModelISCore</span>
+
+<span class="k">class</span> <span class="nc">UserIsCore</span><span class="p">(</span><span class="n">UIRESTModelISCore</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+</pre></div>
+</div>
+<p>There is no obligation for registration. Cores are registered automatically. The result views with previue are:</p>
+<div class="section" id="table-list">
+<h3>Table/List<a class="headerlink" href="#table-list" title="Permalink to this headline">¶</a></h3>
+<p>image 1</p>
+</div>
+<div class="section" id="add">
+<h3>Add<a class="headerlink" href="#add" title="Permalink to this headline">¶</a></h3>
+<p>image 2</p>
+</div>
+<div class="section" id="edit">
+<h3>Edit<a class="headerlink" href="#edit" title="Permalink to this headline">¶</a></h3>
+<p>image 3</p>
+</div>
+<div class="section" id="rest">
+<h3>REST<a class="headerlink" href="#rest" title="Permalink to this headline">¶</a></h3>
+<p>But there is created REST resource too. By default on URLs <strong>/api/user/</strong> and <strong>/api/user/{obj_id}</strong> that returns
+object in asked format (HTTP header <strong>Content-type: application/json</strong>).</p>
+</div>
+</div>
+<div class="section" id="restmodeliscore-objects">
+<h2>RESTModelISCore objects<a class="headerlink" href="#restmodeliscore-objects" title="Permalink to this headline">¶</a></h2>
+<p>The RESTModelISCore is parent of UIRESTModelISCore. As the name suggests this class is used only for creating REST
+resources without UI HTML views. The usage is the same as UIRESTModelISCore:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">User</span>
+
+<span class="kn">from</span> <span class="nn">is_core.main</span> <span class="kn">import</span> <span class="n">RESTModelISCore</span>
+
+<span class="k">class</span> <span class="nc">RESTUserIsCore</span><span class="p">(</span><span class="n">RESTModelISCore</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="uimodeliscore-objects">
+<h2>UIModelISCore objects<a class="headerlink" href="#uimodeliscore-objects" title="Permalink to this headline">¶</a></h2>
+<p>The RESTModelISCore is the second parent of <em>UIRESTModelISCore</em>. It is used for creating only UI views. Because UI views
+needs some REST resources is necessary to specify on which URL is deployed REST resource of model (api_url_name is
+transofmed to URL by django resolve helper):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">User</span>
+
+<span class="kn">from</span> <span class="nn">is_core.main</span> <span class="kn">import</span> <span class="n">UIModelISCore</span>
+
+<span class="k">class</span> <span class="nc">UIUserIsCore</span><span class="p">(</span><span class="n">UIModelISCore</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+    <span class="n">api_url_name</span> <span class="o">=</span> <span class="s">&#39;api-user&#39;</span>
+</pre></div>
+</div>
+<p>You can specify URL manually:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">UIUserIsCore</span><span class="p">(</span><span class="n">UIModelISCore</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+
+    <span class="k">def</span> <span class="nf">get_api_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;/api/user/&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="iscore-hiearchy">
+<h2>ISCore hiearchy<a class="headerlink" href="#iscore-hiearchy" title="Permalink to this headline">¶</a></h2>
+<p>Now we provide detailed description of all ISCore objects. Firstly for better understanding you can see UML class
+diagram of core hiearchy.</p>
+<p># TODO add diagram</p>
+</div>
+<div class="section" id="iscore-options">
+<h2>ISCore options<a class="headerlink" href="#iscore-options" title="Permalink to this headline">¶</a></h2>
+<p>These options can be applied for all Core objects like <em>RESTModelISCore</em>, <em>UIModelISCore</em> or <em>UIRESTModelISCore</em> (all
+descendants of ISCore class).</p>
+<div class="section" id="iscore-abstract">
+<h3>ISCore.abstract<a class="headerlink" href="#iscore-abstract" title="Permalink to this headline">¶</a></h3>
+<p>Variable <em>abstract</em> provides way how to create core that is not registered but this class variable is not inherited.
+Let&#8217;s show an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">User</span>
+
+<span class="kn">from</span> <span class="nn">is_core.main</span> <span class="kn">import</span> <span class="n">RESTModelISCore</span>
+
+<span class="k">class</span> <span class="nc">AbstractUIRESTUserIsCore</span><span class="p">(</span><span class="n">RESTModelISCore</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+    <span class="n">abstract</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">verbose_name</span> <span class="o">=</span> <span class="s">&#39;example of abstract user core&#39;</span>
+
+<span class="k">class</span> <span class="nc">UIRESTUserIsCore</span><span class="p">(</span><span class="n">AbstractUIRESTUserIsCore</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>First core is not registered. Therefore views and rest resources are not created. But the second view that inherits of
+abstract core is registered. All configuration from parent class is inhered (without abstract variable).</p>
+</div>
+<div class="section" id="verbose-name-verbose-name-plural">
+<h3>verbose_name, verbose_name_plural<a class="headerlink" href="#verbose-name-verbose-name-plural" title="Permalink to this headline">¶</a></h3>
+<p>These variables are used inside generic views. It can be added to context_data and rendered inside templates.</p>
+</div>
+<div class="section" id="iscore-menu-group">
+<h3>ISCore.menu_group<a class="headerlink" href="#iscore-menu-group" title="Permalink to this headline">¶</a></h3>
+<p>It is necessary have some slug that distinguish one core from another. For this purpose is used variable menu_group.
+This variable is used for example to generate URL patterns or menu. Value of the variable is generated automatically
+for cores that is connected to model</p>
+</div>
+</div>
+<div class="section" id="iscore-methods">
+<h2>ISCore methods<a class="headerlink" href="#iscore-methods" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="iscore-init-request-request">
+<h3>ISCore.init_request(request)<a class="headerlink" href="#iscore-init-request-request" title="Permalink to this headline">¶</a></h3>
+<p>Every core views/rest resources calls this method before calling dispatch. You can use it to change request its calling.</p>
+</div>
+</div>
+<div class="section" id="modeliscore-options">
+<h2>ModelISCore options<a class="headerlink" href="#modeliscore-options" title="Permalink to this headline">¶</a></h2>
+<p>Tne next class that extends ISCore is ModelISCore. All cores that inherits from ModelISCore works as controller over
+a model.</p>
+<div class="section" id="modeliscore-list-actions">
+<h3>ModelISCore.list_actions<a class="headerlink" href="#modeliscore-list-actions" title="Permalink to this headline">¶</a></h3>
+<p>Variable <em>list_action</em> contains actions that user can perform via REST or UI. More detailed explanation with example
+you find inside <strong>UIRESTModelISCore options</strong> part.</p>
+</div>
+<div class="section" id="modeliscore-form-fields">
+<h3>ModelISCore.form_fields<a class="headerlink" href="#modeliscore-form-fields" title="Permalink to this headline">¶</a></h3>
+<p>Use the form_fields option to make simple layout changes in the forms on the “add” and “edit” and REST resources pages
+such as showing only a subset of available fields, modifying their order, or grouping them into rows. We will show it
+on UIRESTModelISCore. If you want to restrict form fields to <em>username</em>, <em>first_name</em> and <em>last_name</em> the simpliest
+way is use:</p>
+<blockquote>
+<div><p>from django.contrib.auth.models import User</p>
+<p>from is_core.main import UIRESTModelISCore</p>
+<dl class="docutils">
+<dt>class UserIsCore(UIRESTModelISCore):</dt>
+<dd>model = User
+form_fields = (&#8216;username&#8217;, &#8216;fist_name&#8217;, &#8216;last_name&#8217;)</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="modeliscore-form-exclude">
+<h3>ModelISCore.form_exclude<a class="headerlink" href="#modeliscore-form-exclude" title="Permalink to this headline">¶</a></h3>
+<p>This attribute, if given, should be a list of field names to exclude from the form.</p>
+<blockquote>
+<div><p>from django.contrib.auth.models import User</p>
+<p>from is_core.main import UIRESTModelISCore</p>
+<dl class="docutils">
+<dt>class UserIsCore(UIRESTModelISCore):</dt>
+<dd>model = User
+form_exclude = (&#8216;password&#8217;,)</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="modeliscore-form-class">
+<h3>ModelISCore.form_class<a class="headerlink" href="#modeliscore-form-class" title="Permalink to this headline">¶</a></h3>
+<p>If you want to change default form class which is SmartModelForm you can change it with this option. The form is changed
+for &#8220;add&#8221;, &#8220;edit&#8221; views and REST resources too.</p>
+</div>
+<div class="section" id="modeliscore-ordering">
+<h3>ModelISCore.ordering<a class="headerlink" href="#modeliscore-ordering" title="Permalink to this headline">¶</a></h3>
+<p>Option for changing default ordering of model for core.</p>
+</div>
+</div>
+<div class="section" id="modeliscore-methods">
+<h2>ModelISCore methods<a class="headerlink" href="#modeliscore-methods" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="modeliscore-get-form-fields-request-obj-none">
+<h3>ModelISCore.get_form_fields(request, obj=None)<a class="headerlink" href="#modeliscore-get-form-fields-request-obj-none" title="Permalink to this headline">¶</a></h3>
+<p>Use this method to define form fields dynamically or if you want to define different form fields for &#8220;add&#8221;, &#8220;edit&#8221; view
+of REST resources.</p>
+</div>
+<div class="section" id="modeliscore-get-form-exclude-request-obj-none">
+<h3>ModelISCore.get_form_exclude(request, obj=None)<a class="headerlink" href="#modeliscore-get-form-exclude-request-obj-none" title="Permalink to this headline">¶</a></h3>
+<p>The oposite to get_form_fields.</p>
+</div>
+<div class="section" id="modeliscore-get-form-class-request-obj-none">
+<h3>ModelISCore.get_form_class(request, obj=None)<a class="headerlink" href="#modeliscore-get-form-class-request-obj-none" title="Permalink to this headline">¶</a></h3>
+<p>Use this method to define form dynamically or if you want to define different form for &#8220;add&#8221;, &#8220;edit&#8221; view of REST
+resources.</p>
+</div>
+<div class="section" id="modeliscore-pre-save-model-request-obj-form-change">
+<h3>ModelISCore.pre_save_model(request, obj, form, change)<a class="headerlink" href="#modeliscore-pre-save-model-request-obj-form-change" title="Permalink to this headline">¶</a></h3>
+<p>Method per_save_model is called before saving object to database. Body is empty by default.</p>
+</div>
+<div class="section" id="modeliscore-post-save-model-request-obj-form-change">
+<h3>ModelISCore.post_save_model(request, obj, form, change)<a class="headerlink" href="#modeliscore-post-save-model-request-obj-form-change" title="Permalink to this headline">¶</a></h3>
+<p>Method post_save_model is called after saving object to database. Body is empty by default.</p>
+</div>
+<div class="section" id="modeliscore-save-model-request-obj-form-change">
+<h3>ModelISCore.save_model(request, obj, form, change)<a class="headerlink" href="#modeliscore-save-model-request-obj-form-change" title="Permalink to this headline">¶</a></h3>
+<p>You can rewrite this method if you want to change way how is object saved to database. Default body is:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>def save_model(self, request, obj, form, change):</dt>
+<dd>obj.save()</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="modeliscore-pre-delete-model-request-obj">
+<h3>ModelISCore.pre_delete_model(request, obj)<a class="headerlink" href="#modeliscore-pre-delete-model-request-obj" title="Permalink to this headline">¶</a></h3>
+<p>Method pre_delete_model is called before removing object from database. Body is empty by default.</p>
+</div>
+<div class="section" id="modeliscore-post-delete-model-request-obj">
+<h3>ModelISCore.post_delete_model(request, obj)<a class="headerlink" href="#modeliscore-post-delete-model-request-obj" title="Permalink to this headline">¶</a></h3>
+<p>Method post_delete_model is called after removing object from database. Body is empty by default.</p>
+</div>
+<div class="section" id="modeliscore-delete-model-request-obj">
+<h3>ModelISCore.delete_model(request, obj)<a class="headerlink" href="#modeliscore-delete-model-request-obj" title="Permalink to this headline">¶</a></h3>
+<p>You can rewrite this method if you want to change way how is object removed from database. Default body is:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>def delete_model(self, request, obj):</dt>
+<dd>obj.delete()</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="modeliscore-verbose-name-modeliscore-verbose-name-plural">
+<h3>ModelISCore.verbose_name(), ModelISCore.verbose_name_plural()<a class="headerlink" href="#modeliscore-verbose-name-modeliscore-verbose-name-plural" title="Permalink to this headline">¶</a></h3>
+<p>Default verbose names of ModelISCore is get from model meta options:</p>
+<blockquote>
+<div>self.model._meta.verbose_name
+self.model._meta.verbose_name_plural</div></blockquote>
+</div>
+<div class="section" id="modeliscore-menu-group">
+<h3>ModelISCore.menu_group()<a class="headerlink" href="#modeliscore-menu-group" title="Permalink to this headline">¶</a></h3>
+<p>Default menu_group value is get from module name of model (self.model._meta.module_name)</p>
+</div>
+<div class="section" id="modeliscore-get-ordering-request">
+<h3>ModelISCore.get_ordering(request)<a class="headerlink" href="#modeliscore-get-ordering-request" title="Permalink to this headline">¶</a></h3>
+<p>Use this method if you want to change ordering dynamically.</p>
+</div>
+<div class="section" id="modeliscore-get-queryset-request">
+<h3>ModelISCore.get_queryset(request)<a class="headerlink" href="#modeliscore-get-queryset-request" title="Permalink to this headline">¶</a></h3>
+<p>Returns model queryset, ordered by defined ordering inside core. You can filter here objects according to user
+permissions.</p>
+</div>
+<div class="section" id="modeliscore-preload-queryset-request-qs">
+<h3>ModelISCore.preload_queryset(request, qs)<a class="headerlink" href="#modeliscore-preload-queryset-request-qs" title="Permalink to this headline">¶</a></h3>
+<p>The related objects of queryset should sometimes very slow down retrieving data from the database. If you want to
+improve speed of your application use this function to create preloading of related objects.</p>
+</div>
+<div class="section" id="modeliscore-get-list-actions-request-obj">
+<h3>ModelISCore.get_list_actions(request, obj)<a class="headerlink" href="#modeliscore-get-list-actions-request-obj" title="Permalink to this headline">¶</a></h3>
+<p>Use this method if you want to change list_actions dynamically.</p>
+</div>
+<div class="section" id="modeliscore-get-default-action-request-obj">
+<h3>ModelISCore.get_default_action(request, obj)<a class="headerlink" href="#modeliscore-get-default-action-request-obj" title="Permalink to this headline">¶</a></h3>
+<p>Chose default action for object used inside UI and REST. For example default action is action that is performed if you
+select row inside table of objects. For table view default action is &#8220;open edit view&#8221;. If you return None no action
+is performed by default.</p>
+</div>
+</div>
+<div class="section" id="uimodeliscore-options">
+<h2>UIModelISCore options<a class="headerlink" href="#uimodeliscore-options" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="uimodeliscore-form-inline-views">
+<h3>UIModelISCore.form_inline_views<a class="headerlink" href="#uimodeliscore-form-inline-views" title="Permalink to this headline">¶</a></h3>
+<p>The django-is-core interface has the ability to edit models on the same page as a parent model. These are called
+inlines. The form_inline_views provides simple way</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Cores</a><ul>
+<li><a class="reference internal" href="#uirestmodeliscore-objects">UIRESTModelISCore objects</a><ul>
+<li><a class="reference internal" href="#table-list">Table/List</a></li>
+<li><a class="reference internal" href="#add">Add</a></li>
+<li><a class="reference internal" href="#edit">Edit</a></li>
+<li><a class="reference internal" href="#rest">REST</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#restmodeliscore-objects">RESTModelISCore objects</a></li>
+<li><a class="reference internal" href="#uimodeliscore-objects">UIModelISCore objects</a></li>
+<li><a class="reference internal" href="#iscore-hiearchy">ISCore hiearchy</a></li>
+<li><a class="reference internal" href="#iscore-options">ISCore options</a><ul>
+<li><a class="reference internal" href="#iscore-abstract">ISCore.abstract</a></li>
+<li><a class="reference internal" href="#verbose-name-verbose-name-plural">verbose_name, verbose_name_plural</a></li>
+<li><a class="reference internal" href="#iscore-menu-group">ISCore.menu_group</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#iscore-methods">ISCore methods</a><ul>
+<li><a class="reference internal" href="#iscore-init-request-request">ISCore.init_request(request)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modeliscore-options">ModelISCore options</a><ul>
+<li><a class="reference internal" href="#modeliscore-list-actions">ModelISCore.list_actions</a></li>
+<li><a class="reference internal" href="#modeliscore-form-fields">ModelISCore.form_fields</a></li>
+<li><a class="reference internal" href="#modeliscore-form-exclude">ModelISCore.form_exclude</a></li>
+<li><a class="reference internal" href="#modeliscore-form-class">ModelISCore.form_class</a></li>
+<li><a class="reference internal" href="#modeliscore-ordering">ModelISCore.ordering</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modeliscore-methods">ModelISCore methods</a><ul>
+<li><a class="reference internal" href="#modeliscore-get-form-fields-request-obj-none">ModelISCore.get_form_fields(request, obj=None)</a></li>
+<li><a class="reference internal" href="#modeliscore-get-form-exclude-request-obj-none">ModelISCore.get_form_exclude(request, obj=None)</a></li>
+<li><a class="reference internal" href="#modeliscore-get-form-class-request-obj-none">ModelISCore.get_form_class(request, obj=None)</a></li>
+<li><a class="reference internal" href="#modeliscore-pre-save-model-request-obj-form-change">ModelISCore.pre_save_model(request, obj, form, change)</a></li>
+<li><a class="reference internal" href="#modeliscore-post-save-model-request-obj-form-change">ModelISCore.post_save_model(request, obj, form, change)</a></li>
+<li><a class="reference internal" href="#modeliscore-save-model-request-obj-form-change">ModelISCore.save_model(request, obj, form, change)</a></li>
+<li><a class="reference internal" href="#modeliscore-pre-delete-model-request-obj">ModelISCore.pre_delete_model(request, obj)</a></li>
+<li><a class="reference internal" href="#modeliscore-post-delete-model-request-obj">ModelISCore.post_delete_model(request, obj)</a></li>
+<li><a class="reference internal" href="#modeliscore-delete-model-request-obj">ModelISCore.delete_model(request, obj)</a></li>
+<li><a class="reference internal" href="#modeliscore-verbose-name-modeliscore-verbose-name-plural">ModelISCore.verbose_name(), ModelISCore.verbose_name_plural()</a></li>
+<li><a class="reference internal" href="#modeliscore-menu-group">ModelISCore.menu_group()</a></li>
+<li><a class="reference internal" href="#modeliscore-get-ordering-request">ModelISCore.get_ordering(request)</a></li>
+<li><a class="reference internal" href="#modeliscore-get-queryset-request">ModelISCore.get_queryset(request)</a></li>
+<li><a class="reference internal" href="#modeliscore-preload-queryset-request-qs">ModelISCore.preload_queryset(request, qs)</a></li>
+<li><a class="reference internal" href="#modeliscore-get-list-actions-request-obj">ModelISCore.get_list_actions(request, obj)</a></li>
+<li><a class="reference internal" href="#modeliscore-get-default-action-request-obj">ModelISCore.get_default_action(request, obj)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#uimodeliscore-options">UIModelISCore options</a><ul>
+<li><a class="reference internal" href="#uimodeliscore-form-inline-views">UIModelISCore.form_inline_views</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="views.html" title="next chapter">Views</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cores.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Luboš Mátl.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/cores.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

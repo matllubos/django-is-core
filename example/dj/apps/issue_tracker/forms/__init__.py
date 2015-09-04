@@ -1,10 +1,10 @@
-from piston.forms import RestModelForm
+from piston.forms import RESTModelForm
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 
-class UserForm(RestModelForm):
+class UserForm(RESTModelForm):
     password = forms.CharField(label=_('Password'), widget=forms.PasswordInput)
 
     def __init__(self, instance=None, *args, **kwargs):

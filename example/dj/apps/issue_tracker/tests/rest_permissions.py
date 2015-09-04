@@ -1,6 +1,6 @@
 from germanium.rest import RESTTestCase
 
-from is_core.tests.auth_test_cases import RestAuthMixin
+from is_core.tests.auth_test_cases import RESTAuthMixin
 
 from germanium.anotations import login
 
@@ -9,7 +9,7 @@ from .test_case import HelperTestCase, AsSuperuserTestCase
 from issue_tracker.models import Issue
 
 
-class RestPermissionsTestCase(AsSuperuserTestCase, RestAuthMixin, HelperTestCase, RESTTestCase):
+class RESTPermissionsTestCase(AsSuperuserTestCase, RESTAuthMixin, HelperTestCase, RESTTestCase):
     USER_API_URL = '/api/user'
     ISSUE_API_URL = '/api/issue'
     USER_ISSUES_API_URL = '/api/user/%(user_pk)s/issue-number/'
