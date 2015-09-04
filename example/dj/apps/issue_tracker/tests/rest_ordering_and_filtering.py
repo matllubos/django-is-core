@@ -2,14 +2,14 @@ import urllib
 
 from germanium.rest import RESTTestCase
 
-from is_core.tests.auth_test_cases import RestAuthMixin
+from is_core.tests.auth_test_cases import RESTAuthMixin
 
 from germanium.anotations import login
 
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 
-class RestOrderingAndFilteringTestCase(AsSuperuserTestCase, RestAuthMixin, HelperTestCase, RESTTestCase):
+class RESTOrderingAndFilteringTestCase(AsSuperuserTestCase, RESTAuthMixin, HelperTestCase, RESTTestCase):
     USER_API_URL = '/api/user'
 
     @login(is_superuser=True)

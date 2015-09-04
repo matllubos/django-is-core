@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 
-from is_core.main import UIRestModelISCore
-from is_core.patterns import RestPattern
+from is_core.main import UIRESTModelISCore
 
 from issue_tracker.models import Issue
 from issue_tracker.forms import UserForm
@@ -9,8 +8,7 @@ from issue_tracker.forms import UserForm
 from .resources import NumberOfUserIssuesResource
 
 
-
-class UserIsCore(UIRestModelISCore):
+class UserIsCore(UIRESTModelISCore):
     model = User
     form_class = UserForm
     list_display = ('id', '_obj_name')
@@ -40,7 +38,7 @@ class UserIsCore(UIRestModelISCore):
         return resource_patterns
 
 
-class IssueIsCore(UIRestModelISCore):
+class IssueIsCore(UIRESTModelISCore):
     model = Issue
     list_display = ('id', '_obj_name', 'watched_by_string', 'leader__email', 'leader__last_name')
 
