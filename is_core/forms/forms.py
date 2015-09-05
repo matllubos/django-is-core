@@ -14,7 +14,7 @@ from django.forms.fields import FileField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 
-from piston.forms import RestFormMixin
+from piston.forms import RESTFormMixin
 
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
@@ -277,7 +277,7 @@ class SmartFormMixin(object):
         return self._changed_data
 
 
-class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RestFormMixin, Form)):
+class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RESTFormMixin, Form)):
     pass
 
 

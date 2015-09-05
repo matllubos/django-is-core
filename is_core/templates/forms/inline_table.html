@@ -1,49 +1,49 @@
 {% load i18n utils permissions %}
 
 <div class="table-responsive">
-		{% block tabs-menu-wrapper %}{% endblock %}
-		{% block table-paginator %}
-			<div class="row paginator" style="visibility: hidden" data-base="20" data-paging="simple">
-				<div class="col-sm-4">
-					{% block paginator-result %}
-					<span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span>
-					<span class="result-total"><span class="result-caption">{% trans 'of' %}</span><span class="result-number">%d</span></span>
-					{% endblock %}
-				</div>
-				<div class="col-sm-8">
-					{% block paginator-paging %}
-					<div class="paging">
-						<ul class="pagination">
-							<li class="previous" title="{% trans 'Previous' %}"><span><i class="fa fa-angle-left"></i><span class="caption">{% trans 'Previous' %}</span></span></li>
-							<li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><i class="fa fa-angle-right"></i></span></li>
-						</ul>
-					</div>
-					{% endblock %}
-				</div>
-			</div>
-		{% endblock %}
-		{% block table %}
-			<table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}">
-				<thead>
-					{% block table-header %}
-						<tr>
-							{% for header in headers %}
-								<th class="{{ header.field_name }}">
-									<span{% if header.order_by %} class="sortable" data-col="{{ header.order_by }}"{% endif %}>{{ header.text|capfirst }}</span><div class="sort-direction"><div class="triangle"></div></div>
-									{{ header.filter }}
-								</th>
-							{% endfor %}
-							{% if render_actions %}<th class="actions">{% trans 'Actions' %}</th>{% endif %}
-						</tr>
-					{% endblock %}
-				</thead>
-				<tbody>
-				</tbody>
-			</table>
-		{% endblock %}
-		{% block table-empty %}
-			<div class="table-empty" style="display: none">
-				<div class="alert alert-info"><span class="msg-text">{% trans 'There are no items.' %}</span></div>
-			</div>
-		{% endblock %}
-	</div>
+  {% block tabs-menu-wrapper %}{% endblock %}
+  {% block table-paginator %}
+    <div class="row paginator" style="visibility: hidden" data-base="20" data-paging="simple">
+      <div class="col-sm-4">
+        {% block paginator-result %}
+          <span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span>
+          <span class="result-total"><span class="result-caption">{% trans 'of' %}</span><span class="result-number">%d</span></span>
+        {% endblock %}
+      </div>
+      <div class="col-sm-8">
+        {% block paginator-paging %}
+          <div class="paging">
+            <ul class="pagination">
+              <li class="previous" title="{% trans 'Previous' %}"><span><i class="fa fa-angle-left"></i><span class="caption">{% trans 'Previous' %}</span></span></li>
+              <li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><i class="fa fa-angle-right"></i></span></li>
+            </ul>
+          </div>
+        {% endblock %}
+      </div>
+    </div>
+  {% endblock %}
+  {% block table %}
+    <table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}">
+      <thead>
+        {% block table-header %}
+          <tr>
+            {% for header in headers %}
+              <th class="{{ header.field_name }}">
+                <span{% if header.order_by %} class="sortable" data-col="{{ header.order_by }}"{% endif %}>{{ header.text|capfirst }}</span><div class="sort-direction"><div class="triangle"></div></div>
+                {{ header.filter }}
+              </th>
+            {% endfor %}
+            {% if render_actions %}<th class="actions">{% trans 'Actions' %}</th>{% endif %}
+          </tr>
+        {% endblock %}
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  {% endblock %}
+  {% block table-empty %}
+    <div class="table-empty" style="display: none">
+      <div class="alert alert-info"><span class="msg-text">{% trans 'There are no items.' %}</span></div>
+    </div>
+  {% endblock %}
+</div>

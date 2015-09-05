@@ -1,37 +1,37 @@
 {% load i18n forms utils %}
 
 <form{% if has_file_field %} enctype="multipart/form-data" {% endif %}{% if class_attr %} class="form-horizontal {{ class_attr|to_list|join:' ' }}"{% endif %}{% if id_attr %} id="{{ id_attr }}"{% endif %} method="{{ method }}" action="{% if action %}{{ action }}{% else %}{{ request.get_full_path }}{% endif %}">
-	{% block form-content %}
-		{% if use_csrf %}{% csrf_token %}{% endif %}
+  {% block form-content %}
+    {% if use_csrf %}{% csrf_token %}{% endif %}
 
-		{% block form-fields %}
-			{% block above-form-fields %}{% endblock %}
+    {% block form-fields %}
+      {% block above-form-fields %}{% endblock %}
 
-			{{ form.non_field_errors }}
-			{% if fieldsets %}
-				{% for fieldset in fieldsets %}
-					{% fieldset_renderer form fieldset %}
-				{% endfor %}	
-			{% else %}
-				{% for field in form %}
-					{% include 'forms/default_field.html' with field=field field_name=field.name %}
-				{% endfor %}
-			{% endif %}
+      {{ form.non_field_errors }}
+      {% if fieldsets %}
+        {% for fieldset in fieldsets %}
+          {% fieldset_renderer form fieldset %}
+        {% endfor %}  
+      {% else %}
+        {% for field in form %}
+          {% include 'forms/default_field.html' with field=field field_name=field.name %}
+        {% endfor %}
+      {% endif %}
 
-			{% block below-form-fields %}{% endblock %}
+      {% block below-form-fields %}{% endblock %}
 
-		{% endblock %}
+    {% endblock %}
 
-		{% block above-submit-button %}
-			{% block required-hint %}
-				<div class="required-hint">{% blocktrans %}Fields marked with <span class="required">*</span> are required{% endblocktrans %}</div>
-			{% endblock %}
-		{% endblock %}
+    {% block above-submit-button %}
+      {% block required-hint %}
+        <div class="required-hint">{% blocktrans %}Fields marked with <span class="required">*</span> are required{% endblocktrans %}</div>
+      {% endblock %}
+    {% endblock %}
 
-		<div class="form-btns">
-			{% block submit-button %}
-				<button type="submit" name="save" data-title='{{ buttons.save.title }}' class="{% block submit-button-class %}btn-save btn btn-primary{% endblock %}">{% block submit-button-caption %}{{ buttons.save.label }}{% endblock %}</button>
-			{% endblock %}
-		</div>
-	{% endblock %}
+    <div class="form-btns">
+      {% block submit-button %}
+        <button type="submit" name="save" data-title='{{ buttons.save.title }}' class="{% block submit-button-class %}btn-save btn btn-primary{% endblock %}">{% block submit-button-caption %}{{ buttons.save.label }}{% endblock %}</button>
+      {% endblock %}
+    </div>
+  {% endblock %}
 </form>

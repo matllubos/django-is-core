@@ -37,7 +37,7 @@ class PermissionsUIMixin(PermissionsMixin):
         return self.has_delete_permission(request, obj)
 
 
-class PermissionsRestMixin(PermissionsMixin):
+class PermissionsRESTMixin(PermissionsMixin):
     """
     Mixin that validate REST user permissions inside ISCore
     """
