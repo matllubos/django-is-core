@@ -2,18 +2,18 @@
 {% load forms i18n snippets %}
 
 {% block header-content %}
-	{{ block.super }}
-	{% block header-btns %}{% endblock %}
+  {{ block.super }}
+  {% block header-btns %}{% endblock %}
 {% endblock %}
 
 {% block content %}
-	<div class="clearfix page-view {% block view-class %}form-view{% endblock %}">
-		{% block above-form %}{% endblock %}
-		{% block form %}
-			{% snippet form_snippet_name 'replace' %}
-				{% form_renderer form fieldsets=fieldsets template=form_template class_attr=form_class_names action=action %}
-			{% endsnippet %}
-		{% endblock %}
-		{% block below-form %}{% endblock %}
-	</div>
+  <div class="clearfix page-view {% block view-class %}form-view{% endblock %}">
+    {% block above-form %}{% endblock %}
+    {% block form %}
+      {% snippet form_snippet_name 'replace' %}
+        {% form_renderer form fieldsets=fieldsets template=form_template class_attr=form_class_names action=action %}
+      {% endsnippet %}
+    {% endblock %}
+    {% block below-form %}{% endblock %}
+  </div>
 {% endblock %}

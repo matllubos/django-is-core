@@ -5,13 +5,13 @@ import re
 from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+from django.http.response import Http404
 
 from block_snippets.views import JsonSnippetTemplateResponseMixin
 
 from is_core.menu import LinkMenuItem
 from is_core.exceptions import HttpForbiddenResponseException
 from is_core.generic_views.exceptions import GenericViewException
-from django.http.response import Http404
 
 
 class PermissionsViewMixin(object):
@@ -88,13 +88,13 @@ class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
     def get_context_data(self, **kwargs):
         context_data = super(DefaultViewMixin, self).get_context_data(**kwargs)
         extra_context_data = {
-                                'site_name': self.site_name,
-                                'active_menu_groups': self.menu_groups,
-                                'title': self.get_title(),
-                                'page_title': self.get_page_title(),
-                                'view_name': self.view_name,
-                                'bread_crumbs_menu_items': self.bread_crumbs_menu_items(),
-                              }
+            'site_name': self.site_name,
+            'active_menu_groups': self.menu_groups,
+            'title': self.get_title(),
+            'page_title': self.get_page_title(),
+            'view_name': self.view_name,
+            'bread_crumbs_menu_items': self.bread_crumbs_menu_items(),
+        }
         extra_context_data.update(context_data)
         return extra_context_data
 

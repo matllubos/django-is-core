@@ -9,13 +9,13 @@ from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
 from django.utils import six
 
-from piston.forms import RestModelForm
+from piston.forms import RESTModelForm
 
-from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
 from is_core.forms.forms import SmartFormMixin
 from is_core.utils import field_humanized_value
+from is_core.forms import widgets
 
 
 class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
@@ -209,7 +209,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     return data
 
 
-class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin, RestModelForm)):
+class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin, RESTModelForm)):
 
     def __init__(self, *args, **kwargs):
         # Set values must be ommited

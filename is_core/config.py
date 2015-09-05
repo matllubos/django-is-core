@@ -10,7 +10,7 @@ AUTH_HEADER_NAME = getattr(settings, 'AUTH_HEADER_NAME', 'HTTP_AUTHORIZATION')
 AUTH_DEFAULT_TOKEN_AGE = getattr(settings, 'AUTH_DEFAULT_TOKEN_AGE', 60 * 60)
 # Max token expiration time (default: 2 weeks)
 AUTH_MAX_TOKEN_AGE = getattr(settings, 'AUTH_MAX_TOKEN_AGE', 60 * 60 * 24 * 7 * 2)
-AUTH_USE_TOKENS = getattr(settings, 'AUTH_USE_TOKENS', False)
+AUTH_USE_TOKENS = 'is_core.auth_token' in settings.INSTALLED_APPS
 AUTH_FORM_CLASS = getattr(settings, 'AUTH_FORM_CLASS', AUTH_USE_TOKENS and
                           'is_core.auth_token.forms.TokenAuthenticationForm' or
                           'django.contrib.auth.forms.AuthenticationForm')
