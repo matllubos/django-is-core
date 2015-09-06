@@ -73,12 +73,17 @@ class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
     add_current_to_breadcrumbs = True
     kwargs = {}
     args = {}
+    title = None
+    page_title = None
 
     def __init__(self):
         super(DefaultViewMixin, self).__init__()
 
     def get_title(self):
-        return None
+        return self.title
+
+    def get_page_title(self):
+        return self.page_title or self.get_title()
 
     def get_context_data(self, **kwargs):
         context_data = super(DefaultViewMixin, self).get_context_data(**kwargs)
@@ -86,6 +91,7 @@ class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
                                 'site_name': self.site_name,
                                 'active_menu_groups': self.menu_groups,
                                 'title': self.get_title(),
+                                'page_title': self.get_page_title(),
                                 'view_name': self.view_name,
                                 'bread_crumbs_menu_items': self.bread_crumbs_menu_items(),
                               }
