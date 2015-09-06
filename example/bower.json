@@ -1,13 +1,14 @@
 {
-    "name": "django-is-core.example",
-    "version": "0.15.0",
+    "name": "issue-tracker",
+    "version": "0.0.1",
     "dependencies": {
         "closure-compiler": "http://dl.google.com/closure-compiler/compiler-20140303.zip",
         "closure-library": "https://github.com/google/closure-library.git#f26bb3122769eb1b19c6fb5adbd9448e36996627",
-        "werkzeug": "http://github.com/LukasRychtecky/werkzeug.git#0.5.0",
+        "werkzeug": "http://github.com/LukasRychtecky/werkzeug.git#0.15.2",
         "bootstrap-sass": "https://github.com/twbs/bootstrap-sass.git#3.1.1",
-        "d3": "3.4.5",
-        "c3": "0.2.4",
-        "c3-externs" : "https://github.com/Fidilip/c3-externs.git"
+        "jquery": "1.11.0",
+        "html5shiv": "3.7.0",
+        "respond": "1.4.2",
+        "zeroclipboard": "2.*"
     }
 }

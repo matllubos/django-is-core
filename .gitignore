@@ -57,6 +57,10 @@ dj/static/js/app.js
 build/config
 
 # IDE #
-###################
+#######
 .idea
 */.idea
+
+# Docs #
+########
+.buile

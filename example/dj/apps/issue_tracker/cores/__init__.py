@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 
 from is_core.main import UIRESTModelISCore
+from is_core.generic_views.inlines.inline_form_views import TabularInlineFormView
 
 from issue_tracker.models import Issue
 from issue_tracker.forms import UserForm
@@ -8,9 +9,15 @@ from issue_tracker.forms import UserForm
 from .resources import NumberOfUserIssuesResource
 
 
+class ReportedIssuesInlineView(TabularInlineFormView):
+    model = Issue
+    fk_name = 'created_by'
+
+
 class UserIsCore(UIRESTModelISCore):
     model = User
     form_class = UserForm
+    form_inline_views = [ReportedIssuesInlineView]
     list_display = ('id', '_obj_name')
 
     def has_read_permission(self, request, obj=None):

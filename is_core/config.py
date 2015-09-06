@@ -31,8 +31,7 @@ LOGOUT_URL = getattr(settings, 'LOGOUT_URL', '/logout')
 LOGIN_URL = getattr(settings, 'LOGIN_URL', '/login')
 LOGIN_API_URL = getattr(settings, 'LOGIN_API_URL', '/api/%s' % LOGIN_URL[1:])
 
-GRID_EXPORT = getattr(settings, 'GRID_EXPORT', '')
-
+EXPORT_TYPES = getattr(settings, 'EXPORT_TYPES', ())
 
 CORE_LOGIN_THROTTLING_VALIDATORS = getattr(settings, 'CORE_LOGIN_THROTTLING_VALIDATORS',
                                            'is_core.auth_token.auth_security.default_login_validators.validators')

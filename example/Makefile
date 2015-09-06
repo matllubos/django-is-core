@@ -16,6 +16,7 @@ DJANGO_POSTFIX = --settings=$(DJANGO_SETTINGS_MODULE) --pythonpath=$(PYTHONPATH)
 PYTHON_BIN = $(VIRTUAL_ENV)/bin
 TYPE = dev
 OS = $(shell uname)
+JS_DIR = $(LOCALPATH)/$(DJANGO_DIR)/static/js
 
 INIT_DATA_PATH = data
 INIT_DATA_FILE = $(INIT_DATA_PATH)/init.json
@@ -49,16 +50,19 @@ initvirtualenv:
 installjs:
 	npm install
 	bower install
-	mkdir -p $(LOCALPATH)/static/js
+	mkdir -p $(JS_DIR)
 	# install packages required by front-end
+	ln -sf $(LOCALPATH)/bower_components/jquery/dist/jquery.min.js $(LOCALPATH)/dj/static/js/jquery.min.js
+	ln -sf $(LOCALPATH)/bower_components/html5shiv/dist/html5shiv.js $(LOCALPATH)/dj/static/js/html5shiv.js
+	ln -sf $(LOCALPATH)/bower_components/respond/dest/respond.min.js $(LOCALPATH)/dj/static/js/respond.min.js
+	ln -sf $(LOCALPATH)/bower_components/zeroclipboard/dist/ZeroClipboard.min.js $(LOCALPATH)/dj/static/js/ZeroClipboard.min.js
+	ln -sf $(LOCALPATH)/bower_components/zeroclipboard/dist/ZeroClipboard.swf $(LOCALPATH)/dj/static/js/ZeroClipboard.swf
 	ln -sf $(LOCALPATH)/var/cs/deps.js $(LOCALPATH)/bower_components/closure-library/closure/goog\
-	 $(LOCALPATH)/var/cs/start.js $(LOCALPATH)/bower_components $(LOCALPATH)/static/js
-	ln -sf $(LOCALPATH)/bower_components/d3/d3.min.js $(LOCALPATH)/static/js/d3.js
-	ln -sf $(LOCALPATH)/bower_components/c3/c3.min.js $(LOCALPATH)/static/js/c3.js
+	 $(LOCALPATH)/var/cs/start.js $(LOCALPATH)/var $(LOCALPATH)/bower_components $(JS_DIR)
 
 buildjs:
 	# build front-end (compile javacripts, etc)
-	grunt dist
+	grunt build
 
 bootstrap: initvirtualenv pip
 
@@ -101,6 +105,8 @@ initenv:
 	echo -e '\nDJANGO_SETTINGS_MODULE="$(DJANGO_SETTINGS_MODULE)"' >> $(VIRTUAL_ENV)/bin/activate
 	echo -e 'export DJANGO_SETTINGS_MODULE' >> $(VIRTUAL_ENV)/bin/activate
 
+collectstatic:
+	@$(PYTHON_BIN)/python manage.py collectstatic --noinput $(DJANGO_POSTFIX)
 
 callcommand:
 	@$(PYTHON_BIN)/python manage.py $(command) $(DJANGO_POSTFIX)
@@ -124,9 +130,9 @@ endif
 datamigration:
 	$(PYTHON_BIN)/python manage.py datamigration $(app) $(name) $(DJANGO_POSTFIX)
 
-install: cleanvar bootstrap installjs initlog initdb syncdb initdata buildjs initenv
+install: cleanvar bootstrap initlog initdb syncdb initdata collectstatic initenv
 
-update: clean cleanvirtualenv cleanjs bootstrap syncdb installjs buildjs initenv
+update: clean cleanvirtualenv cleanjs bootstrap syncdb collectstatic initenv
 
 include build/Makefile.$(OS)
 

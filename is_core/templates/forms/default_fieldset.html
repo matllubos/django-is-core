@@ -1,6 +1,6 @@
 {% load forms utils %}
 
-<fieldset class="{% if title %}with-title{% else %}without-title{% endif %}{% if class %} {{ class }}{% endif %}">
+<fieldset class="{% if title %}with-title{% else %}without-title{% endif %}{% for class in classes %} {{ class }}{% endfor %}">
   {% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}
   {% block above-form %}{% endblock %}
   {% if fieldsets %}
