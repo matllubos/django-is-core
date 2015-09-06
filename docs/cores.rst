@@ -301,7 +301,7 @@ Option `show_in_menu` is set to True by default. If you want to remove core view
 .. attribute:: UIISCore.view_classes
 
 Option contains view classes that are automatically added to django urls. Use this option to add new views. Example 
-you can see in setion generic views. #TODO add link
+you can see in section generic views. #TODO add link
 
 .. attribute:: UIISCore.default_ui_pattern_class
 
@@ -316,7 +316,7 @@ Methods
 .. method:: UIISCore.init_ui_request(request)
 
 Every view defined with option `view_classes` calls this method before calling dispatch. The default implementation of
-this method calls parent method `init_request`.
+this method calls parent method `init_request`::
 
     def init_ui_request(self, request):
         self.init_request(request)
@@ -351,6 +351,41 @@ Method returns menu item object that contains information about link that is dis
 .. method:: UIISCore.menu_url(request, active_group)
 
 Return URL string of menu item.
+
+
+RESTISCore
+----------
+
+`RESTISCore` is very similar to `UIISCore`, but provides REST resources instead of UI views.
+
+Options
+^^^^^^^
+
+.. attribute:: RESTISCore.rest_classes
+
+Option contains REST classes that are automatically added to django urls. Use this option to add new REST resources. 
+Example you can see in section REST. #TODO add link
+
+.. attribute:: RESTISCore.default_rest_pattern_class
+
+As UI views every resource must have assigned is-core pattern class. Default pattern for REST resources is 
+`RESTPattern`. More about patterns you can find in section patterns. #TODO add link
+
+Methods
+^^^^^^^
+
+.. method:: RESTISCore.init_rest_request(request)
+
+Every resource defined with option `rest_classes` calls this method before calling dispatch. The default implementation 
+of this method calls parent method `init_request`.
+
+.. method:: RESTISCore.get_rest_classes()
+
+Use this method if you want to change `rest_classes` dynamically.
+
+.. method:: RESTISCore.get_rest_patterns()
+
+Contains code that generates `rest_patterns` from rest classes. Method returns ordered dict of pattern classes.
 
 HomeUIISCore
 ------------
@@ -607,3 +642,81 @@ option.
 .. method:: UIISCore.get_add_url(request)
 
 Returns url string of "add" view. Rewrite this method if you can change link of add button at list view.
+
+RESTModelISCore
+---------------
+
+`RESTModelISCore` represents core that provides standard resource with default CRUD operations.
+
+Options
+^^^^^^^
+
+.. attribute:: RESTModelISCore.rest_detailed_fields
+
+Set `rest_detailed_fields` if you want to define fields that will be returned inside REST response for request on
+concrete object (URL contains ID of concrete model object. For example URL of such request is `/api/user/1/`). 
+This option rewrites settings inside RESTMeta (you can find more about it at section #TODO add link).
+
+.. attribute:: RESTModelISCore.rest_general_fields
+
+Set `rest_general_fields` if you want to define fields that will be returned inside REST response for request on
+more than one object (URL does not conain ID of concrete objects, eq. `/api/user/`). This defined set of fields is used
+for generating result of foreign key object. This option rewrites settings inside RESTMeta (you can find more about it 
+at section #TODO add link)
+
+.. attribute:: RESTModelISCore.rest_extra_fields
+
+Use `rest_extra_fields` to define extra fields that is not returned by default, but can be extra requested
+by HTTP header `X-Fields` or GET parameter `_fields`. More info you can find in **django-piston** library documentation.
+This option rewrites settings inside RESTMeta (you can find more about it at section #TODO add link).
+
+.. attribute:: RESTModelISCore.rest_default_guest_fields
+
+`rest_guest_fields` contains list of fields that can be seen by user that has not permission to see the whole
+object data. It is situation when user has permission to see a object that is related with other object that can not be 
+seen. In this situation is returned only fields defined inside `rest_guest_fields`. This option rewrites settings inside 
+RESTMeta (you can find more about it at section #TODO add link).
+
+.. attribute:: RESTModelISCore.rest_default_detailed_fields
+
+The purpose of `rest_default_detailed_fields` is the same as `rest_detailed_fields` but this option does not rewrite
+settings inside RESTMeta but the result fields is intersetion of RESTMeta options and this option.
+
+.. attribute:: RESTModelISCore.rest_default_general_fields
+
+The purpose of `rest_default_general_fields` is the same as `rest_general_fields` but this option does not rewrite
+settings inside RESTMeta but the result fields is intersetion of RESTMeta options and this option.
+
+.. attribute:: RESTModelISCore.rest_default_extra_fields
+
+The purpose of `rest_default_extra_fields` is the same as `rest_extra_fields` but this option does not rewrite
+settings inside RESTMeta but the result fields is intersetion of RESTMeta options and this option.
+
+.. attribute:: RESTModelISCore.rest_default_guest_fields
+
+The purpose of `rest_default_guest_fields` is the same as `rest_guest_fields` but this option does not rewrite
+settings inside RESTMeta but the result fields is intersetion of RESTMeta options and this option.
+
+.. attribute:: RESTModelISCore.rest_allowed_methods
+
+Default value of `rest_allowed_methods` is::
+
+    rest_allowed_methods = ('get', 'delete', 'post', 'put')
+
+Use this option to remove some REST operation from model REST resource. For example if you remove `post`, the REST
+resource will not be able to create new model object::
+
+    rest_allowed_methods = ('get', 'delete', 'put')
+
+.. attribute:: RESTModelISCore.rest_obj_class_names
+
+This option is used with `UIIScore`. REST resource will return list of defined class names inside response. The 
+atribute inside response has named `_class_names`. 
+
+.. attribute:: RESTModelISCore.rest_resource_class
+
+Default resource class is `RESTModelResource`. You can change it with this attribute
+
+
+
+

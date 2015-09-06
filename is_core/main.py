@@ -343,7 +343,6 @@ class UIModelISCore(ModelISCore, UIISCore):
         return reverse(self.get_api_url_name())
 
 
-
 class RESTISCore(PermissionsRESTMixin, ISCore):
     """
     Main core for REST resources.
@@ -394,22 +393,21 @@ class RESTModelISCore(ModelISCore, RESTISCore):
     abstract = True
 
     # Allowed rest fields
-    rest_extra_fields = None
     rest_detailed_fields = None
     rest_general_fields = None
+    rest_extra_fields = None
     rest_guest_fields = None
 
     # Default rest fields for list, obj and guest
     rest_default_detailed_fields = ('id', '_rest_links', '_obj_name')
     rest_default_general_fields = ('id', '_rest_links', '_obj_name')
-    rest_default_guest_fields = ()
     rest_default_extra_fields = ()
+    rest_default_guest_fields = ()
 
     rest_allowed_methods = ('get', 'delete', 'post', 'put')
     rest_obj_class_names = ()
 
     rest_resource_class = RESTModelResource
-    rest_resource_pattern_class = RESTPattern
 
     def get_rest_form_fields(self, request, obj=None):
         return self.get_form_fields(request, obj)
