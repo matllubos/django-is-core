@@ -1,6 +1,6 @@
 {
-    "name": "django-is-core.example",
-    "version": "0.15.0",
+    "name": "issue-tracker",
+    "version": "0.0.1",
     "devDependencies": {
         "grunt": "~0.4.1",
         "grunt-contrib-clean": "~0.5.0",
@@ -9,10 +9,7 @@
         "grunt-este-watch": "~0.1.1",
         "grunt-coffeelint": "0.0.7",
         "grunt-zuckrig-closure": "0.1.2",
-        "grunt-suppe": "git://github.com/LukasRychtecky/grunt-suppe.git#0.1.6",
-        "grunt-contrib-uglify": "0.4.0",
-        "grunt-contrib-concat": "0.4.0",
-        "phantomjs": "1.9.7-8"
+        "grunt-suppe": "git://github.com/LukasRychtecky/grunt-suppe.git#0.1.5"
     },
     "dependencies": {
         "font-awesome": "4.0.3"

@@ -283,7 +283,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     # list view params
     list_display = ('_obj_name',)
     export_display = ()
-    export_types = config.GRID_EXPORT
+    export_types = config.EXPORT_TYPES
     default_list_filter = {}
 
     # add/edit view params
@@ -315,7 +315,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return self.get_urlpatterns(self.ui_patterns)
 
     def get_show_in_menu(self, request):
-        return 'list' in self.ui_patterns and self.show_in_menu and self.has_ui_read_permission(request)
+        return 'list' in self.ui_patterns and super(UIModelISCore, self).get_show_in_menu(request)
 
     def get_form_inline_views(self, request, obj=None):
         return self.form_inline_views
@@ -405,7 +405,6 @@ class RESTModelISCore(ModelISCore, RESTISCore):
     rest_default_guest_fields = ()
     rest_default_extra_fields = ()
 
-    form_class = SmartModelForm
     rest_allowed_methods = ('get', 'delete', 'post', 'put')
     rest_obj_class_names = ()
 
