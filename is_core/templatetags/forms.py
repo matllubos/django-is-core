@@ -38,7 +38,8 @@ def fieldset_renderer(context, form, fieldset):
                         'fields': values.get('fields'),
                         'form': form,
                         'title': fieldset[0],
-                        'class': values.get('class')
+                        'class': values.get('class'),
+                        'fieldsets': values.get('fieldsets')
                     })
     return render_to_string(template, context)
 
