@@ -35,11 +35,14 @@ def flatten_fieldsets(fieldsets):
     """Returns a list of field names from an admin fieldsets structure."""
     field_names = []
     for _, opts in fieldsets:
-        for field in opts.get('fields', ()):
-            if isinstance(field, (list, tuple)):
-                field_names.extend(field)
-            else:
-                field_names.append(field)
+        if opts.get('fieldsets'):
+            field_names += flatten_fieldsets(opts.get('fieldsets'))
+        else:
+            for field in opts.get('fields', ()):
+                if isinstance(field, (list, tuple)):
+                    field_names.extend(field)
+                else:
+                    field_names.append(field)
     return field_names
 
 
