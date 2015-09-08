@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import re
 import sys
 import types
@@ -7,19 +9,21 @@ from django.http.request import QueryDict
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
+from django.utils.html import format_html
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.fields import FieldDoesNotExist
 from django.utils.safestring import mark_safe
 from django.utils.html import linebreaks, conditional_escape
 from django.db.models.fields.related import ManyToManyRel, ForeignKey
 from django.db.models.base import Model
+
 from is_core.forms.forms import ReadonlyValue
 
 
 def str_to_class(class_string):
     module_name, class_name = class_string.rsplit('.', 1)
     # load the module, will raise ImportError if module cannot be loaded
-    m = __import__(module_name, globals(), locals(), class_name)
+    m = __import__(module_name, globals(), locals(), str(class_name))
     # get the class, will raise AttributeError if class cannot be found
     c = getattr(m, class_name)
     return c
@@ -165,5 +169,5 @@ def render_model_object_with_link(request, obj, display_value=None):
     if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__')
          and hasattr(getattr(obj, 'can_see_edit_link', None), '__call__')
          and obj.can_see_edit_link(request)):
-            return '<a href="%s">%s</a>' % (obj.get_absolute_url(), display_value or force_text(obj))
+            return format_html('<a href="{}">{}</a>', obj.get_absolute_url(), display_value or force_text(obj))
     return display_value or force_text(obj)
