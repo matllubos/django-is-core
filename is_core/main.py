@@ -25,7 +25,7 @@ from piston.utils import rfs
 from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
-from is_core.rest.resource import RESTModelResource
+from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
@@ -109,6 +109,7 @@ class ModelISCore(PermissionsMixin, ISCore):
     Parent of REST and UI cores that works as controller to specific model.
     This class is abstract.
     """
+
     abstract = True
 
     list_actions = ()
@@ -270,6 +271,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     """
     Main core controller for specific model that provides UI views for model management (add, edit, list).
     """
+
     abstract = True
 
     default_model_view_classes = (
@@ -390,6 +392,7 @@ class RESTModelISCore(ModelISCore, RESTISCore):
     Main core controller for specific model that provides REST resources for model management.
     CRUD (POST, GET, PUT, DELETE).
     """
+
     abstract = True
 
     # Allowed rest fields
@@ -405,15 +408,15 @@ class RESTModelISCore(ModelISCore, RESTISCore):
     rest_default_guest_fields = ()
 
     rest_allowed_methods = ('get', 'delete', 'post', 'put')
-    rest_obj_class_names = ()
 
     rest_resource_class = RESTModelResource
-
-    def get_rest_form_fields(self, request, obj=None):
-        return self.get_form_fields(request, obj)
+    rest_resource_pattern_class = RESTPattern
 
     def get_rest_form_class(self, request, obj=None):
         return self.get_form_class(request, obj)
+
+    def get_rest_form_fields(self, request, obj=None):
+        return self.get_form_fields(request, obj)
 
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_exclude(request, obj)
@@ -444,9 +447,6 @@ class RESTModelISCore(ModelISCore, RESTISCore):
 
         return rfs(self.rest_guest_fields)
 
-    def get_rest_obj_class_names(self, request, obj):
-        return list(self.rest_obj_class_names)
-
     def get_rest_class(self):
         return modelrest_factory(self.model, self.rest_resource_class)
 
@@ -464,9 +464,6 @@ class RESTModelISCore(ModelISCore, RESTISCore):
                                                   class_name='delete', success_text=_('Record "%s" was deleted') % obj))
         return list_actions
 
-    def web_link_patterns(self, request):
-        return self.ui_patterns.values()
-
 
 class UIRESTModelISCore(RESTModelISCore, UIModelISCore):
     """
@@ -476,6 +473,8 @@ class UIRESTModelISCore(RESTModelISCore, UIModelISCore):
 
     abstract = True
     ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
+    rest_resource_class = UIRESTModelResource
+    rest_obj_class_names = ()
 
     def get_rest_extra_fields(self, request, obj=None):
         fieldset = super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj)
@@ -502,6 +501,12 @@ class UIRESTModelISCore(RESTModelISCore, UIModelISCore):
 
     def get_default_action(self, request, obj):
         return 'edit-%s' % self.get_menu_group_pattern_name()
+
+    def web_link_patterns(self, request):
+        return self.ui_patterns.values()
+
+    def get_rest_obj_class_names(self, request, obj):
+        return list(self.rest_obj_class_names)
 
 
 class ViaRESTModelISCore(RESTModelISCore):

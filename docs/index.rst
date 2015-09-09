@@ -43,6 +43,7 @@ Content
    cores
    views
    rests
+   permissions
    models
    forms
    filters

@@ -147,15 +147,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     def get_guest_fields(self, obj=None):
         return self.core.get_rest_guest_fields(self.request, obj=obj)
 
-    def _web_links(self, obj):
-        web_links = {}
-        for pattern in self.core.web_link_patterns(self.request):
-            if pattern.send_in_rest:
-                url = pattern.get_url_string(self.request, obj=obj)
-                if url and pattern.can_call_get(self.request, obj=obj):
-                    web_links[pattern.name] = url
-        return web_links
-
     def _rest_links(self, obj):
         rest_links = {}
         for pattern in self.core.rest_patterns.values():
@@ -176,9 +167,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     def _actions(self, obj):
         ac = self.core.get_list_actions(self.request, obj)
         return ac
-
-    def _class_names(self, obj):
-        return self.core.get_rest_obj_class_names(self.request, obj)
 
     def get_queryset(self):
         return self.core.get_queryset(self.request)
@@ -255,3 +243,19 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
         return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields)
+
+
+class UIRESTModelResource(RESTModelResource):
+
+    def _web_links(self, obj):
+        web_links = {}
+        for pattern in self.core.web_link_patterns(self.request):
+            if pattern.send_in_rest:
+                url = pattern.get_url_string(self.request, obj=obj)
+                if url and pattern.can_call_get(self.request, obj=obj):
+                    web_links[pattern.name] = url
+        return web_links
+
+    def _class_names(self, obj):
+        return self.core.get_rest_obj_class_names(self.request, obj)
+

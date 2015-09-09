@@ -597,7 +597,7 @@ Use this method if you want to change `form_readonly_fields` dynamically.
 
 .. method:: UIISCore.get_ui_form_class(request, obj=None)
 
-Change this method to get custom form only for UI. By default it uses `get_ui_form_class(request, obj)` method to obtain
+Change this method to get custom form only for UI. By default it uses `get_form_class(request, obj)` method to obtain
 form class.
 
 .. method:: UIISCore.get_ui_form_fields(request, obj=None)
@@ -708,15 +708,237 @@ resource will not be able to create new model object::
 
     rest_allowed_methods = ('get', 'delete', 'put')
 
+.. attribute:: RESTModelISCore.rest_resource_class
+
+Default resource class is `RESTModelResource`. You can change it with this attribute
+
+Methods
+^^^^^^^
+
+.. method:: RESTModelISCore.get_rest_form_class(request, obj=None)
+
+Change this method to get custom form only for REST resources. By default it uses `get_form_class(request, obj)` method 
+to obtain form class.
+
+.. method:: RESTModelISCore.get_rest_form_fields(request, obj=None)
+
+Change this method to get custom form fields only for REST resources. By default it uses `get_form_fields(request, obj)`
+method to obtain form class.
+
+.. method:: RESTModelISCore.get_rest_form_exclude(request, obj=None)
+
+Change this method to get custom form exclude fields only for REST resources. By default it uses
+`get_form_exclude(request, obj)` method to obtain excluded form fields.
+
+.. method:: RESTModelISCore.get_rest_extra_fields(request, obj=None)
+
+The method returns REST extra fields if class has set `rest_extra_fields` option this method returns result of this 
+attribute otherwise it returns intersetion of RestMeta option `extra_fields` and `rest_default_extra_fields` option of 
+this class.
+
+.. method:: RESTModelISCore.get_rest_general_fields(request, obj=None)
+
+The method returns REST general fields if class has set `rest_general_fields` option this method returns result of this 
+attribute otherwise it returns intersetion of RestMeta option `default_general_fields` and `rest_default_general_fields`
+option of this class.
+
+.. method:: RESTModelISCore.get_rest_detailed_fields(request, obj=None)
+
+The method returns REST detailed fields if class has set `rest_detailed_fields` option this method returns result of 
+this attribute otherwise it returns intersetion of RestMeta option `default_detailed_fields` and 
+`rest_default_detailed_fields` option of this class.
+
+.. method:: RESTModelISCore.get_rest_guest_fields(request, obj=None)
+
+The method returns REST guest fields if class has set `rest_guest_fields` option this method returns result of this 
+attribute otherwise it returns intersetion of RestMeta option `guest_fields` and `rest_default_guest_fields` option of 
+this class.
+
+.. method:: RESTModelISCore.get_rest_class()
+
+Returns generated REST resource class from model.
+
+..method:: RESTModelISCore.get_list_actions(request, obj)
+
+Method `get_list_actions` returns list of actions. Every action is class that defines which operation can be done with
+a REST resource. S example we will use default action for all REST Model cores::
+
+    def get_list_actions(self, request, obj):
+        list_actions = super(RESTModelISCore, self).get_list_actions(request, obj)
+        if self.has_delete_permission(request, obj):
+            confirm_dialog = ConfirmRESTAction.ConfirmDialog(_('Do you really want to delete "%s"') % obj)
+            list_actions.append(ConfirmRESTAction('api-resource-%s' % self.get_menu_group_pattern_name(),
+                                                  _('Delete') , 'DELETE', confirm_dialog=confirm_dialog,
+                                                  class_name='delete', success_text=_('Record "%s" was deleted') % obj))
+        return list_actions
+
+
+`confirm_dialog` is information what UI (or fat client) should show before performing action. `ConfirmRESTAction`
+is action that must be firstly confirmed by user. Parameters of this class are: action name, verbose name, HTTP method,
+dialog, class name for UI view and description that is triggered after successful completion. The defined action inside
+REST response (JSON) looks like::
+
+    "_actions": [
+            {
+                "name": "api-resource-user", 
+                "confirm": {
+                    "false_label": "No", 
+                    "text": "Do you really want to delete user", 
+                    "true_label": "Yes", 
+                    "title": "Are you sure?"
+                }, 
+                "class_name": "delete", 
+                "verbose_name": "Delete", 
+                "success_text": "Record user was deleted", 
+                "type": "rest", 
+                "method": "DELETE"
+            }
+        ]
+
+More about actions you can find in section actins. # TODO add link
+
+Returns generated REST resource class from model.
+
+UIRESTModelISCore
+-----------------
+
+This class is combination of `RESTModelISCore` and `UIModelISCore`. The all options and methods from parent class
+can be used in this class too. There is only presented changed or extra options and methods.
+
+Options
+^^^^^^^
+
 .. attribute:: RESTModelISCore.rest_obj_class_names
 
 This option is used with `UIIScore`. REST resource will return list of defined class names inside response. The 
 atribute inside response has named `_class_names`. 
 
-.. attribute:: RESTModelISCore.rest_resource_class
+.. attribute::  UIRESTModelISCore.ui_rest_extra_fields
 
-Default resource class is `RESTModelResource`. You can change it with this attribute
+Option contains extra attributes that is related to UI view. The default values are::
 
+    ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
 
+The purpose of values is:
 
+ * _web_links
 
+  Contains list of named UI links for every object returned from REST resource.
+
+  Example `_web_links` result for REST of users is::
+
+    "_web_links": {
+        "edit-user": "/user/1/", 
+        "list-user": "/user", 
+        "add-user": "/user/add/"
+    }
+
+ * _rest_links
+
+  Contains list of named REST links with allowed methods for every object returned from REST resource.
+
+  Example `_rest_links` result for REST of users is::
+
+    "_rest_links": {
+        "api-user": {
+            "url": "/api/user", 
+            "methods": [
+                "POST", 
+                "GET"
+            ]
+        }, 
+        "api-resource-user": {
+            "url": "/api/user/1", 
+            "methods": [
+                "PUT", 
+                "DELETE", 
+                "GET"
+            ]
+        }
+    }
+
+ * _default_action
+
+  Contains which action is default for UI view (which action is performed if user click to row inside table of 
+  objects)::
+
+    {
+        "_default_action": "edit-user"
+    }
+
+ * _actions
+
+  List of actions that can be performed with REST resource.
+ 
+ * _class_names
+ 
+  Contains set of class names defined by option `rest_obj_class_names` or by method `get_rest_obj_class_names`.
+
+  As Example we use core of user and set class names dynamically by method get_rest_obj_class_names::
+ 
+    from django.contrib.auth.models import User
+
+    from is_core.main import UIRESTModelISCore
+
+    class UserIsCore(UIRESTModelISCore):
+        model = User
+
+        def get_rest_obj_class_names(self, request, obj):
+            if obj.is_superuser:
+                return ('superuser',)
+            else:
+                return ()
+
+  The result is REST response that return class name 'superuser' only for users that is superusers. The class names are
+  automatically added to the row inside table of users::
+ 
+    {
+        "_class_names": [
+            "superuser"
+        ]
+    }
+
+  And result HTML is::
+
+    <tr class="goog-control superuser" aria-selected="false" tabindex="0" id=":2">
+      <td id=":4" class="id">
+        <span class="cell-content"></span><a id=":3" class="btn btn-link" href="/user/1/" title=""><span>1</span></a>
+      </td>
+      ...
+     </tr>
+
+ * _obj_name
+
+  Contain result of method `__str__` (python 3) or `__unicode__` (python 2) of model instance.
+
+  Example::
+ 
+    {
+        "_obj_name": "is-core user"
+    }
+
+.. attribute::  UIRESTModelISCore.rest_resource_class
+
+Option is set to class `UIRESTModelResource` this class can provide _web_links and _class_names instead of 
+`RESTModelResource`.
+
+Methods
+^^^^^^^
+
+.. method:: RESTModelISCore.get_api_url_name()
+
+API URL name is set automatically to REST resource. Therefore is not necessary to set it manually.
+
+.. method:: RESTModelISCore.get_default_action(request, obj)
+
+Default action for all objects is 'edit-{name of the model}'.
+
+.. method:: RESTModelISCore.web_link_patterns(request, obj)
+
+Method returns UI patterns that will be shown as `_web_links` inside REST response.
+
+Use this method if you want to change `rest_obj_class_names` dynamically.
+
+.. method:: RESTModelISCore.get_rest_obj_class_names(request, obj)
+
+Use this method if you want to change `rest_obj_class_names` dynamically.

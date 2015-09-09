@@ -44,6 +44,12 @@ class UserIsCore(UIRESTModelISCore):
             'api-number-issues', self.site_name, r'^/(?P<pk>[-\w]+)/issue-number/?$', NumberOfUserIssuesResource, self)
         return resource_patterns
 
+    def get_rest_obj_class_names(self, request, obj):
+        if obj.is_superuser:
+            return ('superuser',)
+        else:
+            return ()
+
 
 class IssueIsCore(UIRESTModelISCore):
     model = Issue
