@@ -5,18 +5,19 @@ Cores
 UIRESTModelISCore
 -----------------
 
-The `UIRESTModelISCore` class is the representation of a model in the **django-is-core** interface. These representations are 
-stored in a file named `cores.py` in your application. We will start with the most common cose when you want to create
-three typical views for information system:
+The `UIRESTModelISCore` class is the representation of a model in the **django-is-core** interface. These
+representations are stored in a file named `cores.py` in your application. We will start with the most common case when
+you want to create three typical views for information system:
 
   * table view for printing objects
   * view for creating new objects
   * view for editing objects
 
-As example project we use Issue tracker. Firstly for every application you need management of users. We use default 
-**django** user model.
+As example project we use Issue tracker. Firstly for every application you need management of users. We use default
+**Django** user model.
 
-For creating **add**, **edit** and **table** views you must only create file `cores.py` inside specific application that contains::
+For creating **add**, **edit** and **table** views you must only create file `cores.py` inside specific application that
+contains::
 
     from django.contrib.auth.models import User
 
@@ -44,8 +45,8 @@ image 3
 
 REST
 ^^^^
-But there is created REST resource too. By default on URLs **/api/user/** and **/api/user/{obj_id}** that returns 
-object in asked format (HTTP header **Content-type: application/json**).
+But there is created REST resource too. By default on URLs ``/api/user/`` and ``/api/user/{obj_id}`` that returns 
+object in asked format (HTTP header ``Content-type: application/json``).
 
 
 
@@ -66,9 +67,9 @@ resources without UI HTML views. The usage is the same as `UIRESTModelISCore`::
 UIModelISCore
 -------------
 
-The `RESTModelISCore` is the second parent of `UIRESTModelISCore`. It is used for creating only UI views. Because UI 
-views needs some REST resources is necessary to specify on which URL is deployed REST resource of model (api_url_name is 
-transofmed to URL by django resolve helper)::
+The `UIModelISCore` is the second parent of `UIRESTModelISCore`. It is used for creating only UI views. Because UI
+views needs some REST resources is necessary to specify on which URL is deployed REST resource of model (api_url_name is
+transformed to URL by Django resolve helper)::
 
     from django.contrib.auth.models import User
 
@@ -91,7 +92,7 @@ ISCore hiearchy
 ---------------
 
 Now we provide detailed description of all ISCore objects. Firstly for better understanding you can see UML class 
-diagram of core hierarchy. 
+diagram of core hierarchy.
 
 # TODO add diagram
 
@@ -100,7 +101,7 @@ ISCore
 ------
 
 Following options and methods can be applied for all Core objects like *RESTModelISCore*, *UIModelISCore* or 
-*UIRESTModelISCore* (all descendants of ISCore class). 
+*UIRESTModelISCore* (all descendants of ISCore class).
 
 
 Options
@@ -108,7 +109,7 @@ Options
 
 .. attribute:: ISCore.abstract
 
-Variable `abstract` provides way how to create core that is not registered but this class variable is not inherited. 
+Variable `abstract` provides way how to create core that is not registered but this class variable is not inherited.
 Let's show an example::
 
     from django.contrib.auth.models import User
@@ -123,35 +124,35 @@ Let's show an example::
     class UIRESTUserISCore(AbstractUIRESTUserISCore):
         pass
 
-First core is not registered. Therefore views and rest resources are not created. But the second view that inherits of 
-abstract core is registered. All configuration from parent class is inhered (without abstract variable).
+First core is not registered. Therefore views and REST resources are not created. But the second core that inherits from
+the abstract core is registered. All configuration from parent class is inhered (without abstract variable).
 
 .. attribute:: ISCore.verbose_name,ISCore.verbose_name_plural
 
-These variables are used inside generic views. It can be added to `context_data` and rendered inside templates. 
+These variables are used inside generic views. It can be added to `context_data` and rendered inside templates.
 
 .. attribute:: ISCore.menu_group
 
-It is necessary have some slug that distinguish one core from another. For this purpose is used variable `menu_group`.
-This variable is used for example to generate URL patterns or menu. Value of the variable is generated automatically 
-for cores that is connected to model 
+It is necessary have a slug that distinguish one core from another. For this purpose is used variable `menu_group`.
+This variable is used for example to generate URL patterns or menu. Value of the variable is generated automatically
+for cores that is connected to model.
 
 Methods
 ^^^^^^^
 
 .. method:: ISCore.init_request(request)
 
-Every core views/rest resources calls this method before calling dispatch. You can use it to change request its calling.
+Every core views/REST resources calls this method before calling dispatch. You can use it to change request its calling.
 
 .. method:: ISCore.get_url_prefix()
 
-Every core musth have unique URL. Therefore method `get_url_prefix` is way how to achieve it. Method defines URL prefix 
+Every core must have unique URL. Therefore method `get_url_prefix` is way how to achieve it. Method defines URL prefix
 for all views and rest resources. By default the URL prefix is value of attribute menu_group.
 
 ModelISCore
 -----------
 
-Tne next class that extends `ISCore` is `ModelISCore`. All cores that inherits from ModelISCore works as controller over
+The next class that extends `ISCore` is `ModelISCore`. All cores that inherits from ModelISCore works as controller over
 a model.
 
 Options
@@ -159,15 +160,15 @@ Options
 
 .. attribute:: ModelISCore.list_actions
 
-Variable `list_action*` contains actions that user can perform via REST or UI. More detailed explanation with example
+Variable `list_action` contains actions that user can perform via REST or UI. More detailed explanation with example
 you find inside `UIRESTModelISCore options` part.
 
 .. attribute:: ModelISCore.form_fields
 
-Use the `form_fields` option to make simple layout changes in the forms on the “add” and “edit” and REST resources pages 
-such as showing only a subset of available fields, modifying their order, or grouping them into rows. We will show it
-on `UIRESTModelISCore`. If you want to restrict form fields to *username*, *first_name* and *last_name* the simpliest
-way is use:
+Use the `form_fields` option to make simple layout changes in the forms on the **add** and **edit** and REST resources
+pages such as showing only a subset of available fields, modifying their order, or grouping them into rows. We will
+show it on `UIRESTModelISCore`. If you want to restrict form fields to *username*, *first_name* and *last_name*
+the simpliest way is use::
 
     from django.contrib.auth.models import User
 
@@ -179,7 +180,7 @@ way is use:
 
 .. attribute:: ModelISCore.form_exclude
 
-This attribute, if given, should be a list of field names to exclude from the form.
+This attribute, if given, should be a list of field names to exclude from the form.::
 
     from django.contrib.auth.models import User
 
@@ -192,28 +193,36 @@ This attribute, if given, should be a list of field names to exclude from the fo
 .. attribute:: ModelISCore.form_class
 
 If you want to change default form class which is `SmartModelForm` you can change it with this option. The form is
-changed for "add", "edit" views and REST resources too.
+changed for **add**, **edit** views and REST resources too.
 
 .. attribute:: ModelISCore.ordering
 
-Option for changing default ordering of model for core.
+Option for changing default ordering of model for core.::
+
+    from django.contrib.auth.models import User
+
+    from is_core.main import UIRESTModelISCore
+
+    class UserISCore(UIRESTModelISCore):
+        model = User
+        ordering = ('last_name', 'fist_name', '-created_at')
 
 Methods
 ^^^^^^^
 
 .. method:: ModelISCore.get_form_fields(request, obj=None)
 
-Use this method to define form fields dynamically or if you want to define different form fields for "add", "edit" view
-of REST resources.
+Use this method to define form fields dynamically or if you want to define different form fields for **add**, **edit**,
+view of REST resources.
 
 
 .. method:: ModelISCore.get_form_exclude(request, obj=None)
 
-The oposite to get_form_fields.
+The opposite to get_form_fields.
 
 .. method:: ModelISCore.get_form_class(request, obj=None)
 
-Use this method to define form dynamically or if you want to define different form for "add", "edit" view of REST 
+Use this method to define form dynamically or if you want to define different form for **add**, **edit** view of REST 
 resources.
 
 .. method:: ModelISCore.pre_save_model(request, obj, form, change)
@@ -226,7 +235,7 @@ Method `post_save_model` is called after saving object to database. Body is empt
 
 .. method:: ModelISCore.save_model(request, obj, form, change)
 
-You can rewrite this method if you want to change way how is object saved to database. Default body is:
+You can rewrite this method if you want to change way how is object saved to database. Default body is::
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -241,21 +250,21 @@ Method `post_delete_model` is called after removing object from database. Body i
 
 .. method:: ModelISCore.delete_model(request, obj)
 
-You can rewrite this method if you want to change way how is object removed from database. Default body is:
+You can rewrite this method if you want to change way how is object removed from database. Default body is::
 
     def delete_model(self, request, obj):
         obj.delete()
 
 .. method:: ModelISCore.verbose_name(),ModelISCore.verbose_name_plural()
 
-Default verbose names of `ModelISCore` is get from model meta options:
+Default verbose names of `ModelISCore` is get from model meta options::
 
     self.model._meta.verbose_name
     self.model._meta.verbose_name_plural
 
 .. method:: ModelISCore.menu_group()
 
-Default `menu_group` value is get from module name of model (`self.model._meta.module_name`)
+Default `menu_group` value is get from module name of model (``self.model._meta.module_name``)
 
 .. method:: ModelISCore.get_ordering(request)
 
@@ -268,8 +277,8 @@ permissions.
 
 .. method:: ModelISCore.preload_queryset(request, qs)
 
-The related objects of queryset should sometimes very slow down retrieving data from the database. If you want to 
-improve speed of your application use this function to create preloading of related objects.
+The related objects of queryset should sometimes very slow down retrieving data from the database. If you want to
+improve a speed of your application use this function to create preloading of related objects.
 
 .. method:: ModelISCore.get_list_actions(request, obj)
 
@@ -279,8 +288,8 @@ Use this method if you want to change `list_actions` dynamically.
 .. method:: ModelISCore.get_default_action(request, obj)
 
 Chose default action for object used inside UI and REST. For example default action is action that is performed if you
-select row inside table of objects. For table view default action is open "edit" view. If you return None no action
-is performed by default.
+select row inside table of objects. For table view default action is open **edit** view. If you return ``None``
+no action is performed by default.
 
 
 UIISCore
@@ -296,12 +305,28 @@ Every UI core has one place inside menu that addresses one of UI views of a core
 
 .. attribute:: UIISCore.show_in_menu
 
-Option `show_in_menu` is set to True by default. If you want to remove core view from menu set this option to False.
+Option `show_in_menu` is set to ``True`` by default. If you want to remove core view from menu set this option to
+``False``.
 
 .. attribute:: UIISCore.view_classes
 
-Option contains view classes that are automatically added to django urls. Use this option to add new views. Example 
-you can see in section generic views. #TODO add link
+Option contains view classes that are automatically added to Django urls. Use this option to add new views. Example 
+you can see in section generic views (this is a declarative way if you want to register views dynamically see
+``UIISCore.get_view_classes``).::
+
+    from django.contrib.auth.models import User
+
+    from is_core.main import UIRESTModelISCore
+
+    from .views import MonthReportView
+
+
+    class UserISCore(UIRESTModelISCore):
+        model = User
+
+        view_classes = (
+            ('reports', r'^/reports/$', MonthReportView),
+        )
 
 .. attribute:: UIISCore.default_ui_pattern_class
 
@@ -323,7 +348,25 @@ this method calls parent method `init_request`::
 
 .. method:: UIISCore.get_view_classes()
 
-Use this method if you want to change `view_classes` dynamically.
+Use this method if you want to change `view_classes` dynamically. A following example shows overriding **edit** view
+and registering a custom view::
+
+    from django.contrib.auth.models import User
+
+    from is_core.main import UIRESTModelISCore
+
+    from .views import UserEditView, MonthReportView
+
+
+    class UserISCore(UIRESTModelISCore):
+        model = User
+
+        def get_view_classes(self):
+            view_classes = super(UserISCore, self).get_view_classes()
+            view_classes['edit'] = (r'^/(?P<pk>\d+)/$', UserEditView)
+            view_classes['reports'] = (r'^/reports/$', MonthReportView)
+            return view_classes
+
 
 .. method:: UIISCore.get_ui_patterns()
 
@@ -332,25 +375,25 @@ Contains code that generates `ui_patterns` from view classes. Method returns ord
 
 .. method:: UIISCore.get_show_in_menu(request)
 
-Returns `boolean` if menu link is provided for the core. By default there is three rules:
+Returns `boolean` if menu link is provided for the core, by default there are three rules:
 
- * show_in_menu must be set to True.
- * menu_url_name need not be empty.
- * current user must have permission to see the linked view.
+ * show_in_menu must be set to ``True``
+ * menu_url_name need not be empty
+ * current user must have permissions to see the linked view
 
 
 .. method:: UIISCore.is_active_menu_item(request, active_group)
 
-Method finds if menu link of a core is active (if the view with `menu_url_name` is the current displayed page).
+This method finds if a menu link of a core is active (if the view with `menu_url_name` is the current displayed page).
 
 
 .. method:: UIISCore.get_menu_item(request, active_group)
 
-Method returns menu item object that contains information about link that is displayed inside menu.
+This method returns a menu item object that contains information about the link displayed inside menu.
 
 .. method:: UIISCore.menu_url(request, active_group)
 
-Return URL string of menu item.
+Returns URL string of menu item.
 
 
 RESTISCore
@@ -385,14 +428,14 @@ Use this method if you want to change `rest_classes` dynamically.
 
 .. method:: RESTISCore.get_rest_patterns()
 
-Contains code that generates `rest_patterns` from rest classes. Method returns ordered dict of pattern classes.
+Contains code that generates `rest_patterns` from rest classes. Method returns an ordered dict of pattern classes.
 
 HomeUIISCore
 ------------
 
-`HomeISCor`e contains only one UI view which is index page. By default this page is empty and contains only menu because
-every Information System has custom index. You can very simply change default view class by changing `seetings` 
-attribute `HOME_VIEW`, the default value is::
+``HomeISCore`` contains only one UI view which is index page. By default this page is empty and contains only menu
+because every information system has custom index. You can very simply change default view class by changing `seetings` 
+attribute ``HOME_VIEW``, the default value is::
 
     HOME_VIEW = 'is_core.generic_views.HomeView'
 
@@ -404,15 +447,15 @@ You can change whole is core too by attribute `HOME_IS_CORE`, default value::
 UIModelISCore
 -------------
 
-`UIModelISCore` represents core that provides standard views for model creation, editation and listing. The 
-`UIModelISCore` will not work correctly without REST resource. Therefore you must set `api_url_name` option.
+``UIModelISCore`` represents core that provides standard views for model creation, editation and listing. The 
+``UIModelISCore`` will not work correctly without REST resource. Therefore you must set ``api_url_name`` option.
 
 Options
 ^^^^^^^
 
 .. attribute:: UIModelISCore.default_model_view_classes
 
-For the `UIModelISCore` default views are "add", "edit" and "list"::
+For the ``UIModelISCore`` default views are **add**, **edit** and **list**::
 
     default_model_view_classes = (
         ('add', r'^/add/$', AddModelFormView),
@@ -422,15 +465,15 @@ For the `UIModelISCore` default views are "add", "edit" and "list"::
 
 .. attribute:: UIModelISCore.api_url_name
 
-The `api_url_name` is required attribute. The value is pattern name of REST resource.
+The ``api_url_name`` is required attribute. The value is pattern name of REST resource.
 
 .. attribute:: UIModelISCore.list_display
  
-Set `list_display` to control which fields are displayed on the list page.
+Set ``list_display`` to control which fields are displayed on the list page.
 
 .. attribute:: UIModelISCore.export_display
 
-Set `export_display` to control which fields are displayed inside exports (eq. PDF, CSV, XLSX).
+Set ``export_display`` to control which fields are displayed inside exports (e.g. PDF, CSV, XLSX).
 
 .. attribute:: UIModelISCore.export_types
 
@@ -442,15 +485,19 @@ REST resources provide the ability to export output to several formats:
  * XLSX (you must install library XlsxWriter)
  * PDF (you must install library reportlab)
 
-List view provides export buttons. Option `export_types` contains tripple: title, type, serialization format 
-(content-type). For example if you want to serialize users to CSV::
+List view provides export buttons. Option ``export_types`` contains tripple:
+ * title
+ * type
+ * serialization format (content-type).
+
+ For example if you want to serialize users to CSV::
 
     class UIRESTUserISCore(UIRESTISCore):
         export_types = (
             ('export to csv', 'csv', 'text/csv'),
         )
 
-If you want to set `export_types` for all cores you can use `EXPORT_TYPES` attribute in your settings::
+If you want to set ``export_types`` for all cores you can use ``EXPORT_TYPES`` attribute in your settings::
 
     EXPORT_TYPES = (
         ('export to csv', 'csv', 'text/csv'),
@@ -458,7 +505,7 @@ If you want to set `export_types` for all cores you can use `EXPORT_TYPES` attri
 
 .. attribute:: UIModelISCore.default_list_filter
 
-UI table view support filtering data from REST resource. There is situations where you need to set default values for
+UI table view support filtering data from REST resource. There are situations where you need to set default values for
 filters. For example if you want to filter only superusers you can use::
 
     class UIRESTUserISCore(UIRESTISCore):
@@ -500,7 +547,7 @@ inlines. We will use as example new model issue of issue tracker system::
         watched_by = models.ManyToManyField(AUTH_USER_MODEL)
         created_by = models.ForeignKey(AUTH_USER_MODEL)
 
-Now we want to add inline form view of all reported issues to user "add" and "edit" views::
+Now we want to add inline form view of all reported issues to user **add** and **edit** views::
 
     class ReportedIssuesInlineView(TabularInlineFormView):
         model = Issue
@@ -509,23 +556,23 @@ Now we want to add inline form view of all reported issues to user "add" and "ed
     class UIRESTUserISCore(UIRESTISCore):
         form_inline_views = (ReportedIssuesInlineView,)
 
-The `fk_name` is not required if there is only one relation between `User` and `Issue`. More about inline views you
+The ``fk_name`` is not required if there is only one relation between ``User`` and ``Issue``. More about inline views you
 can find in generic views section # TODO add link.
 
 .. attribute:: UIModelISCore.form_fieldsets
 
-Set `form_fieldsets` to control the layout of core “add” and “change” pages. Fieldset defines list of form fields too. 
-If you set `form_fieldsets` the `form_fields` is rewrote with set of all fields from fieldsets. Therefore you should
-use only one of these attributes.
+Set ``form_fieldsets`` to control the layout of core **add** and **change** pages. Fieldset defines a list of form fields
+too. If you set ``form_fieldsets`` the ``form_fields`` is rewritten with a set of all fields from fieldsets.
+Therefore you should use only one of these attributes.
 
-`form_fieldsets` is a list of two-tuples, in which each two-tuple represents a <fieldset> on the core form page. 
-(A <fieldset> is a “section” of the form.)
+``form_fieldsets`` is a list of two-tuples, in which each two-tuple represents a <fieldset> on the core form page. 
+(a <fieldset> is a **section** of the form.).
 
-The two-tuples are in the format (name, field_options), where name is a string representing the title of the 
-`form_fieldset` and field_options is a dictionary of information about the `fieldset`, including a list of fields 
+The two-tuples are in the format (``name``, ``field_options``), where name is a string representing the title of the 
+``form_fieldset`` and ``field_options`` is a dictionary of information about the ``fieldset``, including a list of fields 
 to be displayed in it.
 
-As a example we will use User model again::
+As a example we will use ``User`` model again::
 
     class UIRESTUserISCore(UIRESTISCore):
         form_fieldsets = (
@@ -533,25 +580,25 @@ As a example we will use User model again::
             ('profile', {'fields': ('first_name', 'last_name'), 'classes': ('profile',)}),
         )
 
-If neither `form_fieldsets` nor `form_fields` options are present, **Django** will default to displaying each field that 
-isn’t an `AutoField` and has `editable=True`, in a single `fieldset`, in the same order as the fields are defined in the 
-model.
+If neither ``form_fieldsets`` nor ``form_fields`` options are present, **Django** will default to displaying each field
+that isn’t an ``AutoField`` and has ``editable=True``, in a single ``fieldset``, in the same order as the fields are
+defined in the model.
 
-The `field_options` dictionary can have the following keys:
+The ``field_options`` dictionary can have the following keys:
 
  * fields
 
-  A tuple of field names to display in this `fieldset`. This key is required.
- 
+  A tuple of field names to display in this ``fieldset``. This key is required.
+
   Example::
 
     {
         'fields': ('first_name', 'last_name'),
     }
 
-  fields can contain values defined in `form_readonly_fields` to be displayed as read-only.
+  fields can contain values defined in ``form_readonly_fields`` to be displayed as read-only.
 
-  If you add `callable` to field the `callable` result will be displayed as readonly.
+  If you add ``callable`` to field the ``callable`` result will be displayed as readonly.
 
  * classes
 
@@ -565,7 +612,7 @@ The `field_options` dictionary can have the following keys:
 
  * inline_view
  
-  `inline_view` attribute can not be defined together with `fields`. This attribute is used for definig position of
+  ``inline_view`` attribute can not be defined together with ``fields``. This attribute is used for definig position of
   inline view inside form view. Value of attibute is string class name of inline view.
  
   Example::
@@ -716,7 +763,3 @@ atribute inside response has named `_class_names`.
 .. attribute:: RESTModelISCore.rest_resource_class
 
 Default resource class is `RESTModelResource`. You can change it with this attribute
-
-
-
-
