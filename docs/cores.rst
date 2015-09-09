@@ -22,7 +22,7 @@ For creating **add**, **edit** and **table** views you must only create file `co
 
     from is_core.main import UIRESTModelISCore
 
-    class UserIsCore(UIRESTModelISCore):
+    class UserISCore(UIRESTModelISCore):
         model = User
 
 There is no obligation for registration. Cores are registered automatically. The result views with preview are:
@@ -59,7 +59,7 @@ resources without UI HTML views. The usage is the same as `UIRESTModelISCore`::
 
     from is_core.main import RESTModelISCore
 
-    class RESTUserIsCore(RESTModelISCore):
+    class RESTUserISCore(RESTModelISCore):
         model = User
 
 
@@ -74,14 +74,14 @@ transofmed to URL by django resolve helper)::
 
     from is_core.main import UIModelISCore
 
-    class UIUserIsCore(UIModelISCore):
+    class UIUserISCore(UIModelISCore):
         model = User
         api_url_name = 'api-user'
 
 
 You can specify URL manually::
 
-    class UIUserIsCore(UIModelISCore):
+    class UIUserISCore(UIModelISCore):
         model = User
 
         def get_api_url(self, request):
@@ -115,12 +115,12 @@ Let's show an example::
 
     from is_core.main import RESTModelISCore
 
-    class AbstractUIRESTUserIsCore(RESTModelISCore):
+    class AbstractUIRESTUserISCore(RESTModelISCore):
         model = User
         abstract = True
         verbose_name = 'example of abstract user core'
 
-    class UIRESTUserIsCore(AbstractUIRESTUserIsCore):
+    class UIRESTUserISCore(AbstractUIRESTUserISCore):
         pass
 
 First core is not registered. Therefore views and rest resources are not created. But the second view that inherits of 
@@ -173,7 +173,7 @@ way is use:
 
     from is_core.main import UIRESTModelISCore
 
-    class UserIsCore(UIRESTModelISCore):
+    class UserISCore(UIRESTModelISCore):
         model = User
         form_fields = ('username', 'fist_name', 'last_name')
 
@@ -185,7 +185,7 @@ This attribute, if given, should be a list of field names to exclude from the fo
 
     from is_core.main import UIRESTModelISCore
 
-    class UserIsCore(UIRESTModelISCore):
+    class UserISCore(UIRESTModelISCore):
         model = User
         form_exclude = ('password',)
 
@@ -445,7 +445,7 @@ REST resources provide the ability to export output to several formats:
 List view provides export buttons. Option `export_types` contains tripple: title, type, serialization format 
 (content-type). For example if you want to serialize users to CSV::
 
-    class UIRESTUserIsCore(UIRESTIsCore):
+    class UIRESTUserISCore(UIRESTISCore):
         export_types = (
             ('export to csv', 'csv', 'text/csv'),
         )
@@ -461,7 +461,7 @@ If you want to set `export_types` for all cores you can use `EXPORT_TYPES` attri
 UI table view support filtering data from REST resource. There is situations where you need to set default values for
 filters. For example if you want to filter only superusers you can use::
 
-    class UIRESTUserIsCore(UIRESTIsCore):
+    class UIRESTUserISCore(UIRESTISCore):
         default_list_filter = {
             'filter': {
                 'is_superuser': True
@@ -470,7 +470,7 @@ filters. For example if you want to filter only superusers you can use::
 
 On the other hand if you want to filter all users that is not superusers::
 
-    class UIRESTUserIsCore(UIRESTIsCore):
+    class UIRESTUserISCore(UIRESTISCore):
         default_list_filter = {
             'exclude': {
                 'is_superuser': True
@@ -479,7 +479,7 @@ On the other hand if you want to filter all users that is not superusers::
 
 Exclude and filter can be freely combined::
 
-    class UIRESTUserIsCore(UIRESTIsCore):
+    class UIRESTUserISCore(UIRESTISCore):
         default_list_filter = {
             'filter': {
                 'is_superuser': True
@@ -506,7 +506,7 @@ Now we want to add inline form view of all reported issues to user "add" and "ed
         model = Issue
         fk_name = 'created_by'
 
-    class UIRESTUserIsCore(UIRESTIsCore):
+    class UIRESTUserISCore(UIRESTISCore):
         form_inline_views = (ReportedIssuesInlineView,)
 
 The `fk_name` is not required if there is only one relation between `User` and `Issue`. More about inline views you
@@ -527,7 +527,7 @@ to be displayed in it.
 
 As a example we will use User model again::
 
-    class UIRESTUserIsCore(UIRESTIsCore):
+    class UIRESTUserISCore(UIRESTISCore):
         form_fieldsets = (
             (None, {'fields': ('username', 'email')}),
             ('profile', {'fields': ('first_name', 'last_name'), 'classes': ('profile',)}),
