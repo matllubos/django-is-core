@@ -7,6 +7,7 @@ from django.db.models.fields import FieldDoesNotExist
 from chamber.utils import get_class_method
 
 from is_core.filters.exceptions import FilterException
+from is_core.filters.default_filters import *
 
 
 def get_model_field_or_method_filter(full_field_term, model, value=None, filter_term=None):

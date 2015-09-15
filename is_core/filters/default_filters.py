@@ -12,6 +12,7 @@ from dateutil.parser import DEFAULTPARSER
 
 from is_core.filters.exceptions import FilterException
 from django.utils.timezone import make_aware, get_current_timezone
+from django.forms.fields import FileField
 
 
 class Filter(object):
@@ -234,3 +235,4 @@ AutoField.filter = NunberFieldFilter
 DateField.filter = DateFilter
 DateTimeField.filter = DateTimeFilter
 GenericIPAddressField.filter = CharFieldFilter
+FileField.filter = TextFieldFilter
