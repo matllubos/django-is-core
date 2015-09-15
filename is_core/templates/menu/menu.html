@@ -1,5 +1,5 @@
 {% load menu %}
-<ul class="menu collapsable {{ site_name|lower }}">
+<ul class="nav menu collapsable {{ site_name|lower }}" id="side-menu">
   {% for menu_item in menu_items %}
     {% if menu_item.collapsible %}
       <li {% if menu_item.active %} class="active"{% endif %}>

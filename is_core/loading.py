@@ -14,7 +14,11 @@ except ImportError:
 class App(object):
 
     def __init__(self):
-        self.cores = set()
+        self.cores = []
+
+    def add_core(self, core):
+        if core not in self.cores:
+            self.cores.append(core)
 
 
 class CoresLoader(object):
@@ -24,7 +28,7 @@ class CoresLoader(object):
 
     def register_core(self, app_label, core):
         app = self.apps.get(app_label, App())
-        app.cores.add(core)
+        app.add_core(core)
         self.apps[app_label] = app
 
     def _init_apps(self):

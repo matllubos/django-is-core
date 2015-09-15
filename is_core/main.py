@@ -56,7 +56,7 @@ class ISCoreBase(type):
         return new_class
 
 
-class ISCore(six.with_metaclass(ISCoreBase)):
+class ISCore(PermissionsMixin, six.with_metaclass(ISCoreBase)):
     """
     Parent of all IS cores. Contains common methods for all cores.
     This class is abstract.
@@ -104,7 +104,7 @@ class ISCore(six.with_metaclass(ISCoreBase)):
         return '-'.join(self.get_menu_groups())
 
 
-class ModelISCore(PermissionsMixin, ISCore):
+class ModelISCore(ISCore):
     """
     Parent of REST and UI cores that works as controller to specific model.
     This class is abstract.

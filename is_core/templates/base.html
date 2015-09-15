@@ -1,4 +1,4 @@
-{% load menu static i18n %}
+{% load menu static i18n list_tags snippets %}
 <!DOCTYPE HTML>
 <html lang="en">
   <head>
@@ -10,52 +10,98 @@
   </head>
   <body>
     {% block body %}
-      {% block sticky-flash %}
-        <div id="sticky-flash" class="flash">
-          {% if messages %}
-            {% for message in messages %}
-              <div{% if message.tags %} class="flash-msg alert alert-{{ message.tags }}"{% endif %}><span class="msg-text">{{ message }}</span></div>
-            {% endfor %}
-          {% endif %}
-        </div>
-      {% endblock %}
-      {% block menu %}
-        {% if request.user.is_authenticated %}
-          {% block left-menu %}
-            {% menu 'IS' %}
-          {% endblock %}
-        {% endif %}
-      {% endblock %}
-      {% block middle %}
-        <div class="{% block col-classes %}col-lg-12{% endblock %}">
-          <div class="header">
-            {% block header-content %}
-              {% block bread-crumbs %}
-                {% if request.user.is_authenticated %}
-                  {% bread_crumbs %}
-                {% endif %}
-              {% endblock %}
-              {% block tabs-menu %}
-                {% if tabs %}
-                  {% include 'menu/tabs_menu.html' with tabs=tabs %}
-                {% endif %}
-              {% endblock %}
+      <div id="wrapper" class="{% block wrapper-classes %}{% endblock %}{% if active_menu_groups %} app-{{ active_menu_groups|join:'-' }}{% endif %}{% if view_name %} view-{{ view_name }}{% endif %}">
+      
+        {% block header %}
+          <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="sidebar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="/">{{ PROJECT_VERBOSE | upper }}</a>
+            </div>
+            {% block user-menu %}
+              {% if request.user.is_authenticated %}
+                <ul class="nav navbar-top-links navbar-right">
+                  <li class="dropdown">
+                    <span class="dropdown-toggle">
+                      <i class="fa fa-user fa-fw"></i>
+                      <span class="name">{{ request.user }}</span> <i class="fa fa-caret-down"></i>
+                    </span>
+                    <ul class="dropdown-menu dropdown-user">
+                      <li><a href="{% url 'IS:logout' %}"><i class="fa fa-sign-out fa-fw"></i>{% trans 'Logout' %}</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              {% endif %}
+            {% endblock %}
+          </nav>
+        {% endblock %}
+        {% block sidebar %}
+          <div class="navbar-default navbar-static-side" role="navigation">
+            <div class="sidebar-collapse">
+              {% if request.user.is_authenticated %}
+                {% block left-menu %}
+                  {% menu 'IS' %}
+                {% endblock %}
+              {% endif %}
+            </div>
+            {% block footer %}
+               <footer>
+                 <div class="pull-right">
+                   <span>{{ PROJECT_VERBOSE }} &copy; {% now "Y" %} (v {{ PROJECT_VERSION }})</span>
+                 </div>
+               </footer>
             {% endblock %}
           </div>
-          <div class="content clearfix">
-            {% block content %}{% endblock %}
+        {% endblock %}
+       
+        {% block sticky-flash %}
+           <div id="sticky-flash" class="flash">
+             {% if messages %}
+               {% for message in messages %}
+                   {% if not 'no-flash' in message.extra_tags|split %}
+                      <div {% if message.tags %} class="flash-msg alert alert-{{ message.tags }}"{% endif %}><span class="msg-text">{{ message }}</span></div>
+                   {% endif %}
+               {% endfor %}
+             {% endif %}
           </div>
-        </div>
-        {% block another-cols %}{% endblock %}
-      {% endblock %}
-      {% block footer %}
-        <footer>
-          <div class="pull-right">
-            <span>{{ PROJECT_VERBOSE }} &copy; {% now "Y" %} (v {{ PROJECT_VERSION }})</span>
-          </div>
-        </footer>
-      {% endblock %}
-    {% endblock %}
+        {% endblock %}
+       
+       
+      
+       <div id="page-wrapper">
+         {% snippet view_name|add:'-content' 'replace' %}
+           {% block middle %}
+             <div class="{% block col-classes %}col-lg-12{% endblock %}">
+               <div class="header">
+                 {% block header-content %}
+                   {% block bread-crumbs %}
+                     {% if request.user.is_authenticated %}
+                       {% bread_crumbs %}
+                     {% endif %}
+                   {% endblock %}
+                   {% block tabs-menu %}
+                     {% if tabs %}
+                       {% include 'menu/tabs_menu.html' with tabs=tabs %}
+                     {% endif %}
+                   {% endblock %}
+                 {% endblock %}
+               </div>
+               <div class="content clearfix">
+                 {% block content %}{% endblock %}
+               </div>
+             </div>
+             {% block another-cols %}{% endblock %}
+           {% endblock %}
+         {% endsnippet %}
+       </div>
+    </div>
+  {% endblock %}
+
     {% block foot-scripts %}
       {% if JS_DEV %}
         <script src="{% static 'js/goog/base.js' %}" type="text/javascript"></script>
@@ -67,9 +113,19 @@
       {% endif %}
       <script type="text/javascript">
         {% block scripts %}
-          app.start(window, {error: '{% trans 'Internal error occurred. Service is unavailable, sorry.' %}', loading: '{% trans 'Loading...' %}'}, {% if JS_DEV %}true{% else %}false{% endif %});
+          app.start(
+            window,
+            {
+              error:'{% trans 'Internal error occurred. Service is unavailable, sorry.' %}',
+              loading: '{% trans 'Loading...' %}',
+              '400': '{% trans 'Bad request' %}',
+              '401': null
+            });
         {% endblock %}
       </script>
     {% endblock %}
+    
+    
+    </div>
   </body>
 </html>

@@ -93,7 +93,7 @@ ISCore hiearchy
 Now we provide detailed description of all ISCore objects. Firstly for better understanding you can see UML class 
 diagram of core hierarchy. 
 
-# TODO add diagram
+.. image:: .images/cores.png
 
 
 ISCore
