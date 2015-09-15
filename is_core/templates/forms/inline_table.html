@@ -1,6 +1,8 @@
 {% load i18n utils permissions %}
 
-<div class="table-responsive">
+<fieldset class="inline table-inline {{ class_names|join:' ' }}">
+	{% block inline-title %}{% if title %}<legend>{{ title }}</legend>{% endif %}{% endblock %}
+	<div class="table-responsive">
 		{% block tabs-menu-wrapper %}{% endblock %}
 		{% block table-paginator %}
 			<div class="row paginator" style="visibility: hidden" data-base="20" data-paging="simple">
@@ -47,3 +49,4 @@
 			</div>
 		{% endblock %}
 	</div>
+</fieldset>

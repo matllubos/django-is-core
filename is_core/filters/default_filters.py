@@ -5,14 +5,14 @@ import re
 from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField, Q
-from django.db.models.fields.related import RelatedField
 from django.db.models.fields import AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField
+from django.db.models.fields.related import RelatedField
+from django.db.models.fields.files import FileField
+from django.utils.timezone import make_aware, get_current_timezone
 
 from dateutil.parser import DEFAULTPARSER
 
 from is_core.filters.exceptions import FilterException
-from django.utils.timezone import make_aware, get_current_timezone
-from django.forms.fields import FileField
 
 
 class Filter(object):
