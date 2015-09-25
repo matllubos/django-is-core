@@ -4,8 +4,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.related import RelatedField
 from django.db.models.fields import FieldDoesNotExist
 
+from chamber.utils import get_class_method
+
 from is_core.filters.exceptions import FilterException
-from is_core.utils import get_class_method
 
 
 def get_model_field_or_method_filter(full_field_term, model, value=None, filter_term=None):

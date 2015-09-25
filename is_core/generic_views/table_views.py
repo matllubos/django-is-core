@@ -4,10 +4,11 @@ from django.views.generic.base import TemplateView
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 
+from chamber.utils import get_class_method
+
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
 from is_core.rest.datastructures import ModelRestFieldset, ModelFlatRestFields
-from is_core.utils import get_class_method
 from is_core.filters.default_filters import *
 
 from chamber.utils.http import query_string_from_dict
