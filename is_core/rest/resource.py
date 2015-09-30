@@ -248,7 +248,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     def _post_delete_obj(self, obj):
         self.core.post_delete_model(self.request, obj)
 
-    def generate_form_class(self, inst, exclude=[]):
+    def _generate_form_class(self, inst, exclude=[]):
         form_class = self._get_form_class(inst)
         exclude = list(self._get_exclude(inst)) + exclude
         fields = self._get_form_fields(inst)
