@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext
 from django.core.urlresolvers import NoReverseMatch
 from django.http.response import Http404
 
@@ -19,6 +19,7 @@ from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUn
 from is_core.forms.models import smartmodelform_factory
 
 from chamber.utils.decorators import classproperty
+from django.utils.safestring import mark_safe
 
 
 class RestResource(BaseResource):
@@ -202,7 +203,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
                     filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
                     qs = filter.filter_queryset(qs, self.request)
                 except:
-                    raise RestException(_('Cannot resolve filter "%s"') % filter_term)
+                    raise RestException(mark_safe(ugettext('Cannot resolve filter "%s"') % filter_term))
 
         return qs
 
@@ -215,7 +216,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
             # Queryset validation, there is no other option
             unicode(qs.query)
         except Exception:
-            raise RestException(_('Cannot resolve Order value "%s" into fields') % order_field)
+            raise RestException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
         return qs
 
     def _get_exclude(self, obj=None):
