@@ -22,7 +22,7 @@ class AuthResource(RestResource):
     def post(self):
         if not self.request.data:
             return rc.BAD_REQUEST
-        form = self.form_class(data=self.request.data)
+        form = self.form_class(data=self.get_dict_data())
 
         errors = form.is_invalid()
         if errors:
