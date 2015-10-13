@@ -2,7 +2,7 @@
 
 {% block fieldset %}
 <fieldset class="inline stacked-inline {{ class_names|join:' ' }}">
-	{% if title %}<legend>{{ title }}</legend>{% endif %}
+	{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}
 	{% block fieldset-forms %}
 		{{ formset.management_form }}
 		{% if formset.all_forms %}

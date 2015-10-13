@@ -1,7 +1,7 @@
 {% load i18n forms %}
 
 <fieldset class="inline tabular-inline {{ class_names|join:' ' }}">
-	{% block inline-title %}{% if title %}<legend>{{ title }}</legend>{% endif %}{% endblock %}
+	{% block inline-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
 	{% block above-table %}{% endblock %}
 	<table class="form">
 		{% for row in data_list %}
