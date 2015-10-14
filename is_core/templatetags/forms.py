@@ -35,11 +35,12 @@ def fieldset_renderer(context, form, fieldset):
         return context.get('inline_views').get(inline_view_name).render(context, fieldset[0])
     template = values.get('template') or 'forms/default_fieldset.html'
     context.update({
-                        'fields': values.get('fields'),
-                        'form': form,
-                        'title': fieldset[0],
-                        'class': values.get('class')
-                    })
+        'fields': values.get('fields'),
+        'form': form,
+        'title': fieldset[0],
+        'class': values.get('class'),
+        'fieldsets': values.get('fieldsets')
+    })
     return render_to_string(template, context)
 
 

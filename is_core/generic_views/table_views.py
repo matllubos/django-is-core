@@ -138,6 +138,12 @@ class TableViewMixin(object):
     def _get_list_filter(self):
         return self.list_filter or {}
 
+    def _prepare_filter_val(self, val):
+        return (1 if val else 0) if isinstance(val, bool) else val
+
+    def _prepare_filter_vals(self, filter_vals):
+        return {key: self._prepare_filter_val(val) for key, val in filter_vals.items()}
+
     def _get_query_string_filter(self):
         default_list_filter = self._get_list_filter()
         filter_vals = default_list_filter.get('filter', {}).copy()
@@ -146,7 +152,7 @@ class TableViewMixin(object):
         for key, val in exclude_vals.items():
             filter_vals[key + '__not'] = val
 
-        return query_string_from_dict(filter_vals)
+        return query_string_from_dict(self._prepare_filter_vals(filter_vals))
 
     def _get_menu_group_pattern_name(self):
         return self.menu_group_pattern_name

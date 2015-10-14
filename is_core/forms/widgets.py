@@ -218,11 +218,9 @@ class ModelObjectReadonlyWidget(ReadonlyWidget):
         return get_obj_url(request, obj)
 
     def _render_object(self, request, obj, display_value=None):
-        obj_url = self._get_obj_url(request, obj)
-        if obj_url:
-            return '<a href="%s">%s</a>' % (obj_url, display_value or force_text(obj))
+        from is_core.utils import render_model_object_with_link
 
-        return display_value or force_text(obj)
+        return render_model_object_with_link(request, obj, display_value)
 
     def _smart_render(self, request, name, value, initial_value, *args, **kwargs):
         if value and isinstance(value, Model):

@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as ugettext
 from django.core.urlresolvers import NoReverseMatch
 from django.http.response import Http404
+from django.utils.safestring import mark_safe
 
 from piston.resource import BaseResource, BaseModelResource
 from piston.exception import (RestException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
@@ -202,7 +203,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
                     filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
                     qs = filter.filter_queryset(qs, self.request)
                 except:
-                    raise RestException(_('Cannot resolve filter "%s"') % filter_term)
+                    raise RestException(mark_safe(ugettext('Cannot resolve filter "%s"') % filter_term))
 
         return qs
 
@@ -215,7 +216,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
             # Queryset validation, there is no other option
             unicode(qs.query)
         except Exception:
-            raise RestException(_('Cannot resolve Order value "%s" into fields') % order_field)
+            raise RestException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
         return qs
 
     def _get_exclude(self, obj=None):
@@ -248,7 +249,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     def _post_delete_obj(self, obj):
         self.core.post_delete_model(self.request, obj)
 
-    def generate_form_class(self, inst, exclude=[]):
+    def _generate_form_class(self, inst, exclude=[]):
         form_class = self._get_form_class(inst)
         exclude = list(self._get_exclude(inst)) + exclude
         fields = self._get_form_fields(inst)

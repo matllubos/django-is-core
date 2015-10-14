@@ -97,7 +97,7 @@ class DefaultFilter(Filter):
 
 class DefaultFieldFilter(DefaultFilter):
 
-    suffixes = ['in']
+    suffixes = ['in', 'isnull']
     default_suffix = None
     EMPTY_LABEL = '---------'
 
@@ -151,13 +151,14 @@ class DefaultFieldFilter(DefaultFilter):
             if 'null' in value:
                 value.remove('null')
                 return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % full_filter_key_without_suffix: True}))
-
+        elif suffix == 'isnull':
+            value = value == '1'
         return {self.full_filter_key: value}
 
 
 class CharFieldFilter(DefaultFieldFilter):
 
-    suffixes = ['startswith', 'endswith', 'contains', 'icontains', 'in']
+    suffixes = ['startswith', 'endswith', 'contains', 'icontains', 'in', 'isnull']
     default_suffix = 'icontains'
 
 
@@ -175,7 +176,7 @@ class BooleanFieldFilter(DefaultFieldFilter):
 
 class NunberFieldFilter(DefaultFieldFilter):
 
-    suffixes = ['gt', 'lt', 'gte', 'lte', 'in']
+    suffixes = ['gt', 'lt', 'gte', 'lte', 'in', 'isnull']
 
 
 class RelatedFieldFilter(DefaultFieldFilter):

@@ -1,11 +1,11 @@
 {% load i18n utils permissions %}
 
 <fieldset class="inline table-inline {{ class_names|join:' ' }}">
-	{% block inline-title %}{% if title %}<legend>{{ title }}</legend>{% endif %}{% endblock %}
+	{% block inline-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
 	<div class="table-responsive">
 		{% block tabs-menu-wrapper %}{% endblock %}
 		{% block table-paginator %}
-			<div class="row paginator" style="visibility: hidden" data-base="20" data-paging="simple">
+			<div class="row paginator" style="visibility: hidden" data-base="{% block table-base %}20{% endblock %}" data-paging="{% block table-paging %}simple{% endblock %}">
 				<div class="col-sm-4">
 					{% block paginator-result %}
 					<span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span>

@@ -34,9 +34,7 @@ def get_model_field_or_method_filter(full_field_term, model, value=None, filter_
         if field_or_method:
             if hasattr(field_or_method, 'filter_by'):
                 full_field_term = full_field_term[:-len(current_filter_term)] + field_or_method.filter_by
-                current_filter_term = field_or_method.filter_by
-                filter_term = field_or_method.filter_by
-                field_or_method = model._meta.get_field(field_or_method.filter_by)
+                return get_model_field_or_method_filter(full_field_term, model, value, field_or_method.filter_by)
         else:
             raise FilterException(_('Not valid filter: %s') % full_field_term)
 

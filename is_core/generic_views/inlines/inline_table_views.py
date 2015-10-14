@@ -16,5 +16,9 @@ class InlineTableView(TableViewMixin, InlineView):
         return get_model_core(self.model).get_menu_group_pattern_name()
 
     def _get_list_filter(self):
+        list_filter = super(InlineTableView, self)._get_list_filter()
         fk_name = _get_foreign_key(self.parent_instance.__class__, self.model, fk_name=self.fk_name).name
-        return {'filter': {fk_name: self.parent_instance.pk}}
+        list_filter['filter'] = filter = list_filter.get('filter', {})
+        if 'filter' in list_filter:
+            filter[fk_name] = self.parent_instance.pk
+        return list_filter
