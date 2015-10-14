@@ -3,7 +3,11 @@
 {% load i18n %}
 
 {% block submit-button %}
+<<<<<<< HEAD
   <div class="{% block submit-button-wrapper-class %}{% endblock %}">
+=======
+  <div class="{% block submit-button-wrapper-class %}pull-left{% endblock %}">
+>>>>>>> af5a7ff0b7382f414b5e77b52a7f10f249298786
     {% block save-buttons %}
       {% if show_save_button %}
         <button type="submit" name="save" data-title="{{ buttons.save.title }}" class="{% block save-button-class %}btn-save btn btn-primary{% endblock %}">{% block save-button-caption %}{{ buttons.save.label }}{% endblock %}</button>

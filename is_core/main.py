@@ -56,7 +56,7 @@ class ISCoreBase(type):
         return new_class
 
 
-class ISCore(PermissionsMixin, six.with_metaclass(ISCoreBase)):
+class ISCore(six.with_metaclass(ISCoreBase)):
     """
     Parent of all IS cores. Contains common methods for all cores.
     This class is abstract.
@@ -104,7 +104,7 @@ class ISCore(PermissionsMixin, six.with_metaclass(ISCoreBase)):
         return '-'.join(self.get_menu_groups())
 
 
-class ModelISCore(ISCore):
+class ModelISCore(PermissionsMixin, ISCore):
     """
     Parent of REST and UI cores that works as controller to specific model.
     This class is abstract.
@@ -410,10 +410,6 @@ class RESTModelISCore(ModelISCore, RESTISCore):
     rest_allowed_methods = ('get', 'delete', 'post', 'put')
 
     rest_resource_class = RESTModelResource
-    rest_resource_pattern_class = RESTPattern
-
-    def get_rest_form_class(self, request, obj=None):
-        return self.get_form_class(request, obj)
 
     def get_rest_form_fields(self, request, obj=None):
         return self.get_form_fields(request, obj)
@@ -446,6 +442,9 @@ class RESTModelISCore(ModelISCore, RESTISCore):
             return rfs(self.model._rest_meta.guest_fields).join(rfs(self.rest_default_guest_fields))
 
         return rfs(self.rest_guest_fields)
+
+    def get_rest_obj_class_names(self, request, obj):
+        return list(self.rest_obj_class_names)
 
     def get_rest_class(self):
         return modelrest_factory(self.model, self.rest_resource_class)
