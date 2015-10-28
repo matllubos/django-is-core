@@ -23,8 +23,8 @@ class ListParentMixin(object):
             menu_items.append(self.list_bread_crumbs_menu_item())
         return menu_items
 
-    def bread_crumbs_menu_items(self):
-        return self.parent_bread_crumbs_menu_items() + super(ListParentMixin, self).bread_crumbs_menu_items()
+    def extra_bread_crumbs_menu_items(self):
+        return self.parent_bread_crumbs_menu_items()
 
 
 class EditParentMixin(ListParentMixin):

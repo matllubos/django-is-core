@@ -100,8 +100,8 @@ class ViewPattern(Pattern):
             url_pattern = self.url_pattern
             if url_pattern.startswith('^'):
                 url_pattern = url_pattern[1:]
-            url_pattern = '^%s%s' % (self.url_prefix, url_pattern)
-        return url(url_pattern, self.get_view_dispatch(), name=self.name)
+            url_pattern = '%s/%s' % (self.url_prefix, url_pattern)
+        return url('^%s$' % url_pattern, self.get_view_dispatch(), name=self.name)
 
     def _get_called_permission_kwargs(self, request, obj):
         kwargs = {}
@@ -224,11 +224,11 @@ class DoubleRestPattern(object):
     def patterns(self):
         result = OrderedDict()
         result['api-resource'] = self.pattern_class(
-            'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/(?P<pk>[-\w]+)/?$',
+            'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'(?P<pk>[-\w]+)/',
             self.resource_class, self.core, ('get', 'put', 'delete')
         )
         result['api'] = self.pattern_class(
-            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/?$', self.resource_class, self.core,
+            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'', self.resource_class, self.core,
              ('get', 'post')
         )
         return result

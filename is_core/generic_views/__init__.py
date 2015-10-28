@@ -98,10 +98,16 @@ class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
         extra_context_data.update(context_data)
         return extra_context_data
 
+    def extra_bread_crumbs_menu_items(self):
+        return []
+
+    def current_bread_crumb(self):
+        return LinkMenuItem(self.get_title(), self.request.path, active=True)
+
     def bread_crumbs_menu_items(self):
         if self.add_current_to_breadcrumbs:
-            return [LinkMenuItem(self.get_title(), self.request.path, active=True)]
-        return []
+            bread_crumbs_menu_items = [self.current_bread_crumb()]
+        return self.extra_bread_crumbs_menu_items() + bread_crumbs_menu_items
 
 
 class DefaultCoreViewMixin(DefaultViewMixin):

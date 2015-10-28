@@ -80,13 +80,12 @@ class ISSite(object):
                                     url(r'^%s$' % settings.LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
                                )
 
-
         if config.AUTH_USE_TOKENS:
             AuthResource.form_class = str_to_class(config.AUTH_FORM_CLASS)
-            pattern = RestPattern('api-login', self.name, r'^%s$' % config.LOGIN_API_URL[1:], AuthResource)
+            pattern = RestPattern('api-login', self.name, r'%s' % config.LOGIN_API_URL[1:], AuthResource)
             urlpatterns += patterns('', pattern.get_url())
 
-        pattern = RestPattern('api', self.name, r'^api/$', EntryPointResource)
+        pattern = RestPattern('api', self.name, r'api/$', EntryPointResource)
         urlpatterns += patterns('', pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)

@@ -244,7 +244,7 @@ class HomeUIISCore(UIISCore):
     def get_view_classes(self):
         HomeView = str_to_class(config.HOME_VIEW)
         return OrderedDict((
-            ('index', (r'^$', HomeView)),
+            ('index', (r'', HomeView)),
         ))
 
     def menu_url(self, request):
@@ -258,9 +258,9 @@ class UIModelISCore(ModelISCore, UIISCore):
     abstract = True
 
     view_classes = OrderedDict((
-        ('add', (r'^/add/$', AddModelFormView)),
-        ('edit', (r'^/(?P<pk>[-\w]+)/$', EditModelFormView)),
-        ('list', (r'^/?$', TableView)),
+        ('add', (r'add/', AddModelFormView)),
+        ('edit', (r'(?P<pk>[-\w]+)/', EditModelFormView)),
+        ('list', (r'', TableView)),
     ))
 
     # list view params
