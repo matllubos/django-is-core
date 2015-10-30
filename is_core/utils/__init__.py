@@ -51,7 +51,7 @@ def flatten_fieldsets(fieldsets):
     return field_names
 
 
-def get_callable_value(callable_value, fun_kwargs):
+def get_callable_value_or_value(callable_value, fun_kwargs):
     if hasattr(callable_value, '__call__'):
         maybe_kwargs_names = inspect.getargspec(callable_value)[0][1:]
         maybe_kwargs = {}
@@ -64,6 +64,8 @@ def get_callable_value(callable_value, fun_kwargs):
             return callable_value(**maybe_kwargs)
         else:
             raise AttributeError
+    else:
+        return callable_value
 
 
 def field_humanized_value(instance, field):
@@ -84,7 +86,7 @@ def field_value(instance, field, value, fun_kwargs):
     elif isinstance(field, ForeignKey):
         return value
 
-    return get_callable_value(value, fun_kwargs) or value
+    return get_callable_value_or_value(value, fun_kwargs)
 
 
 def field_widget(instance, field):
@@ -129,7 +131,7 @@ def get_instance_readonly_field_data(field_name, instance, fun_kwargs, request):
             widget = field_widget(instance, field)
         else:
             value_or_callable = getattr(instance, field_name)
-            value = get_callable_value(value_or_callable, fun_kwargs) or value_or_callable
+            value = get_callable_value_or_value(value_or_callable, fun_kwargs)
             label = get_class_method(instance, field_name).short_description
             widget = ReadonlyWidget
 

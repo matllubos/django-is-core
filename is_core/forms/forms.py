@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import warnings
 
 from datetime import datetime, time
 
@@ -126,7 +125,6 @@ class ReadonlyBoundField(SmartBoundField):
 
     def _form_initial_value(self):
         data = self.form.initial.get(self.name, self.field.initial)
-
         if callable(data):
             data = data()
 
