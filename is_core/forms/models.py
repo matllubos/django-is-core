@@ -163,6 +163,14 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
                 elif field_name in required_fields and field_name not in base_required_fields:
                     base_required_fields.add(field_name)
 
+            for rel_object in opts.model._meta.related_objects:
+                if rel_object.name in all_fields and rel_object.field.null:
+                    related_model = rel_object.related_model
+                    new_class.base_fields[rel_object.name] = ModelMultipleChoiceField(
+                        label=related_model._meta.verbose_name_plural,
+                        queryset=related_model.objects.all(), required=False
+                    )
+
             if has_all_fields:
                 test_readonly_fields = all_fields
             else:
@@ -221,6 +229,13 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
         self.humanized_data = humanized_model_to_dict(self.instance, self.base_readonly_fields, opts.fields,
                                                       itertools.chain(opts.exclude or (), readonly_exclude or  ()))
 
+        if self.instance.pk:
+            for rel_object in opts.model._meta.related_objects:
+                if rel_object.name in self.fields and rel_object.name not in self.initial:
+                    self.initial[rel_object.name] = list(
+                        getattr(self.instance, rel_object.name).values_list('pk', flat=True)
+                    )
+
     def _get_validation_exclusions(self):
         exclude = super(SmartModelForm, self)._get_validation_exclusions()
         for f in self.instance._meta.fields:
@@ -228,6 +243,22 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
             if field in self.base_readonly_fields and field not in exclude:
                 exclude.append(field)
         return exclude
+
+    def save_rel(self):
+        opts = self._meta
+        for rel_object in opts.model._meta.related_objects:
+            if rel_object.name in self.fields:
+                pks = [rel_inst.pk for rel_inst in self.cleaned_data[rel_object.name]]
+                prev_pks = set(getattr(self.instance, rel_object.name).values_list('pk', flat=True))
+
+                for rem_rel_inst in getattr(self.instance, rel_object.name).exclude(pk__in=pks):
+                    setattr(rem_rel_inst, rel_object.field.name, None)
+                    rem_rel_inst.save()
+
+                for rel_inst in self.cleaned_data[rel_object.name]:
+                    if rel_inst.pk not in prev_pks:
+                        setattr(rel_inst, rel_object.field.name, self.instance)
+                        rel_inst.save()
 
     def post_save(self):
         pass
@@ -239,6 +270,7 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
             self.old_save_m2m = self.save_m2m
             def post_save_m2m():
                 self.old_save_m2m()
+                self.save_rel()
                 self.post_save()
             self.save_m2m = post_save_m2m
 
