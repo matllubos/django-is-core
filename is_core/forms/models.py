@@ -232,9 +232,10 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
         if self.instance.pk:
             for rel_object in opts.model._meta.related_objects:
                 if rel_object.name in self.fields and rel_object.name not in self.initial:
-                    self.initial[rel_object.name] = list(
-                        getattr(self.instance, rel_object.name).values_list('pk', flat=True)
-                    )
+                    if hasattr(self.instance, rel_object.name):
+                        self.initial[rel_object.name] = list(
+                            getattr(self.instance, rel_object.name).values_list('pk', flat=True)
+                        )
 
     def _get_validation_exclusions(self):
         exclude = super(SmartModelForm, self)._get_validation_exclusions()
