@@ -61,6 +61,7 @@ class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
             self.post_save()
         else:
             self.old_save_m2m = self.save_m2m
+
             def post_save_m2m():
                 self.old_save_m2m()
                 for form in self.saved_forms:
@@ -178,7 +179,7 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
 
             for field_name in test_readonly_fields:
                 if (field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs and
-                    attrs['formreadonlyfield_callback'] is not None):
+                        attrs['formreadonlyfield_callback'] is not None):
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
                     base_readonly_fields.add(field_name)
 
@@ -204,7 +205,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     for f in itertools.chain(opts.concrete_fields, opts.virtual_fields, opts.many_to_many):
         if not getattr(f, 'editable', False):
             continue
-        if fields and not f.name in fields:
+        if fields and f.name not in fields:
             continue
         if f.name not in readonly_fields:
             continue
@@ -221,13 +222,14 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
 
     def __init__(self, *args, **kwargs):
         # Set values must be ommited
-        readonly_exclude = kwargs.get('initials', {}).keys()
+        readonly_exclude = kwargs.get('initials',
+                                      {}).keys()
 
         super(SmartModelForm, self).__init__(*args, **kwargs)
 
         opts = self._meta
         self.humanized_data = humanized_model_to_dict(self.instance, self.base_readonly_fields, opts.fields,
-                                                      itertools.chain(opts.exclude or (), readonly_exclude or  ()))
+                                                      itertools.chain(opts.exclude or (), readonly_exclude or ()))
 
         if self.instance.pk:
             for rel_object in opts.model._meta.related_objects:
@@ -269,6 +271,7 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
             self.post_save()
         else:
             self.old_save_m2m = self.save_m2m
+
             def post_save_m2m():
                 self.old_save_m2m()
                 self.save_rel()
@@ -333,7 +336,7 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
     }
 
     if (getattr(Meta, 'fields', None) is None and
-        getattr(Meta, 'exclude', None) is None):
+            getattr(Meta, 'exclude', None) is None):
         warnings.warn("Calling modelform_factory without defining 'fields' or "
                       "'exclude' explicitly is deprecated",
                       PendingDeprecationWarning, stacklevel=2)
@@ -353,7 +356,7 @@ def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback
     if meta is None:
         meta = type(str('Meta'), (object,), {})
     if (getattr(meta, 'fields', fields) is None and
-        getattr(meta, 'exclude', exclude) is None):
+            getattr(meta, 'exclude', exclude) is None):
         warnings.warn("Calling modelformset_factory without defining 'fields' or "
                       "'exclude' explicitly is deprecated",
                       PendingDeprecationWarning, stacklevel=2)
