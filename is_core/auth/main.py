@@ -80,7 +80,7 @@ class PermissionsRestMixin(PermissionsMixin):
     def has_rest_update_permission(self, request, obj=None, via=None):
         return (
             self.has_update_permission(request, obj)
-            if self.rest_delete_permission is None else self.rest_delete_permission
+            if self.rest_update_permission is None else self.rest_update_permission
         )
 
     def has_rest_delete_permission(self, request, obj=None, via=None):
