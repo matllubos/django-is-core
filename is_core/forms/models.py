@@ -164,9 +164,10 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
                     base_required_fields.add(field_name)
 
             for rel_object in opts.model._meta.related_objects:
-                if rel_object.name in all_fields and rel_object.field.null:
+                accessor_name = rel_object.get_accessor_name()
+                if accessor_name in all_fields and rel_object.field.null:
                     related_model = rel_object.related_model
-                    new_class.base_fields[rel_object.name] = ModelMultipleChoiceField(
+                    new_class.base_fields[accessor_name] = ModelMultipleChoiceField(
                         label=related_model._meta.verbose_name_plural,
                         queryset=related_model.objects.all(), required=False
                     )
@@ -231,9 +232,10 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
 
         if self.instance.pk:
             for rel_object in opts.model._meta.related_objects:
-                if rel_object.name in self.fields and rel_object.name not in self.initial:
-                    self.initial[rel_object.name] = list(
-                        getattr(self.instance, rel_object.name).values_list('pk', flat=True)
+                accessor_name = rel_object.get_accessor_name()
+                if accessor_name in self.fields and accessor_name not in self.initial:
+                    self.initial[accessor_name] = list(
+                        getattr(self.instance, accessor_name).values_list('pk', flat=True)
                     )
 
     def _get_validation_exclusions(self):
@@ -247,15 +249,16 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
     def save_rel(self):
         opts = self._meta
         for rel_object in opts.model._meta.related_objects:
-            if rel_object.name in self.fields:
-                pks = [rel_inst.pk for rel_inst in self.cleaned_data[rel_object.name]]
-                prev_pks = set(getattr(self.instance, rel_object.name).values_list('pk', flat=True))
+            accessor_name = rel_object.get_accessor_name()
+            if accessor_name in self.fields:
+                pks = [rel_inst.pk for rel_inst in self.cleaned_data[accessor_name]]
+                prev_pks = set(getattr(self.instance, accessor_name).values_list('pk', flat=True))
 
-                for rem_rel_inst in getattr(self.instance, rel_object.name).exclude(pk__in=pks):
+                for rem_rel_inst in getattr(self.instance, accessor_name).exclude(pk__in=pks):
                     setattr(rem_rel_inst, rel_object.field.name, None)
                     rem_rel_inst.save()
 
-                for rel_inst in self.cleaned_data[rel_object.name]:
+                for rel_inst in self.cleaned_data[accessor_name]:
                     if rel_inst.pk not in prev_pks:
                         setattr(rel_inst, rel_object.field.name, self.instance)
                         rel_inst.save()
