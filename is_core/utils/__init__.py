@@ -7,7 +7,7 @@ import inspect
 
 from django.http.request import QueryDict
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, ugettext
 from django.utils.html import format_html
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.fields import FieldDoesNotExist
@@ -155,7 +155,7 @@ def display_for_value(value):
         from django.contrib.admin.util import display_for_value as admin_display_for_value
 
     if isinstance(value, bool):
-        value = _('Yes') if value else _('No')
+        value = ugettext('Yes') if value else ugettext('No')
     else:
         value = admin_display_for_value(value)
     return value
@@ -174,7 +174,6 @@ def get_obj_url(request, obj):
             edit_pattern = model_core.ui_patterns.get('edit')
             if edit_pattern and edit_pattern.can_call_get(request, obj=obj):
                 return edit_pattern.get_url_string(request, obj=obj)
-
     return None
 
 

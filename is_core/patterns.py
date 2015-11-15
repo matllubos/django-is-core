@@ -170,9 +170,10 @@ class UIPattern(ViewPattern):
 
 class RestPattern(ViewPattern):
 
-    def __init__(self, name, site_name, url_pattern, resource_class, core=None, methods=None):
+    def __init__(self, name, site_name, url_pattern, resource_class, core=None, methods=None, clone_view_class=True):
         super(RestPattern, self).__init__(name, site_name, url_pattern, core)
-        self.resource_class = resource_class
+        self.resource_class = (type(str(get_new_class_name(name, resource_class)), (resource_class,), {})
+                               if clone_view_class else resource_class)
         self.methods = methods
         if core:
             self.resource_class.__init_core__(core, self)
@@ -225,10 +226,10 @@ class DoubleRestPattern(object):
         result = OrderedDict()
         result['api-resource'] = self.pattern_class(
             'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'(?P<pk>[-\w]+)/',
-            self.resource_class, self.core, ('get', 'put', 'delete')
+            self.resource_class, self.core, ('get', 'put', 'delete'), clone_view_class=False
         )
         result['api'] = self.pattern_class(
             'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'', self.resource_class, self.core,
-             ('get', 'post')
+             ('get', 'post'), clone_view_class=False
         )
         return result
