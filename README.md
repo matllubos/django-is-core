@@ -31,3 +31,10 @@ Docs
 ----
 
 For more details see [docs](http://django-is-core.readthedocs.org/)
+
+
+Contribution
+------------
+
+To run Livereload for Sphinx you need [livereload](https://pypi.python.org/pypi/livereload) `pip install livereload`.
+After installing simply call `make htmllivereload` and open [http://localhost:5500/](http://localhost:5500/).
