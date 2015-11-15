@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
 import re
-import warnings
 
-from datetime import datetime, time
+from datetime import datetime
 
 import django
 
@@ -21,10 +20,18 @@ from is_core.forms.widgets import SmartWidgetMixin
 
 
 def pretty_class_name(class_name):
+    # TODO: it should be renamed
+    """
+    Returns a dasherized name for a given class name.
+    E.g.: FooBar -> foo-bar
+    """
     return re.sub(r'(\w)([A-Z])', r'\1-\2', class_name).lower()
 
 
 class SmartBoundField(BoundField):
+    """
+    A wrapper used by `SmartForm` for `BoundField`.
+    """
 
     is_readonly = False
 
@@ -98,6 +105,9 @@ class ReadonlyValue(object):
 
 
 class ReadonlyBoundField(SmartBoundField):
+    """
+    A wrapper for readonly fields used by `SmartForm`.
+    """
 
     is_readonly = True
 
@@ -166,7 +176,7 @@ class SmartFormMetaclass(DeclarativeFieldsMetaclass):
 
             for field_name in set(readonly_fields):
                 if (field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs and
-                    attrs['formreadonlyfield_callback'] is not None):
+                        attrs['formreadonlyfield_callback'] is not None):
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
                     base_readonly_fields.add(field_name)
 
@@ -181,15 +191,18 @@ class SmartFormMixin(object):
     def __init__(self, *args, **kwargs):
         super(SmartFormMixin, self).__init__(*args, **kwargs)
         self._pre_init_fields()
-        for field_name, field in self.fields.items():
-            if hasattr(self, '_init_%s' % field_name):
-                getattr(self, '_init_%s' % field_name)(field)
+        self._init_field_name_methods()
         self._init_fields()
 
     def _pre_init_fields(self):
         for required_field_name in self.base_required_fields:
             if required_field_name in self.fields:
                 self.fields[required_field_name].required = True
+
+    def _init_field_name_methods(self):
+        for field_name, field in self.fields.items():
+            if hasattr(self, '_init_%s' % field_name):
+                getattr(self, '_init_%s' % field_name)(field)
 
     def _init_fields(self):
         pass
