@@ -55,7 +55,7 @@ class PermissionsUIMixin(PermissionsMixin):
         )
 
 
-class PermissionsRestMixin(PermissionsMixin):
+class PermissionsRESTMixin(PermissionsMixin):
     """
     Mixin that validate REST user permissions inside ISCore
     """

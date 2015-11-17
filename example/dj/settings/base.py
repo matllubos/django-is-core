@@ -103,7 +103,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'is_core.middleware.RequestKwargsMiddleware',
     'is_core.middleware.HttpExceptionsMiddleware',
-    'security.middleware.LogMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -134,11 +133,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_extensions',
     'django.contrib.humanize',
-
-    # DB migration
-    'south',
 
     # apps
     'issue_tracker',
@@ -147,10 +142,8 @@ INSTALLED_APPS = (
     'is_core',
     'is_core.auth_token',
     'block_snippets',
-
-    # Django-security
-    'security',
-
+    
+    'compressor',
 )
 
 # A sample logging configuration. The only tangible logging

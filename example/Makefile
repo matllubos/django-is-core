@@ -14,6 +14,7 @@ SETTINGS = settings
 DJANGO_SETTINGS_MODULE = $(DJANGO_DIR).settings.$(SETTINGS)
 DJANGO_POSTFIX = --settings=$(DJANGO_SETTINGS_MODULE) --pythonpath=$(PYTHONPATH)
 PYTHON_BIN = $(VIRTUAL_ENV)/bin
+PYTHON = python3
 TYPE = dev
 OS = $(shell uname)
 
@@ -42,7 +43,7 @@ pip:
 	$(PYTHON_BIN)/pip install --process-dependency-links --allow-all-external -r requirements/base.txt
 
 initvirtualenv:
-	virtualenv --no-site-packages $(VIRTUAL_ENV)
+	virtualenv -p $(PYTHON) --no-site-packages $(VIRTUAL_ENV)
 	$(PYTHON_BIN)/pip install --upgrade pip==1.5
 	$(PYTHON_BIN)/pip install setuptools --no-use-wheel --upgrade
 

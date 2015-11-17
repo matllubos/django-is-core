@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.forms import AuthenticationForm
 
 
-class RestAuthenticationForm(AuthenticationForm):
+class RESTAuthenticationForm(AuthenticationForm):
 
     def is_invalid(self):
         '''
@@ -28,7 +28,7 @@ class RestAuthenticationForm(AuthenticationForm):
         return False
 
 
-class TokenAuthenticationForm(RestAuthenticationForm):
+class TokenAuthenticationForm(RESTAuthenticationForm):
     permanent = forms.BooleanField(label=_('Remember user'), required=False)
 
     def is_permanent(self):

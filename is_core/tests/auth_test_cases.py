@@ -1,7 +1,7 @@
 from is_core import config
 
 
-class RestAuthMixin(object):
+class RESTAuthMixin(object):
 
     def authorize(self, username, password):
         if config.AUTH_USE_TOKENS:
@@ -10,4 +10,4 @@ class RestAuthMixin(object):
             self.assert_valid_JSON_response(resp, 'REST authorization fail: %s' % resp)
             self.default_headers[config.AUTH_HEADER_NAME] = self.deserialize(resp).get('token')
         else:
-            super(RestAuthMixin, self).authorize(username, password)
+            super(RESTAuthMixin, self).authorize(username, password)

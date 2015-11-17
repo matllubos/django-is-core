@@ -7,7 +7,7 @@ from germanium.rest import RESTTestCase
 from germanium.anotations import login_all, data_provider
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
-from is_core.tests.auth_test_cases import RestAuthMixin
+from is_core.tests.auth_test_cases import RESTAuthMixin
 from is_core.forms.forms import SmartBoundField
 
 from piston.utils import model_resources_to_dict
@@ -27,13 +27,13 @@ def add_urls_to_resource(resource):
 
 
 @login_all
-class TestRestsAvailability(RestAuthMixin, DataGeneratorTestCase, RESTTestCase):
+class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
     iteration = 5
 
     @classmethod
     def setUpClass(cls):
-        super(TestRestsAvailability, cls).setUpClass()
+        super(TestRESTsAvailability, cls).setUpClass()
         cls.rest_resources = cls.set_up_rest_resources()
 
     @classmethod

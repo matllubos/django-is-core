@@ -3,17 +3,18 @@ from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as ugettext
 from django.core.urlresolvers import NoReverseMatch
 from django.http.response import Http404
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 
 from piston.resource import BaseResource, BaseModelResource
-from piston.exception import (RestException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
+from piston.exception import (RESTException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
                               ConflictException)
 
 from chamber.shortcuts import get_object_or_none
 
 from is_core.filters import get_model_field_or_method_filter
-from is_core.patterns import RestPattern, patterns
+from is_core.patterns import RESTPattern, patterns
 from is_core.exceptions import HttpForbiddenResponseException
 from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUnsupportedMediaTypeResponseException,
                                          HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
@@ -22,7 +23,7 @@ from is_core.forms.models import smartmodelform_factory
 from chamber.utils.decorators import classproperty
 
 
-class RestResource(BaseResource):
+class RESTResource(BaseResource):
     login_required = True
     register = False
 
@@ -33,7 +34,7 @@ class RestResource(BaseResource):
     def dispatch(self, request, *args, **kwargs):
         if hasattr(self, 'core'):
             self.core.init_rest_request(request)
-        return super(RestResource, self).dispatch(request, *args, **kwargs)
+        return super(RESTResource, self).dispatch(request, *args, **kwargs)
 
     @classmethod
     def __init_core__(cls, core, pattern):
@@ -57,34 +58,34 @@ class RestResource(BaseResource):
         response_exception = response_exceptions.get(type(exception))
         if response_exception:
             raise response_exception
-        return super(RestResource, self)._get_error_response(exception)
+        return super(RESTResource, self)._get_error_response(exception)
 
 
-class RestModelCoreResourcePermissionsMixin(object):
+class RESTModelCoreResourcePermissionsMixin(object):
 
     pk_name = 'pk'
 
     def has_get_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.login_required or self.request.user.is_authenticated()) and
-                super(RestModelCoreResourcePermissionsMixin, self).has_get_permission(obj) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_get_permission(obj) and
                 self.core.has_rest_read_permission(self.request, obj, via))
 
     def has_post_permission(self, obj=None, via=None):
         return ((not self.login_required or self.request.user.is_authenticated()) and
-                super(RestModelCoreResourcePermissionsMixin, self).has_post_permission(obj) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_post_permission(obj) and
                 self.core.has_rest_create_permission(self.request, obj, via))
 
     def has_put_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.login_required or self.request.user.is_authenticated()) and
-                super(RestModelCoreResourcePermissionsMixin, self).has_put_permission(obj) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_put_permission(obj) and
                 self.core.has_rest_update_permission(self.request, obj, via))
 
     def has_delete_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.login_required or self.request.user.is_authenticated()) and
-                super(RestModelCoreResourcePermissionsMixin, self).has_delete_permission(obj) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_delete_permission(obj) and
                 self.core.has_rest_delete_permission(self.request, obj, via))
 
     def _get_perm_obj_or_none(self, pk=None):
@@ -95,7 +96,7 @@ class RestModelCoreResourcePermissionsMixin(object):
             return None
 
 
-class RestModelCoreMixin(RestModelCoreResourcePermissionsMixin):
+class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
 
     def _get_queryset(self):
         return self.core.get_queryset(self.request)
@@ -110,14 +111,14 @@ class RestModelCoreMixin(RestModelCoreResourcePermissionsMixin):
         return obj
 
 
-class EntryPointResource(RestResource):
+class EntryPointResource(RESTResource):
     login_required = False
     allowed_methods = ('get',)
 
     def read(self):
         out = {}
         for pattern_name, pattern in patterns.items():
-            if isinstance(pattern, RestPattern):
+            if isinstance(pattern, RESTPattern):
                 try:
                     url = pattern.get_url_string(self.request)
                     allowed_methods = pattern.get_allowed_methods(self.request, None)
@@ -129,7 +130,7 @@ class EntryPointResource(RestResource):
         return out
 
 
-class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
+class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
 
     default_detailed_fields = ('id', '_rest_links', '_obj_name')
     default_general_fields = ('id', '_rest_links', '_obj_name')
@@ -184,7 +185,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         return self.core.get_queryset(self.request)
 
     def _get_headers_queryset_context_mapping(self):
-        mapping = super(RestModelResource, self)._get_headers_queryset_context_mapping()
+        mapping = super(RESTModelResource, self)._get_headers_queryset_context_mapping()
         mapping.update({
             'direction': ('HTTP_X_DIRECTION', '_direction'),
             'order': ('HTTP_X_ORDER', '_order')
@@ -203,7 +204,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
                     filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
                     qs = filter.filter_queryset(qs, self.request)
                 except:
-                    raise RestException(mark_safe(ugettext('Cannot resolve filter "%s"') % filter_term))
+                    raise RESTException(mark_safe(ugettext('Cannot resolve filter "%s"') % filter_term))
 
         return qs
 
@@ -214,9 +215,9 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         try:
             qs = qs.order_by(*order_field.split(','))
             # Queryset validation, there is no other option
-            unicode(qs.query)
-        except Exception:
-            raise RestException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
+            force_text(qs.query)
+        except:
+            raise RESTException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
         return qs
 
     def _get_exclude(self, obj=None):

@@ -10,7 +10,7 @@ from django.core.exceptions import ImproperlyConfigured
 from . import config
 from .utils import str_to_class
 from .loading import get_cores
-from .patterns import RestPattern
+from .patterns import RESTPattern
 from .auth_token.auth_resource import AuthResource
 from .rest.resource import EntryPointResource
 
@@ -82,10 +82,10 @@ class ISSite(object):
 
         if config.AUTH_USE_TOKENS:
             AuthResource.form_class = str_to_class(config.AUTH_FORM_CLASS)
-            pattern = RestPattern('api-login', self.name, r'%s' % config.LOGIN_API_URL[1:], AuthResource)
+            pattern = RESTPattern('api-login', self.name, r'%s' % config.LOGIN_API_URL[1:], AuthResource)
             urlpatterns += patterns('', pattern.get_url())
 
-        pattern = RestPattern('api', self.name, r'api/$', EntryPointResource)
+        pattern = RESTPattern('api', self.name, r'api/$', EntryPointResource)
         urlpatterns += patterns('', pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)

@@ -34,7 +34,7 @@ def pattern_from_request(request):
 
 def is_rest_request(request):
     try:
-        return isinstance(pattern_from_request(request), RestPattern)
+        return isinstance(pattern_from_request(request), RESTPattern)
     except Resolver404:
         return False
 
@@ -168,10 +168,10 @@ class UIPattern(ViewPattern):
         return dispatch
 
 
-class RestPattern(ViewPattern):
+class RESTPattern(ViewPattern):
 
     def __init__(self, name, site_name, url_pattern, resource_class, core=None, methods=None, clone_view_class=True):
-        super(RestPattern, self).__init__(name, site_name, url_pattern, core)
+        super(RESTPattern, self).__init__(name, site_name, url_pattern, core)
         self.resource_class = (type(str(get_new_class_name(name, resource_class)), (resource_class,), {})
                                if clone_view_class else resource_class)
         self.methods = methods
@@ -179,7 +179,7 @@ class RestPattern(ViewPattern):
             self.resource_class.__init_core__(core, self)
 
     def get_url_prefix(self):
-        url_prefix = super(RestPattern, self).get_url_prefix()
+        url_prefix = super(RESTPattern, self).get_url_prefix()
         if url_prefix:
             return 'api/%s' % url_prefix
 
@@ -206,7 +206,7 @@ class HiddenPatternMixin(object):
     send_in_rest = False
 
 
-class HiddenRestPattern(HiddenPatternMixin, RestPattern):
+class HiddenRESTPattern(HiddenPatternMixin, RESTPattern):
     pass
 
 
@@ -214,7 +214,7 @@ class HiddenUIPattern(HiddenPatternMixin, UIPattern):
     pass
 
 
-class DoubleRestPattern(object):
+class DoubleRESTPattern(object):
 
     def __init__(self, resource_class, pattern_class, core):
         self.resource_class = resource_class

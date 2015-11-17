@@ -18,18 +18,18 @@ from django.utils.functional import cached_property
 
 from piston.utils import rfs
 
-from is_core.actions import WebAction, ConfirmRestAction
+from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
-from is_core.rest.resource import RestModelResource
-from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
-from is_core.patterns import UIPattern, RestPattern, DoubleRestPattern
+from is_core.rest.resource import RESTModelResource
+from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
+from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
 from is_core import config
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
-from is_core.rest.datastructures import ModelRestFieldset
+from is_core.rest.datastructures import ModelRESTFieldset
 from is_core.forms.models import SmartModelForm
 
 
@@ -327,7 +327,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return reverse(self.get_api_url_name())
 
 
-class RestModelISCore(PermissionsRestMixin, ModelISCore):
+class RESTModelISCore(PermissionsRESTMixin, ModelISCore):
     abstract = True
 
     # Allowed rest fields
@@ -346,12 +346,12 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_allowed_methods = ('get', 'delete', 'post', 'put')
     rest_obj_class_names = ()
 
-    rest_resource_class = RestModelResource
-    rest_resource_pattern_class = RestPattern
+    rest_resource_class = RESTModelResource
+    rest_resource_pattern_class = RESTPattern
     _resource_patterns = None
 
     def __init__(self, site_name, menu_parent_groups):
-        super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
+        super(RESTModelISCore, self).__init__(site_name, menu_parent_groups)
 
     def get_rest_form_fields(self, request, obj=None):
         return self.get_form_fields(request, obj)
@@ -404,13 +404,13 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return modelrest_factory(self.model, self.rest_resource_class)
 
     def get_resource_patterns(self):
-        return DoubleRestPattern(self.get_rest_class(), self.rest_resource_pattern_class, self).patterns
+        return DoubleRESTPattern(self.get_rest_class(), self.rest_resource_pattern_class, self).patterns
 
     def get_list_actions(self, request, obj):
-        list_actions = super(RestModelISCore, self).get_list_actions(request, obj)
+        list_actions = super(RESTModelISCore, self).get_list_actions(request, obj)
         if self.has_delete_permission(request, obj):
-            confirm_dialog = ConfirmRestAction.ConfirmDialog(_('Do you really want to delete "%s"') % obj)
-            list_actions.append(ConfirmRestAction('api-resource-%s' % self.get_menu_group_pattern_name(),
+            confirm_dialog = ConfirmRESTAction.ConfirmDialog(_('Do you really want to delete "%s"') % obj)
+            list_actions.append(ConfirmRESTAction('api-resource-%s' % self.get_menu_group_pattern_name(),
                                                   _('Delete') , 'DELETE', confirm_dialog=confirm_dialog,
                                                   class_name='delete', success_text=_('Record "%s" was deleted') % obj))
         return list_actions
@@ -419,15 +419,15 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return self.ui_patterns.values()
 
 
-class UIRestModelISCore(RestModelISCore, UIModelISCore):
+class UIRESTModelISCore(RESTModelISCore, UIModelISCore):
     abstract = True
     ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
 
     def get_rest_extra_fields(self, request, obj=None):
-        fieldset = super(UIRestModelISCore, self).get_rest_extra_fields(request, obj)
+        fieldset = super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj)
         fieldset.join(rfs(self.ui_rest_extra_fields))
         return fieldset.join(
-            ModelRestFieldset.create_from_flat_list(self.get_list_display(request), self.model)
+            ModelRESTFieldset.create_from_flat_list(self.get_list_display(request), self.model)
         )
 
     def get_urls(self):
@@ -443,20 +443,20 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
         return self.get_form_readonly_fields(request, obj) + self.get_form_exclude(request, obj)
 
     def get_list_actions(self, request, obj):
-        list_actions = super(UIRestModelISCore, self).get_list_actions(request, obj)
+        list_actions = super(UIRESTModelISCore, self).get_list_actions(request, obj)
         return [WebAction('edit-%s' % self.get_menu_group_pattern_name(), _('Edit'), 'edit')] + list(list_actions)
 
     def get_default_action(self, request, obj):
         return 'edit-%s' % self.get_menu_group_pattern_name()
 
 
-class ViaRestModelISCore(RestModelISCore):
+class ViaRESTModelISCore(RESTModelISCore):
     via_model = None
     fk_name = None
     abstract = True
 
     def get_form_exclude(self, request, obj=None):
-        exclude = super(ViaRestModelISCore, self).get_form_exclude(request, obj)
+        exclude = super(ViaRESTModelISCore, self).get_form_exclude(request, obj)
         if obj:
             fk = _get_foreign_key(self.via_model, self.model, fk_name=self.fk_name).name
             exclude = list(exclude)
@@ -466,19 +466,19 @@ class ViaRestModelISCore(RestModelISCore):
     def has_rest_read_permission(self, request, obj=None, via=None):
         if not via or via[-1].model != self.via_model:
             return False
-        return super(ViaRestModelISCore, self).has_rest_read_permission(request, obj, via)
+        return super(ViaRESTModelISCore, self).has_rest_read_permission(request, obj, via)
 
     def has_rest_create_permission(self, request, obj=None, via=None):
         if not via or via[-1].model != self.via_model:
             return False
-        return super(ViaRestModelISCore, self).has_rest_create_permission(request, obj, via)
+        return super(ViaRESTModelISCore, self).has_rest_create_permission(request, obj, via)
 
     def has_rest_update_permission(self, request, obj=None, via=None):
         if not via or via[-1].model != self.via_model:
             return False
-        return super(ViaRestModelISCore, self).has_rest_update_permission(request, obj, via)
+        return super(ViaRESTModelISCore, self).has_rest_update_permission(request, obj, via)
 
     def has_rest_delete_permission(self, request, obj=None, via=None):
         if not via or via[-1].model != self.via_model:
             return False
-        return super(ViaRestModelISCore, self).has_rest_delete_permission(request, obj, via)
+        return super(ViaRESTModelISCore, self).has_rest_delete_permission(request, obj, via)

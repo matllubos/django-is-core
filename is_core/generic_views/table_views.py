@@ -11,7 +11,7 @@ from chamber.utils import get_class_method
 
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
-from is_core.rest.datastructures import ModelRestFieldset, ModelFlatRestFields
+from is_core.rest.datastructures import ModelRESTFieldset, ModelFlatRESTFields
 from is_core.filters.default_filters import *
 
 from chamber.utils.http import query_string_from_dict
@@ -114,12 +114,12 @@ class TableViewMixin(object):
         return list(self.list_display_extra)
 
     def _generate_rest_fieldset(self):
-        return ModelRestFieldset.create_from_flat_list(
+        return ModelRESTFieldset.create_from_flat_list(
             list(self._get_list_display_extra()) + list(self._get_list_display()), self.model
         )
 
     def _generate_rest_export_fieldset(self):
-        return ModelFlatRestFields.create_from_flat_list(
+        return ModelFlatRESTFields.create_from_flat_list(
             list(self._get_export_display()), self.model
         )
 
@@ -166,16 +166,16 @@ class TableViewMixin(object):
             module_name = str(self.model._meta.model_name)
 
         context_data.update({
-                                'headers': self._get_headers(),
-                                'api_url': self._get_api_url(),
-                                'module_name': module_name,
-                                'list_display': self._get_list_display(),
-                                'rest_fieldset': self._generate_rest_fieldset(),
-                                'rest_export_fieldset': self._generate_rest_export_fieldset(),
-                                'query_string_filter': self._get_query_string_filter(),
-                                'menu_group_pattern_name': self._get_menu_group_pattern_name(),
-                                'render_actions': self.render_actions,
-                            })
+            'headers': self._get_headers(),
+            'api_url': self._get_api_url(),
+            'module_name': module_name,
+            'list_display': self._get_list_display(),
+            'rest_fieldset': self._generate_rest_fieldset(),
+            'rest_export_fieldset': self._generate_rest_export_fieldset(),
+            'query_string_filter': self._get_query_string_filter(),
+            'menu_group_pattern_name': self._get_menu_group_pattern_name(),
+            'render_actions': self.render_actions,
+        })
         return context_data
 
 
