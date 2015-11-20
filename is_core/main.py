@@ -11,6 +11,7 @@ from django.http.response import Http404
 from django.core.exceptions import ValidationError
 from django.utils import six
 from django.forms.models import _get_foreign_key
+from django.utils.functional import cached_property
 
 from piston.utils import rfs
 
@@ -184,18 +185,15 @@ class UIISCore(PermissionsUIMixin, ISCore):
     api_url_name = None
     show_in_menu = True
     menu_url_name = None
-    _ui_patterns = None
     view_classes = SortedDict()
     default_ui_pattern_class = UIPattern
 
     def get_view_classes(self):
         return self.view_classes.copy()
 
-    @property
+    @cached_property
     def ui_patterns(self):
-        if not self._ui_patterns:
-            self._ui_patterns = self.get_ui_patterns()
-        return self._ui_patterns
+        return self.get_ui_patterns()
 
     def get_ui_patterns(self):
         ui_patterns = SortedDict()
@@ -227,6 +225,49 @@ class UIISCore(PermissionsUIMixin, ISCore):
         if self.get_show_in_menu(request):
             return LinkMenuItem(self.verbose_name_plural, self.menu_url(request),
                                 self.menu_group, self.is_active_menu_item(request, active_group))
+
+
+class RestISCore(PermissionsRestMixin, ISCore):
+
+    rest_classes = SortedDict()
+    default_rest_resource_pattern_class = RestPattern
+    abstract = True
+
+    def get_rest_classes(self):
+        return self.rest_classes.copy()
+
+    @cached_property
+    def resource_patterns(self):
+        return self.get_resource_patterns()
+
+    def get_resource_patterns(self):
+        rest_patterns = SortedDict()
+        for name, rest_vals in self.get_rest_classes().items():
+            if len(rest_vals) == 3:
+                pattern, rest, RestPatternClass = rest_vals
+            else:
+                pattern, rest = rest_vals
+                RestPatternClass = self.default_rest_resource_pattern_class
+
+            pattern_names = [name]
+            group_pattern_name = self.get_menu_group_pattern_name()
+            if group_pattern_name:
+                pattern_names += [self.get_menu_group_pattern_name()]
+            rest_patterns[name] = RestPatternClass('-'.join(pattern_names), self.site_name, pattern, rest, self)
+        return rest_patterns
+
+    def get_urls(self):
+        return self.get_urlpatterns(self.resource_patterns)
+
+
+class UIRestISCoreMixin(object):
+
+    def get_urls(self):
+        return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
+
+
+class UIRestISCore(UIRestISCoreMixin, UIISCore, RestISCore):
+    pass
 
 
 class HomeUIISCore(UIISCore):
@@ -322,7 +363,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return reverse(self.get_api_url_name())
 
 
-class RestModelISCore(PermissionsRestMixin, ModelISCore):
+class RestModelISCore(RestISCore, ModelISCore):
     abstract = True
 
     # Allowed rest fields
@@ -342,8 +383,6 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     rest_obj_class_names = ()
 
     rest_resource_class = RestModelResource
-    rest_resource_pattern_class = RestPattern
-    _resource_patterns = None
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
@@ -386,20 +425,16 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
     def get_rest_obj_class_names(self, request, obj):
         return list(self.rest_obj_class_names)
 
-    def get_urls(self):
-        return self.get_urlpatterns(self.resource_patterns)
-
-    @property
-    def resource_patterns(self):
-        if not self._resource_patterns:
-            self._resource_patterns = self.get_resource_patterns()
-        return self._resource_patterns
-
     def get_rest_class(self):
         return modelrest_factory(self.model, self.rest_resource_class)
 
     def get_resource_patterns(self):
-        return DoubleRestPattern(self.get_rest_class(), self.rest_resource_pattern_class, self).patterns
+        resource_patterns = super(RestModelISCore, self).get_resource_patterns()
+        resource_patterns.update(DoubleRestPattern(
+            self.get_rest_class(), 
+            self.default_rest_resource_pattern_class, self
+        ).patterns)
+        return resource_patterns
 
     def get_list_actions(self, request, obj):
         list_actions = super(RestModelISCore, self).get_list_actions(request, obj)
@@ -414,7 +449,7 @@ class RestModelISCore(PermissionsRestMixin, ModelISCore):
         return self.ui_patterns.values()
 
 
-class UIRestModelISCore(RestModelISCore, UIModelISCore):
+class UIRestModelISCore(UIRestISCoreMixin, RestModelISCore, UIModelISCore):
     abstract = True
     ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
 
@@ -424,9 +459,6 @@ class UIRestModelISCore(RestModelISCore, UIModelISCore):
         return fieldset.join(
             ModelRestFieldset.create_from_flat_list(self.get_list_display(request), self.model)
         )
-
-    def get_urls(self):
-        return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
 
     def get_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())

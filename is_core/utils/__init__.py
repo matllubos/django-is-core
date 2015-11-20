@@ -157,9 +157,23 @@ def display_for_value(value):
     return value
 
 
-def render_model_object_with_link(request, obj, display_value=None):
+def get_obj_url(request, obj):
     if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__')
-         and hasattr(getattr(obj, 'can_see_edit_link', None), '__call__')
-         and obj.can_see_edit_link(request)):
-            return format_html('<a href="{}">{}</a>', obj.get_absolute_url(), display_value or force_text(obj))
-    return display_value or force_text(obj)
+        and hasattr(getattr(obj, 'can_see_edit_link', None), '__call__')
+        and obj.can_see_edit_link(request)):
+            return obj.get_absolute_url()
+    else:
+        from is_core.site import get_model_core
+        model_core = get_model_core(obj.__class__)
+
+        if model_core:
+            edit_pattern = model_core.ui_patterns.get('edit')
+            if edit_pattern and edit_pattern.can_call_get(request, obj=obj):
+                return edit_pattern.get_url_string(request, obj=obj)
+    return None
+
+
+def render_model_object_with_link(request, obj, display_value=None):
+    obj_url = get_obj_url(request, obj)
+    display_value = display_value or force_text(obj)
+    return format_html('<a href="{}">{}</a>', obj_url, display_value) if obj_url else display_value
