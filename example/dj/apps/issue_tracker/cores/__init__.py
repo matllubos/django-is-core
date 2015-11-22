@@ -9,7 +9,6 @@ from issue_tracker.forms import UserForm
 from .resources import NumberOfUserIssuesResource
 
 
-
 class UserIsCore(UIRESTModelISCore):
     model = User
     form_class = UserForm
@@ -33,11 +32,11 @@ class UserIsCore(UIRESTModelISCore):
             qs = qs.filter(pk=request.user.pk)
         return qs
 
-    def get_resource_patterns(self):
-        resource_patterns = super(UserIsCore, self).get_resource_patterns()
-        resource_patterns['api-user-issue'] = self.rest_resource_pattern_class(
+    def get_rest_patterns(self):
+        rest_patterns = super(UserIsCore, self).get_rest_patterns()
+        rest_patterns['api-user-issue'] = self.default_rest_pattern_class(
             'api-number-issues', self.site_name, r'(?P<pk>[-\w]+)/issue-number/', NumberOfUserIssuesResource, self)
-        return resource_patterns
+        return rest_patterns
 
 
 class IssueIsCore(UIRESTModelISCore):

@@ -181,3 +181,7 @@ def render_model_object_with_link(request, obj, display_value=None):
     obj_url = get_obj_url(request, obj)
     display_value = display_value or force_text(obj)
     return format_html('<a href="{}">{}</a>', obj_url, display_value) if obj_url else display_value
+
+
+def header_name_to_django(header_name):
+    return '_'.join(('HTTP', header_name.replace('-', '_').upper()))

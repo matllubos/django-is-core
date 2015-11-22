@@ -9,11 +9,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from is_core.auth_token.models import Token, AnonymousToken
 from is_core import config
 from is_core.patterns import is_rest_request
+from is_core.utils import header_name_to_django
 
 
 def login(request, user, expiration=True):
     """
-    Persist token into database. Token is stored inside cookie therefore is not necessary 
+    Persist token into database. Token is stored inside cookie therefore is not necessary
     reauthenticate user for every request.
     """
     if user is None:
@@ -52,12 +53,13 @@ def get_token(request):
     If no user is retrieved AnonymousToken is returned.
     """
 
-    auth_token = request.META.get(config.AUTH_HEADER_NAME) or request.COOKIES.get(config.AUTH_COOKIE_NAME)
+    auth_token = (request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)) or 
+                  request.COOKIES.get(config.IS_CORE_AUTH_COOKIE_NAME))
 
     try:
         token = Token.objects.get(key=auth_token, is_active=True)
         if not token.is_expired:
-            if auth_token == request.META.get(config.AUTH_HEADER_NAME):
+            if auth_token == request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)):
                 token.is_from_header = True
             return token
     except ObjectDoesNotExist:
@@ -67,7 +69,7 @@ def get_token(request):
 
 def dont_enforce_csrf_checks(request):
     return (getattr(request, '_dont_enforce_csrf_checks', False) or
-            (request.META.get(config.AUTH_HEADER_NAME) and is_rest_request(request)))
+            (request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)) and is_rest_request(request)))
 
 
 def get_user(request):

@@ -150,7 +150,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
 
     def _rest_links(self, obj):
         rest_links = {}
-        for pattern in self.core.resource_patterns.values():
+        for pattern in self.core.rest_patterns.values():
             if pattern.send_in_rest:
                 url = pattern.get_url_string(self.request, obj=obj)
                 if url:

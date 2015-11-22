@@ -189,7 +189,7 @@ LOGGING = {
     }
 }
 
-AUTH_USE_TOKENS = True
+IS_CORE_AUTH_USE_TOKENS = True
 
 THROTTLING_FAILURE_VIEW = 'is_core.views.throttling.throttling_failure_view'
 CSRF_FAILURE_VIEW = 'is_core.views.csrf.csrf_failure'

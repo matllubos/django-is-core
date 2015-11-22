@@ -11,7 +11,6 @@ from django.utils.decorators import available_attrs
 
 from chamber.shortcuts import get_object_or_none
 
-from is_core import config
 from is_core.exceptions import HttpUnauthorizedResponseException
 
 
@@ -24,4 +23,3 @@ def rest_login_required(rest_func):
         return rest_func(request, *args, **kwargs)
 
     return _rest_login_requiered
-

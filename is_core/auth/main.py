@@ -24,7 +24,7 @@ class PermissionsMixin(object):
         return self.delete_permission
 
 
-class PermissionsUIMixin(PermissionsMixin):
+class PermissionsUIMixin(object):
     """
     Mixin that validate UI user permissions inside ISCore
     """
@@ -55,7 +55,7 @@ class PermissionsUIMixin(PermissionsMixin):
         )
 
 
-class PermissionsRESTMixin(PermissionsMixin):
+class PermissionsRESTMixin(object):
     """
     Mixin that validate REST user permissions inside ISCore
     """

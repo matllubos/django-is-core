@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 
 from is_core.utils import get_new_class_name
 from is_core.auth import rest_login_required
+from is_core import config
 
 
 logger = logging.getLogger('is-core')
@@ -164,7 +165,7 @@ class UIPattern(ViewPattern):
     def get_view_dispatch(self):
         dispatch = self.view_class.as_view()
         if self.view_class.login_required:
-            return login_required(dispatch)
+            return login_required(dispatch, login_url=config.IS_CORE_LOGIN_URL)
         return dispatch
 
 
@@ -229,7 +230,7 @@ class DoubleRESTPattern(object):
             self.resource_class, self.core, ('get', 'put', 'delete', 'options'), clone_view_class=False
         )
         result['api'] = self.pattern_class(
-            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'', self.resource_class, self.core,
-             ('get', 'post', 'options'), clone_view_class=False
+            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'', self.resource_class,
+            self.core, ('get', 'post', 'options'), clone_view_class=False
         )
         return result

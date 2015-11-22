@@ -47,7 +47,7 @@ class Token(models.Model):
 
     @property
     def is_expired(self):
-        token_age = self.expiration and config.AUTH_DEFAULT_TOKEN_AGE or config.AUTH_MAX_TOKEN_AGE
+        token_age = self.expiration and config.IS_CORE_AUTH_DEFAULT_TOKEN_AGE or config.IS_CORE_AUTH_MAX_TOKEN_AGE
         return self.last_access + timedelta(seconds=token_age) < timezone.now()
 
     def __str__(self):
