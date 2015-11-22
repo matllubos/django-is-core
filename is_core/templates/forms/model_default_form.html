@@ -3,17 +3,17 @@
 {% load i18n %}
 
 {% block submit-button %}
-	<div class="{% block submit-button-wrapper-class %}{% endblock %}">
-		{% block save-buttons %}
-			{% if show_save_button %}
-				<button type="submit" name="save" data-title="{{ buttons.save.title }}" class="{% block save-button-class %}btn-save btn btn-primary{% endblock %}">{% block save-button-caption %}{{ buttons.save.label }}{% endblock %}</button>
- 			{% endif %}
-			{% if show_save_and_continue %}<button data-title="{{ buttons.save_and_continue.title }}" type="submit" name="save-and-continue" class="{% block save-and-continue-button-class %}btn btn-primary btn-save-and-continue{% endblock %}">{% block save-and-continue-button-caption %}{{ buttons.save_and_continue.label }}{% endblock %}</button>{% endif %}
- 		{% endblock %}
-		{% if cancel_url %}
-			{% block cancel-buttons %}
-				<a href="{{ cancel_url }}" data-title="{{  buttons.cancel.title }}" class="{% block cancel-button-class %}btn btn-default btn-cancel{% endblock %}">{% block cancel-button-caption %}{{ buttons.cancel.label }}{% endblock %}</a>
- 			{% endblock %}
-		{% endif %}
-	</div>
+  <div class="{% block submit-button-wrapper-class %}{% endblock %}">
+    {% block save-buttons %}
+      {% if show_save_button %}
+        <button type="submit" name="save" data-title="{{ buttons.save.title }}" class="{% block save-button-class %}btn-save btn btn-primary{% endblock %}">{% block save-button-caption %}{{ buttons.save.label }}{% endblock %}</button>
+       {% endif %}
+      {% if show_save_and_continue %}<button data-title="{{ buttons.save_and_continue.title }}" type="submit" name="save-and-continue" class="{% block save-and-continue-button-class %}btn btn-primary btn-save-and-continue{% endblock %}">{% block save-and-continue-button-caption %}{{ buttons.save_and_continue.label }}{% endblock %}</button>{% endif %}
+     {% endblock %}
+    {% if cancel_url %}
+      {% block cancel-buttons %}
+        <a href="{{ cancel_url }}" data-title="{{  buttons.cancel.title }}" class="{% block cancel-button-class %}btn btn-default btn-cancel{% endblock %}">{% block cancel-button-caption %}{{ buttons.cancel.label }}{% endblock %}</a>
+       {% endblock %}
+    {% endif %}
+  </div>
 {% endblock %}

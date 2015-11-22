@@ -21,7 +21,7 @@ from piston.utils import rfs
 from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
-from is_core.rest.resource import RESTModelResource
+from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
@@ -234,6 +234,49 @@ class UIISCore(PermissionsUIMixin, ISCore):
                                 self.menu_group, self.is_active_menu_item(request, active_group))
 
 
+class RESTISCore(PermissionsRESTMixin, ISCore):
+
+    rest_classes = OrderedDict()
+    default_rest_resource_pattern_class = RESTPattern
+    abstract = True
+
+    def get_rest_classes(self):
+        return self.rest_classes.copy()
+
+    @cached_property
+    def resource_patterns(self):
+        return self.get_resource_patterns()
+
+    def get_resource_patterns(self):
+        rest_patterns = OrderedDict()
+        for name, rest_vals in self.get_rest_classes().items():
+            if len(rest_vals) == 3:
+                pattern, rest, RESTPatternClass = rest_vals
+            else:
+                pattern, rest = rest_vals
+                RESTPatternClass = self.default_rest_resource_pattern_class
+
+            pattern_names = [name]
+            group_pattern_name = self.get_menu_group_pattern_name()
+            if group_pattern_name:
+                pattern_names += [self.get_menu_group_pattern_name()]
+            rest_patterns[name] = RESTPatternClass('-'.join(pattern_names), self.site_name, pattern, rest, self)
+        return rest_patterns
+
+    def get_urls(self):
+        return self.get_urlpatterns(self.resource_patterns)
+
+
+class UIRESTISCoreMixin(object):
+
+    def get_urls(self):
+        return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
+
+
+class UIRESTISCore(UIRESTISCoreMixin, UIISCore, RESTISCore):
+    pass
+
+
 class HomeUIISCore(UIISCore):
 
     menu_url_name = 'index'
@@ -327,7 +370,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return reverse(self.get_api_url_name())
 
 
-class RESTModelISCore(PermissionsRESTMixin, ModelISCore):
+class RESTModelISCore(RESTISCore, ModelISCore):
     abstract = True
 
     # Allowed rest fields
@@ -347,8 +390,6 @@ class RESTModelISCore(PermissionsRESTMixin, ModelISCore):
     rest_obj_class_names = ()
 
     rest_resource_class = RESTModelResource
-    rest_resource_pattern_class = RESTPattern
-    _resource_patterns = None
 
     def __init__(self, site_name, menu_parent_groups):
         super(RESTModelISCore, self).__init__(site_name, menu_parent_groups)
@@ -394,24 +435,23 @@ class RESTModelISCore(PermissionsRESTMixin, ModelISCore):
     def get_urls(self):
         return self.get_urlpatterns(self.resource_patterns)
 
-    @property
-    def resource_patterns(self):
-        if not self._resource_patterns:
-            self._resource_patterns = self.get_resource_patterns()
-        return self._resource_patterns
-
     def get_rest_class(self):
         return modelrest_factory(self.model, self.rest_resource_class)
 
     def get_resource_patterns(self):
-        return DoubleRESTPattern(self.get_rest_class(), self.rest_resource_pattern_class, self).patterns
+        resource_patterns = super(RESTModelISCore, self).get_resource_patterns()
+        resource_patterns.update(DoubleRESTPattern(
+            self.get_rest_class(),
+            self.default_rest_resource_pattern_class, self
+        ).patterns)
+        return resource_patterns
 
     def get_list_actions(self, request, obj):
         list_actions = super(RESTModelISCore, self).get_list_actions(request, obj)
         if self.has_delete_permission(request, obj):
             confirm_dialog = ConfirmRESTAction.ConfirmDialog(_('Do you really want to delete "%s"') % obj)
             list_actions.append(ConfirmRESTAction('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                                  _('Delete') , 'DELETE', confirm_dialog=confirm_dialog,
+                                                  _('Delete'), 'DELETE', confirm_dialog=confirm_dialog,
                                                   class_name='delete', success_text=_('Record "%s" was deleted') % obj))
         return list_actions
 
@@ -419,9 +459,10 @@ class RESTModelISCore(PermissionsRESTMixin, ModelISCore):
         return self.ui_patterns.values()
 
 
-class UIRESTModelISCore(RESTModelISCore, UIModelISCore):
+class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     abstract = True
     ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
+    rest_resource_class = UIRESTModelResource
 
     def get_rest_extra_fields(self, request, obj=None):
         fieldset = super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj)
@@ -429,9 +470,6 @@ class UIRESTModelISCore(RESTModelISCore, UIModelISCore):
         return fieldset.join(
             ModelRESTFieldset.create_from_flat_list(self.get_list_display(request), self.model)
         )
-
-    def get_urls(self):
-        return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
 
     def get_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())

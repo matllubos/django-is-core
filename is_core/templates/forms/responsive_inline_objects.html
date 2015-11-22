@@ -1,26 +1,26 @@
 {% load i18n forms %}
 
 <fieldset class="inline responsive-inline {{ class_names|join:' ' }}">
-	{% block inline-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
-	<div class="form">
-		{% for row in data_list %}
-			{% if forloop.first %}
-				{% block inline-thead %}
-					<div class="inline-header form-inline">
-						{% for field_name, field_value in header_list %}
-							<div class="form-group col-{{ forloop.counter }} {{ field_name }}">{{ field_value }}</div>
-						{% endfor %}
-					</div>
-				{% endblock %}
-			{% endif %}
-			<div class="inline-line form-inline {% cycle odd,even %}{% if row.class_names %} {{ row.class_names|join:' ' }}{% endif %}{% if form.class_names %} {{ form.class_names|join:' ' }}{% endif %}">
-				{% for field_name, field_value in row %}
-					<div class="col-{{ forloop.counter }} form-group field {{ field_name }}">
-						{{ field_value }}
-					</div>
-				{% endfor %}
-			</div>
-		{% endfor %}
-	</div>
-	{% block below-objects %}{% endblock %}
+  {% block inline-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
+  <div class="form">
+    {% for row in data_list %}
+      {% if forloop.first %}
+        {% block inline-thead %}
+          <div class="inline-header form-inline">
+            {% for field_name, field_value in header_list %}
+              <div class="form-group col-{{ forloop.counter }} {{ field_name }}">{{ field_value }}</div>
+            {% endfor %}
+          </div>
+        {% endblock %}
+      {% endif %}
+      <div class="inline-line form-inline {% cycle odd,even %}{% if row.class_names %} {{ row.class_names|join:' ' }}{% endif %}{% if form.class_names %} {{ form.class_names|join:' ' }}{% endif %}">
+        {% for field_name, field_value in row %}
+          <div class="col-{{ forloop.counter }} form-group field {{ field_name }}">
+            {{ field_value }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  {% block below-objects %}{% endblock %}
 </fieldset>
