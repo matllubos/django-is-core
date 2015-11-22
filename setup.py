@@ -30,7 +30,7 @@ setup(
     install_requires=[
         'django>=1.8',
         'django-class-based-auth-views>=0.3',
-        'django-piston==1.2.9',
+        'django-piston==1.2.10',
         'django-block-snippets==0.1.1',
         'django-chamber>=0.1.7',
         'python-dateutil>=2.2',
@@ -40,7 +40,7 @@ setup(
         'django-project-info==0.2.5',
     ],
     dependency_links=[
-        'https://github.com/matllubos/django-piston/tarball/1.2.9#egg=django-piston-1.2.9',
+        'https://github.com/matllubos/django-piston/tarball/1.2.10#egg=django-piston-1.2.10',
         'https://github.com/matllubos/django-chamber/tarball/0.1.7#egg=django-chamber-0.1.7',
         'https://github.com/matllubos/django-block-snippets/tarball/0.1.1#egg=django-block-snippets-0.1.1',
         'https://github.com/matllubos/django-project-info/tarball/0.2.5#egg=django-project-info-0.2.5',

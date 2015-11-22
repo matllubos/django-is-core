@@ -173,7 +173,7 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter':'standard',
+            'formatter': 'standard'
         },
     },
     'loggers': {
@@ -185,7 +185,7 @@ LOGGING = {
         'is-core': {
             'handlers': ['console'],
             'level': 'DEBUG',
-         },
+        }
     }
 }
 
@@ -194,3 +194,4 @@ AUTH_USE_TOKENS = True
 THROTTLING_FAILURE_VIEW = 'is_core.views.throttling.throttling_failure_view'
 CSRF_FAILURE_VIEW = 'is_core.views.csrf.csrf_failure'
 
+PISTON_CORS = True

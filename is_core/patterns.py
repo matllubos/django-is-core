@@ -226,10 +226,10 @@ class DoubleRESTPattern(object):
         result = OrderedDict()
         result['api-resource'] = self.pattern_class(
             'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'(?P<pk>[-\w]+)/',
-            self.resource_class, self.core, ('get', 'put', 'delete'), clone_view_class=False
+            self.resource_class, self.core, ('get', 'put', 'delete', 'options'), clone_view_class=False
         )
         result['api'] = self.pattern_class(
             'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'', self.resource_class, self.core,
-             ('get', 'post'), clone_view_class=False
+             ('get', 'post', 'options'), clone_view_class=False
         )
         return result

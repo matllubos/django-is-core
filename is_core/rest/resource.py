@@ -186,10 +186,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
 
     def _get_headers_queryset_context_mapping(self):
         mapping = super(RESTModelResource, self)._get_headers_queryset_context_mapping()
-        mapping.update({
-            'direction': ('HTTP_X_DIRECTION', '_direction'),
-            'order': ('HTTP_X_ORDER', '_order')
-        })
+        mapping.update({'order': ('HTTP_X_ORDER', '_order')})
         return mapping
 
     def _preload_queryset(self, qs):
@@ -209,7 +206,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
         return qs
 
     def _order_queryset(self, qs):
-        if not 'order' in self.request._rest_context:
+        if 'order' not in self.request._rest_context:
             return qs
         order_field = self.request._rest_context.get('order')
         try:
@@ -257,3 +254,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
         return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields)
+
+    def _get_cors_allowed_headers(self):
+        return super(RESTModelResource, self)._get_cors_allowed_headers() + ('X-Order',)

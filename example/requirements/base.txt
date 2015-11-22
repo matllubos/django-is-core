@@ -5,6 +5,6 @@ python-mimeparse==0.1.4
 pep8==1.6.2
 six==1.10.0
 https://github.com/LukasRychtecky/germanium/tarball/1.0.4#egg=germanium-1.0.4
-https://github.com/matllubos/django-is-core/tarball/1.4.27#egg=django-is-core-1.4.27
+https://github.com/matllubos/django-is-core/tarball/1.4.28#egg=django-is-core-1.4.28
 coverage==4.0.2
 https://github.com/jezdez/django_compressor/tarball/develop#egg=django_compressor-dev
