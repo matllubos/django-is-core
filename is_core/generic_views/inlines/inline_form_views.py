@@ -142,16 +142,16 @@ class InlineFormView(InlineView):
                                                                         queryset=self.get_queryset(),
                                                                         initial=self.get_initial(),
                                                                         prefix=self.get_prefix())
-
+        can_delete = self.get_can_delete()
         formset.can_add = self.get_can_add()
-        formset.can_delete = self.get_can_delete()
+        formset.can_delete = can_delete
 
         for form in formset.all_forms():
             form.class_names = self.form_class_names(form)
             form._is_readonly = self.is_form_readonly(form)
-            if form._is_readonly and not self.readonly:
+            if form._is_readonly and not self.readonly and can_delete:
                 if not self.can_form_delete(form):
-                    form.base_readonly_fields = set(form.fields.keys()) -{'id'}
+                    form.base_readonly_fields = set(form.fields.keys()) - {'id'}
                     form.fields['DELETE'] = EmptyReadonlyField()
                 else:
                     form.base_readonly_fields = set(form.fields.keys()) - {'id', 'DELETE'}
