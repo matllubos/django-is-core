@@ -73,8 +73,8 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         if obj:
             msg_kwargs = self.get_message_kwargs(obj)
 
-        msg_type = (isinstance(msg_type_or_level, int) and constants.DEFAULT_TAGS.get(msg_type_or_level)
-                    or msg_type_or_level)
+        msg_type = (isinstance(msg_type_or_level, int) and constants.DEFAULT_TAGS.get(msg_type_or_level) or
+                    msg_type_or_level)
         return self.messages.get(msg_type) % msg_kwargs
 
     def is_changed(self, form, **kwargs):
@@ -160,15 +160,15 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def get_context_data(self, form=None, **kwargs):
         context_data = super(DefaultFormView, self).get_context_data(form=form, **kwargs)
         context_data.update({
-                                'view_type': self.view_type,
-                                'fieldsets': self.generate_fieldsets(),
-                                'form_template': self.form_template,
-                                'form_class_names': self.get_form_class_names(),
-                                'has_file_field': self.get_has_file_field(form, **kwargs),
-                                'action': self.get_form_action(),
-                                'form_snippet_name': self.form_snippet_name,
-                                'buttons': self.get_buttons()
-                             })
+            'view_type': self.view_type,
+            'fieldsets': self.generate_fieldsets(),
+            'form_template': self.form_template,
+            'form_class_names': self.get_form_class_names(),
+            'has_file_field': self.get_has_file_field(form, **kwargs),
+            'action': self.get_form_action(),
+            'form_snippet_name': self.form_snippet_name,
+            'buttons': self.get_buttons()
+        })
         return context_data
 
     def get_buttons(self):
@@ -187,7 +187,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 'title': self.save_button_title
             },
             'cancel': {
-                'label':  self.cancel_button_label,
+                'label': self.cancel_button_label,
                 'title': self.cancel_button_title
             }
         }
@@ -326,7 +326,7 @@ class DefaultModelFormView(DefaultFormView):
                                  list(self.generate_form_class().base_fields.keys())})]
             for inline_view in self.get_inline_views():
                 if (issubclass(inline_view, InlineFormView) and (not inline_view.max_num or
-                    inline_view.max_num > 1)):
+                                                                 inline_view.max_num > 1)):
                     title = inline_view.model._meta.verbose_name_plural
                 else:
                     title = inline_view.model._meta.verbose_name
@@ -364,7 +364,7 @@ class DefaultModelFormView(DefaultFormView):
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
             return get_readonly_field_data(name, (self, self.core, instance),
-                                           {'request':self.request}, self.request)
+                                           {'request': self.request}, self.request)
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_has_file_field(self, form, inline_form_views=(), **kwargs):
@@ -412,8 +412,7 @@ class DefaultModelFormView(DefaultFormView):
         inline_form_views = self._filter_inline_form_views(inline_views)
 
         for inline_form_view in inline_form_views.values():
-            inline_forms_is_valid = (inline_form_view.formset.is_valid()) \
-                                        and inline_forms_is_valid
+            inline_forms_is_valid = inline_form_view.formset.is_valid() and inline_forms_is_valid
 
         is_valid = form.is_valid()
         is_changed = self.is_changed(form, inline_form_views=inline_form_views)
@@ -487,7 +486,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         buttons_dict.update({
             'save_and_continue': {
                 'label': self.save_and_continue_button_label,
-                'title':  self.save_and_continue_button_title
+                'title': self.save_and_continue_button_title
             }
         })
         return buttons_dict
@@ -532,9 +531,9 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         return None
 
     def has_save_and_continue_button(self):
-        return 'list' in self.core.ui_patterns and not self.has_snippet() \
-                and self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() \
-                and self.show_save_and_continue
+        return ('list' in self.core.ui_patterns and not self.has_snippet() and
+                self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() and
+                self.show_save_and_continue)
 
     def has_save_button(self):
         return self.view_type in self.core.ui_patterns and self.has_post_permission()
@@ -587,10 +586,10 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     def get_title(self):
         return (self.title or
                 self.model._ui_meta.edit_verbose_name % {
-                        'verbose_name': self.model._meta.verbose_name,
-                        'verbose_name_plural': self.model._meta.verbose_name_plural,
-                        'obj': self.get_obj(True)
-                    })
+                    'verbose_name': self.model._meta.verbose_name,
+                    'verbose_name_plural': self.model._meta.verbose_name_plural,
+                    'obj': self.get_obj(True)
+                })
 
     def link(self, arguments=None, **kwargs):
         if arguments is None:
@@ -605,7 +604,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         If is send parameter pk is returned object according this pk,
         else is returned object from get_obj method, but it search only inside filtered values for current user,
         finally if object is still None is returned according the input key from all objects.
-        
+
         If object does not exist is raised Http404
         """
         if pk:

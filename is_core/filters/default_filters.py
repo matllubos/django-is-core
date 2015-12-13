@@ -6,12 +6,13 @@ from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField, Q
 from django.db.models.fields.related import RelatedField
-from django.db.models.fields import AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField
+from django.db.models.fields import (AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField,
+                                     IPAddressField)
+from django.utils.timezone import make_aware, get_current_timezone
 
 from dateutil.parser import DEFAULTPARSER
 
 from is_core.filters.exceptions import FilterException
-from django.utils.timezone import make_aware, get_current_timezone
 
 
 class Filter(object):
@@ -98,7 +99,10 @@ class DefaultFieldFilter(DefaultFilter):
 
     suffixes = ['in', 'isnull']
     default_suffix = None
-    EMPTY_LABEL = '---------'
+    ALL_LABEL = '--------'
+    EMPTY_LABEL = _('Empty')
+    ALL_SLUG = '__all__'
+    EMPTY_SLUG = '__empty__'
 
     def __init__(self, filter_key, full_filter_key, field, value=None):
         super(DefaultFieldFilter, self).__init__(filter_key, full_filter_key, field, value)
@@ -110,10 +114,13 @@ class DefaultFieldFilter(DefaultFilter):
 
         formfield = self.field.formfield()
         if formfield:
-            if hasattr(formfield, 'empty_label'):
-                formfield.empty_label = self.get_placeholder() or self.EMPTY_LABEL
-            elif hasattr(formfield, 'choices') and formfield.choices and formfield.choices[0][0]:
-                formfield.choices.insert(0, ('', self.get_placeholder() or self.EMPTY_LABEL))
+            if hasattr(formfield, 'choices') and formfield.choices:
+                formfield.choices = list(formfield.choices)
+                if not formfield.choices[0][0]:
+                    del formfield.choices[0]
+                if self.field.null or self.field.blank:
+                    formfield.choices.insert(0, (self.EMPTY_SLUG, self.EMPTY_LABEL))
+                formfield.choices.insert(0, (self.ALL_SLUG, self.get_placeholder() or self.ALL_LABEL))
             return formfield.widget
         return forms.TextInput()
 
@@ -130,7 +137,7 @@ class DefaultFieldFilter(DefaultFilter):
         if placeholder:
             widget.placeholder = placeholder
         return widget.render('filter__%s' % self.get_filter_name(), None,
-                                        attrs=self.get_attrs_for_widget())
+                             attrs=self.get_attrs_for_widget())
 
     def _get_in_suffix_value(self, value):
         for pattern in ('\[(.+)\]', '\((.+)\)'):
@@ -139,6 +146,9 @@ class DefaultFieldFilter(DefaultFilter):
                 return set(m.group(1).split(','))
 
         raise ValueError()
+
+    def _filter_empty(self):
+        return Q(**{'%s__isnull' % self.full_filter_key: True})
 
     def get_filter_term(self, request):
         suffix = self._check_suffix()
@@ -152,6 +162,11 @@ class DefaultFieldFilter(DefaultFilter):
                 return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % full_filter_key_without_suffix: True}))
         elif suffix == 'isnull':
             value = value == '1'
+        elif not suffix:
+            if value == self.ALL_SLUG:
+                return {}
+            if value == self.EMPTY_SLUG:
+                return self._filter_empty()
 
         return {self.full_filter_key: value}
 
@@ -160,6 +175,9 @@ class CharFieldFilter(DefaultFieldFilter):
 
     suffixes = ['startswith', 'endswith', 'contains', 'icontains', 'in', 'isnull']
     default_suffix = 'icontains'
+
+    def _filter_empty(self):
+        return super(CharFieldFilter, self)._filter_empty() | Q(**{'%s__exact' % self.full_filter_key: ''})
 
 
 class TextFieldFilter(CharFieldFilter):
@@ -180,11 +198,7 @@ class NunberFieldFilter(DefaultFieldFilter):
 
 
 class RelatedFieldFilter(DefaultFieldFilter):
-
-    def get_widget(self):
-        """ Turn off extra fields return """
-        widget = super(RelatedFieldFilter, self).get_widget()
-        return widget
+    pass
 
 
 class DateFilter(DefaultFieldFilter):
@@ -236,3 +250,4 @@ AutoField.filter = NunberFieldFilter
 DateField.filter = DateFilter
 DateTimeField.filter = DateTimeFilter
 GenericIPAddressField.filter = CharFieldFilter
+IPAddressField.filter = CharFieldFilter

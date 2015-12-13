@@ -87,7 +87,7 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
 
     def __iter__(self):
         if self.field.empty_label is not None:
-            yield ModelChoice("", self.field.empty_label)
+            yield ModelChoice('', self.field.empty_label)
         if self.field.cache_choices:
             if self.field.choice_cache is None:
                 self.field.choice_cache = [

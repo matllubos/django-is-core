@@ -87,7 +87,8 @@ class SelectMixin(object):
                     output.append(self.render_option(selected_choices, *option))
                 output.append('</optgroup>')
             else:
-                output.append(self.render_option(selected_choices, option_value, option_label, choice.attrs))
+                output.append(self.render_option(selected_choices, option_value, option_label,
+                                                 getattr(choice, 'attrs', {})))
         return '\n'.join(output)
 
 

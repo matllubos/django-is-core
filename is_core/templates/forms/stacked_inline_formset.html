@@ -1,7 +1,7 @@
 {% load forms %}
 
 {% block fieldset %}
-<fieldset class="inline stacked-inline {{ class_names|join:' ' }}">
+<fieldset class="inline stacked-inline {{ class_names|join:' ' }}{% if class %} {{ class }}{% endif %}">
 	{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}
 	{% block fieldset-forms %}
 		{{ formset.management_form }}

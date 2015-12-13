@@ -31,16 +31,18 @@ def do_form_renderer(parser, token):
 def fieldset_renderer(context, form, fieldset):
     values = fieldset[1]
     inline_view_name = values.get('inline_view')
+    context.update({
+        'class': values.get('class'),
+    })
     if inline_view_name:
         return context.get('inline_views').get(inline_view_name).render(context, fieldset[0])
     template = values.get('template') or 'forms/default_fieldset.html'
     context.update({
-                        'fields': values.get('fields'),
-                        'form': form,
-                        'title': fieldset[0],
-                        'class': values.get('class'),
-                        'fieldsets': values.get('fieldsets')
-                    })
+        'fields': values.get('fields'),
+        'form': form,
+        'title': fieldset[0],
+        'fieldsets': values.get('fieldsets')
+    })
     return render_to_string(template, context)
 
 
