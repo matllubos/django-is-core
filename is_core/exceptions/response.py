@@ -75,6 +75,7 @@ class HttpForbiddenResponseException(ResponseException):
     title = _('Forbidden')
     status_code = 403
 
+
 class HttpUnsupportedMediaTypeResponseException(ResponseException):
 
     title = _('Unsupported Media Type')

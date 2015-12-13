@@ -19,6 +19,7 @@ from is_core.exceptions import HttpForbiddenResponseException
 from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUnsupportedMediaTypeResponseException,
                                          HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
 from is_core.forms.models import smartmodelform_factory
+from is_core import config
 
 from chamber.utils.decorators import classproperty
 
@@ -244,7 +245,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
         return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields)
 
     def _get_cors_allowed_headers(self):
-        return super(RESTModelResource, self)._get_cors_allowed_headers() + ('X-Order',)
+        return super(RESTModelResource, self)._get_cors_allowed_headers() + ('X-Order', config.IS_CORE_AUTH_HEADER_NAME)
 
 
 class UIRESTModelResource(RESTModelResource):
