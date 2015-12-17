@@ -1,6 +1,7 @@
 {% load i18n utils permissions %}
 
-<div class="table-responsive">
+{% block inline-table %}
+	<div class="table-responsive">
 		{% block tabs-menu-wrapper %}{% endblock %}
 		{% block table-paginator %}
 			<div class="row paginator" style="visibility: hidden" data-base="{% block table-base %}20{% endblock %}" data-paging="{% block table-paging %}simple{% endblock %}">
@@ -23,7 +24,9 @@
 			</div>
 		{% endblock %}
 		{% block table %}
-			<table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}">
+			{% block inline-table-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
+			{% block inline-table-extra-buttons %}{% endblock %}
+			<table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}" {% block table-attributes %}{% endblock %}>
 				<thead>
 					{% block table-header %}
 						<tr>
@@ -47,3 +50,4 @@
 			</div>
 		{% endblock %}
 	</div>
+{% endblock %}
