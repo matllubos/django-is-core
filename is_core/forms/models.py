@@ -61,6 +61,7 @@ class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
             self.post_save()
         else:
             self.old_save_m2m = self.save_m2m
+
             def post_save_m2m():
                 self.old_save_m2m()
                 for form in self.saved_forms:
@@ -105,6 +106,17 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
             attrs[key] = get_model_field_value(val, obj)
         return ModelChoice(self.field.prepare_value(obj), self.field.label_from_instance(obj), obj, attrs)
 
+    def get_choice_from_value(self, value):
+        try:
+            obj = self.field.to_python(value)
+        except forms.ValidationError:
+            return None
+
+        if obj and self.queryset.filter(pk=obj.pk).exists():
+            return self.choice(obj)
+        else:
+            return None
+
 
 class ModelChoiceFieldMixin(object):
 
@@ -130,11 +142,13 @@ class ModelChoiceFieldMixin(object):
 class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
 
     widget = widgets.Select
+    readonly_widget = widgets.ModelChoiceReadonlyWidget
 
 
 class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceField):
 
     widget = widgets.MultipleSelect
+    readonly_widget = widgets.ModelMultipleReadonlyWidget
 
 
 class SmartModelFormMetaclass(ModelFormMetaclass):
@@ -170,7 +184,7 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
 
             for field_name in test_readonly_fields:
                 if (field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs and
-                    attrs['formreadonlyfield_callback'] is not None):
+                        attrs['formreadonlyfield_callback'] is not None):
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
                     base_readonly_fields.add(field_name)
 
@@ -196,7 +210,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     for f in opts.concrete_fields + opts.virtual_fields + opts.many_to_many:
         if not getattr(f, 'editable', False):
             continue
-        if fields and not f.name in fields:
+        if fields and f.name not in fields:
             continue
         if f.name not in readonly_fields:
             continue
@@ -219,7 +233,7 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin)
 
         opts = self._meta
         self.humanized_data = humanized_model_to_dict(self.instance, self.base_readonly_fields, opts.fields,
-                                                      itertools.chain(opts.exclude or (), readonly_exclude or  ()))
+                                                      itertools.chain(opts.exclude or (), readonly_exclude or ()))
 
     def _get_validation_exclusions(self):
         exclude = super(SmartModelForm, self)._get_validation_exclusions()
@@ -237,6 +251,7 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin)
             self.post_save()
         else:
             self.old_save_m2m = self.save_m2m
+
             def post_save_m2m():
                 self.old_save_m2m()
                 self.post_save()
@@ -299,8 +314,7 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
         '_request': request,
     }
 
-    if (getattr(Meta, 'fields', None) is None and
-        getattr(Meta, 'exclude', None) is None):
+    if getattr(Meta, 'fields', None) is None and getattr(Meta, 'exclude', None) is None:
         warnings.warn("Calling modelform_factory without defining 'fields' or "
                       "'exclude' explicitly is deprecated",
                       PendingDeprecationWarning, stacklevel=2)
@@ -319,8 +333,7 @@ def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback
     meta = getattr(form, 'Meta', None)
     if meta is None:
         meta = type(str('Meta'), (object,), {})
-    if (getattr(meta, 'fields', fields) is None and
-        getattr(meta, 'exclude', exclude) is None):
+    if getattr(meta, 'fields', fields) is None and getattr(meta, 'exclude', exclude) is None:
         warnings.warn("Calling modelformset_factory without defining 'fields' or "
                       "'exclude' explicitly is deprecated",
                       PendingDeprecationWarning, stacklevel=2)

@@ -154,7 +154,7 @@ class SmartFormMetaclass(DeclarativeFieldsMetaclass):
 
             for field_name in set(readonly_fields):
                 if (field_name not in new_class.base_fields and 'formreadonlyfield_callback' in attrs and
-                    attrs['formreadonlyfield_callback'] is not None):
+                        attrs['formreadonlyfield_callback'] is not None):
                     new_class.base_fields[field_name] = attrs['formreadonlyfield_callback'](field_name)
                     base_readonly_fields.add(field_name)
 

@@ -254,21 +254,17 @@ class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
 
 class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
 
-    def _get_choice(self, value):
+    def _choice(self, value):
         widget = self._get_widget()
         if hasattr(widget, 'choices'):
-            for choice in widget.choices:
-                if choice[0] == value:
-                    return choice
+            return widget.choices.get_choice_from_value(value)
 
     def _smart_render(self, request, name, value, initial_value, attrs=None, choices=()):
-        choice = self._get_choice(value)
+        choice = self._choice(value)
 
         out = []
         if choice:
-            value = force_text(choice[1])
-            if choice.obj:
-                value = self._render_object(request, choice.obj, value) or value
+            value = self._render_object(request, choice.obj, force_text(choice[1]))
 
         else:
             if value in EMPTY_VALUES:
@@ -284,7 +280,7 @@ class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
         if values and isinstance(values, (list, tuple)):
             rendered_values = []
             for value in values:
-                choice = self._get_choice(value)
+                choice = self._choice(value)
                 if choice:
                     value = force_text(choice[1])
                     if choice.obj:
