@@ -627,3 +627,13 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     def has_post_permission(self, obj=None, pk=None, **kwargs):
         obj = obj or self._get_perm_obj_or_404(pk)
         return self.core.has_ui_update_permission(self.request, obj=obj)
+
+
+class DetailModelFormView(EditModelFormView):
+    show_save_and_continue = False
+
+    def has_post_permission(self, **kwargs):
+        return False
+
+    def has_save_button(self):
+        return False

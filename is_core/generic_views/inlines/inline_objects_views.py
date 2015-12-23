@@ -45,7 +45,7 @@ class InlineObjectsView(InlineView):
             normalized_obj = self.parse_object(obj)
             out.append(DataRow([(field_name, self.get_data_object(field_name, normalized_obj))
                                 for field_name, _ in self.get_fields()],
-                        self.get_obj_class_names(obj)))
+                               self.get_obj_class_names(obj)))
         return out
 
     def get_obj_class_names(self, obj):
@@ -66,7 +66,7 @@ class InlineObjectsView(InlineView):
             'data_list': self.get_data_list(self.get_fields(), self.get_objects()),
             'header_list': self.get_header_list(self.get_fields()),
             'class_names': self.get_class_names(),
-            })
+        })
         return context_data
 
 

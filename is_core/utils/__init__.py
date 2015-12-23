@@ -144,7 +144,7 @@ def get_readonly_field_data(field_name, instances, fun_kwargs, request):
         except AttributeError:
             pass
 
-    raise AttributeError('Field with name %s not found' % field_name)
+    raise AttributeError('Field or method with name %s not found' % field_name)
 
 
 def display_for_value(value):
@@ -160,8 +160,8 @@ def display_for_value(value):
 def get_obj_url(request, obj):
     if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__')
         and hasattr(getattr(obj, 'can_see_edit_link', None), '__call__')
-        and obj.can_see_edit_link(request)):
-            return obj.get_absolute_url()
+            and obj.can_see_edit_link(request)):
+        return obj.get_absolute_url()
     else:
         from is_core.site import get_model_core
         model_core = get_model_core(obj.__class__)
