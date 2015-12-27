@@ -61,6 +61,9 @@ class RESTResource(BaseResource):
             raise response_exception
         return super(RESTResource, self)._get_error_response(exception)
 
+    def _get_cors_allowed_headers(self):
+        return super(RESTResource, self)._get_cors_allowed_headers() + (config.IS_CORE_AUTH_HEADER_NAME,)
+
 
 class RESTModelCoreResourcePermissionsMixin(object):
 
@@ -245,7 +248,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
         return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields)
 
     def _get_cors_allowed_headers(self):
-        return super(RESTModelResource, self)._get_cors_allowed_headers() + ('X-Order', config.IS_CORE_AUTH_HEADER_NAME)
+        return super(RESTModelResource, self)._get_cors_allowed_headers() + ('X-Order',)
 
 
 class UIRESTModelResource(RESTModelResource):
