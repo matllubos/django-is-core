@@ -23,31 +23,59 @@
 				</div>
 			</div>
 		{% endblock %}
+
+        {% block inline-table-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
+
+        {% block inline-table-buttons %}
+        <ul class="inline-list">
+
+            {% block column-manager %}
+                {% if enable_columns_manager %}
+                <li>
+                    <div class="dropdown columns-dropdown">
+                        <span class="btn btn-primary dropdown-toggle" data-toggle="dropdown">{% trans "Columns" %}<span class="caret"></span></span>
+                        <div class="dropdown-menu columns-manager" id="columns-manager-{{ table_slug }}"></div>
+                    </div>
+                </li>
+                {% endif %}
+            {% endblock %}
+
+            {% block inline-table-rest-buttons %}{% endblock %}
+        </ul>
+
+            {% if enable_columns_manager %}
+            <div class="alert alert-info columns-filtering-text" id="columns-filtering-text-table-{{ table_slug }}" style="display: none">
+                {% blocktrans with '%(columns)s' as columns %}There are some filters on hidden fields: <span class="columns">{{ columns }}</span>. Do you want to <span class="delete-filtering">delete filtering</span>?{% endblocktrans%}
+            </div>
+            {% endif %}
+        {% endblock %}
+
 		{% block table %}
-			{% block inline-table-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
-			{% block inline-table-extra-buttons %}{% endblock %}
-			<table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}" {% block table-attributes %}{% endblock %}>
+            <table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}"{% if enable_columns_manager %} data-columns-manager="columns-manager-{{ table_slug }}"{% endif %} id="table-{{ table_slug }}" {% block table-attributes %}{% endblock %}>
 				<thead>
 					{% block table-header %}
-						<tr>
-							{% for header in headers %}
-								<th class="{{ header.field_name }}">
-									<span{% if header.order_by %} class="sortable" data-col="{{ header.order_by }}"{% endif %}>{{ header.text|capfirst }}</span><div class="sort-direction"><div class="triangle"></div></div>
-									{{ header.filter }}
-								</th>
-							{% endfor %}
-							{% if render_actions %}<th class="actions">{% trans 'Actions' %}</th>{% endif %}
-						</tr>
+                    <tr>
+                        {% for header in headers %}
+                        <th class="{{ header.field_name }}">
+                            <span{% if header.order_by %} class="sortable" data-col="{{ header.order_by }}"{% endif %}>{{ header.text|capfirst }}</span>
+                            <div class="sort-direction"><div class="triangle"></div></div>
+                            {{ header.filter }}
+                        </th>
+                        {% endfor %}
+                        {% if render_actions %}<th class="actions">{% trans 'Actions' %}</th>{% endif %}
+                    </tr>
 					{% endblock %}
 				</thead>
 				<tbody>
 				</tbody>
 			</table>
 		{% endblock %}
+
 		{% block table-empty %}
 			<div class="table-empty" style="display: none">
 				<div class="alert alert-info"><span class="msg-text">{% trans 'There are no items.' %}</span></div>
 			</div>
 		{% endblock %}
+
 	</div>
 {% endblock %}

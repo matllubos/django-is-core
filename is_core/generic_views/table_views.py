@@ -8,8 +8,9 @@ from chamber.utils import get_class_method
 
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
-from is_core.rest.datastructures import ModelRestFieldset, ModelFlatRestFields
 from is_core.filters.default_filters import *
+from is_core.forms.forms import pretty_class_name
+from is_core.rest.datastructures import ModelRestFieldset, ModelFlatRestFields
 
 from chamber.utils.http import query_string_from_dict
 
@@ -38,6 +39,7 @@ class TableViewMixin(object):
     api_url = ''
     menu_group_pattern_name = None
     render_actions = True
+    enable_columns_manager = False
 
     def get_title(self):
         return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
@@ -162,17 +164,25 @@ class TableViewMixin(object):
     def get_context_data(self, **kwargs):
         context_data = super(TableViewMixin, self).get_context_data(**kwargs)
         context_data.update({
-                                'headers': self._get_headers(),
-                                'api_url': self._get_api_url(),
-                                'module_name': self.model._meta.module_name,
-                                'list_display': self._get_list_display(),
-                                'rest_fieldset': self._generate_rest_fieldset(),
-                                'rest_export_fieldset': self._generate_rest_export_fieldset(),
-                                'query_string_filter': self._get_query_string_filter(),
-                                'menu_group_pattern_name': self._get_menu_group_pattern_name(),
-                                'render_actions': self.render_actions,
-                            })
+            'headers': self._get_headers(),
+            'api_url': self._get_api_url(),
+            'module_name': self.model._meta.module_name,
+            'list_display': self._get_list_display(),
+            'rest_fieldset': self._generate_rest_fieldset(),
+            'rest_export_fieldset': self._generate_rest_export_fieldset(),
+            'query_string_filter': self._get_query_string_filter(),
+            'menu_group_pattern_name': self._get_menu_group_pattern_name(),
+            'render_actions': self.render_actions,
+            'enable_columns_manager': self.is_columns_manager_enabled(),
+            'table_slug': self.get_table_slug(),
+        })
         return context_data
+
+    def is_columns_manager_enabled(self):
+        return self.enable_columns_manager
+
+    def get_table_slug(self):
+        return pretty_class_name(self.__class__.__name__)
 
 
 class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
