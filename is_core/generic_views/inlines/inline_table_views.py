@@ -2,7 +2,6 @@ from django.forms.models import _get_foreign_key
 
 from is_core.generic_views.table_views import TableViewMixin
 from is_core.generic_views.inlines import InlineView
-from is_core.site import get_model_core
 
 
 class InlineTableView(TableViewMixin, InlineView):
@@ -10,9 +9,11 @@ class InlineTableView(TableViewMixin, InlineView):
     fk_name = None
 
     def _get_api_url(self):
+        from is_core.site import get_model_core
         return get_model_core(self.model).get_api_url(self.request)
 
     def _get_menu_group_pattern_name(self):
+        from is_core.site import get_model_core
         return get_model_core(self.model).get_menu_group_pattern_name()
 
     def _get_list_filter(self):
