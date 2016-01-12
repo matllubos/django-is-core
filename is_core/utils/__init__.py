@@ -99,48 +99,65 @@ def field_widget(instance, field):
         return ReadonlyWidget
 
 
-def get_instance_readonly_field_data(field_name, instance, fun_kwargs, request):
+def get_field_from_cls_or_inst_or_none(cls_or_inst, field_name):
+    try:
+        return cls_or_inst._meta.get_field_by_name(field_name)[0]
+    except (FieldDoesNotExist, AttributeError):
+        return None
+
+
+def get_cls_or_inst_model_field_data(field, field_name, cls_or_inst, fun_kwargs):
     from is_core.forms.widgets import ReadonlyWidget
 
+    label = field.verbose_name
+    widget = ReadonlyWidget
+    if not isinstance(cls_or_inst, type):
+        humanized_value = field_humanized_value(cls_or_inst, field)
+        display_value = field_display_value(cls_or_inst, field)
+        if display_value is None:
+            value_or_callable = getattr(cls_or_inst, field_name)
+            value = field_value(cls_or_inst, field, value_or_callable, fun_kwargs)
+        else:
+            value = display_value
+        if humanized_value:
+            value = ReadonlyValue(value, humanized_value)
+            widget = field_widget(cls_or_inst, field)
+        return value, label, widget
+    else:
+        return None, label, widget
+
+
+def get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs):
+    from is_core.forms.widgets import ReadonlyWidget
+
+    label = get_class_method(cls_or_inst, field_name).short_description
+    if not isinstance(cls_or_inst, type):
+        value_or_callable = getattr(cls_or_inst, field_name)
+        return get_callable_value(value_or_callable, fun_kwargs) or value_or_callable, label, ReadonlyWidget
+    else:
+        return None, label, ReadonlyWidget
+
+
+def get_cls_or_inst_readonly_data(field_name, cls_or_inst, fun_kwargs):
     if '__' in field_name:
         current_field_name, next_field_name = field_name.split('__', 1)
-        return get_instance_readonly_field_data(next_field_name, getattr(instance, current_field_name), fun_kwargs,
-                                                request)
+        next_cls_or_inst = getattr(cls_or_inst, current_field_name)
+        field = get_field_from_cls_or_inst_or_none(cls_or_inst, current_field_name)
+        if field and hasattr(field, 'rel'):
+            next_cls_or_inst = next_cls_or_inst or field.rel.to
+        return get_cls_or_inst_readonly_data(next_field_name, next_cls_or_inst, fun_kwargs)
     else:
-        field = None
-        if isinstance(instance, Model):
-            try:
-                field = instance._meta.get_field_by_name(field_name)[0]
-            except (FieldDoesNotExist, AttributeError):
-                pass
-
+        field = get_field_from_cls_or_inst_or_none(cls_or_inst, field_name)
         if field:
-            label = field.verbose_name
-            humanized_value = field_humanized_value(instance, field)
-            display_value = field_display_value(instance, field)
-            if display_value is None:
-                value_or_callable = getattr(instance, field_name)
-                value = field_value(instance, field, value_or_callable, fun_kwargs)
-            else:
-                value = display_value
-
-            if humanized_value:
-                value = ReadonlyValue(value, humanized_value)
-
-            widget = field_widget(instance, field)
+            return get_cls_or_inst_model_field_data(field, field_name, cls_or_inst, fun_kwargs)
         else:
-            value_or_callable = getattr(instance, field_name)
-            value = get_callable_value(value_or_callable, fun_kwargs) or value_or_callable
-            label = get_class_method(instance, field_name).short_description
-            widget = ReadonlyWidget
-
-        return value, label, widget
+            return get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs)
 
 
 def get_readonly_field_data(field_name, instances, fun_kwargs, request):
     for inst in instances:
         try:
-            return get_instance_readonly_field_data(field_name, inst, fun_kwargs, request)
+            return get_cls_or_inst_readonly_data(field_name, inst, fun_kwargs)
         except AttributeError:
             pass
 
