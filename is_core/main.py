@@ -28,6 +28,7 @@ from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
 from is_core.rest.datastructures import ModelRestFieldset
 from is_core.forms.models import SmartModelForm
+from is_core.views import BulkChangeFormView
 
 
 class ISCoreBase(type):
@@ -116,6 +117,13 @@ class ModelISCore(PermissionsMixin, ISCore):
     form_class = SmartModelForm
 
     ordering = None
+    bulk_change_url_name = None
+
+    def get_view_classes(self):
+        view_classes = super(ModelISCore, self).get_view_classes()
+        if self.is_bulk_change_enabled():
+            view_classes[self.get_bulk_change_url_name()] = (r'/bulk-change/?$', BulkChangeFormView)
+        return view_classes
 
     def get_form_fields(self, request, obj=None):
         return self.form_fields
@@ -177,6 +185,12 @@ class ModelISCore(PermissionsMixin, ISCore):
 
     def get_default_action(self, request, obj):
         return None
+
+    def is_bulk_change_enabled(self):
+        return self.get_bulk_change_url_name() is not None
+
+    def get_bulk_change_url_name(self):
+        return self.bulk_change_url_name
 
 
 class UIISCore(PermissionsUIMixin, ISCore):
@@ -431,7 +445,7 @@ class RestModelISCore(RestISCore, ModelISCore):
     def get_resource_patterns(self):
         resource_patterns = super(RestModelISCore, self).get_resource_patterns()
         resource_patterns.update(DoubleRestPattern(
-            self.get_rest_class(), 
+            self.get_rest_class(),
             self.default_rest_resource_pattern_class, self
         ).patterns)
         return resource_patterns
