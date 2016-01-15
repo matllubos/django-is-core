@@ -22,8 +22,7 @@ from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUn
 from is_core.filters import get_model_field_or_method_filter
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RestPattern, patterns
-
-from utils.immutable import merge
+from is_core.utils.immutable import merge
 
 
 class RestResource(BaseResource):
