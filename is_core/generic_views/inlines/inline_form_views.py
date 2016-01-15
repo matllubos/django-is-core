@@ -36,7 +36,7 @@ class InlineFormView(InlineView):
         self.readonly = self.is_readonly()
         self.formset = self.get_formset(parent_instance, self.request.POST, self.request.FILES)
 
-        for i in range(self.min_num):
+        for i in range(self.get_min_num()):
             self.formset.forms[i].empty_permitted = False
 
     def is_readonly(self):
@@ -111,17 +111,23 @@ class InlineFormView(InlineView):
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
             return get_readonly_field_data(name, (self, self.core, instance),
-                                           {'request':self.request}, self.request)
+                                           {'request': self.request}, self.request)
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_form_class(self):
         return self.form_class
 
+    def get_max_num(self):
+        return self.max_num
+
+    def get_min_num(self):
+        return self.min_num
+
     def get_formset_factory(self, fields=None, readonly_fields=()):
         return smartinlineformset_factory(
             self.parent_model, self.model, self.request, form=self.get_form_class(), fk_name=self.fk_name,
             extra=self.get_extra(), formset=self.base_inline_formset_class, can_delete=self.get_can_delete(),
-            exclude=self.get_exclude(), fields=fields, min_num=self.min_num, max_num=self.max_num,
+            exclude=self.get_exclude(), fields=fields, min_num=self.get_min_num(), max_num=self.get_max_num(),
             readonly_fields=readonly_fields, readonly=self.readonly,
             formreadonlyfield_callback=self.formfield_for_readonlyfield, formfield_callback=self.formfield_for_dbfield
         )
@@ -142,26 +148,30 @@ class InlineFormView(InlineView):
                                                                         queryset=self.get_queryset(),
                                                                         initial=self.get_initial(),
                                                                         prefix=self.get_prefix())
-        can_delete = self.get_can_delete()
         formset.can_add = self.get_can_add()
-        formset.can_delete = can_delete
+        formset.can_delete = self.get_can_delete()
 
         for form in formset.all_forms():
             form.class_names = self.form_class_names(form)
             form._is_readonly = self.is_form_readonly(form)
-            if form._is_readonly and not self.readonly and can_delete:
-                if not self.can_form_delete(form):
+            if form._is_readonly and not self.readonly:
+                if not formset.can_delete:
+                    form.base_readonly_fields = set(form.fields.keys()) - {'id'}
+                elif not self.can_form_delete(form):
                     form.base_readonly_fields = set(form.fields.keys()) - {'id'}
                     form.fields['DELETE'] = EmptyReadonlyField()
                 else:
                     form.base_readonly_fields = set(form.fields.keys()) - {'id', 'DELETE'}
-            self.form_fields(form)
+            self.init_form(form)
         return formset
 
     def form_class_names(self, form):
         if not form.instance.pk:
             return ['empty']
         return []
+
+    def init_form(self, form):
+        self.form_fields(form)
 
     def form_fields(self, form):
         for field_name, field in form.fields.items():
