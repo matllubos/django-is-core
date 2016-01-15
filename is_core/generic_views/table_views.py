@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.core.urlresolvers import reverse
 from django.views.generic.base import TemplateView
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
@@ -208,17 +209,31 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
     def _get_add_url(self):
         return self.core.get_add_url(self.request)
 
+    def is_bulk_change_enabled(self):
+        return hasattr(self.core, 'get_bulk_change_url_name') and self.core.get_bulk_change_url_name()
+
     def get_context_data(self, **kwargs):
         context_data = super(TableView, self).get_context_data(**kwargs)
         context_data.update({
-                                'add_url': self._get_add_url(),
-                                'view_type': self.view_type,
-                                'add_button_value': self.core.model._ui_meta.add_button_verbose_name %
-                                                    {'verbose_name': self.core.model._meta.verbose_name,
-                                                     'verbose_name_plural': self.core.model._meta.verbose_name_plural},
-                                'export_types': self._get_export_types()
-                            })
+            'add_url': self._get_add_url(),
+            'view_type': self.view_type,
+            'add_button_value': self.core.model._ui_meta.add_button_verbose_name % {
+                'verbose_name': self.core.model._meta.verbose_name,
+                'verbose_name_plural': self.core.model._meta.verbose_name_plural},
+            'export_types': self._get_export_types(),
+            'enable_bulk_change': self.is_bulk_change_enabled(),
+            'bulk_change_snippet_name': self.get_bulk_change_snippet_name(),
+            'bulk_change_form_url': self.get_bulk_change_form_url(),
+        })
         return context_data
+
+    def get_bulk_change_snippet_name(self):
+        return '-'.join(('default', self.model._meta.object_name.lower(), 'form'))
+
+    def get_bulk_change_form_url(self):
+        return (reverse(
+            ''.join(('IS:', self.core.get_bulk_change_url_name(), '-', self.model._meta.object_name.lower())))
+            if self.is_bulk_change_enabled() else None)
 
     def has_get_permission(self, **kwargs):
         return self.core.has_ui_read_permission(self.request)

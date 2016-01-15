@@ -7,31 +7,55 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-13 13:41+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"POT-Creation-Date: 2016-01-14 17:57+0100\n"
+"PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
-"Language: Czech\n"
+"Language-Team: \n"
+"Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Poedit 1.8.1\n"
 
 #: actions.py:49 filters/default_filters.py:192
-#: templates/forms/inline_table.html:26 templates/generic_views/table.html:52
-#: utils/__init__.py:154
+#: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
+#: utils/__init__.py:170
 msgid "Yes"
 msgstr "Ano"
 
 #: actions.py:50 filters/default_filters.py:192
-#: templates/forms/inline_table.html:26 templates/generic_views/table.html:52
-#: utils/__init__.py:154
+#: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
+#: utils/__init__.py:170
 msgid "No"
 msgstr "Ne"
 
-#: actions.py:51 templates/forms/inline_table.html:26
-#: templates/generic_views/table.html:52
+#: actions.py:51 templates/forms/inline_table.html:54
+#: templates/generic_views/table.html:81
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
+
+#: main.py:290 generic_views/__init__.py:176
+msgid "Home"
+msgstr "Home"
+
+#: main.py:456
+#, python-format
+msgid "Do you really want to delete \"%s\""
+msgstr "Opravdu chcete odstranit položku \"%s\""
+
+#: main.py:458
+msgid "Delete"
+msgstr "Smazat"
+
+#: main.py:459
+#, python-format
+msgid "Record \"%s\" was deleted"
+msgstr "Záznam \"%s\" byl smazán"
+
+#: main.py:488
+msgid "Edit"
+msgstr "Upravit"
 
 #: auth_token/forms.py:32
 msgid "Remember user"
@@ -82,10 +106,6 @@ msgstr "Pole pro čtení nemůže být validováno"
 #: forms/widgets.py:98 forms/widgets.py:104
 msgid "Search..."
 msgstr "Hledat..."
-
-#: generic_views/__init__.py:176 main.py:276
-msgid "Home"
-msgstr "Home"
 
 #: generic_views/form_views.py:31
 msgid "Object was saved successfully."
@@ -138,24 +158,6 @@ msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 msgid "There are no items"
 msgstr "Žádné položky"
 
-#: main.py:442
-#, python-format
-msgid "Do you really want to delete \"%s\""
-msgstr "Opravdu chcete odstranit položku \"%s\""
-
-#: main.py:444
-msgid "Delete"
-msgstr "Smazat"
-
-#: main.py:445
-#, python-format
-msgid "Record \"%s\" was deleted"
-msgstr "Záznam\"%s\" byl smazán"
-
-#: main.py:474
-msgid "Edit"
-msgstr "Upravit"
-
 #: middleware/__init__.py:31
 msgid "Unprocessable Entity"
 msgstr "Nezpracovatelná entita"
@@ -173,15 +175,20 @@ msgstr "Přidat %(verbose_name)s"
 msgid "(None)"
 msgstr "---"
 
-#: rest/resource.py:206
+#: rest/resource.py:209
 #, python-format
 msgid "Cannot resolve filter \"%s\""
 msgstr "Není možné filtrovat data dle hodnoty: \"%s\""
 
-#: rest/resource.py:219
+#: rest/resource.py:222
 #, python-format
 msgid "Cannot resolve Order value \"%s\" into fields"
 msgstr "Není možné řadit dle hodnoty: \"%s\""
+
+#: rest/resource.py:272
+#, python-format
+msgid "Only %s objects can be changed by one request"
+msgstr "Pouze %s objektů může být změněno v jednom požadavku"
 
 #: templates/500.html:5
 msgid "Internal Server Error (500)"
@@ -195,39 +202,58 @@ msgstr "Interní chyba. Služba je dočasně nedostupná."
 msgid "Loading..."
 msgstr "Načítám..."
 
+#: templates/home.html:4
+msgid "Welcome"
+msgstr "Vítejte"
+
 #: templates/forms/default_form.html:27
 msgid "Fields marked with <span class=\"required\">*</span> are required"
 msgstr "Položky označené <span class=\"required\">*</span> jsou povinné"
 
-#: templates/forms/inline_table.html:9 templates/generic_views/table.html:20
+#: templates/forms/inline_table.html:10 templates/generic_views/table.html:20
 msgid "Displayed"
 msgstr "Zobrazeny"
 
-#: templates/forms/inline_table.html:9 templates/generic_views/table.html:20
+#: templates/forms/inline_table.html:10 templates/generic_views/table.html:20
 msgid "&#37;d to &#37;d"
 msgstr "&#37;d do &#37;d"
 
-#: templates/forms/inline_table.html:10 templates/generic_views/table.html:21
+#: templates/forms/inline_table.html:11 templates/generic_views/table.html:21
 msgid "of"
 msgstr "z"
 
-#: templates/forms/inline_table.html:17 templates/generic_views/table.html:28
+#: templates/forms/inline_table.html:18 templates/generic_views/table.html:28
 msgid "Previous"
 msgstr "Předchozí"
 
-#: templates/forms/inline_table.html:18 templates/generic_views/table.html:29
+#: templates/forms/inline_table.html:19 templates/generic_views/table.html:29
 msgid "Next"
 msgstr "Následující"
 
-#: templates/forms/inline_table.html:26 templates/generic_views/table.html:52
+#: templates/forms/inline_table.html:36 templates/generic_views/table.html:59
+msgid "Columns"
+msgstr "Sloupce"
+
+#: templates/forms/inline_table.html:48 templates/generic_views/table.html:71
+#, python-format
+msgid ""
+"There are some filters on hidden fields: <span class=\"columns\">"
+"%(columns)s</span>. Do you want to <span class=\"delete-filtering\">delete "
+"filtering</span>?"
+msgstr ""
+"Na skryté sloupce jsou aplikovány filtry: <span class=\"columns\">"
+"%(columns)s</span>. Opravdu chcete <span class=\"delete-filtering"
+"\">odstranit filtrování </span>?"
+
+#: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
 msgid "Do you really want to delete &#37;s?"
 msgstr "Opravdu chcete odstranit položku &#37;s?"
 
-#: templates/forms/inline_table.html:36 templates/generic_views/table.html:62
+#: templates/forms/inline_table.html:65 templates/generic_views/table.html:93
 msgid "Actions"
 msgstr "Akce"
 
-#: templates/forms/inline_table.html:46 templates/generic_views/table.html:72
+#: templates/forms/inline_table.html:76 templates/generic_views/table.html:104
 msgid "There are no items."
 msgstr "Žádné položky"
 
@@ -235,13 +261,13 @@ msgstr "Žádné položky"
 msgid "Login"
 msgstr "Login"
 
-#: templates/generic_views/table.html:41
+#: templates/generic_views/table.html:42
 msgid "Exports"
 msgstr "Export"
 
-#: templates/home.html:4
-msgid "Welcome"
-msgstr "Vítejte"
+#: templates/generic_views/table.html:77
+msgid "Bulk change"
+msgstr "Hromadná změna"
 
 #: templates/registration/login.html:14
 msgid "Please Sign In"
@@ -262,6 +288,10 @@ msgstr "Děkujeme za čas strávený s tímto webem."
 #: templates/registration/logout.html:8
 msgid "Log in again"
 msgstr "Přihlásit se znovu"
+
+#: templates/views/bulk-change-view.html:6
+msgid "Affected rows"
+msgstr "Počet záznamů ke změně"
 
 #: views/csrf.py:7
 msgid "Csrf Token expired"

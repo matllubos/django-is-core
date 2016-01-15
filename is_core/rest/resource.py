@@ -1,25 +1,29 @@
 from __future__ import unicode_literals
 
-from django.utils.translation import ugettext
+from django.conf import settings
 from django.core.urlresolvers import NoReverseMatch
+from django.db import transaction
 from django.http.response import Http404
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext
 
-from piston.resource import BaseResource, BaseModelResource
 from piston.exception import (RestException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
-                              ConflictException)
+                              ConflictException, DataInvalidException)
+from piston.resource import BaseResource, BaseModelResource
+from piston.response import RestErrorResponse, RestErrorsResponse
 
 from chamber.shortcuts import get_object_or_none
+from chamber.utils.decorators import classproperty
 
-from is_core.filters import get_model_field_or_method_filter
-from is_core.patterns import RestPattern, patterns
 from is_core.exceptions import HttpForbiddenResponseException
 from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUnsupportedMediaTypeResponseException,
                                          HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
+from is_core.filters import get_model_field_or_method_filter
 from is_core.forms.models import smartmodelform_factory
+from is_core.patterns import RestPattern, patterns
 
-from chamber.utils.decorators import classproperty
-from django.utils.safestring import mark_safe
+from utils.immutable import merge
 
 
 class RestResource(BaseResource):
@@ -174,8 +178,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         return self.core.get_default_action(self.request, obj=obj)
 
     def _actions(self, obj):
-        ac = self.core.get_list_actions(self.request, obj)
-        return ac
+        return self.core.get_list_actions(self.request, obj)
 
     def _class_names(self, obj):
         return self.core.get_rest_obj_class_names(self.request, obj)
@@ -256,3 +259,40 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
         return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields)
+
+    def put(self):
+        return super(RestModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
+
+    @transaction.atomic
+    def update_bulk(self):
+        qs = self._filter_queryset(self.core.get_queryset(self.request))
+        BULK_CHANGE_LIMIT = getattr(settings, 'BULK_CHANGE_LIMIT', 200)
+        if qs.count() > BULK_CHANGE_LIMIT:
+            return RestErrorResponse(
+                msg=ugettext('Only %s objects can be changed by one request').format(BULK_CHANGE_LIMIT),
+                code=413)
+
+        data = self.get_dict_data()
+        objects, errors = zip(*(self._update_obj(obj, data) for obj in qs))
+        compact_errors = tuple(err for err in errors if err)
+        return RestErrorsResponse(compact_errors) if len(compact_errors) > 0 else objects
+
+    def _update_obj(self, obj, data):
+        try:
+            return (self._create_or_update(merge(data, {self.pk_field_name: obj.pk})), None)
+        except DataInvalidException as ex:
+            return (None, self._format_message(obj, ex))
+        except (ConflictException, NotAllowedException):
+            raise
+        except RestException as ex:
+            return (None, self._format_message(obj, ex))
+
+    def _extract_message(self, ex):
+        return '\n'.join(ex.errors.values()) if hasattr(ex, 'errors') else ex.message
+
+    def _format_message(self, obj, ex):
+        return {
+            'id': obj.pk,
+            'errors': {k: mark_safe(v) for k, v in ex.errors.items()} if hasattr(ex, 'errors') else {},
+            '_obj_name': mark_safe(''.join(('#', str(obj.pk), ' ', self._extract_message(ex)))),
+        }

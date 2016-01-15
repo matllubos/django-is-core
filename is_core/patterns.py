@@ -230,7 +230,11 @@ class DoubleRestPattern(object):
             self.resource_class, self.core, ('get', 'put', 'delete'), clone_view_class=False
         )
         result['api'] = self.pattern_class(
-            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/?$', self.resource_class, self.core,
-             ('get', 'post'), clone_view_class=False
+            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/?$', self.resource_class,
+            self.core, self._get_api_allowed_methods(), clone_view_class=False
         )
         return result
+
+    def _get_api_allowed_methods(self):
+        return (('get', 'post') + (
+            ('put',) if hasattr(self.core, 'is_bulk_change_enabled') and self.core.is_bulk_change_enabled() else ()))
