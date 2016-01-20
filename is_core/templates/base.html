@@ -25,23 +25,25 @@
 				{% endif %}
 			{% endblock %}
 			{% block middle %}
-				<div class="{% block col-classes %}col-lg-12{% endblock %}">
-					<div class="header">
-						{% block header-content %}
-							{% block bread-crumbs %}
-								{% if request.user.is_authenticated %}
-									{% bread_crumbs %}
-								{% endif %}
+				<div class="row">
+					<div class="{% block col-classes %}col-lg-12{% endblock %} main-content">
+						<div class="header">
+							{% block header-content %}
+								{% block bread-crumbs %}
+									{% if request.user.is_authenticated %}
+										{% bread_crumbs %}
+									{% endif %}
+								{% endblock %}
+								{% block tabs-menu %}
+									{% if tabs %}
+										{% include 'menu/tabs_menu.html' with tabs=tabs %}
+									{% endif %}
+								{% endblock %}
 							{% endblock %}
-							{% block tabs-menu %}
-								{% if tabs %}
-									{% include 'menu/tabs_menu.html' with tabs=tabs %}
-								{% endif %}
-							{% endblock %}
-						{% endblock %}
-					</div>
-					<div class="content clearfix">
-						{% block content %}{% endblock %}
+						</div>
+						<div class="content clearfix">
+							{% block content %}{% endblock %}
+						</div>
 					</div>
 				</div>
 				{% block another-cols %}{% endblock %}
