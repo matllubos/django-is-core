@@ -16,7 +16,7 @@ from django.utils.functional import cached_property
 from piston.utils import rfs
 
 from is_core.actions import WebAction, ConfirmRestAction
-from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
+from is_core.generic_views.form_views import AddModelFormView, EditModelFormView, BulkChangeFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RestModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRestMixin
@@ -28,7 +28,6 @@ from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
 from is_core.rest.datastructures import ModelRestFieldset
 from is_core.forms.models import SmartModelForm
-from is_core.views import BulkChangeFormView
 
 
 class ISCoreBase(type):
@@ -115,6 +114,8 @@ class ModelISCore(PermissionsMixin, ISCore):
     form_inline_views = ()
     form_exclude = ()
     form_class = SmartModelForm
+    form_edit_class = None
+    form_add_class = None
 
     ordering = None
     bulk_change_url_name = None
@@ -127,6 +128,12 @@ class ModelISCore(PermissionsMixin, ISCore):
 
     def get_form_fields(self, request, obj=None):
         return self.form_fields
+
+    def get_form_edit_class(self, request, obj=None):
+        return self.form_edit_class or self.get_form_class(request, obj)
+
+    def get_form_add_class(self, request, obj=None):
+        return self.form_add_class or self.get_form_class(request, obj)
 
     def get_form_class(self, request, obj=None):
         return self.form_class
@@ -323,8 +330,17 @@ class UIModelISCore(ModelISCore, UIISCore):
     form_fieldsets = None
     form_readonly_fields = ()
 
+    ui_form_add_class = None
+    ui_form_edit_class = None
+
     def __init__(self, site_name, menu_parent_groups):
         super(UIModelISCore, self).__init__(site_name, menu_parent_groups)
+
+    def get_ui_form_add_class(self, request, obj=None):
+        return self.ui_form_add_class or self.get_form_add_class(request, obj)
+
+    def get_ui_form_edit_class(self, request, obj=None):
+        return self.ui_form_edit_class or self.get_form_edit_class(request, obj)
 
     def get_form_fieldsets(self, request, obj=None):
         return self.form_fieldsets
@@ -334,9 +350,6 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     def get_ui_form_fields(self, request, obj=None):
         return self.get_form_fields(request, obj)
-
-    def get_ui_form_class(self, request, obj=None):
-        return self.get_form_class(request, obj)
 
     def get_ui_form_exclude(self, request, obj=None):
         return self.get_form_exclude(request, obj)
@@ -392,7 +405,9 @@ class RestModelISCore(RestISCore, ModelISCore):
     rest_default_guest_fields = ()
     rest_default_extra_fields = ()
 
-    form_class = SmartModelForm
+    rest_form_edit_class = None
+    rest_form_add_class = None
+
     rest_allowed_methods = ('get', 'delete', 'post', 'put')
     rest_obj_class_names = ()
 
@@ -401,11 +416,14 @@ class RestModelISCore(RestISCore, ModelISCore):
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
 
+    def get_rest_form_add_class(self, request, obj=None):
+        return self.rest_form_add_class or self.get_form_add_class(request, obj)
+
+    def get_rest_form_edit_class(self, request, obj=None):
+        return self.rest_form_edit_class or self.get_form_edit_class(request, obj)
+
     def get_rest_form_fields(self, request, obj=None):
         return self.get_form_fields(request, obj)
-
-    def get_rest_form_class(self, request, obj=None):
-        return self.get_form_class(request, obj)
 
     def get_rest_form_exclude(self, request, obj=None):
         return self.get_form_exclude(request, obj)

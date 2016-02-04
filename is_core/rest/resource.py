@@ -210,7 +210,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         return qs
 
     def _order_queryset(self, qs):
-        if not 'order' in self.request._rest_context:
+        if 'order' not in self.request._rest_context:
             return qs
         order_field = self.request._rest_context.get('order')
         try:
@@ -228,7 +228,14 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         return self.core.get_rest_form_fields(self.request, obj)
 
     def _get_form_class(self, obj=None):
-        return self.form_class or self.core.get_rest_form_class(self.request, obj)
+        return (
+            self.form_class or
+            (
+                self.core.get_rest_form_edit_class(self.request, obj)
+                if obj
+                else self.core.get_rest_form_add_class(self.request, obj)
+            )
+        )
 
     def _get_form_initial(self, obj):
         return {'_request': self.request, '_user': self.request.user}

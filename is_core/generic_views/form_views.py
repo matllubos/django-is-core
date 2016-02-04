@@ -521,7 +521,15 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
                 self.core.get_ui_form_fields(self.request, self.get_obj(True)))
 
     def get_form_class(self):
-        return self.form_class or self.core.get_ui_form_class(self.request, self.get_obj(True))
+        obj = self.get_obj(True)
+        return (
+            self.form_class or
+            (
+                self.core.get_ui_form_edit_class(self.request, obj)
+                if obj
+                else self.core.get_ui_form_add_class(self.request, obj)
+            )
+        )
 
     def get_cancel_url(self):
         if 'list' in self.core.ui_patterns \
@@ -637,3 +645,26 @@ class DetailModelFormView(EditModelFormView):
 
     def has_save_button(self):
         return False
+
+
+class BulkChangeFormView(DefaultModelFormView):
+    form_template = 'views/bulk-change-view.html'
+    is_ajax_form = False
+
+    def get_form_class(self):
+        return self.form_class or self.core.get_rest_form_edit_class(self.request)
+
+    def dispatch(self, request, *args, **kwargs):
+        if 'snippet' not in request.GET:
+            raise Http404
+        return super(BulkChangeFormView, self).dispatch(request, *args, **kwargs)
+
+    def get_fields(self):
+        return self.fields or (self.core.bulk_change_fields if hasattr(self.core, 'bulk_change_fields') else ())
+
+    def get_fieldsets(self):
+        return (self.fieldsets or
+                (self.core.bulk_change_fieldsets if hasattr(self.core, 'bulk_change_fieldsets') else None))
+
+    def get_readonly_fields(self):
+        return ()
