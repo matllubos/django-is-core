@@ -5,14 +5,14 @@ import warnings
 
 from django.utils import six
 from django.forms.forms import BoundField, DeclarativeFieldsMetaclass, Form
-from django.core.exceptions import ValidationError
 from django.forms.fields import FileField
+from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 
 from piston.forms import RestFormMixin
 
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
-from django.utils.safestring import mark_safe
 
 
 def pretty_class_name(class_name):
@@ -271,7 +271,7 @@ class SmartFormMixin(object):
         return self._changed_data
 
 
-class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin), RestFormMixin, Form):
+class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RestFormMixin, Form)):
     pass
 
 

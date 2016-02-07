@@ -223,7 +223,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     return data
 
 
-class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin), RestModelForm):
+class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin, RestModelForm)):
 
     def __init__(self, *args, **kwargs):
         # Set values must be ommited
