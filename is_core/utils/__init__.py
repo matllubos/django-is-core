@@ -184,7 +184,7 @@ def get_obj_url(request, obj):
         from is_core.site import get_model_core
         model_core = get_model_core(obj.__class__)
 
-        if model_core:
+        if model_core and hasattr(model_core, 'ui_patterns'):
             edit_pattern = model_core.ui_patterns.get('edit')
             if edit_pattern and edit_pattern.can_call_get(request, obj=obj):
                 return edit_pattern.get_url_string(request, obj=obj)
