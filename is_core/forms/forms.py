@@ -138,6 +138,7 @@ class SmartFormMetaclass(DeclarativeFieldsMetaclass):
 
         opts = getattr(new_class, 'Meta', None)
         if opts:
+            setattr(opts, 'fields_to_clean', getattr(opts, 'fields_to_clean', None))
             exclude_fields = getattr(opts, 'exclude', None) or ()
             readonly_fields = getattr(opts, 'readonly_fields', None) or ()
             readonly = getattr(opts, 'readonly', None) or False
@@ -203,8 +204,15 @@ class SmartFormMixin(object):
                 return field.readonly_widget
         return field.widget
 
+    def _get_filtered_fields_to_clean(self):
+        return ((name, field) for name, field in self.fields.items()
+                if self._get_fields_to_clean() is None or name in self._get_fields_to_clean())
+
+    def _get_fields_to_clean(self):
+        return self.Meta.fields_to_clean if hasattr(self, 'Meta') else None
+
     def _clean_fields(self):
-        for name, field in self.fields.items():
+        for name, field in self._get_filtered_fields_to_clean():
             if name not in self.readonly_fields:
                 # value_from_datadict() gets the data from the data dictionaries.
                 # Each widget type knows how to retrieve its own data, because some
@@ -277,7 +285,7 @@ class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RestFormM
 
 
 def smartform_factory(request, form, readonly_fields=None, required_fields=None, exclude=None,
-                      formreadonlyfield_callback=None, readonly=False):
+                      formreadonlyfield_callback=None, fields_to_clean=None, readonly=False):
     attrs = {}
     if exclude is not None:
         attrs['exclude'] = exclude
@@ -285,6 +293,8 @@ def smartform_factory(request, form, readonly_fields=None, required_fields=None,
         attrs['readonly_fields'] = readonly_fields
     if required_fields is not None:
         attrs['required_fields'] = required_fields
+    if fields_to_clean is not None:
+        attrs['fields_to_clean'] = fields_to_clean
     attrs['readonly'] = readonly
     # If parent form class already has an inner Meta, the Meta we're
     # creating needs to inherit from the parent's inner meta.

@@ -29,7 +29,7 @@ setup(
     ],
     install_requires=[
         'django>=1.6',
-        'django-class-based-auth-views>=0.2',
+        'django-class-based-auth-views>=0.4',
         'django-piston==1.1.22',
         'django-block-snippets==0.0.11',
         'django-chamber>=0.1.8',
