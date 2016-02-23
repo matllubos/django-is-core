@@ -232,14 +232,14 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
         super(SmartModelForm, self).__init__(*args, **kwargs)
 
         opts = self._meta
-        self.humanized_data = humanized_model_to_dict(self.instance, self.base_readonly_fields, opts.fields,
+        self.humanized_data = humanized_model_to_dict(self.instance, self.readonly_fields, opts.fields,
                                                       itertools.chain(opts.exclude or (), readonly_exclude or ()))
 
     def _get_validation_exclusions(self):
         exclude = super(SmartModelForm, self)._get_validation_exclusions()
         for f in self.instance._meta.fields:
             field = f.name
-            if field in self.base_readonly_fields and field not in exclude:
+            if field in self.readonly_fields and field not in exclude:
                 exclude.append(field)
         return exclude
 

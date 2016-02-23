@@ -168,6 +168,7 @@ class SmartFormMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(SmartFormMixin, self).__init__(*args, **kwargs)
+        self.readonly_fields = list(self.base_readonly_fields)
         self._pre_init_fields()
         for field_name, field in self.fields.items():
             if hasattr(self, '_init_%s' % field_name):
@@ -189,7 +190,7 @@ class SmartFormMixin(object):
         except KeyError:
             raise KeyError('Key %r not found in Form' % name)
 
-        if name in self.base_readonly_fields:
+        if name in self.readonly_fields:
             return ReadonlyBoundField(self, field, name)
         else:
             return SmartBoundField(self, field, name)
@@ -204,7 +205,7 @@ class SmartFormMixin(object):
 
     def _clean_fields(self):
         for name, field in self.fields.items():
-            if name not in self.base_readonly_fields:
+            if name not in self.readonly_fields:
                 # value_from_datadict() gets the data from the data dictionaries.
                 # Each widget type knows how to retrieve its own data, because some
                 # widgets split data over several HTML fields.
@@ -225,12 +226,12 @@ class SmartFormMixin(object):
                         del self.cleaned_data[name]
 
     def _register_readonly_field(self, field_name):
-        if field_name not in self.base_readonly_fields:
-            self.base_readonly_fields.append(field_name)
+        if field_name not in self.readonly_fields:
+            self.readonly_fields.append(field_name)
 
     def _unregister_readonly_field(self, field_name):
-        if field_name in self.base_readonly_fields:
-            self.base_readonly_fields.remove(field_name)
+        if field_name in self.readonly_fields:
+            self.readonly_fields.remove(field_name)
 
     @property
     def changed_data(self):
@@ -243,7 +244,7 @@ class SmartFormMixin(object):
             # for a given field. Right now, that logic is embedded in the render
             # method of each widget.
             for name, field in self.fields.items():
-                if name not in self.base_readonly_fields:
+                if name not in self.readonly_fields:
                     prefixed_name = self.add_prefix(name)
                     data_value = field.widget.value_from_datadict(self.data, self.files, prefixed_name)
                     if not field.show_hidden_initial:
