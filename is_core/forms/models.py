@@ -161,6 +161,7 @@ class SmartModelFormMetaclass(ModelFormMetaclass):
 
         opts = getattr(new_class, 'Meta', None)
         if opts:
+            setattr(opts, 'fields_to_clean', getattr(opts, 'fields_to_clean', None))
             exclude_fields = getattr(opts, 'exclude', None) or ()
             readonly_fields = getattr(opts, 'readonly_fields', None) or ()
             readonly = getattr(opts, 'readonly', None) or False
@@ -274,7 +275,7 @@ def get_model_fields(model, fields):
 def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, readonly_fields=None, exclude=None,
                            formfield_callback=None, widgets=None, localized_fields=None, required_fields=None,
                            labels=None, help_texts=None, error_messages=None, formreadonlyfield_callback=None,
-                           readonly=False):
+                           readonly=False, fields_to_clean=None):
     attrs = {'model': model}
     if fields is not None:
         model_fields = get_model_fields(model, fields)
@@ -297,6 +298,8 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
         attrs['readonly_fields'] = readonly_fields
     if required_fields is not None:
         attrs['required_fields'] = required_fields
+    if fields_to_clean is not None:
+        attrs['fields_to_clean'] = fields_to_clean
     attrs['readonly'] = readonly
     # If parent form class already has an inner Meta, the Meta we're
     # creating needs to inherit from the parent's inner meta.
