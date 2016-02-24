@@ -32,7 +32,7 @@ setup(
         'django-class-based-auth-views>=0.4',
         'django-piston==1.1.22',
         'django-block-snippets==0.0.11',
-        'django-chamber>=0.1.8',
+        'django-chamber>=0.1.9',
         'python-dateutil>=2.2',
         'pytz',
         'django-apptemplates',
@@ -45,7 +45,7 @@ setup(
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/1.1.22#egg=django-piston-1.1.22',
-        'https://github.com/matllubos/django-chamber/tarball/0.1.8#egg=django-chamber-0.1.8',
+        'https://github.com/matllubos/django-chamber/tarball/0.1.9#egg=django-chamber-0.1.9',
         'https://github.com/matllubos/django-block-snippets/tarball/0.0.11#egg=django-block-snippets-0.0.11',
         'https://github.com/lukasrychtecky/django-project-info/tarball/0.2.4#egg=django-project-info-0.2.4',
         'https://github.com/druids/django-class-based-auth-views/tarball/0.4#egg=django-class-based-auth-views-0.4',
