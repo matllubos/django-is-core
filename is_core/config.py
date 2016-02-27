@@ -35,3 +35,5 @@ GRID_EXPORT = getattr(settings, 'GRID_EXPORT', '')
 
 CORE_LOGIN_THROTTLING_VALIDATORS = getattr(settings, 'CORE_LOGIN_THROTTLING_VALIDATORS',
                                            'is_core.auth_token.auth_security.default_login_validators.validators')
+
+AUTH_RESOURCE_CLASS = getattr(settings, 'AUTH_RESOURCE_CLASS', 'is_core.auth_token.auth_resource.AuthResource')

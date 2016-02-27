@@ -10,7 +10,6 @@ from . import config
 from .utils import str_to_class
 from .loading import get_cores
 from .patterns import RestPattern
-from .auth_token.auth_resource import AuthResource
 from .rest.resource import EntryPointResource
 
 
@@ -65,24 +64,22 @@ class ISSite(object):
 
     def _set_items_urls(self, items, urlpatterns):
         for item in items:
-            urlpatterns += patterns('',
-                url(r'^', include(item.get_urls()))
-            )
+            urlpatterns += patterns('', url(r'^', include(item.get_urls())))
 
     def get_urls(self):
         LoginView = str_to_class(config.AUTH_LOGIN_VIEW)
         LogoutView = str_to_class(config.AUTH_LOGOUT_VIEW)
         urlpatterns = patterns('',
-                                    url(r'^%s$' % settings.LOGIN_URL[1:],
-                                        LoginView.as_view(form_class=str_to_class(config.AUTH_FORM_CLASS)),
-                                        name='login'),
-                                    url(r'^%s$' % settings.LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
+                               url(r'^%s$' % settings.LOGIN_URL[1:],
+                                   LoginView.as_view(form_class=str_to_class(config.AUTH_FORM_CLASS)),
+                                   name='login'),
+                               url(r'^%s$' % settings.LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
                                )
 
-
         if config.AUTH_USE_TOKENS:
-            AuthResource.form_class = str_to_class(config.AUTH_FORM_CLASS)
-            pattern = RestPattern('api-login', self.name, r'^%s$' % config.LOGIN_API_URL[1:], AuthResource)
+            auth_resource_class = str_to_class(config.AUTH_RESOURCE_CLASS)
+            auth_resource_class.form_class = str_to_class(config.AUTH_FORM_CLASS)
+            pattern = RestPattern('api-login', self.name, r'^%s$' % config.LOGIN_API_URL[1:], auth_resource_class)
             urlpatterns += patterns('', pattern.get_url())
 
         pattern = RestPattern('api', self.name, r'^api/$', EntryPointResource)
@@ -92,6 +89,7 @@ class ISSite(object):
         return urlpatterns
 
 site = ISSite()
+
 
 def get_core(name):
     return site._registry[name]
