@@ -19,10 +19,16 @@ class AuthResource(RestResource):
     def _unsucessful_login(self, request):
         pass
 
+    def get_form_kwargs(self):
+        return {'data': self.get_dict_data()}
+
+    def get_form_class(self):
+        return self.form_class
+
     def post(self):
         if not self.request.data:
             return rc.BAD_REQUEST
-        form = self.form_class(data=self.get_dict_data())
+        form = self.get_form_class()(**self.get_form_kwargs())
 
         errors = form.is_invalid()
         if errors:
