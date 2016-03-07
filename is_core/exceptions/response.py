@@ -36,7 +36,7 @@ def responseexception_factory(request, response_code, title, message, response_c
             resp_message = force_text(title)
         set_rest_context_to_request(request, BaseResource.DEFAULT_REST_CONTEXT_MAPPING)
         converter, ct = get_converter_from_request(request)
-        content = converter().encode(request, {'error': resp_message}, None, message)
+        content = converter().encode(request, {'message': {'error': resp_message}}, None, message)
     return response_class(content, status=response_code, content_type=ct)
 
 
@@ -74,6 +74,7 @@ class HttpForbiddenResponseException(ResponseException):
 
     title = _('Forbidden')
     status_code = 403
+
 
 class HttpUnsupportedMediaTypeResponseException(ResponseException):
 
