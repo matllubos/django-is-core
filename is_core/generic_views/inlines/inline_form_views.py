@@ -162,6 +162,9 @@ class InlineFormView(InlineView):
                     form.fields['DELETE'] = EmptyReadonlyField()
                 else:
                     form.readonly_fields = set(form.fields.keys()) - {'id', 'DELETE'}
+            elif not self.can_form_delete(form):
+                form.fields['DELETE'] = EmptyReadonlyField()
+                form.readonly_fields.append('DELETE')
             self.init_form(form)
         return formset
 
