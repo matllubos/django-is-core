@@ -38,8 +38,9 @@ def get_model_field_or_method_filter(full_field_term, model, value=None, filter_
             raise FilterException(_('Not valid filter: %s') % full_field_term)
 
     if (hasattr(field_or_method, 'filter') and
-        (not next_filter_term or next_filter_term in field_or_method.filter.get_suffixes()) and
-        field_or_method.filter):
+        (not next_filter_term or next_filter_term == 'not' or
+         next_filter_term in field_or_method.filter.get_suffixes()) and
+            field_or_method.filter):
         return field_or_method.filter(filter_term, full_field_term, field_or_method, value)
     else:
         raise FilterException(_('Not valid filter: %s') % full_field_term)

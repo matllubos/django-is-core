@@ -41,6 +41,7 @@ class DefaultFilter(Filter):
         if self.filter_key.endswith('__not'):
             self.is_exclude = True
             self.filter_key = self.filter_key[:-5]
+            self.full_filter_key = self.full_filter_key[:-5]
 
     @classmethod
     def get_suffixes(cls):
