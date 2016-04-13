@@ -41,7 +41,8 @@ setup(
         'django-project-info==0.2.4',
         'mimeparse==0.1.3',
         'sorl-thumbnail==11.12',
-        'pillow==2.3.0'
+        'pillow==2.3.0',
+        'django-ipware>=1.0.0'
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/1.1.23#egg=django-piston-1.1.23',

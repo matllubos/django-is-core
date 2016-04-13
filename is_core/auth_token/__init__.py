@@ -6,20 +6,22 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import ObjectDoesNotExist
 
+from ipware.ip import get_ip
+
 from is_core.auth_token.models import Token, AnonymousToken
 from is_core import config
 from is_core.patterns import is_rest_request
 
 
-def login(request, user, expiration=True):
+def login(request, user, expiration=True, auth_slug=None):
     """
     Persist token into database. Token is stored inside cookie therefore is not necessary 
     reauthenticate user for every request.
     """
     if user is None:
         user = request.user
-    token = Token.objects.create(user=user, user_agent=request.META.get('HTTP_USER_AGENTd', '')[:256],
-                                 expiration=expiration)
+    token = Token.objects.create(user=user, user_agent=request.META.get('HTTP_USER_AGENT', '')[:256],
+                                 expiration=expiration, auth_slug=auth_slug, ip=get_ip(request))
     if hasattr(request, 'user'):
         request.user = user
     request.token = token

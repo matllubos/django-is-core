@@ -20,6 +20,7 @@ class Token(models.Model):
     """
     The default authorization token model.
     """
+
     key = models.CharField(max_length=40, primary_key=True, null=False, blank=False)
     user = models.ForeignKey(AUTH_USER_MODEL, related_name='auth_token', null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=False, blank=False)
@@ -30,6 +31,8 @@ class Token(models.Model):
     # Limited size to 256
     user_agent = models.CharField(max_length=256, null=True, blank=True)
     expiration = models.BooleanField(null=False, default=True)
+    ip = models.GenericIPAddressField(null=False, blank=False)
+    auth_slug = models.SlugField(null=True, blank=True)
     is_from_header = False
 
     def save(self, *args, **kwargs):
