@@ -216,13 +216,13 @@ class DateFilter(DefaultFieldFilter):
         suffix = self._check_suffix()
 
         if suffix in self.comparators:
-            value = DEFAULTPARSER.parse(self.value, dayfirst=True)
+            value = DEFAULTPARSER.parse(self.value, dayfirst='-' not in self.value)
             value = make_aware(value, get_current_timezone())
             return {self.full_filter_key: value}
         elif suffix:
             return super(DateFilter, self).get_filter_term(request)
         else:
-            parse = DEFAULTPARSER._parse(self.value, dayfirst=True)
+            parse = DEFAULTPARSER._parse(self.value, dayfirst='-' not in self.value)
             if parse is None:
                 raise ValueError()
             res = parse[0] if isinstance(parse, tuple) else parse
