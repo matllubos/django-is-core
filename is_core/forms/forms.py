@@ -91,7 +91,7 @@ class ReadonlyBoundField(SmartBoundField):
 
     def __init__(self, form, field, name):
         if isinstance(field, SmartReadonlyField):
-            field._set_readonly_field(form.instance)
+            field._set_readonly_field(name, form)
         super(ReadonlyBoundField, self).__init__(form, field, name)
 
     def as_widget(self, widget=None, attrs=None, only_initial=False):

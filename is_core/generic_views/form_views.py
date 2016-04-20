@@ -277,6 +277,10 @@ class DefaultModelFormView(DefaultFormView):
     fields = None
     inline_views = None
     form_template = 'forms/model_default_form.html'
+    field_labels = None
+
+    def _get_field_labels(self):
+        return self.field_labels
 
     def pre_save_obj(self, obj, form, change):
         pass
@@ -356,7 +360,8 @@ class DefaultModelFormView(DefaultFormView):
                                       formfield_callback=self.formfield_for_dbfield,
                                       readonly_fields=readonly_fields,
                                       formreadonlyfield_callback=self.formfield_for_readonlyfield,
-                                      readonly=not self.has_post_permission())
+                                      readonly=not self.has_post_permission(),
+                                      labels=self._get_field_labels())
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         return db_field.formfield(**kwargs)
@@ -519,6 +524,9 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
     def get_fields(self):
         return (self.fields is not None and self.fields or
                 self.core.get_ui_form_fields(self.request, self.get_obj(True)))
+
+    def _get_field_labels(self):
+        return self.field_labels if self.field_labels is not None else self.core.get_ui_form_field_labels(self.request)
 
     def get_form_class(self):
         obj = self.get_obj(True)

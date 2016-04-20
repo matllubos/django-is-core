@@ -120,6 +120,11 @@ class ModelISCore(PermissionsMixin, ISCore):
     ordering = None
     bulk_change_url_name = None
 
+    field_labels = {}
+
+    def get_field_labels(self, request):
+        return self.field_labels
+
     def get_view_classes(self):
         view_classes = super(ModelISCore, self).get_view_classes()
         if self.is_bulk_change_enabled():
@@ -332,6 +337,8 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     ui_form_add_class = None
     ui_form_edit_class = None
+    ui_form_field_labels = None
+    ui_list_field_labels = None
 
     def __init__(self, site_name, menu_parent_groups):
         super(UIModelISCore, self).__init__(site_name, menu_parent_groups)
@@ -389,6 +396,12 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_api_url(self, request):
         return reverse(self.get_api_url_name())
 
+    def get_ui_form_field_labels(self, request):
+        return self.ui_form_field_labels if self.ui_form_field_labels is not None else self.get_field_labels(request)
+
+    def get_ui_list_field_labels(self, request):
+        return self.ui_list_field_labels if self.ui_list_field_labels is not None else self.get_field_labels(request)
+
 
 class RestModelISCore(RestISCore, ModelISCore):
     abstract = True
@@ -412,9 +425,16 @@ class RestModelISCore(RestISCore, ModelISCore):
     rest_obj_class_names = ()
 
     rest_resource_class = RestModelResource
+    rest_form_field_labels = None
 
     def __init__(self, site_name, menu_parent_groups):
         super(RestModelISCore, self).__init__(site_name, menu_parent_groups)
+
+    def get_rest_form_field_labels(self, request):
+        return (
+            self.rest_form_field_labels if self.rest_form_field_labels is not None
+            else self.get_field_labels(request)
+        )
 
     def get_rest_form_add_class(self, request, obj=None):
         return self.rest_form_add_class or self.get_form_add_class(request, obj)
@@ -473,7 +493,7 @@ class RestModelISCore(RestISCore, ModelISCore):
         if self.has_delete_permission(request, obj):
             confirm_dialog = ConfirmRestAction.ConfirmDialog(_('Do you really want to delete "%s"') % obj)
             list_actions.append(ConfirmRestAction('api-resource-%s' % self.get_menu_group_pattern_name(),
-                                                  _('Delete') , 'DELETE', confirm_dialog=confirm_dialog,
+                                                  _('Delete'), 'DELETE', confirm_dialog=confirm_dialog,
                                                   class_name='delete', success_text=_('Record "%s" was deleted') % obj))
         return list_actions
 

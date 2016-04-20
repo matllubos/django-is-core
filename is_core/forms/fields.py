@@ -53,7 +53,8 @@ class SmartReadonlyField(ReadonlyField):
         self._get_val_label_and_widget_fun = get_val_label_and_widget_fun
         super(ReadonlyField, self).__init__(required=False, widget=widget, help_text=help_text)
 
-    def _set_readonly_field(self, instance):
-        self.initial, self.label, widget = self._get_val_label_and_widget_fun(instance)
+    def _set_readonly_field(self, name, form):
+        self.initial, self.label, widget = self._get_val_label_and_widget_fun(form.instance)
+        self.label = form._meta.labels.get(name, self.label) if form._meta.labels else self.label
         self.widget = widget()
         self.readonly_widget = ModelObjectReadonlyWidget() if isinstance(self.initial, Model) else widget()

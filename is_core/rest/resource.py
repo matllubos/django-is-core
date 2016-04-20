@@ -138,6 +138,12 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
     default_detailed_fields = ('id', '_rest_links', '_obj_name')
     default_general_fields = ('id', '_rest_links', '_obj_name')
     form_class = None
+    field_labels = None
+
+    def _get_field_labels(self):
+        return (
+            self.field_labels if self.field_labels is not None else self.core.get_rest_form_field_labels(self.request)
+        )
 
     def get_extra_fields(self, obj=None):
         return self.core.get_rest_extra_fields(self.request, obj=obj)
@@ -265,7 +271,8 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         fields = self._get_form_fields(inst)
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
-        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields)
+        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields,
+                                      labels=self._get_field_labels())
 
     def put(self):
         return super(RestModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()

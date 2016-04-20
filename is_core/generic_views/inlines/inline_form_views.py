@@ -27,6 +27,7 @@ class InlineFormView(InlineView):
     base_inline_formset_class = BaseInlineFormSet
     no_items_text = _('There are no items')
     class_names = ['inline-js']
+    field_labels = None
 
     def __init__(self, request, parent_view, parent_instance):
         super(InlineFormView, self).__init__(request, parent_view, parent_instance)
@@ -38,6 +39,9 @@ class InlineFormView(InlineView):
 
         for i in range(self.get_min_num()):
             self.formset.forms[i].empty_permitted = False
+
+    def _get_field_labels(self):
+        return self.field_labels
 
     def is_readonly(self):
         return not self.parent_view.has_post_permission(obj=self.parent_view.get_obj())
@@ -129,7 +133,8 @@ class InlineFormView(InlineView):
             extra=self.get_extra(), formset=self.base_inline_formset_class, can_delete=self.get_can_delete(),
             exclude=self.get_exclude(), fields=fields, min_num=self.get_min_num(), max_num=self.get_max_num(),
             readonly_fields=readonly_fields, readonly=self.readonly,
-            formreadonlyfield_callback=self.formfield_for_readonlyfield, formfield_callback=self.formfield_for_dbfield
+            formreadonlyfield_callback=self.formfield_for_readonlyfield, formfield_callback=self.formfield_for_dbfield,
+            labels=self._get_field_labels()
         )
 
     def get_queryset(self):

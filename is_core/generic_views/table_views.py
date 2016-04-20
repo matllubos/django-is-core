@@ -41,6 +41,7 @@ class TableViewMixin(object):
     menu_group_pattern_name = None
     render_actions = True
     enable_columns_manager = False
+    field_labels = None
 
     def get_title(self):
         return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
@@ -80,12 +81,20 @@ class TableViewMixin(object):
 
         return order_by
 
-    def _get_header_label(self, model, field_name):
-        try:
-            return model._meta.get_field(field_name).verbose_name
-        except FieldDoesNotExist:
-            method = get_class_method(model, field_name)
-            return getattr(method, 'short_description', pretty_name(field_name))
+    def _get_field_labels(self):
+        return self.field_labels
+
+    def _get_header_label(self, model, full_field_name, field_name):
+        field_labels = self._get_field_labels()
+
+        if field_labels and full_field_name in field_labels:
+            return field_labels.get(full_field_name)
+        else:
+            try:
+                return model._meta.get_field(field_name).verbose_name
+            except FieldDoesNotExist:
+                method = get_class_method(model, field_name)
+                return getattr(method, 'short_description', pretty_name(field_name))
 
     def _get_header(self, full_field_name, field_name=None, model=None):
         if not model:
@@ -102,9 +111,9 @@ class TableViewMixin(object):
             return self._get_header(full_field_name, next_field_name, model._meta.get_field(current_field_name).rel.to)
 
         return Header(
-            full_field_name, self._get_header_label(model, field_name),
-            self._get_header_order_by(model, full_field_name
-        ), self._get_filter(full_field_name))
+            full_field_name, self._get_header_label(model, full_field_name, field_name),
+            self._get_header_order_by(model, full_field_name), self._get_filter(full_field_name)
+        )
 
     def _get_list_display(self):
         return self.list_display
@@ -190,6 +199,9 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
     template_name = 'generic_views/table.html'
     view_type = 'list'
     export_types = None
+
+    def _get_field_labels(self):
+        return self.field_labels if self.field_labels is not None else self.core.get_ui_list_field_labels(self.request)
 
     def _get_list_display(self):
         return self.list_display or self.core.get_list_display(self.request)
