@@ -119,6 +119,7 @@ class ReadonlyBoundField(SmartBoundField):
             data = data()
 
         value = self.field.prepare_value(data)
+
         if hasattr(self.form, 'humanized_data') and self.name in self.form.humanized_data:
             humanized_value = self.form.humanized_data.get(self.name)
             return ReadonlyValue(value, humanized_value)

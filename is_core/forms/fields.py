@@ -2,9 +2,10 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models.base import Model
 from django.utils.translation import ugettext_lazy as _
 
-from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, DivButtonWidget
+from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, DivButtonWidget, ModelObjectReadonlyWidget
 
 
 class ReadonlyField(forms.Field):
@@ -55,4 +56,4 @@ class SmartReadonlyField(ReadonlyField):
     def _set_readonly_field(self, instance):
         self.initial, self.label, widget = self._get_val_label_and_widget_fun(instance)
         self.widget = widget()
-        self.readonly_widget = widget()
+        self.readonly_widget =  ModelObjectReadonlyWidget() if isinstance(self.initial, Model) else widget()
