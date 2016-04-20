@@ -32,7 +32,7 @@ class BaseFormSet(BaseFormSetMixin, OriginBaseFormSet):
 
 
 def smartformset_factory(form, formset=BaseFormSet, extra=1, can_order=False,
-                    can_delete=False, min_num=None, max_num=None, validate_max=False):
+                         can_delete=False, min_num=None, max_num=None, validate_max=False):
     """Return a FormSet for the given form class."""
     if max_num is None:
         max_num = DEFAULT_MAX_NUM

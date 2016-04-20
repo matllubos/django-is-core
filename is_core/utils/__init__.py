@@ -68,6 +68,7 @@ def get_callable_value_or_value(callable_value, fun_kwargs):
     else:
         return callable_value
 
+
 def field_humanized_value(instance, field):
     humanize_method_name = 'get_%s_humanized' % field.name
     if hasattr(getattr(instance, humanize_method_name, None), '__call__'):
@@ -176,9 +177,9 @@ def display_for_value(value):
 
 
 def get_obj_url(request, obj):
-    if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__')
-        and hasattr(getattr(obj, 'can_see_edit_link', None), '__call__')
-            and obj.can_see_edit_link(request)):
+    if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__') and
+        hasattr(getattr(obj, 'can_see_edit_link', None), '__call__') and
+            obj.can_see_edit_link(request)):
         return obj.get_absolute_url()
     else:
         from is_core.site import get_model_core
