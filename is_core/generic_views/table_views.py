@@ -41,6 +41,7 @@ class TableViewMixin(object):
     menu_group_pattern_name = None
     render_actions = True
     enable_columns_manager = False
+    field_headers = None
 
     def get_title(self):
         return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
@@ -81,6 +82,12 @@ class TableViewMixin(object):
         return order_by
 
     def _get_header_label(self, model, field_name):
+        method = getattr(self, '_get_{}_label'.format(field_name), None)
+        if method and callable(method):
+            return method()
+        elif self.field_headers and field_name in self.field_headers.keys():
+            return self.field_headers[field_name]
+
         try:
             return model._meta.get_field(field_name).verbose_name
         except FieldDoesNotExist:
@@ -240,3 +247,9 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
 
     def _get_menu_group_pattern_name(self):
         return self.core.get_menu_group_pattern_name()
+
+    def _get_header_label(self, model, field_name):
+        method = getattr(self.core, '_get_{}_label'.format(field_name), None)
+        if method and callable(method) and not hasattr(self, '_get_{}_label'.format(field_name)):
+            return method(self.request)
+        return super(TableView, self)._get_header_label(model, field_name)
