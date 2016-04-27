@@ -49,7 +49,8 @@ class SmartBoundField(BoundField):
             name = self.html_initial_name
 
         if isinstance(widget, SmartWidgetMixin) and hasattr(self.form, '_request'):
-            return widget.smart_render(self.form._request, name, self.value(), self._initial_value(), attrs=attrs)
+            return widget.smart_render(self.form._request, name, self.value(), self._initial_value(), self.form,
+                                       attrs=attrs)
         return widget.render(name, self.value(), attrs=attrs)
 
     @property

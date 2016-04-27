@@ -163,7 +163,7 @@ class DragAndDropImageInput(DragAndDropFileInput):
 
 class SmartWidgetMixin(object):
 
-    def smart_render(self, request, name, value, initial_value, *args, **kwargs):
+    def smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
         return self.render(name, value, *args, **kwargs)
 
 
@@ -200,7 +200,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
             out = self._get_value(value)
         return mark_safe('<p>%s</p>' % conditional_escape(out))
 
-    def _smart_render(self, request, name, value, initial_value, attrs=None, choices=()):
+    def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
         return self._render(name, value, attrs, choices)
 
     def _render_readonly_value(self, readonly_value):
@@ -215,13 +215,13 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         else:
             return self._render(name, value, attrs, choices)
 
-    def smart_render(self, request, name, value, initial_value, attrs=None, choices=()):
+    def smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
         from is_core.forms.forms import ReadonlyValue
 
         if isinstance(value, ReadonlyValue):
             return self._render_readonly_value(value)
         else:
-            return self._smart_render(request, name, value, initial_value, attrs, choices)
+            return self._smart_render(request, name, value, initial_value, form, attrs, choices)
 
     def _has_changed(self, initial, data):
         return False
@@ -234,21 +234,21 @@ class ModelObjectReadonlyWidget(ReadonlyWidget):
 
         return render_model_object_with_link(request, obj, display_value)
 
-    def _smart_render(self, request, name, value, initial_value, *args, **kwargs):
+    def _smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
         if value and isinstance(value, Model):
             return mark_safe('<p>%s</p>' % self._render_object(request, value))
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, initial_value,
+            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, initial_value, form,
                                                                         *args, **kwargs)
 
 
 class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
 
-    def _smart_render(self, request, name, value, initial_value, *args, **kwargs):
+    def _smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
         if value and isinstance(value, (list, tuple)):
             return mark_safe(', '.join((self._render_object(request, obj) for obj in value)))
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, initial_value,
+            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, initial_value, form,
                                                                         *args, **kwargs)
 
 
@@ -259,7 +259,7 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
         if hasattr(widget, 'choices'):
             return widget.choices.get_choice_from_value(value)
 
-    def _smart_render(self, request, name, value, initial_value, attrs=None, choices=()):
+    def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
         choice = self._choice(value)
 
         out = []
@@ -276,7 +276,7 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
 
 class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
 
-    def _smart_render(self, request, name, values, initial_values, *args, **kwargs):
+    def _smart_render(self, request, name, values, initial_values, form, *args, **kwargs):
         if values and isinstance(values, (list, tuple)):
             rendered_values = []
             for value in values:
@@ -289,7 +289,7 @@ class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
                         rendered_values.append(value)
             return mark_safe('<p>%s</p>' % rendered_values and ', '.join(rendered_values) or EMPTY_VALUE)
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, values, initial_values,
+            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, values, initial_values, form,
                                                                         *args, **kwargs)
 
 
