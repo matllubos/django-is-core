@@ -41,10 +41,10 @@ setup(
     ],
     dependency_links=[
         'https://github.com/matllubos/django-piston/tarball/1.2.10#egg=django-piston-1.2.10',
-        'https://github.com/matllubos/django-chamber/tarball/0.1.7#egg=django-chamber-0.1.7',
+        'https://github.com/matllubos/django-chamber/tarball/0.1.11#egg=django-chamber-0.1.11',
         'https://github.com/matllubos/django-block-snippets/tarball/0.1.1#egg=django-block-snippets-0.1.1',
         'https://github.com/matllubos/django-project-info/tarball/0.2.5#egg=django-project-info-0.2.5',
-        'https://github.com/matllubos/django-apptemplates/tarball/0.3#egg=django-apptemplates-0.3'
+        'https://bitbucket.org/bittner/django-apptemplates/get/90e38160d00ba7f71f7d87d1496abd69da370f71.tar.gz#egg=90e38160d00ba7f71f7d87d1496abd69da370f71'
     ],
     zip_safe=False
 )

@@ -1,13 +1,10 @@
-{% load menu static i18n compress %}
+{% load menu static i18n %}
 <!DOCTYPE HTML>
 <html lang="en">
   <head>
     <title>{% block title %}{{ page_title|capfirst }}{% endblock %}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     {% block head %}
-      {% compress css %}
-          <link type="text/x-sass" rel="stylesheet" href="{% static 'styles/app.sass' %}">
-        {% endcompress %}
     {% endblock %}
   </head>
   <body>

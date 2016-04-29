@@ -19,7 +19,7 @@ class ReadonlyField(forms.Field):
         super(ReadonlyField, self).__init__(required=False, widget=widget, label=label, initial=initial,
                                             help_text=help_text)
 
-    def _has_changed(self, initial, data):
+    def has_changed(self, initial, data):
         return False
 
     def validate(self, value):
