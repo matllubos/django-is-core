@@ -18,7 +18,7 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
         removing_tokens_qs = Token.objects.filter(
-            last_access__lt=timezone.now() - timedelta(seconds=config.AUTH_MAX_TOKEN_AGE)
+            last_access__lt=timezone.now() - timedelta(seconds=config.IS_CORE_AUTH_MAX_TOKEN_AGE)
         )
         self.logger.info('Removing %s tokens' % removing_tokens_qs.count())
         removing_tokens_qs.delete()

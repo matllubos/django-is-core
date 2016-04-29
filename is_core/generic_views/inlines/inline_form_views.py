@@ -44,6 +44,9 @@ class InlineFormView(InlineView):
     def is_readonly(self):
         return not self.parent_view.has_post_permission(obj=self.parent_view.get_obj())
 
+    def can_form_delete(self, form):
+        return not self.is_form_readonly(form)
+
     def is_form_readonly(self, form):
         return self.readonly
 
@@ -110,7 +113,7 @@ class InlineFormView(InlineView):
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
             return get_readonly_field_data(name, (self, self.core, instance),
-                                           {'request':self.request}, self.request)
+                                           {'request':self.request, 'obj': instance}, self.request)
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_form_class(self):
@@ -150,8 +153,11 @@ class InlineFormView(InlineView):
             form.class_names = self.form_class_names(form)
             form._is_readonly = self.is_form_readonly(form)
             if form._is_readonly and not self.readonly:
-                form.base_readonly_fields = set(form.fields.keys()) - set(('id',))
-                form.fields['DELETE'] = EmptyReadonlyField()
+                if not self.can_form_delete(form):
+                    form.base_readonly_fields = set(form.fields.keys()) - {'id'}
+                    form.fields['DELETE'] = EmptyReadonlyField()
+                else:
+                    form.base_readonly_fields = set(form.fields.keys()) - {'id', 'DELETE'}
             self.form_fields(form)
         return formset
 

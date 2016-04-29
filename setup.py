@@ -30,25 +30,21 @@ setup(
     install_requires=[
         'django>=1.8',
         'django-class-based-auth-views>=0.3',
-        'django-piston==1.2.3',
-        'germanium>=1.0.0',
-        'django-block-snippets==0.1.0',
-        'django-chamber>=0.1.2',
+        'django-piston==1.2.10',
+        'django-block-snippets==0.1.1',
+        'django-chamber>=0.1.7',
         'python-dateutil>=2.2',
         'pytz',
-        'django-apptemplates',
-        'Unidecode>=0.04.17',
+        'django-apptemplates>=0.3',
         'factory-boy>=2.5.2',
         'django-project-info==0.2.5',
-        'sorl-thumbnail==12.2',
-        'pillow==2.8.1'
     ],
     dependency_links=[
-        'https://github.com/matllubos/django-piston/tarball/1.2.3#egg=django-piston-1.2.3',
-        'https://github.com/matllubos/django-chamber/tarball/0.1.2#egg=django-chamber-0.1.2',
-        'https://github.com/matllubos/django-block-snippets/tarball/0.1.0#egg=django-block-snippets-0.1.0',
-        'https://github.com/LukasRychtecky/germanium/tarball/1.0.0#egg=germanium-1.0.0',
-        'https://github.com/matllubos/django-project-info/tarball/0.2.5#egg=django-project-info-0.2.5'
+        'https://github.com/matllubos/django-piston/tarball/1.2.10#egg=django-piston-1.2.10',
+        'https://github.com/matllubos/django-chamber/tarball/0.1.11#egg=django-chamber-0.1.11',
+        'https://github.com/matllubos/django-block-snippets/tarball/0.1.1#egg=django-block-snippets-0.1.1',
+        'https://github.com/matllubos/django-project-info/tarball/0.2.5#egg=django-project-info-0.2.5',
+        'https://bitbucket.org/bittner/django-apptemplates/get/90e38160d00ba7f71f7d87d1496abd69da370f71.tar.gz#egg=90e38160d00ba7f71f7d87d1496abd69da370f71'
     ],
     zip_safe=False
 )

@@ -5,13 +5,13 @@ import re
 from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+from django.http.response import Http404
 
 from block_snippets.views import JsonSnippetTemplateResponseMixin
 
 from is_core.menu import LinkMenuItem
 from is_core.exceptions import HttpForbiddenResponseException
 from is_core.generic_views.exceptions import GenericViewException
-from django.http.response import Http404
 
 
 class PermissionsViewMixin(object):
@@ -26,10 +26,8 @@ class PermissionsViewMixin(object):
         return handler(request, *args, **kwargs)
 
     def __getattr__(self, name):
-        for regex, method in (
-                (r'_check_(\w+)_permission', self._check_permission),
-                (r'can_call_(\w+)', self._check_call)
-            ):
+        for regex, method in ((r'_check_(\w+)_permission', self._check_permission),
+                              (r'can_call_(\w+)', self._check_call)):
             m = re.match(regex, name)
             if m:
                 def _call(*args, **kwargs):
@@ -73,29 +71,41 @@ class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
     add_current_to_breadcrumbs = True
     kwargs = {}
     args = {}
+    title = None
+    page_title = None
 
     def __init__(self):
         super(DefaultViewMixin, self).__init__()
 
     def get_title(self):
-        return None
+        return self.title
+
+    def get_page_title(self):
+        return self.page_title or self.get_title()
 
     def get_context_data(self, **kwargs):
         context_data = super(DefaultViewMixin, self).get_context_data(**kwargs)
         extra_context_data = {
-                                'site_name': self.site_name,
-                                'active_menu_groups': self.menu_groups,
-                                'title': self.get_title(),
-                                'view_name': self.view_name,
-                                'bread_crumbs_menu_items': self.bread_crumbs_menu_items(),
-                              }
+            'site_name': self.site_name,
+            'active_menu_groups': self.menu_groups,
+            'title': self.get_title(),
+            'page_title': self.get_page_title(),
+            'view_name': self.view_name,
+            'bread_crumbs_menu_items': self.bread_crumbs_menu_items(),
+        }
         extra_context_data.update(context_data)
         return extra_context_data
 
+    def extra_bread_crumbs_menu_items(self):
+        return []
+
+    def current_bread_crumb(self):
+        return LinkMenuItem(self.get_title(), self.request.path, active=True)
+
     def bread_crumbs_menu_items(self):
         if self.add_current_to_breadcrumbs:
-            return [LinkMenuItem(self.get_title(), self.request.path, active=True)]
-        return []
+            bread_crumbs_menu_items = [self.current_bread_crumb()]
+        return self.extra_bread_crumbs_menu_items() + bread_crumbs_menu_items
 
 
 class DefaultCoreViewMixin(DefaultViewMixin):

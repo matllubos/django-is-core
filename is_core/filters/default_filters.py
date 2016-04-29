@@ -5,13 +5,14 @@ import re
 from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField, Q
-from django.db.models.fields.related import RelatedField
 from django.db.models.fields import AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField
+from django.db.models.fields.related import RelatedField
+from django.db.models.fields.files import FileField
+from django.utils.timezone import make_aware, get_current_timezone
 
 from dateutil.parser import DEFAULTPARSER
 
 from is_core.filters.exceptions import FilterException
-from django.utils.timezone import make_aware, get_current_timezone
 
 
 class Filter(object):
@@ -96,7 +97,7 @@ class DefaultFilter(Filter):
 
 class DefaultFieldFilter(DefaultFilter):
 
-    suffixes = ['in']
+    suffixes = ['in', 'isnull']
     default_suffix = None
     EMPTY_LABEL = '---------'
 
@@ -150,13 +151,14 @@ class DefaultFieldFilter(DefaultFilter):
             if 'null' in value:
                 value.remove('null')
                 return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % full_filter_key_without_suffix: True}))
-
+        elif suffix == 'isnull':
+            value = value == '1'
         return {self.full_filter_key: value}
 
 
 class CharFieldFilter(DefaultFieldFilter):
 
-    suffixes = ['startswith', 'endswith', 'contains', 'icontains', 'in']
+    suffixes = ['startswith', 'endswith', 'contains', 'icontains', 'in', 'isnull']
     default_suffix = 'icontains'
 
 
@@ -174,7 +176,7 @@ class BooleanFieldFilter(DefaultFieldFilter):
 
 class NunberFieldFilter(DefaultFieldFilter):
 
-    suffixes = ['gt', 'lt', 'gte', 'lte', 'in']
+    suffixes = ['gt', 'lt', 'gte', 'lte', 'in', 'isnull']
 
 
 class RelatedFieldFilter(DefaultFieldFilter):
@@ -234,3 +236,4 @@ AutoField.filter = NunberFieldFilter
 DateField.filter = DateFilter
 DateTimeField.filter = DateTimeFilter
 GenericIPAddressField.filter = CharFieldFilter
+FileField.filter = TextFieldFilter

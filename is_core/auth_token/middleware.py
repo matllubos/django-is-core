@@ -37,7 +37,7 @@ class TokenAuthenticationMiddlewares(object):
         # Skip session save for 500 responses, refs #3881.
         if response.status_code != 500 and hasattr(request, 'token') and request.token.is_active:
             if not request.token.expiration:
-                max_age = config.AUTH_COOKIE_AGE
+                max_age = config.IS_CORE_AUTH_COOKIE_AGE
                 expires_time = time.time() + max_age
                 expires = cookie_date(expires_time)
             else:
@@ -45,6 +45,6 @@ class TokenAuthenticationMiddlewares(object):
                 expires = None
 
             request.token.save()
-            response.set_cookie(config.AUTH_COOKIE_NAME, request.token.key, max_age=max_age, expires=expires,
-                                httponly=config.AUTH_COOKIE_HTTPONLY, secure=config.AUTH_COOKIE_SECURE)
+            response.set_cookie(config.IS_CORE_AUTH_COOKIE_NAME, request.token.key, max_age=max_age, expires=expires,
+                                httponly=config.IS_CORE_AUTH_COOKIE_HTTPONLY, secure=config.IS_CORE_AUTH_COOKIE_SECURE)
         return response

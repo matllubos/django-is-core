@@ -3,10 +3,13 @@ from __future__ import unicode_literals
 import json as serializer
 import os
 
-from django.template.base import Library
-from django.contrib.admin.util import display_for_value as admin_display_for_value
+try:
+    from django.template.base import Library
+except ImportError:
+    from django.template import Library
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+
 
 from is_core.utils import display_for_value as utils_display_for_value
 

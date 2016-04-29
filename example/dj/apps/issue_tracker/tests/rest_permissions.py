@@ -1,6 +1,6 @@
 from germanium.rest import RESTTestCase
 
-from is_core.tests.auth_test_cases import RestAuthMixin
+from is_core.tests.auth_test_cases import RESTAuthMixin
 
 from germanium.anotations import login
 
@@ -9,9 +9,9 @@ from .test_case import HelperTestCase, AsSuperuserTestCase
 from issue_tracker.models import Issue
 
 
-class RestPermissionsTestCase(AsSuperuserTestCase, RestAuthMixin, HelperTestCase, RESTTestCase):
-    USER_API_URL = '/api/user'
-    ISSUE_API_URL = '/api/issue'
+class RESTPermissionsTestCase(AsSuperuserTestCase, RESTAuthMixin, HelperTestCase, RESTTestCase):
+    USER_API_URL = '/api/user/'
+    ISSUE_API_URL = '/api/issue/'
     USER_ISSUES_API_URL = '/api/user/%(user_pk)s/issue-number/'
 
     def test_non_logged_user_should_receive_401(self):
@@ -39,11 +39,11 @@ class RestPermissionsTestCase(AsSuperuserTestCase, RestAuthMixin, HelperTestCase
 
     @login(is_superuser=False)
     def test_user_can_read_only_itself(self):
-        resp = self.get(('%s/%s') % (self.USER_API_URL, self.logged_user.user.pk))
+        resp = self.get(('%s%s/') % (self.USER_API_URL, self.logged_user.user.pk))
         self.assert_valid_JSON_response(resp)
 
         user = self.get_user_obj()
-        resp = self.get(('%s/%s') % (self.USER_API_URL, user.pk))
+        resp = self.get(('%s%s/') % (self.USER_API_URL, user.pk))
         self.assert_http_forbidden(resp)
 
     @login(is_superuser=True)
@@ -59,29 +59,29 @@ class RestPermissionsTestCase(AsSuperuserTestCase, RestAuthMixin, HelperTestCase
     @login(is_superuser=True)
     def test_superuser_can_add_update_user(self):
         user = self.get_user_obj()
-        resp = self.put('%s/%s' % (self.USER_API_URL, user.pk), data=self.serialize({}))
+        resp = self.put('%s%s/' % (self.USER_API_URL, user.pk), data=self.serialize({}))
         self.assert_valid_JSON_response(resp)
 
     @login(is_superuser=False)
     def test_user_can_update_only_itself(self):
         user = self.get_user_obj()
-        resp = self.put('%s/%s' % (self.USER_API_URL, user.pk), data=self.serialize({}))
+        resp = self.put('%s%s/' % (self.USER_API_URL, user.pk), data=self.serialize({}))
         self.assert_http_forbidden(resp)
 
         user = self.logged_user.user
-        resp = self.put('%s/%s' % (self.USER_API_URL, user.pk), data=self.serialize({}))
+        resp = self.put('%s%s/' % (self.USER_API_URL, user.pk), data=self.serialize({}))
         self.assert_valid_JSON_response(resp)
 
     @login(is_superuser=True)
     def test_superuser_can_delete_new_user(self):
         user = self.get_user_obj()
-        resp = self.delete('%s/%s' % (self.USER_API_URL, user.pk))
+        resp = self.delete('%s%s/' % (self.USER_API_URL, user.pk))
         self.assert_http_accepted(resp)
 
     @login(is_superuser=False)
     def test_only_superuser_can_delete_new_user(self):
         user = self.get_user_obj()
-        resp = self.delete('%s/%s' % (self.USER_API_URL, user.pk))
+        resp = self.delete('%s%s/' % (self.USER_API_URL, user.pk))
         self.assert_http_forbidden(resp)
 
     def test_not_logged_user_can_not_get_number_of_user_issues(self):

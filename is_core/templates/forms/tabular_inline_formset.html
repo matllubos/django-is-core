@@ -1,75 +1,75 @@
 {% load i18n forms %}
 
 <fieldset class="inline tabular-inline {{ class_names|join:' ' }}">
-	{% block inline-title %}{% if title %}<legend>{{ title }}</legend>{% endif %}{% endblock %}
-	{% block above-table %}{% endblock %}
-	{{ formset.management_form }}
-	{% block inline-formset-table %}
-		<table class="form">
-			{% if formset.all_forms %}
-				{% block inline-formset-not-empty %}
-					{% for form in formset.all_forms %}
-						{% if forloop.first %}
-							{% block inline-thead %}
-								<thead>
-									<tr>
-										{% for field_name in fieldset %}
-											{% get_field form field_name as field %}
-											{% if not field.is_hidden %}
-												<th>
-													{{ field.label|capfirst }}
-													{% if field.field.required %}
-														<span class="required">*</span>
-													{% endif %}
-												</th>
-											{% endif %}
-										{% endfor %}
-									</tr>
-								</thead>
-								<tbody>
-							{% endblock %}
-						{% endif %}
-						{% block inline-formset-before-field %}
-						{% endblock %}
-						<tr class="inline-line {% cycle odd,even %} {{ form.class_names|join:' ' }}">
-							{% get_visible_fields form fieldset as visible_fields %}
-							{% for field in visible_fields %}
-								<td class="field{% if field.errors %} error{% endif %}">
-									{# Include the hidden fields in the form #}
-									{% if forloop.first %}
-										{% for hidden in form.hidden_fields %}
-											{{ hidden }}
-										{% endfor %}
-										{{ form.non_field_errors }}
-									{% endif %}
-									{{ field }}
-									{{ field.errors.as_ul }}
-								</td>
-							{% endfor %}
-						</tr>
-						{% block inline-formset-after-field %}
-						{% endblock %}
-						{% if forloop.last %}
-							{% block inline-formset-last %}
-							{% endblock %}
-							</tbody>
-						{% endif %}
-					{% endfor %}
-				{% endblock %}
-			{% elif not formset.can_add %}
-				{% block inline-formset-empty %}
-					<tbody>
-						<tr>
-							<td class="no-inline-items alert alert-info">
-								{{ no_items_text }}
-							</td>
-						</tr>
-					</tbody>
-				{% endblock %}
-			{% endif %}
-		</table>
-	{% endblock %}
-	{% block below-table %}
-			{% if formset.can_add %}<button type="button" class="dynamic btn btn-default">{{ button_value|capfirst }}</button>{% endif %}
-	{% endblock %}
+  {% block inline-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
+  {% block above-table %}{% endblock %}
+  {{ formset.management_form }}
+  {% block inline-formset-table %}
+    <table class="form">
+      {% if formset.all_forms %}
+        {% block inline-formset-not-empty %}
+          {% for form in formset.all_forms %}
+            {% if forloop.first %}
+              {% block inline-thead %}
+                <thead>
+                  <tr>
+                    {% for field_name in fieldset %}
+                      {% get_field form field_name as field %}
+                      {% if not field.is_hidden %}
+                        <th>
+                          {{ field.label|capfirst }}
+                          {% if field.field.required %}
+                            <span class="required">*</span>
+                          {% endif %}
+                        </th>
+                      {% endif %}
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+              {% endblock %}
+            {% endif %}
+            {% block inline-formset-before-field %}
+            {% endblock %}
+            <tr class="inline-line {% cycle odd,even %} {{ form.class_names|join:' ' }}">
+              {% get_visible_fields form fieldset as visible_fields %}
+              {% for field in visible_fields %}
+                <td class="field{% if field.errors %} error{% endif %}">
+                  {# Include the hidden fields in the form #}
+                  {% if forloop.first %}
+                    {% for hidden in form.hidden_fields %}
+                      {{ hidden }}
+                    {% endfor %}
+                    {{ form.non_field_errors }}
+                  {% endif %}
+                  {{ field }}
+                  {{ field.errors.as_ul }}
+                </td>
+              {% endfor %}
+            </tr>
+            {% block inline-formset-after-field %}
+            {% endblock %}
+            {% if forloop.last %}
+              {% block inline-formset-last %}
+              {% endblock %}
+              </tbody>
+            {% endif %}
+          {% endfor %}
+        {% endblock %}
+      {% elif not formset.can_add %}
+        {% block inline-formset-empty %}
+          <tbody>
+            <tr>
+              <td class="no-inline-items alert alert-info">
+                {{ no_items_text }}
+              </td>
+            </tr>
+          </tbody>
+        {% endblock %}
+      {% endif %}
+    </table>
+  {% endblock %}
+  {% block below-table %}
+      {% if formset.can_add %}<button type="button" class="dynamic btn btn-default">{{ button_value|capfirst }}</button>{% endif %}
+  {% endblock %}
 </fieldset>

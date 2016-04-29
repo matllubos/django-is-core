@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import warnings
 
 from datetime import datetime, time
 
@@ -14,7 +13,7 @@ from django.forms.fields import FileField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 
-from piston.forms import RestFormMixin
+from piston.forms import RESTFormMixin
 
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
@@ -126,7 +125,6 @@ class ReadonlyBoundField(SmartBoundField):
 
     def _form_initial_value(self):
         data = self.form.initial.get(self.name, self.field.initial)
-
         if callable(data):
             data = data()
 
@@ -272,12 +270,12 @@ class SmartFormMixin(object):
                             # Always assume data has changed if validation fails.
                             self._changed_data.append(name)
                             continue
-                    if field._has_changed(initial_value, data_value):
+                    if field.has_changed(initial_value, data_value):
                         self._changed_data.append(name)
         return self._changed_data
 
 
-class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RestFormMixin, Form)):
+class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RESTFormMixin, Form)):
     pass
 
 

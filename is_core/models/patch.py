@@ -63,12 +63,12 @@ class UIOptions(Options):
             self.placeholders = self._getattr('placeholders', self.placeholders)
 
 
-class RestOptions(Options):
+class RESTOptions(Options):
 
-    meta_name = 'RestMeta'
+    meta_name = 'RESTMeta'
 
     def __init__(self, model):
-        super(RestOptions, self).__init__(model)
+        super(RESTOptions, self).__init__(model)
         from piston.utils import model_default_rest_fields
 
         self.default_general_fields = set(self._getattr('default_general_fields' , ('id', '_obj_name', '_rest_links')))
@@ -77,7 +77,7 @@ class RestOptions(Options):
         self.guest_fields = set(self._getattr('guest_fields' , ('id', '_obj_name')))
 
 
-OPTIONS = {'_rest_meta': RestOptions, '_ui_meta': UIOptions}
+OPTIONS = {'_rest_meta': RESTOptions, '_ui_meta': UIOptions}
 
 for opt_key, opt_class in OPTIONS.items():
     setattr(models.Model, opt_key, OptionsLazy(opt_key, opt_class))

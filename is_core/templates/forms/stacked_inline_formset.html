@@ -2,41 +2,41 @@
 
 {% block fieldset %}
 <fieldset class="inline stacked-inline {{ class_names|join:' ' }}">
-	{% if title %}<legend>{{ title }}</legend>{% endif %}
-	{% block fieldset-forms %}
-		{{ formset.management_form }}
-		{% if formset.all_forms %}
-			{% for form in formset.all_forms %}
-				<div class="{{ form | model_name }} {{ form.class_names|join:' ' }}" id="{{ form.prefix }}">
-					{{ form.non_field_errors }}
-					{% block fieldset-field %}
-						{% for field_name in fieldset %}
-							{% get_field form field_name as field %}
-							<div class="form-group">
-								{% if not field.is_hidden %}
-									<div class="field {{ field_name }}{% if field.errors %} error{% endif %}">
-									<label for="{{ field.auto_id }}">
-										{{ field.label|capfirst }}
-										{% if field.field.required %}
-											<span class="required">*</span>
-										{% endif %}
-									</label>
-									{{ field }}
-									{{ field.errors }}
-									</div>
-								{% else %}
-									{{ field }}
-								{% endif %}
-							</div>
-						{% endfor %}
-					{% endblock %}
-				</div>
-			{% endfor %}
-		{% elif not formset.can_add %}
-			<div class="no-inline-items alert alert-info">
-				{{ no_items_text }}
-			</div>
-		{% endif %}
-	{% endblock %}
+  {% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}
+  {% block fieldset-forms %}
+    {{ formset.management_form }}
+    {% if formset.all_forms %}
+      {% for form in formset.all_forms %}
+        <div class="{{ form | model_name }} {{ form.class_names|join:' ' }}" id="{{ form.prefix }}">
+          {{ form.non_field_errors }}
+          {% block fieldset-field %}
+            {% for field_name in fieldset %}
+              {% get_field form field_name as field %}
+              <div class="form-group">
+                {% if not field.is_hidden %}
+                  <div class="field {{ field_name }}{% if field.errors %} error{% endif %}">
+                  <label for="{{ field.auto_id }}">
+                    {{ field.label|capfirst }}
+                    {% if field.field.required %}
+                      <span class="required">*</span>
+                    {% endif %}
+                  </label>
+                  {{ field }}
+                  {{ field.errors }}
+                  </div>
+                {% else %}
+                  {{ field }}
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% endblock %}
+        </div>
+      {% endfor %}
+    {% elif not formset.can_add %}
+      <div class="no-inline-items alert alert-info">
+        {{ no_items_text }}
+      </div>
+    {% endif %}
+  {% endblock %}
 </fieldset>
 {% endblock %}

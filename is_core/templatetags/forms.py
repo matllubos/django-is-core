@@ -4,8 +4,7 @@ from django import template
 from django.forms import CheckboxInput
 from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
-
-from block_snippets.templatetags import SnippetsIncludeNode
+from django.template.loader_tags import IncludeNode
 
 from is_core.forms.widgets import WrapperWidget
 
@@ -24,7 +23,7 @@ def do_form_renderer(parser, token):
     options['use_csrf'] = options.get('use_csrf', parser.compile_filter('True'))
     options['form'] = parser.compile_filter(bits[1])
     options['method'] = options.get('method', parser.compile_filter("'POST'"))
-    return SnippetsIncludeNode(template_name, extra_context=options)
+    return IncludeNode(template_name, extra_context=options)
 
 
 @register.simple_tag(takes_context=True)
@@ -35,11 +34,12 @@ def fieldset_renderer(context, form, fieldset):
         return context.get('inline_views').get(inline_view_name).render(context, fieldset[0])
     template = values.get('template') or 'forms/default_fieldset.html'
     context.update({
-                        'fields': values.get('fields'),
-                        'form': form,
-                        'title': fieldset[0],
-                        'class': values.get('class')
-                    })
+        'fields': values.get('fields'),
+        'form': form,
+        'title': fieldset[0],
+        'class': values.get('class'),
+        'fieldsets': values.get('fieldsets')
+    })
     return render_to_string(template, context)
 
 
