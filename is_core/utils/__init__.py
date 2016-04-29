@@ -157,7 +157,7 @@ def display_for_value(value):
     if isinstance(value, bool):
         value = ugettext('Yes') if value else ugettext('No')
     else:
-        value = admin_display_for_value(value)
+        value = admin_display_for_value(value, '')
     return value
 
 

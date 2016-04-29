@@ -612,7 +612,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         If is send parameter pk is returned object according this pk,
         else is returned object from get_obj method, but it search only inside filtered values for current user,
         finally if object is still None is returned according the input key from all objects.
-        
+
         If object does not exist is raised Http404
         """
         if pk:
