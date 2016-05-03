@@ -6,8 +6,7 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 
-from django.conf import settings
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
 
@@ -70,25 +69,25 @@ class ISSite(object):
 
     def _set_items_urls(self, items, urlpatterns):
         for item in items:
-            urlpatterns += patterns('', url(r'^', include(item.get_urls())))
+            urlpatterns += [url(r'^', include(item.get_urls()))]
 
     def get_urls(self):
         LoginView = str_to_class(config.IS_CORE_AUTH_LOGIN_VIEW)
         LogoutView = str_to_class(config.IS_CORE_AUTH_LOGOUT_VIEW)
-        urlpatterns = patterns('',
+        urlpatterns = [
             url(r'^%s$' % config.IS_CORE_LOGIN_URL[1:],
                 LoginView.as_view(form_class=str_to_class(config.IS_CORE_AUTH_FORM_CLASS)),
                 name='login'),
             url(r'^%s$' % config.IS_CORE_LOGOUT_URL[1:], LogoutView.as_view(), name='logout')
-        )
+        ]
 
         if config.IS_CORE_AUTH_USE_TOKENS:
             AuthResource.form_class = str_to_class(config.IS_CORE_AUTH_FORM_CLASS)
             pattern = RESTPattern('api-login', self.name, r'%s' % config.IS_CORE_LOGIN_API_URL[1:], AuthResource)
-            urlpatterns += patterns('', pattern.get_url())
+            urlpatterns += [pattern.get_url()]
 
         pattern = RESTPattern('api', self.name, r'api/$', EntryPointResource)
-        urlpatterns += patterns('', pattern.get_url())
+        urlpatterns += [pattern.get_url()]
 
         self._set_items_urls(self._registry.values(), urlpatterns)
         return urlpatterns

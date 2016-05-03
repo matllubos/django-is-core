@@ -30,10 +30,10 @@ setup(
     install_requires=[
         'django>=1.8',
         'django-class-based-auth-views>=0.3',
-        'django-block-snippets>=0.1.1',
+        'django-block-snippets==0.1.1',
         'python-dateutil>=2.2',
         'pytz',
-        'django-apptemplates>=0.3',
+        'django-apptemplates>=1.1',
         'factory-boy>=2.5.2',
         'django-piston==django19-compatibility',
     ],
@@ -42,7 +42,6 @@ setup(
         'https://github.com/matllubos/django-chamber/tarball/0.1.11#egg=django-chamber-0.1.11',
         'https://github.com/matllubos/django-block-snippets/tarball/0.1.1#egg=django-block-snippets-0.1.1',
         'https://github.com/matllubos/django-project-info/tarball/0.2.5#egg=django-project-info-0.2.5',
-        'https://bitbucket.org/bittner/django-apptemplates/get/90e38160d00ba7f71f7d87d1496abd69da370f71.tar.gz#egg=90e38160d00ba7f71f7d87d1496abd69da370f71'
     ],
     zip_safe=False
 )

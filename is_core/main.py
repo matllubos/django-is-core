@@ -82,8 +82,7 @@ class ISCore(six.with_metaclass(ISCoreBase, PermissionsMixin)):
             url = pattern.get_url()
             if url:
                 urls.append(url)
-        urlpatterns = django_patterns('', *urls)
-        return urlpatterns
+        return [*urls]
 
     def get_urls(self):
         return ()

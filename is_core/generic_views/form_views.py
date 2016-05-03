@@ -3,27 +3,26 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 
 import django
-
+from django.contrib.messages import constants
+from django.contrib.messages.api import add_message, get_messages
+from django.db import transaction
 from django.forms.models import ModelForm
-from django.http.response import HttpResponseRedirect, Http404
+from django.http.response import Http404, HttpResponseRedirect
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
-from django.contrib.messages.api import get_messages, add_message
-from django.contrib.messages import constants
-from django.db import transaction
 
+from chamber.exceptions import PersistenceException
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
-from chamber.exceptions import PersistenceException
-
-from is_core.generic_views import DefaultModelCoreViewMixin
-from is_core.utils import flatten_fieldsets, get_readonly_field_data
-from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
-from is_core.generic_views.inlines.inline_form_views import InlineFormView
-from is_core.response import JsonHttpResponse
-from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
+from is_core.forms.forms import SmartForm
+from is_core.forms.models import smartmodelform_factory
+from is_core.generic_views import DefaultModelCoreViewMixin
+from is_core.generic_views.inlines.inline_form_views import InlineFormView
+from is_core.generic_views.mixins import GetCoreObjViewMixin, ListParentMixin
+from is_core.response import JsonHttpResponse
+from is_core.utils import flatten_fieldsets, get_readonly_field_data
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -53,7 +52,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def get_has_file_field(self, form, **kwargs):
         return formset_has_file_field(form)
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=SmartForm):
         form = form_class(**self.get_form_kwargs())
         form.readonly = not self.has_post_permission()
 
