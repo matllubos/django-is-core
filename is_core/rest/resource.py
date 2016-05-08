@@ -7,11 +7,11 @@ from django.http.response import Http404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext
 
-from piston.exception import (RestException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
+from pyston.exception import (RESTException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
                               ConflictException, DataInvalidException)
-from piston.resource import BaseResource, BaseModelResource
-from piston.response import RestErrorResponse, RestErrorsResponse
+from pyston.resource import BaseResource, BaseModelResource
+from pyston.response import RESTErrorResponse, RESTErrorsResponse
 
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.decorators import classproperty
@@ -21,13 +21,14 @@ from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUn
                                          HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
 from is_core.filters import get_model_field_or_method_filter
 from is_core.forms.models import smartmodelform_factory
-from is_core.patterns import RestPattern, patterns
+from is_core.patterns import RESTPattern, patterns
 from is_core.utils.immutable import merge
 
 
-class RestResource(BaseResource):
+class RESTResource(BaseResource):
     login_required = True
     register = False
+    abstract = True
 
     @classproperty
     @classmethod
@@ -37,7 +38,7 @@ class RestResource(BaseResource):
     def dispatch(self, request, *args, **kwargs):
         if hasattr(self, 'core'):
             self.core.init_rest_request(request)
-        return super(RestResource, self).dispatch(request, *args, **kwargs)
+        return super(RESTResource, self).dispatch(request, *args, **kwargs)
 
     @classmethod
     def __init_core__(cls, core, pattern):
@@ -46,7 +47,7 @@ class RestResource(BaseResource):
 
     def _get_error_response(self, exception):
         """
-        Trasform piston exceptions to Is-core exceptions and raise it
+        Trasform pyston exceptions to Is-core exceptions and raise it
         """
         response_exceptions = {
             MimerDataException: HttpBadRequestResponseException,
@@ -61,34 +62,34 @@ class RestResource(BaseResource):
         response_exception = response_exceptions.get(type(exception))
         if response_exception:
             raise response_exception
-        return super(RestResource, self)._get_error_response(exception)
+        return super(RESTResource, self)._get_error_response(exception)
 
 
-class RestModelCoreResourcePermissionsMixin(object):
+class RESTModelCoreResourcePermissionsMixin(object):
 
     pk_name = 'pk'
 
     def has_get_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.login_required or self.request.user.is_authenticated()) and
-                super(RestModelCoreResourcePermissionsMixin, self).has_get_permission(obj) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_get_permission(obj) and
                 self.core.has_rest_read_permission(self.request, obj, via))
 
     def has_post_permission(self, obj=None, via=None):
         return ((not self.login_required or self.request.user.is_authenticated()) and
-                super(RestModelCoreResourcePermissionsMixin, self).has_post_permission(obj) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_post_permission(obj) and
                 self.core.has_rest_create_permission(self.request, obj, via))
 
     def has_put_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.login_required or self.request.user.is_authenticated()) and
-                super(RestModelCoreResourcePermissionsMixin, self).has_put_permission(obj) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_put_permission(obj) and
                 self.core.has_rest_update_permission(self.request, obj, via))
 
     def has_delete_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.login_required or self.request.user.is_authenticated()) and
-                super(RestModelCoreResourcePermissionsMixin, self).has_delete_permission(obj) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_delete_permission(obj) and
                 self.core.has_rest_delete_permission(self.request, obj, via))
 
     def _get_perm_obj_or_none(self, pk=None):
@@ -99,7 +100,7 @@ class RestModelCoreResourcePermissionsMixin(object):
             return None
 
 
-class RestModelCoreMixin(RestModelCoreResourcePermissionsMixin):
+class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
 
     def _get_queryset(self):
         return self.core.get_queryset(self.request)
@@ -114,14 +115,14 @@ class RestModelCoreMixin(RestModelCoreResourcePermissionsMixin):
         return obj
 
 
-class EntryPointResource(RestResource):
+class EntryPointResource(RESTResource):
     login_required = False
     allowed_methods = ('get',)
 
     def read(self):
         out = {}
         for pattern_name, pattern in patterns.items():
-            if isinstance(pattern, RestPattern):
+            if isinstance(pattern, RESTPattern):
                 try:
                     url = pattern.get_url_string(self.request)
                     allowed_methods = pattern.get_allowed_methods(self.request, None)
@@ -133,12 +134,13 @@ class EntryPointResource(RestResource):
         return out
 
 
-class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
+class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
 
     default_detailed_fields = ('id', '_rest_links', '_obj_name')
     default_general_fields = ('id', '_rest_links', '_obj_name')
     form_class = None
     field_labels = None
+    abstract = True
 
     def _get_field_labels(self):
         return (
@@ -193,7 +195,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
         return self.core.get_queryset(self.request)
 
     def _get_headers_queryset_context_mapping(self):
-        mapping = super(RestModelResource, self)._get_headers_queryset_context_mapping()
+        mapping = super(RESTModelResource, self)._get_headers_queryset_context_mapping()
         mapping.update({
             'direction': ('HTTP_X_DIRECTION', '_direction'),
             'order': ('HTTP_X_ORDER', '_order')
@@ -212,7 +214,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
                     filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
                     qs = filter.filter_queryset(qs, self.request)
                 except:
-                    raise RestException(mark_safe(ugettext('Cannot resolve filter "%s"') % filter_term))
+                    raise RESTException(mark_safe(ugettext('Cannot resolve filter "%s"') % filter_term))
 
         return qs
 
@@ -225,7 +227,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
             # Queryset validation, there is no other option
             unicode(qs.query)
         except Exception:
-            raise RestException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
+            raise RESTException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
         return qs
 
     def _get_exclude(self, obj=None):
@@ -275,21 +277,21 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
                                       labels=self._get_field_labels())
 
     def put(self):
-        return super(RestModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
+        return super(RESTModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
     @transaction.atomic
     def update_bulk(self):
         qs = self._filter_queryset(self.core.get_queryset(self.request))
         BULK_CHANGE_LIMIT = getattr(settings, 'BULK_CHANGE_LIMIT', 200)
         if qs.count() > BULK_CHANGE_LIMIT:
-            return RestErrorResponse(
+            return RESTErrorResponse(
                 msg=ugettext('Only %s objects can be changed by one request').format(BULK_CHANGE_LIMIT),
                 code=413)
 
         data = self.get_dict_data()
         objects, errors = zip(*(self._update_obj(obj, data) for obj in qs))
         compact_errors = tuple(err for err in errors if err)
-        return RestErrorsResponse(compact_errors) if len(compact_errors) > 0 else objects
+        return RESTErrorsResponse(compact_errors) if len(compact_errors) > 0 else objects
 
     def _update_obj(self, obj, data):
         try:
@@ -298,7 +300,7 @@ class RestModelResource(RestModelCoreMixin, RestResource, BaseModelResource):
             return (None, self._format_message(obj, ex))
         except (ConflictException, NotAllowedException):
             raise
-        except RestException as ex:
+        except RESTException as ex:
             return (None, self._format_message(obj, ex))
 
     def _extract_message(self, ex):

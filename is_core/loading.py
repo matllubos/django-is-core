@@ -27,6 +27,7 @@ class CoresLoader(object):
                 import_module('%s.cores' % app)
             except ImportError as ex:
                 if force_text(ex) != 'No module named cores':
+                    print app
                     raise ex
 
     def get_cores(self):

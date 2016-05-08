@@ -21,7 +21,7 @@ class RequestKwargsMiddleware(object):
         request.kwargs = resolve(request.path).kwargs
 
 
-# Not working with piston exceptions
+# Not working with pyston exceptions
 class HttpExceptionsMiddleware(object):
 
     def process_exception(self, request, exception):
