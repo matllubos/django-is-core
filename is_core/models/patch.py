@@ -6,81 +6,24 @@ from django.db import models
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils.translation import ugettext_lazy as _
 
-
-class OptionsLazy(object):
-
-    def __init__(self, name, klass):
-        self.name = name
-        self.klass = klass
-
-    def __get__(self, instance=None, owner=None):
-        option = self.klass(owner)
-        setattr(owner, self.name, option)
-        return option
-
-
-class Options(object):
-
-    meta_name = None
-
-    def __init__(self, model):
-        self.model = model
-
-    def _getattr(self, name, default_value):
-        meta_models = [b for b in self.model.__mro__ if issubclass(b, models.Model)]
-        for model in meta_models:
-            meta = getattr(model, self.meta_name, None)
-            if meta:
-                value = getattr(meta, name, None)
-                if value is not None:
-                    return value
-        return default_value
+from chamber.patch import Options, OptionsLazy
 
 
 class UIOptions(Options):
 
-    meta_name = 'UIMeta'
-
-    def __init__(self, model):
-        super(UIOptions, self).__init__(model)
-        self.extra_selecbox_fields = {}
-        self.list_verbose_name = '%(verbose_name_plural)s'
-        self.add_verbose_name = _('add %(verbose_name)s')
-        self.add_button_verbose_name = self.add_verbose_name
-        self.add_inline_button_verbose_name = self.add_verbose_name
-        self.edit_verbose_name = '%(obj)s'
-        self.filter_placeholders = {}
-        self.placeholders = {}
-
-        if hasattr(model, 'UIMeta'):
-            self.extra_selecbox_fields = self._getattr('extra_selecbox_fields', self.extra_selecbox_fields)
-            self.list_verbose_name = self._getattr('list_verbose_name', self.list_verbose_name)
-            self.add_verbose_name = self._getattr('add_verbose_name', self.add_verbose_name)
-            self.add_button_verbose_name = self._getattr('add_button_verbose_name', self.add_verbose_name)
-            self.add_inline_button_verbose_name = self._getattr('add_inline_button_verbose_name', self.add_verbose_name)
-            self.edit_verbose_name = self._getattr('edit_verbose_name', self.edit_verbose_name)
-            self.filter_placeholders = self._getattr('filter_placeholders', self.filter_placeholders)
-            self.placeholders = self._getattr('placeholders', self.placeholders)
-
-
-class RestOptions(Options):
-
-    meta_name = 'RestMeta'
-
-    def __init__(self, model):
-        super(RestOptions, self).__init__(model)
-        from piston.utils import model_default_rest_fields
-
-        self.default_general_fields = set(self._getattr('default_general_fields' , ('id', '_obj_name', '_rest_links')))
-        self.default_detailed_fields = set(self._getattr('default_detailed_fields', model_default_rest_fields(model)))
-        self.extra_fields = set(self._getattr('extra_fields', ()))
-        self.guest_fields = set(self._getattr('guest_fields' , ('id', '_obj_name')))
-
-
-OPTIONS = {'_rest_meta': RestOptions, '_ui_meta': UIOptions}
-
-for opt_key, opt_class in OPTIONS.items():
-    setattr(models.Model, opt_key, OptionsLazy(opt_key, opt_class))
+    model_class = models.Model
+    meta_class_name = 'UIMeta'
+    meta_name = '_ui_meta'
+    attributes = {
+        'extra_selecbox_fields': {},
+        'list_verbose_name': '%(verbose_name_plural)s',
+        'add_verbose_name': _('add %(verbose_name)s'),
+        'add_button_verbose_name': _('add %(verbose_name)s'),
+        'add_inline_button_verbose_name': _('add %(verbose_name)s'),
+        'edit_verbose_name': '%(obj)s',
+        'filter_placeholders': {},
+        'placeholders': {},
+    }
 
 
 def fk_formfield(self, **kwargs):

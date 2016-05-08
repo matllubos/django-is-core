@@ -1,14 +1,14 @@
 from __future__ import unicode_literals
 
-from piston.utils import rc
-from piston.response import RestErrorResponse
+from pyston.utils import rc
+from pyston.response import RESTErrorResponse
 
-from is_core.rest.resource import RestResource
+from is_core.rest.resource import RESTResource
 from is_core.auth_token import login, logout
 from is_core.auth_token.forms import TokenAuthenticationForm
 
 
-class AuthResource(RestResource):
+class AuthResource(RESTResource):
     login_required = False
     allowed_methods = ('post', 'delete')
     form_class = TokenAuthenticationForm
@@ -36,7 +36,7 @@ class AuthResource(RestResource):
         errors = form.is_invalid()
         if errors:
             self._unsucessful_login(self.request)
-            return RestErrorResponse(errors)
+            return RESTErrorResponse(errors)
 
         self._sucessful_login(self.request)
         self._login(form.get_user(), not form.is_permanent())

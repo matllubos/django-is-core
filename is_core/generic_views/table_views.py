@@ -11,7 +11,7 @@ from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.default_filters import *
 from is_core.forms.forms import pretty_class_name
-from is_core.rest.datastructures import ModelRestFieldset, ModelFlatRestFields
+from is_core.rest.datastructures import ModelRESTFieldset, ModelFlatRESTFields
 
 from chamber.utils.http import query_string_from_dict
 
@@ -125,12 +125,12 @@ class TableViewMixin(object):
         return list(self.list_display_extra)
 
     def _generate_rest_fieldset(self):
-        return ModelRestFieldset.create_from_flat_list(
+        return ModelRESTFieldset.create_from_flat_list(
             list(self._get_list_display_extra()) + list(self._get_list_display()), self.model
         )
 
     def _generate_rest_export_fieldset(self):
-        return ModelFlatRestFields.create_from_flat_list(
+        return ModelFlatRESTFields.create_from_flat_list(
             list(self._get_export_display()), self.model
         )
 
