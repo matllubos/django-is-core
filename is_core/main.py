@@ -1,12 +1,19 @@
+"""
+Core of django-is-core.
+Contains controller added between model and UI/REST.
+"""
 from __future__ import unicode_literals
 
 import sys
+
+from collections import OrderedDict
+
+import django
 
 from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from django.utils.datastructures import SortedDict
 from django.http.response import Http404
 from django.core.exceptions import ValidationError
 from django.utils import six
@@ -18,7 +25,7 @@ from pyston.utils import rfs
 from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView, BulkChangeFormView
 from is_core.generic_views.table_views import TableView
-from is_core.rest.resource import RESTModelResource
+from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
@@ -31,6 +38,10 @@ from is_core.forms.models import SmartModelForm
 
 
 class ISCoreBase(type):
+    """
+    Metaclass for IS core classes. Its main purpose is automatic registration cores to your application.
+    """
+
     def __new__(cls, *args, **kwargs):
         name, _, attrs = args
 
@@ -45,11 +56,15 @@ class ISCoreBase(type):
         return new_class
 
 
-class ISCore(six.with_metaclass(ISCoreBase)):
+class ISCore(six.with_metaclass(ISCoreBase, PermissionsMixin)):
+    """
+    Parent of all IS cores. Contains common methods for all cores.
+    This class is abstract.
+    """
+
     abstract = True
     register = True
 
-    menu_url_name = None
     verbose_name = None
     verbose_name_plural = None
     menu_group = None
@@ -60,12 +75,6 @@ class ISCore(six.with_metaclass(ISCoreBase)):
 
     def init_request(self, request):
         pass
-
-    def init_ui_request(self, request):
-        self.init_request(request)
-
-    def init_rest_request(self, request):
-        self.init_request(request)
 
     def get_urlpatterns(self, patterns):
         urls = []
@@ -79,14 +88,8 @@ class ISCore(six.with_metaclass(ISCoreBase)):
     def get_urls(self):
         return ()
 
-    def get_show_in_menu(self, request):
-        return self.show_in_menu
-
     def get_views(self):
         return {}
-
-    def menu_url(self, request):
-        return reverse(('%(site_name)s:' + self.menu_url_name) % {'site_name': self.site_name})
 
     def get_menu_groups(self):
         menu_groups = list(self.menu_parent_groups)
@@ -100,39 +103,30 @@ class ISCore(six.with_metaclass(ISCoreBase)):
     def get_menu_group_pattern_name(self):
         return '-'.join(self.get_menu_groups())
 
-    def get_menu_item(self, request, active_group):
-        pass
 
+class ModelISCore(ISCore):
+    """
+    Parent of REST and UI cores that works as controller to specific model.
+    This class is abstract.
+    """
 
-class ModelISCore(PermissionsMixin, ISCore):
     abstract = True
 
     list_actions = ()
 
     # form params
     form_fields = None
-    form_inline_views = ()
     form_exclude = ()
     form_class = SmartModelForm
     form_edit_class = None
     form_add_class = None
 
     ordering = None
-    bulk_change_url_name = None
 
     field_labels = {}
 
-    def get_field_labels(self, request):
-        return self.field_labels
-
-    def get_view_classes(self):
-        view_classes = super(ModelISCore, self).get_view_classes()
-        if self.is_bulk_change_enabled():
-            view_classes[self.get_bulk_change_url_name()] = (r'/bulk-change/?$', BulkChangeFormView)
-        return view_classes
-
-    def get_form_fields(self, request, obj=None):
-        return self.form_fields
+    def get_form_class(self, request, obj=None):
+        return self.form_class
 
     def get_form_edit_class(self, request, obj=None):
         return self.form_edit_class or self.get_form_class(request, obj)
@@ -140,11 +134,14 @@ class ModelISCore(PermissionsMixin, ISCore):
     def get_form_add_class(self, request, obj=None):
         return self.form_add_class or self.get_form_class(request, obj)
 
-    def get_form_class(self, request, obj=None):
-        return self.form_class
+    def get_form_fields(self, request, obj=None):
+        return self.form_fields
 
     def get_form_exclude(self, request, obj=None):
         return self.form_exclude
+
+    def get_field_labels(self, request):
+        return self.field_labels
 
     def pre_save_model(self, request, obj, form, change):
         pass
@@ -164,17 +161,20 @@ class ModelISCore(PermissionsMixin, ISCore):
     def post_delete_model(self, request, obj):
         pass
 
+    @property
     def verbose_name(self):
         return self.model._meta.verbose_name
-    verbose_name = property(verbose_name)
 
+    @property
     def verbose_name_plural(self):
         return self.model._meta.verbose_name_plural
-    verbose_name_plural = property(verbose_name_plural)
 
+    @property
     def menu_group(self):
-        return str(self.model._meta.module_name)
-    menu_group = property(menu_group)
+        if django.get_version() < '1.7':
+            return str(self.model._meta.module_name)
+        else:
+            return str(self.model._meta.model_name)
 
     # TODO: remove this function
     def get_obj(self, request, **filters):
@@ -198,51 +198,57 @@ class ModelISCore(PermissionsMixin, ISCore):
     def get_default_action(self, request, obj):
         return None
 
-    def is_bulk_change_enabled(self):
-        return self.get_bulk_change_url_name() is not None
-
-    def get_bulk_change_url_name(self):
-        return self.bulk_change_url_name
-
 
 class UIISCore(PermissionsUIMixin, ISCore):
+    """
+    Main core for UI views.
+    """
+
     abstract = True
 
-    api_url_name = None
     show_in_menu = True
     menu_url_name = None
-    view_classes = SortedDict()
+    view_classes = ()
     default_ui_pattern_class = UIPattern
 
+    def init_ui_request(self, request):
+        self.init_request(request)
+
     def get_view_classes(self):
-        return self.view_classes.copy()
+        return list(self.view_classes)
 
     @cached_property
     def ui_patterns(self):
         return self.get_ui_patterns()
 
     def get_ui_patterns(self):
-        ui_patterns = SortedDict()
-        for name, view_vals in self.get_view_classes().items():
-            if len(view_vals) == 3:
-                pattern, view, ViewPatternClass = view_vals
-            else:
-                pattern, view = view_vals
-                ViewPatternClass = self.default_ui_pattern_class
+        ui_patterns = OrderedDict()
+        for view_class_definition in self.get_view_classes():
+            name, view_vals = (view_class_definition[0], view_class_definition[1:])
+            if name not in ui_patterns:
+                if len(view_vals) == 3:
+                    pattern, view, ViewPatternClass = view_vals
+                else:
+                    pattern, view = view_vals
+                    ViewPatternClass = self.default_ui_pattern_class
 
-            pattern_names = [name]
-            group_pattern_name = self.get_menu_group_pattern_name()
-            if group_pattern_name:
-                pattern_names += [self.get_menu_group_pattern_name()]
+                if isinstance(view, six.string_types):
+                    view = getattr(self, view)()
 
-            ui_patterns[name] = ViewPatternClass('-'.join(pattern_names), self.site_name, pattern, view, self)
+                pattern_names = [name]
+                group_pattern_name = self.get_menu_group_pattern_name()
+                if group_pattern_name:
+                    pattern_names += [self.get_menu_group_pattern_name()]
+
+                ui_patterns[name] = ViewPatternClass('-'.join(pattern_names), self.site_name, pattern, view, self)
         return ui_patterns
 
     def get_urls(self):
         return self.get_urlpatterns(self.ui_patterns)
 
     def get_show_in_menu(self, request):
-        return self.has_ui_read_permission(request)
+        return (self.show_in_menu and self.menu_url_name and self.menu_url_name in self.ui_patterns and
+                self.ui_patterns.get(self.menu_url_name).can_call_get(request))
 
     def is_active_menu_item(self, request, active_group):
         return active_group == self.menu_group
@@ -252,48 +258,69 @@ class UIISCore(PermissionsUIMixin, ISCore):
             return LinkMenuItem(self.verbose_name_plural, self.menu_url(request),
                                 self.menu_group, self.is_active_menu_item(request, active_group))
 
+    def menu_url(self, request):
+        return self.ui_patterns.get(self.menu_url_name).get_url_string(request)
+
 
 class RESTISCore(PermissionsRESTMixin, ISCore):
+    """
+    Main core for REST views.
+    """
 
-    rest_classes = SortedDict()
-    default_rest_resource_pattern_class = RESTPattern
+    rest_classes = ()
+    default_rest_pattern_class = RESTPattern
     abstract = True
 
+    def init_rest_request(self, request):
+        self.init_request(request)
+
     def get_rest_classes(self):
-        return self.rest_classes.copy()
+        return list(self.rest_classes)
 
     @cached_property
-    def resource_patterns(self):
-        return self.get_resource_patterns()
+    def rest_patterns(self):
+        return self.get_rest_patterns()
 
-    def get_resource_patterns(self):
-        rest_patterns = SortedDict()
-        for name, rest_vals in self.get_rest_classes().items():
-            if len(rest_vals) == 3:
-                pattern, rest, RESTPatternClass = rest_vals
-            else:
-                pattern, rest = rest_vals
-                RESTPatternClass = self.default_rest_resource_pattern_class
+    def get_rest_patterns(self):
+        rest_patterns = OrderedDict()
+        for rest_class_definition in self.get_rest_classes():
+            name, rest_vals = (rest_class_definition[0], rest_class_definition[1:])
+            if name not in rest_patterns:
+                if len(rest_vals) == 3:
+                    pattern, rest, RESTPatternClass = rest_vals
+                else:
+                    pattern, rest = rest_vals
+                    RESTPatternClass = self.default_rest_pattern_class
 
-            pattern_names = [name]
-            group_pattern_name = self.get_menu_group_pattern_name()
-            if group_pattern_name:
-                pattern_names += [self.get_menu_group_pattern_name()]
-            rest_patterns[name] = RESTPatternClass('-'.join(pattern_names), self.site_name, pattern, rest, self)
+                if isinstance(rest, six.string_types):
+                    rest = getattr(self, rest)()
+
+                pattern_names = [name]
+                group_pattern_name = self.get_menu_group_pattern_name()
+                if group_pattern_name:
+                    pattern_names += [self.get_menu_group_pattern_name()]
+                rest_patterns[name] = RESTPatternClass('-'.join(pattern_names), self.site_name, pattern, rest, self)
         return rest_patterns
 
     def get_urls(self):
-        return self.get_urlpatterns(self.resource_patterns)
+        return self.get_urlpatterns(self.rest_patterns)
 
 
 class UIRESTISCoreMixin(object):
+    """
+    Helper that joins urls generated wit REST core and UI core.
+    """
 
     def get_urls(self):
-        return self.get_urlpatterns(self.resource_patterns) + self.get_urlpatterns(self.ui_patterns)
+        return self.get_urlpatterns(self.rest_patterns) + self.get_urlpatterns(self.ui_patterns)
 
 
 class UIRESTISCore(UIRESTISCoreMixin, UIISCore, RESTISCore):
-    pass
+    """
+    UI REST Core, its main purpose is create custom REST resources and UI views.
+    """
+
+    abstract = True
 
 
 class HomeUIISCore(UIISCore):
@@ -301,13 +328,12 @@ class HomeUIISCore(UIISCore):
     menu_url_name = 'index'
     verbose_name_plural = _('Home')
     menu_group = 'home'
-    abstract = config.HOME_IS_CORE != 'is_core.main.HomeUIISCore'
+    abstract = config.IS_CORE_HOME_IS_CORE != 'is_core.main.HomeUIISCore'
 
     def get_view_classes(self):
-        HomeView = str_to_class(config.HOME_VIEW)
-        return SortedDict((
-                        ('index', (r'^$', HomeView)),
-                    ))
+        view_classes = super(HomeUIISCore, self).get_view_classes()
+        view_classes.append(('index', r'', str_to_class(config.IS_CORE_HOME_VIEW)))
+        return view_classes
 
     def menu_url(self, request):
         return '/'
@@ -317,31 +343,58 @@ class HomeUIISCore(UIISCore):
 
 
 class UIModelISCore(ModelISCore, UIISCore):
+    """
+    Main core controller for specific model that provides UI views for model management (add, edit, list).
+    """
+
     abstract = True
 
-    view_classes = SortedDict((
-                        ('add', (r'^/add/$', AddModelFormView)),
-                        ('edit', (r'^/(?P<pk>[-\w]+)/$', EditModelFormView)),
-                        ('list', (r'^/?$', TableView)),
-                    ))
+    menu_url_name = 'list'
+
+    api_url_name = None
 
     # list view params
     list_display = ('_obj_name',)
     export_display = ()
-    export_types = config.GRID_EXPORT
+    export_types = config.IS_CORE_EXPORT_TYPES
     default_list_filter = {}
 
     # add/edit view params
     form_fieldsets = None
     form_readonly_fields = ()
+    form_inline_views = ()
 
     ui_form_add_class = None
     ui_form_edit_class = None
     ui_form_field_labels = None
     ui_list_field_labels = None
 
-    def __init__(self, site_name, menu_parent_groups):
-        super(UIModelISCore, self).__init__(site_name, menu_parent_groups)
+    ui_add_view = AddModelFormView
+    ui_edit_view = EditModelFormView
+    ui_list_view = TableView
+
+    default_model_view_classes = (
+        ('add', r'add/', 'get_ui_add_view'),
+        ('edit', r'(?P<pk>[-\w]+)/', 'get_ui_edit_view'),
+        ('list', r'', 'get_ui_list_view'),
+    )
+
+    bulk_change_url_name = None
+
+    def get_view_classes(self):
+        view_classes = super(UIModelISCore, self).get_view_classes() + list(self.default_model_view_classes)
+        if self.is_bulk_change_enabled():
+            view_classes.append((self.get_bulk_change_url_name(), r'bulk-change/?', BulkChangeFormView))
+        return view_classes + list(self.default_model_view_classes)
+
+    def get_ui_add_view(self):
+        return self.ui_add_view
+
+    def get_ui_edit_view(self):
+        return self.ui_edit_view
+
+    def get_ui_list_view(self):
+        return self.ui_list_view
 
     def get_ui_form_add_class(self, request, obj=None):
         return self.ui_form_add_class or self.get_form_add_class(request, obj)
@@ -361,21 +414,23 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_ui_form_exclude(self, request, obj=None):
         return self.get_form_exclude(request, obj)
 
+    def is_bulk_change_enabled(self):
+        return self.get_bulk_change_url_name() is not None
+
+    def get_bulk_change_url_name(self):
+        return self.bulk_change_url_name
+
     def get_urls(self):
         return self.get_urlpatterns(self.ui_patterns)
 
     def get_show_in_menu(self, request):
-        return 'list' in self.view_classes and self.show_in_menu and self.has_ui_read_permission(request)
+        return self.menu_url_name in self.ui_patterns and self.show_in_menu and self.has_ui_read_permission(request)
 
     def get_form_inline_views(self, request, obj=None):
         return self.form_inline_views
 
     def get_default_list_filter(self, request):
         return self.default_list_filter.copy()
-
-    @property
-    def menu_url_name(self):
-        return 'list-%s' % self.get_menu_group_pattern_name()
 
     def get_list_display(self, request):
         return list(self.list_display)
@@ -404,6 +459,11 @@ class UIModelISCore(ModelISCore, UIISCore):
 
 
 class RESTModelISCore(RESTISCore, ModelISCore):
+    """
+    Main core controller for specific model that provides REST resources for model management.
+    CRUD (POST, GET, PUT, DELETE).
+    """
+
     abstract = True
 
     # Allowed rest fields
@@ -421,14 +481,8 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     rest_form_edit_class = None
     rest_form_add_class = None
 
-    rest_allowed_methods = ('get', 'delete', 'post', 'put')
-    rest_obj_class_names = ()
-
     rest_resource_class = RESTModelResource
     rest_form_field_labels = None
-
-    def __init__(self, site_name, menu_parent_groups):
-        super(RESTModelISCore, self).__init__(site_name, menu_parent_groups)
 
     def get_rest_form_field_labels(self, request):
         return (
@@ -474,19 +528,13 @@ class RESTModelISCore(RESTISCore, ModelISCore):
 
         return rfs(self.rest_guest_fields)
 
-    def get_rest_obj_class_names(self, request, obj):
-        return list(self.rest_obj_class_names)
-
     def get_rest_class(self):
         return modelrest_factory(self.model, self.rest_resource_class)
 
-    def get_resource_patterns(self):
-        resource_patterns = super(RESTModelISCore, self).get_resource_patterns()
-        resource_patterns.update(DoubleRESTPattern(
-            self.get_rest_class(),
-            self.default_rest_resource_pattern_class, self
-        ).patterns)
-        return resource_patterns
+    def get_rest_patterns(self):
+        rest_patterns = super(RESTModelISCore, self).get_rest_patterns()
+        rest_patterns.update(DoubleRESTPattern(self.get_rest_class(), self.default_rest_pattern_class, self).patterns)
+        return rest_patterns
 
     def get_list_actions(self, request, obj):
         list_actions = super(RESTModelISCore, self).get_list_actions(request, obj)
@@ -497,13 +545,17 @@ class RESTModelISCore(RESTISCore, ModelISCore):
                                                   class_name='delete', success_text=_('Record "%s" was deleted') % obj))
         return list_actions
 
-    def web_link_patterns(self, request):
-        return self.ui_patterns.values()
-
 
 class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
+    """
+    Combination of UI views and REST resources. UI views uses REST resources for printing model data, filtering,
+    paging and so on.
+    """
+
     abstract = True
     ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
+    rest_resource_class = UIRESTModelResource
+    rest_obj_class_names = ()
 
     def get_rest_extra_fields(self, request, obj=None):
         fieldset = super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj)
@@ -528,8 +580,18 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     def get_default_action(self, request, obj):
         return 'edit-%s' % self.get_menu_group_pattern_name()
 
+    def web_link_patterns(self, request):
+        return self.ui_patterns.values()
+
+    def get_rest_obj_class_names(self, request, obj):
+        return list(self.rest_obj_class_names)
+
 
 class ViaRESTModelISCore(RESTModelISCore):
+    """
+    Special REST controller. All REST resources must be updated via another model object.
+    """
+
     via_model = None
     fk_name = None
     abstract = True

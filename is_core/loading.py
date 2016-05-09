@@ -1,23 +1,31 @@
-from django.utils.datastructures import SortedDict
+import six
+
+from collections import OrderedDict
+
+from importlib import import_module
+
 from django.conf import settings
-from django.utils.importlib import import_module
 from django.utils.encoding import force_text
 
 
 class App(object):
 
     def __init__(self):
-        self.cores = set()
+        self.cores = []
+
+    def add_core(self, core):
+        if core not in self.cores:
+            self.cores.append(core)
 
 
 class CoresLoader(object):
 
     def __init__(self):
-        self.apps = SortedDict()
+        self.apps = OrderedDict()
 
     def register_core(self, app_label, core):
         app = self.apps.get(app_label, App())
-        app.cores.add(core)
+        app.add_core(core)
         self.apps[app_label] = app
 
     def _init_apps(self):
@@ -26,8 +34,8 @@ class CoresLoader(object):
             try:
                 import_module('%s.cores' % app)
             except ImportError as ex:
-                if force_text(ex) != 'No module named cores':
-                    print app
+                if ((six.PY2 and force_text(ex) != 'No module named cores') or
+                        (six.PY3 and force_text(ex) != 'No module named \'%s.cores\'' % app)):
                     raise ex
 
     def get_cores(self):

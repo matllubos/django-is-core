@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext
 from django.conf import settings
 
 from is_core.exceptions import ResponseException
@@ -22,12 +22,12 @@ class RequestKwargsMiddleware(object):
 
 
 # Not working with pyston exceptions
-class HttpExceptionsMiddleware(object):
+class HTTPExceptionsMiddleware(object):
 
     def process_exception(self, request, exception):
         if isinstance(exception, ResponseException):
             return exception.get_response(request)
         if isinstance(exception, ValidationError):
-            return responseexception_factory(request, 422, _('Unprocessable Entity'), exception.messages)
+            return responseexception_factory(request, 422, ugettext('Unprocessable Entity'), exception.messages)
         if not settings.DEBUG and isinstance(exception, Http404):
-            return responseexception_factory(request, 404, _('Not Found'), force_text(exception))
+            return responseexception_factory(request, 404, ugettext('Not Found'), force_text(exception))

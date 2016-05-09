@@ -32,7 +32,6 @@ class HelperTestCase(object):
             del result[field]
         return result
 
-
     def get_user_obj(self):
         user_data = self.get_user_data()
         return User.objects._create_user(user_data.get('username'), user_data.get('email'),

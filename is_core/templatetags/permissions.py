@@ -36,20 +36,20 @@ class PermissionNode(Node):
 
         view_permissions = context.get('permissions', {})
 
-        if view_permissions.has_key(perm_name):
+        if perm_name in view_permissions:
             perm_fun_or_bool = view_permissions.get(perm_name)
-            if (isinstance(perm_fun_or_bool, bool) and perm_fun_or_bool) \
-                or (hasattr(perm_fun_or_bool, '__call__') and perm_fun_or_bool(request, *args)):
+            if ((isinstance(perm_fun_or_bool, bool) and perm_fun_or_bool) or
+                    (hasattr(perm_fun_or_bool, '__call__') and perm_fun_or_bool(request, *args))):
                 return self.nodelist_true.render(context)
 
-        if permissions.permissions_validators.has_key(perm_name):
+        if perm_name in permissions.permissions_validators:
             request = context.get('request')
             if permissions.permissions_validators.get(perm_name)(request, *args):
                 return self.nodelist_true.render(context)
         return self.nodelist_false.render(context)
 
     def validator_kwargs(self, request, validator):
-        if request.kwargs.has_key('pk'):
+        if 'pk' in request.kwargs:
             Model = getattr(validator.im_self, 'model')
             if Model:
                 return {'obj': SimpleLazyObject(lambda: get_obj(Model, request.kwargs['pk']))}

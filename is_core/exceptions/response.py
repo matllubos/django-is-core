@@ -36,7 +36,7 @@ def responseexception_factory(request, response_code, title, message, response_c
             resp_message = force_text(title)
         set_rest_context_to_request(request, BaseResource.DEFAULT_REST_CONTEXT_MAPPING)
         converter, ct = get_converter_from_request(request)
-        content = converter().encode(request, {'message': {'error': resp_message}}, None, message)
+        content = converter().encode({'message': {'error': resp_message}})
     return response_class(content, status=response_code, content_type=ct)
 
 
@@ -49,7 +49,7 @@ class ResponseException(Exception):
         return responseexception_factory(request, self.status_code, self.title, self.message)
 
 
-class HttpRedirectResponseException(ResponseException):
+class HTTPRedirectResponseException(ResponseException):
 
     def __init__(self, url):
         self.url = url
@@ -58,37 +58,37 @@ class HttpRedirectResponseException(ResponseException):
         return HttpResponseRedirect(self.url)
 
 
-class HttpBadRequestResponseException(ResponseException):
+class HTTPBadRequestResponseException(ResponseException):
 
     title = _('Bad Request')
     status_code = 400
 
 
-class HttpUnauthorizedResponseException(ResponseException):
+class HTTPUnauthorizedResponseException(ResponseException):
 
     title = _('Unauthorized')
     status_code = 401
 
 
-class HttpForbiddenResponseException(ResponseException):
+class HTTPForbiddenResponseException(ResponseException):
 
     title = _('Forbidden')
     status_code = 403
 
 
-class HttpUnsupportedMediaTypeResponseException(ResponseException):
+class HTTPUnsupportedMediaTypeResponseException(ResponseException):
 
     title = _('Unsupported Media Type')
     status_code = 415
 
 
-class HttpMethodNotAllowedResponseException(ResponseException):
+class HTTPMethodNotAllowedResponseException(ResponseException):
 
     title = _('Method Not Allowed')
     status_code = 405
 
 
-class HttpDuplicateResponseException(ResponseException):
+class HTTPDuplicateResponseException(ResponseException):
 
     title = _('Conflict/Duplicate')
     status_code = 409

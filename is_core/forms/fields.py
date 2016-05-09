@@ -4,6 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.base import Model
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext
 
 from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, DivButtonWidget, ModelObjectReadonlyWidget
 
@@ -24,7 +25,7 @@ class ReadonlyField(forms.Field):
         return False
 
     def validate(self, value):
-        raise ValidationError(_('Readonly field can not be validated'))
+        raise ValidationError(ugettext('Readonly field can not be validated'))
 
 
 class EmptyReadonlyField(ReadonlyField):

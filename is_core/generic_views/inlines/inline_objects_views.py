@@ -30,7 +30,7 @@ class InlineObjectsView(InlineView):
 
     def get_objects(self):
         """
-        This method must return a list of models, dictionaries or any objects.
+        This method must return a queryset of models, dictionaries or any iterable objects.
 
         Dictionaries must have keys defined in the attribute 'fields'. For eg: {'company_name': 'ABC', 'zip': '44455'}
 

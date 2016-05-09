@@ -2,7 +2,7 @@ import json
 
 from django.utils.encoding import force_text
 
-from germanium import tools as gt
+from germanium.tools import assert_true, assert_not_equal
 from germanium.client import ClientTestCase
 from germanium.anotations import login
 from germanium.crawler import Crawler, LinkExtractor, HtmlLinkExtractor as OriginalHtmlLinkExtractor
@@ -22,7 +22,7 @@ def flatt_list(iterable_value):
     return flatten_list
 
 
-class JsonLinkExtractor(LinkExtractor):
+class JSONLinkExtractor(LinkExtractor):
 
     def _extract_web_links(self, data):
         return flatt_list(data.values())
@@ -65,7 +65,7 @@ class JsonLinkExtractor(LinkExtractor):
         return links
 
 
-class HtmlLinkExtractor(OriginalHtmlLinkExtractor):
+class HTMLLinkExtractor(OriginalHtmlLinkExtractor):
     link_attr_names = ('href', 'src', 'data-resource')
 
 
@@ -77,7 +77,7 @@ class TextPlainSnippetsExtractor(LinkExtractor):
         try:
             data = json.loads(content)
 
-            html_extractor = HtmlLinkExtractor()
+            html_extractor = HTMLLinkExtractor()
             for html in data.get('snippets', {}).values():
                 links += html_extractor.extract(html)
         except ValueError:
@@ -101,6 +101,7 @@ class CrawlerTestCase(ClientTestCase):
 
         tested_urls = []
         failed_urls = []
+
         def pre_request(url, referer, headers):
             if url.startswith('/api/'):
                 headers['HTTP_X_FIELDS'] = '_rest_links,_web_links'
@@ -110,18 +111,18 @@ class CrawlerTestCase(ClientTestCase):
 
         def post_response(url, referer, resp, exception):
             tested_urls.append(url)
-            gt.assert_true(exception is None or isinstance(exception, HTMLParseError),
-                           msg='Received exception %s' % force_text(exception))
+            assert_true(exception is None or isinstance(exception, HTMLParseError),
+                        msg='Received exception %s' % force_text(exception))
             if resp.status_code != 200:
                 failed_urls.append(url)
                 self.logger.warning('Response code for url %s from referer %s should be 200 but code is %s, user %s' %
                                     (url, referer, resp.status_code, self.logged_user.user))
-            gt.assert_not_equal(resp.status_code, 500, msg='Response code for url %s from referer %s is 500, user %s' %
-                                (url, referer, self.logged_user.user))
+            assert_not_equal(resp.status_code, 500, msg='Response code for url %s from referer %s is 500, user %s' %
+                             (url, referer, self.logged_user.user))
         Crawler(self.c, ('/',), ('/logout/',), pre_request, post_response,
-                extra_link_extractors={'application/json; charset=utf-8': JsonLinkExtractor(),
+                extra_link_extractors={'application/json; charset=utf-8': JSONLinkExtractor(),
                                        'text/plain': TextPlainSnippetsExtractor(),
-                                       'default': HtmlLinkExtractor()}).run()
+                                       'default': HTMLLinkExtractor()}).run()
 
         self.logger.info('Completed with tested %s urls (warnings %s)' % (len(tested_urls), len(failed_urls)))
         self.logger.info('---------------------------')

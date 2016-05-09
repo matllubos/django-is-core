@@ -6,9 +6,9 @@ import types
 import inspect
 
 from django.http.request import QueryDict
-from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext
 from django.utils.html import format_html
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.fields import FieldDoesNotExist
@@ -170,7 +170,7 @@ def display_for_value(value):
     from django.contrib.admin.util import display_for_value as admin_display_for_value
 
     if isinstance(value, bool):
-        value = _('Yes') if value else _('No')
+        value = ugettext('Yes') if value else ugettext('No')
     else:
         value = admin_display_for_value(value)
     return value
@@ -178,7 +178,7 @@ def display_for_value(value):
 
 def get_obj_url(request, obj):
     if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__') and
-        hasattr(getattr(obj, 'can_see_edit_link', None), '__call__') and
+            hasattr(getattr(obj, 'can_see_edit_link', None), '__call__') and
             obj.can_see_edit_link(request)):
         return obj.get_absolute_url()
     else:
@@ -196,3 +196,7 @@ def render_model_object_with_link(request, obj, display_value=None):
     obj_url = get_obj_url(request, obj)
     display_value = display_value or force_text(obj)
     return format_html('<a href="{}">{}</a>', obj_url, display_value) if obj_url else display_value
+
+
+def header_name_to_django(header_name):
+    return '_'.join(('HTTP', header_name.replace('-', '_').upper()))

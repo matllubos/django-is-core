@@ -11,7 +11,7 @@ AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 class Issue(models.Model):
 
     name = models.CharField(verbose_name=_('Name'), max_length=100, null=False, blank=False)
-    watched_by = models.ManyToManyField(AUTH_USER_MODEL, verbose_name=_('Watched by'), null=True, blank=True,
+    watched_by = models.ManyToManyField(AUTH_USER_MODEL, verbose_name=_('Watched by'), blank=True,
                                         related_name='watching_issues')
     created_by = models.ForeignKey(AUTH_USER_MODEL, verbose_name=_('Created by'), null=False, blank=False,
                                    related_name='created_issues')

@@ -208,7 +208,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     """
     opts = instance._meta
     data = {}
-    for f in opts.concrete_fields + opts.virtual_fields + opts.many_to_many:
+    for f in itertools.chain(opts.concrete_fields, opts.virtual_fields, opts.many_to_many):
         if not getattr(f, 'editable', False):
             continue
         if fields and f.name not in fields:

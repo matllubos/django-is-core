@@ -3,13 +3,15 @@ from __future__ import unicode_literals
 import re
 import logging
 
+from collections import OrderedDict
+
 from django.core.urlresolvers import reverse, resolve, Resolver404
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
-from django.utils.datastructures import SortedDict
 
 from is_core.utils import get_new_class_name
 from is_core.auth import rest_login_required
+from is_core import config
 
 
 logger = logging.getLogger('is-core')
@@ -99,8 +101,8 @@ class ViewPattern(Pattern):
             url_pattern = self.url_pattern
             if url_pattern.startswith('^'):
                 url_pattern = url_pattern[1:]
-            url_pattern = '^%s%s' % (self.url_prefix, url_pattern)
-        return url(url_pattern, self.get_view_dispatch(), name=self.name)
+            url_pattern = '%s/%s' % (self.url_prefix, url_pattern)
+        return url('^%s$' % url_pattern, self.get_view_dispatch(), name=self.name)
 
     def _get_called_permission_kwargs(self, request, obj):
         kwargs = {}
@@ -163,7 +165,7 @@ class UIPattern(ViewPattern):
     def get_view_dispatch(self):
         dispatch = self.view_class.as_view()
         if self.view_class.login_required:
-            return login_required(dispatch)
+            return login_required(dispatch, login_url=config.IS_CORE_LOGIN_URL)
         return dispatch
 
 
@@ -182,7 +184,7 @@ class RESTPattern(ViewPattern):
     def get_url_prefix(self):
         url_prefix = super(RESTPattern, self).get_url_prefix()
         if url_prefix:
-            return 'api/%s' % url_prefix
+            return 'api/{}'.format(url_prefix)
 
     def get_view(self, request, args=None, kwargs=None):
         view = self.resource_class(request)
@@ -224,13 +226,13 @@ class DoubleRESTPattern(object):
 
     @property
     def patterns(self):
-        result = SortedDict()
+        result = OrderedDict()
         result['api-resource'] = self.pattern_class(
-            'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/(?P<pk>[-\w]+)/?$',
+            'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^(?P<pk>[-\w]+)/$',
             self.resource_class, self.core, ('get', 'put', 'delete'), clone_view_class=False
         )
         result['api'] = self.pattern_class(
-            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^/?$', self.resource_class,
+            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'$', self.resource_class,
             self.core, self._get_api_allowed_methods(), clone_view_class=False
         )
         return result

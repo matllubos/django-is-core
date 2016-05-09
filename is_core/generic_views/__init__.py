@@ -9,7 +9,7 @@ from django.conf import settings
 from block_snippets.views import JsonSnippetTemplateResponseMixin
 
 from is_core.menu import LinkMenuItem
-from is_core.exceptions import HttpForbiddenResponseException
+from is_core.exceptions import HTTPForbiddenResponseException
 from is_core.generic_views.exceptions import GenericViewException
 from django.http.response import Http404
 
@@ -53,10 +53,10 @@ class PermissionsViewMixin(object):
             if settings.DEBUG:
                 raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
             else:
-                raise HttpForbiddenResponseException
+                raise HTTPForbiddenResponseException
 
         if not getattr(self, 'has_%s_permission' % name)(*args, **kwargs):
-            raise HttpForbiddenResponseException
+            raise HTTPForbiddenResponseException
 
     def has_options_permission(self, **kwargs):
         return True

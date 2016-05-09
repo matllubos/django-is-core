@@ -19,7 +19,9 @@ def add_urls_to_resource(resource):
         return reverse('%s:api-%s' % (self.core.site_name, self.core.get_menu_group_pattern_name()))
 
     def get_resource_url(self, pk):
-        return reverse('%s:api-resource-%s' % (self.core.site_name, self.core.get_menu_group_pattern_name()), args=(pk,))
+        return reverse('%s:api-resource-%s' % (
+            self.core.site_name, self.core.get_menu_group_pattern_name()), args=(pk,)
+        )
 
     resource._resource_url = types.MethodType(get_resource_url, resource)
     resource._resource_list_url = types.MethodType(get_resource_list_url, resource)

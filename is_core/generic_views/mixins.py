@@ -18,8 +18,8 @@ class ListParentMixin(object):
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
-        if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').get_view(self.request).has_get_permission():
+        if ('list' in self.core.ui_patterns and
+                self.core.ui_patterns.get('list').get_view(self.request).has_get_permission()):
             menu_items.append(self.list_bread_crumbs_menu_item())
         return menu_items
 

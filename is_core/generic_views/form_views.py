@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
+from collections import OrderedDict
+
+import django
 from django.forms.models import ModelForm
 from django.http.response import HttpResponseRedirect, Http404
-from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
@@ -173,7 +175,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
     def get_buttons(self):
         buttons = {}
-        for key, value in self.get_buttons_dict().iteritems():
+        for key, value in self.get_buttons_dict().items():
             buttons[key] = {
                 'label': value.get('label'),
                 'title': value.get('title')
@@ -308,13 +310,13 @@ class DefaultModelFormView(DefaultFormView):
         return self.inline_views or ()
 
     def init_inline_views(self, instance):
-        inline_views = SortedDict()
+        inline_views = OrderedDict()
         for inline_view in self.get_inline_views():
             inline_views[inline_view.__name__] = inline_view(self.request, self, instance)
         return inline_views
 
     def _filter_inline_form_views(self, inline_views):
-        inline_form_views = SortedDict()
+        inline_form_views = OrderedDict()
         for name, view in inline_views.items():
             if isinstance(view, InlineFormView):
                 inline_form_views[name] = view
@@ -462,8 +464,13 @@ class DefaultModelFormView(DefaultFormView):
         context_data = super(DefaultModelFormView, self).get_context_data(form=form,
                                                                           inline_form_views=inline_form_views,
                                                                           **kwargs)
+        if django.get_version() < '1.7':
+            module_name = str(self.model._meta.module_name)
+        else:
+            module_name = str(self.model._meta.model_name)
+
         context_data.update({
-            'module_name': self.model._meta.module_name,
+            'module_name': module_name,
             'cancel_url': self.get_cancel_url(),
             'show_save_button': self.has_save_button()
         })
@@ -555,15 +562,16 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         return self.view_type in self.core.ui_patterns and self.has_post_permission()
 
     def get_success_url(self, obj):
-        if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() \
-                and 'save' in self.request.POST:
+        if ('list' in self.core.ui_patterns and
+                self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() and
+                'save' in self.request.POST):
             return self.core.ui_patterns.get('list').get_url_string(self.request)
-        elif 'edit' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('edit').get_view(self.request).has_get_permission(obj=obj) \
-                and 'save-and-continue' in self.request.POST:
+        elif ('edit' in self.core.ui_patterns and
+                self.core.ui_patterns.get('edit').get_view(self.request).has_get_permission(obj=obj) and
+                'save-and-continue' in self.request.POST):
             return self.core.ui_patterns.get('edit').get_url_string(self.request, kwargs={'pk': obj.pk})
-        return ''
+        else:
+            return ''
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
         context_data = super(DefaultCoreModelFormView, self).get_context_data(form=form,

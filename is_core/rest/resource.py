@@ -6,6 +6,7 @@ from django.db import transaction
 from django.http.response import Http404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext
+from django.utils.encoding import force_text
 
 from pyston.exception import (RESTException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
@@ -16,13 +17,14 @@ from pyston.response import RESTErrorResponse, RESTErrorsResponse
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.decorators import classproperty
 
-from is_core.exceptions import HttpForbiddenResponseException
-from is_core.exceptions.response import (HttpBadRequestResponseException, HttpUnsupportedMediaTypeResponseException,
-                                         HttpMethodNotAllowedResponseException, HttpDuplicateResponseException)
+from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
+                                         HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
+                                         HTTPForbiddenResponseException)
 from is_core.filters import get_model_field_or_method_filter
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
 from is_core.utils.immutable import merge
+from is_core import config
 
 
 class RESTResource(BaseResource):
@@ -50,19 +52,22 @@ class RESTResource(BaseResource):
         Trasform pyston exceptions to Is-core exceptions and raise it
         """
         response_exceptions = {
-            MimerDataException: HttpBadRequestResponseException,
-            NotAllowedException: HttpForbiddenResponseException,
-            UnsupportedMediaTypeException: HttpUnsupportedMediaTypeResponseException,
+            MimerDataException: HTTPBadRequestResponseException,
+            NotAllowedException: HTTPForbiddenResponseException,
+            UnsupportedMediaTypeException: HTTPUnsupportedMediaTypeResponseException,
             Http404: Http404,
             ResourceNotFoundException: Http404,
-            NotAllowedMethodException: HttpMethodNotAllowedResponseException,
-            DuplicateEntryException: HttpDuplicateResponseException,
-            ConflictException: HttpDuplicateResponseException,
+            NotAllowedMethodException: HTTPMethodNotAllowedResponseException,
+            DuplicateEntryException: HTTPDuplicateResponseException,
+            ConflictException: HTTPDuplicateResponseException,
         }
         response_exception = response_exceptions.get(type(exception))
         if response_exception:
             raise response_exception
         return super(RESTResource, self)._get_error_response(exception)
+
+    def _get_cors_allowed_headers(self):
+        return super(RESTResource, self)._get_cors_allowed_headers() + (config.IS_CORE_AUTH_HEADER_NAME,)
 
 
 class RESTModelCoreResourcePermissionsMixin(object):
@@ -159,18 +164,9 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     def get_guest_fields(self, obj=None):
         return self.core.get_rest_guest_fields(self.request, obj=obj)
 
-    def _web_links(self, obj):
-        web_links = {}
-        for pattern in self.core.web_link_patterns(self.request):
-            if pattern.send_in_rest:
-                url = pattern.get_url_string(self.request, obj=obj)
-                if url and pattern.can_call_get(self.request, obj=obj):
-                    web_links[pattern.name] = url
-        return web_links
-
     def _rest_links(self, obj):
         rest_links = {}
-        for pattern in self.core.resource_patterns.values():
+        for pattern in self.core.rest_patterns.values():
             if pattern.send_in_rest:
                 url = pattern.get_url_string(self.request, obj=obj)
                 if url:
@@ -225,7 +221,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
         try:
             qs = qs.order_by(*order_field.split(','))
             # Queryset validation, there is no other option
-            unicode(qs.query)
+            force_text(qs.query)
         except Exception:
             raise RESTException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
         return qs
@@ -312,3 +308,19 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
             'errors': {k: mark_safe(v) for k, v in ex.errors.items()} if hasattr(ex, 'errors') else {},
             '_obj_name': mark_safe(''.join(('#', str(obj.pk), ' ', self._extract_message(ex)))),
         }
+
+
+class UIRESTModelResource(RESTModelResource):
+
+    def _web_links(self, obj):
+        web_links = {}
+        for pattern in self.core.web_link_patterns(self.request):
+            if pattern.send_in_rest:
+                url = pattern.get_url_string(self.request, obj=obj)
+                if url and pattern.can_call_get(self.request, obj=obj):
+                    web_links[pattern.name] = url
+        return web_links
+
+    def _class_names(self, obj):
+        return self.core.get_rest_obj_class_names(self.request, obj)
+

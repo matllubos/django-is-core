@@ -2,7 +2,9 @@ from __future__ import unicode_literals
 
 import re
 import warnings
+import datetime
 
+import django
 from django.utils import six
 from django.forms.forms import BoundField, DeclarativeFieldsMetaclass, Form
 from django.forms.fields import FileField
@@ -49,7 +51,7 @@ class SmartBoundField(BoundField):
             name = self.html_initial_name
 
         if isinstance(widget, SmartWidgetMixin) and hasattr(self.form, '_request'):
-            return widget.smart_render(self.form._request, name, self.value(), self._initial_value(), self.form,
+            return widget.smart_render(self.form._request, name, self.value(), self._form_initial_value(), self.form,
                                        attrs=attrs)
         return widget.render(name, self.value(), attrs=attrs)
 
@@ -66,15 +68,22 @@ class SmartBoundField(BoundField):
         )
         return self.field.prepare_value(data)
 
-    def _initial_value(self):
+    def _form_initial_value(self):
         data = self.form.initial.get(self.name, self.field.initial)
         if callable(data):
             data = data()
+            if django.get_version() >= '1.7':
+                # If this is an auto-generated default date, nix the
+                # microseconds for standardized handling. See #22502.
+                if (isinstance(data, (datetime.datetime, datetime.time)) and
+                        not getattr(self.field.widget, 'supports_microseconds', True)):
+                    data = data.replace(microsecond=0)
+
         return self.field.prepare_value(data)
 
     def value(self):
         if not self.form.is_bound:
-            return self._initial_value()
+            return self._form_initial_value()
         else:
             return self._bound_value()
 
@@ -113,9 +122,8 @@ class ReadonlyBoundField(SmartBoundField):
         """
         return mark_safe('')
 
-    def _initial_value(self):
+    def _form_initial_value(self):
         data = self.form.initial.get(self.name, self.field.initial)
-
         if callable(data):
             data = data()
 
@@ -127,7 +135,7 @@ class ReadonlyBoundField(SmartBoundField):
         return value
 
     def value(self):
-        return self._initial_value()
+        return self._form_initial_value()
 
 
 class SmartFormMetaclass(DeclarativeFieldsMetaclass):

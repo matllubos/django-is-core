@@ -1,3 +1,5 @@
+from django.utils.encoding import python_2_unicode_compatible
+
 
 class MenuItem(object):
 
@@ -9,13 +11,14 @@ class MenuItem(object):
         self.active = active
 
 
+@python_2_unicode_compatible
 class LinkMenuItem(MenuItem):
 
     def __init__(self, title, url, group=None, active=False, submenu_items=[]):
         super(LinkMenuItem, self).__init__(title, False, group, active, submenu_items)
         self.url = url
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
 
@@ -34,6 +37,8 @@ class MenuGenerator(object):
         self.active_groups = active_groups
 
     def get_menu_items(self, items):
+        from .main import UIISCore
+
         menu_items = []
         if self.active_groups:
             group = self.active_groups[0]
@@ -45,10 +50,12 @@ class MenuGenerator(object):
                 menu_items.append(item)
             else:
                 item = self.site._registry[item]
-                menu_item = item.get_menu_item(self.request, group)
-                if menu_item:
-                    menu_items.append(menu_item)
+                if isinstance(item, UIISCore):
+                    menu_item = item.get_menu_item(self.request, group)
+                    if menu_item:
+                        menu_items.append(menu_item)
         return menu_items
 
     def get_menu_structure(self):
         return self.site._registry.keys()
+

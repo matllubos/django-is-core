@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import django
+
 from django.core.urlresolvers import reverse
 from django.views.generic.base import TemplateView
 from django.db.models.fields import FieldDoesNotExist
@@ -173,10 +175,16 @@ class TableViewMixin(object):
 
     def get_context_data(self, **kwargs):
         context_data = super(TableViewMixin, self).get_context_data(**kwargs)
+
+        if django.VERSION < (1, 7):
+            module_name = str(self.model._meta.module_name)
+        else:
+            module_name = str(self.model._meta.model_name)
+
         context_data.update({
             'headers': self._get_headers(),
             'api_url': self._get_api_url(),
-            'module_name': self.model._meta.module_name,
+            'module_name': module_name,
             'list_display': self._get_list_display(),
             'rest_fieldset': self._generate_rest_fieldset(),
             'rest_export_fieldset': self._generate_rest_export_fieldset(),

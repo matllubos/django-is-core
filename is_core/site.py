@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
-from django.conf import settings
+from collections import OrderedDict
+
 from django.conf.urls import patterns, url, include
-from django.utils.datastructures import SortedDict
 from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
 
@@ -42,7 +42,7 @@ class ISSite(object):
         self._registry = self._init_items()
 
     def _init_items(self):
-        out = SortedDict()
+        out = OrderedDict()
 
         for core in get_cores():
             generic_core = self.register(core(self.name, []))
@@ -67,22 +67,23 @@ class ISSite(object):
             urlpatterns += patterns('', url(r'^', include(item.get_urls())))
 
     def get_urls(self):
-        LoginView = str_to_class(config.AUTH_LOGIN_VIEW)
-        LogoutView = str_to_class(config.AUTH_LOGOUT_VIEW)
+        LoginView = str_to_class(config.IS_CORE_AUTH_LOGIN_VIEW)
+        LogoutView = str_to_class(config.IS_CORE_AUTH_LOGOUT_VIEW)
         urlpatterns = patterns('',
-                               url(r'^%s$' % settings.LOGIN_URL[1:],
-                                   LoginView.as_view(form_class=str_to_class(config.AUTH_FORM_CLASS)),
+                               url(r'^%s$' % config.IS_CORE_LOGIN_URL[1:],
+                                   LoginView.as_view(form_class=str_to_class(config.IS_CORE_AUTH_FORM_CLASS)),
                                    name='login'),
-                               url(r'^%s$' % settings.LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
+                               url(r'^%s$' % config.IS_CORE_LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
                                )
 
-        if config.AUTH_USE_TOKENS:
-            auth_resource_class = str_to_class(config.AUTH_RESOURCE_CLASS)
-            auth_resource_class.form_class = str_to_class(config.AUTH_FORM_CLASS)
-            pattern = RESTPattern('api-login', self.name, r'^%s$' % config.LOGIN_API_URL[1:], auth_resource_class)
+        if config.IS_CORE_AUTH_USE_TOKENS:
+            auth_resource_class = str_to_class(config.IS_CORE_AUTH_RESOURCE_CLASS)
+            auth_resource_class.form_class = str_to_class(config.IS_CORE_AUTH_FORM_CLASS)
+            pattern = RESTPattern('api-login', self.name, config.IS_CORE_LOGIN_API_URL[1:],
+                                  auth_resource_class)
             urlpatterns += patterns('', pattern.get_url())
 
-        pattern = RESTPattern('api', self.name, r'^api/$', EntryPointResource)
+        pattern = RESTPattern('api', self.name, r'api/', EntryPointResource)
         urlpatterns += patterns('', pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)
