@@ -62,7 +62,7 @@ def get_token(request):
     try:
         token = Token.objects.get(key=auth_token, is_active=True)
         if not token.is_expired:
-            if auth_token == request.META.get(config.IS_CORE_AUTH_HEADER_NAME):
+            if auth_token == request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)):
                 token.is_from_header = True
             return token
     except ObjectDoesNotExist:
@@ -72,7 +72,7 @@ def get_token(request):
 
 def dont_enforce_csrf_checks(request):
     return (getattr(request, '_dont_enforce_csrf_checks', False) or
-            (request.META.get(config.IS_CORE_AUTH_HEADER_NAME) and is_rest_request(request)))
+            (request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)) and is_rest_request(request)))
 
 
 def get_user(request):
