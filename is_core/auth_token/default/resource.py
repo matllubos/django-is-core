@@ -4,7 +4,7 @@ from pyston.utils import rc
 from pyston.response import RESTErrorResponse
 
 from is_core.rest.resource import RESTResource
-from is_core.auth_token import login, logout
+from is_core.auth_token.utils import login, logout
 from is_core.auth_token.forms import TokenAuthenticationForm
 
 

@@ -4,19 +4,21 @@ import time
 
 from django.utils.functional import SimpleLazyObject
 from django.utils.http import cookie_date
+from django.utils.encoding import force_text
 
-from is_core import config, auth_token
+from is_core import config
+from is_core.auth_token import utils
 
 
 def get_user(request):
     if not hasattr(request, '_cached_user'):
-        request._cached_user = auth_token.get_user(request)
+        request._cached_user = utils.get_user(request)
     return request._cached_user
 
 
 def get_token(request):
     if not hasattr(request, '_cached_token'):
-        request._cached_token = auth_token.get_token(request)
+        request._cached_token = utils.get_token(request)
     return request._cached_token
 
 
@@ -27,7 +29,7 @@ class TokenAuthenticationMiddlewares(object):
         """
         request.token = SimpleLazyObject(lambda: get_token(request))
         request.user = SimpleLazyObject(lambda: get_user(request))
-        request._dont_enforce_csrf_checks = auth_token.dont_enforce_csrf_checks(request)
+        request._dont_enforce_csrf_checks = utils.dont_enforce_csrf_checks(request)
 
     def process_response(self, request, response):
         """
@@ -45,6 +47,7 @@ class TokenAuthenticationMiddlewares(object):
                 expires = None
 
             request.token.save()
-            response.set_cookie(config.IS_CORE_AUTH_COOKIE_NAME, request.token.key, max_age=max_age, expires=expires,
-                                httponly=config.IS_CORE_AUTH_COOKIE_HTTPONLY, secure=config.IS_CORE_AUTH_COOKIE_SECURE)
+            response.set_cookie(config.IS_CORE_AUTH_COOKIE_NAME, force_text(request.token.key), max_age=max_age,
+                                expires=expires, httponly=config.IS_CORE_AUTH_COOKIE_HTTPONLY,
+                                secure=config.IS_CORE_AUTH_COOKIE_SECURE)
         return response

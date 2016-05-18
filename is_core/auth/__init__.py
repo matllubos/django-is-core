@@ -4,8 +4,6 @@ from functools import wraps
 
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseForbidden
-from django.template.loader import render_to_string
-from django.template.context import RequestContext
 from django.utils.functional import SimpleLazyObject
 from django.utils.decorators import available_attrs
 

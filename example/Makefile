@@ -14,7 +14,8 @@ SETTINGS = settings
 DJANGO_SETTINGS_MODULE = $(DJANGO_DIR).settings.$(SETTINGS)
 DJANGO_POSTFIX = --settings=$(DJANGO_SETTINGS_MODULE) --pythonpath=$(PYTHONPATH)
 PYTHON_BIN = $(VIRTUAL_ENV)/bin
-PYTHON = python3
+PYTHON_VERSION_MAJOR = 3.4
+PYTHON = python$(PYTHON_VERSION_MAJOR)
 TYPE = dev
 OS = $(shell uname)
 
@@ -77,14 +78,10 @@ initdb:
 	mkdir -p $(LOCALPATH)/var/db
 
 syncdb:
-	$(PYTHON_BIN)/python manage.py syncdb --noinput $(DJANGO_POSTFIX)
-	$(MAKE) migrate
+	$(PYTHON_BIN)/python manage.py migrate --noinput $(DJANGO_POSTFIX)
 
 initdata: syncmedia
 	if [ -a $(LOCALPATH)/$(INIT_DATA_FILE) ]; then $(PYTHON_BIN)/python manage.py loaddata $(LOCALPATH)/$(INIT_DATA_FILE) $(DJANGO_POSTFIX); fi;
-
-migrate:
-	$(PYTHON_BIN)/python manage.py migrate $(DJANGO_POSTFIX)
 
 resetdb:
 	$(PYTHON_BIN)/python manage.py reset_db --noinput $(DJANGO_POSTFIX)
@@ -125,10 +122,12 @@ endif
 datamigration:
 	$(PYTHON_BIN)/python manage.py datamigration $(app) $(name) $(DJANGO_POSTFIX)
 
-install: cleanvar bootstrap installjs initlog initdb syncdb initdata buildjs initenv
+install: cleanvar bootstrap installjs linklibrary initlog initdb syncdb initdata buildjs initenv
 
 update: clean cleanvirtualenv cleanjs bootstrap syncdb installjs buildjs initenv
 
 include build/Makefile.$(OS)
 
+linklibrary:
+	ln -sf $(LOCALPATH)/../is_core/ $(LOCALPATH)/var/ve/lib/$(PYTHON)/site-packages/;
 

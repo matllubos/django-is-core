@@ -3,11 +3,12 @@ from __future__ import unicode_literals
 import json as serializer
 import os
 
-from django.template.base import Library
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
 from is_core.utils import display_for_value as utils_display_for_value
+from is_core.utils.compatibility import Library
+
 
 register = Library()
 

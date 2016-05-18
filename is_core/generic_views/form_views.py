@@ -18,6 +18,7 @@ from chamber.utils.forms import formset_has_file_field
 from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import flatten_fieldsets, get_readonly_field_data
+from is_core.utils.compatibility import get_model_name
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse
@@ -52,7 +53,9 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def get_has_file_field(self, form, **kwargs):
         return formset_has_file_field(form)
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
+        if form_class is None:
+            form_class = self.get_form_class()
         form = form_class(**self.get_form_kwargs())
         form.readonly = not self.has_post_permission()
 
@@ -213,14 +216,8 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def form_field(self, form, field_name, form_field):
         return form_field
 
-    def get(self, request, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        return self.render_to_response(self.get_context_data(form=form))
-
     def post(self, request, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+        form = self.get_form()
 
         is_valid = form.is_valid()
         is_changed = self.is_changed(form)
@@ -351,10 +348,15 @@ class DefaultModelFormView(DefaultFormView):
         return self.get_fields()
 
     def get_form_class(self):
+        fields = self.generate_fields()
+        readonly_fields = self.generate_readonly_fields()
+        return self.generate_form_class(fields, readonly_fields)
+
+    def get_form_class_base(self):
         return self.form_class or ModelForm
 
     def generate_form_class(self, fields=None, readonly_fields=()):
-        form_class = self.get_form_class()
+        form_class = self.get_form_class_base()
         exclude = list(self.get_exclude())
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
@@ -398,21 +400,14 @@ class DefaultModelFormView(DefaultFormView):
         return form.has_changed()
 
     def get(self, request, *args, **kwargs):
-        fields = self.generate_fields()
-        readonly_fields = self.generate_readonly_fields()
-        form_class = self.generate_form_class(fields, readonly_fields)
-        form = self.get_form(form_class)
+        form = self.get_form()
         inline_views = self.init_inline_views(form.instance)
         inline_form_views = self._filter_inline_form_views(inline_views)
         return self.render_to_response(self.get_context_data(form=form, inline_views=inline_views,
                                                              inline_form_views=inline_form_views))
 
     def post(self, request, *args, **kwargs):
-        fields = self.generate_fields()
-        readonly_fields = self.generate_readonly_fields()
-
-        form_class = self.generate_form_class(fields, readonly_fields)
-        form = self.get_form(form_class)
+        form = self.get_form()
         inline_forms_is_valid = True
 
         inline_views = self.init_inline_views(form.instance)
@@ -464,13 +459,8 @@ class DefaultModelFormView(DefaultFormView):
         context_data = super(DefaultModelFormView, self).get_context_data(form=form,
                                                                           inline_form_views=inline_form_views,
                                                                           **kwargs)
-        if django.get_version() < '1.7':
-            module_name = str(self.model._meta.module_name)
-        else:
-            module_name = str(self.model._meta.model_name)
-
         context_data.update({
-            'module_name': module_name,
+            'module_name': get_model_name(self.model),
             'cancel_url': self.get_cancel_url(),
             'show_save_button': self.has_save_button()
         })
@@ -535,7 +525,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
     def _get_field_labels(self):
         return self.field_labels if self.field_labels is not None else self.core.get_ui_form_field_labels(self.request)
 
-    def get_form_class(self):
+    def get_form_class_base(self):
         obj = self.get_obj(True)
         return (
             self.form_class or

@@ -2,9 +2,11 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
+
+from is_core.utils.compatibility import urls_wrapper
 
 from . import config
 from .utils import str_to_class
@@ -64,27 +66,26 @@ class ISSite(object):
 
     def _set_items_urls(self, items, urlpatterns):
         for item in items:
-            urlpatterns += patterns('', url(r'^', include(item.get_urls())))
+            urlpatterns += urls_wrapper(url(r'^', include(item.get_urls())))
 
     def get_urls(self):
         LoginView = str_to_class(config.IS_CORE_AUTH_LOGIN_VIEW)
         LogoutView = str_to_class(config.IS_CORE_AUTH_LOGOUT_VIEW)
-        urlpatterns = patterns('',
-                               url(r'^%s$' % config.IS_CORE_LOGIN_URL[1:],
-                                   LoginView.as_view(form_class=str_to_class(config.IS_CORE_AUTH_FORM_CLASS)),
-                                   name='login'),
-                               url(r'^%s$' % config.IS_CORE_LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
-                               )
+        urlpatterns = urls_wrapper(
+            url(r'^%s$' % config.IS_CORE_LOGIN_URL[1:], LoginView.as_view(
+                form_class=str_to_class(config.IS_CORE_AUTH_FORM_CLASS)), name='login'),
+            url(r'^%s$' % config.IS_CORE_LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
+        )
 
         if config.IS_CORE_AUTH_USE_TOKENS:
             auth_resource_class = str_to_class(config.IS_CORE_AUTH_RESOURCE_CLASS)
             auth_resource_class.form_class = str_to_class(config.IS_CORE_AUTH_FORM_CLASS)
             pattern = RESTPattern('api-login', self.name, config.IS_CORE_LOGIN_API_URL[1:],
                                   auth_resource_class)
-            urlpatterns += patterns('', pattern.get_url())
+            urlpatterns += urls_wrapper(pattern.get_url())
 
         pattern = RESTPattern('api', self.name, r'api/', EntryPointResource)
-        urlpatterns += patterns('', pattern.get_url())
+        urlpatterns += urls_wrapper(pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)
         return urlpatterns

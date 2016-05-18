@@ -5,14 +5,9 @@ from datetime import timedelta
 from django.utils import timezone
 from django.core.management.base import NoArgsCommand
 
-try:
-    from django.apps import apps
-    get_model = apps.get_model
-except ImportError:
-    from django.db.models.loading import get_model
-
 from is_core import config
 from is_core.auth_token.models import Token, AUTH_USER_MODEL
+from is_core.utils.compatibility import get_model
 
 
 class Command(NoArgsCommand):

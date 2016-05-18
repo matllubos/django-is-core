@@ -6,7 +6,7 @@ from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
-from block_snippets.views import JsonSnippetTemplateResponseMixin
+from block_snippets.views import JSONSnippetTemplateResponseMixin
 
 from is_core.menu import LinkMenuItem
 from is_core.exceptions import HTTPForbiddenResponseException
@@ -62,7 +62,7 @@ class PermissionsViewMixin(object):
         return True
 
 
-class DefaultViewMixin(PermissionsViewMixin, JsonSnippetTemplateResponseMixin):
+class DefaultViewMixin(PermissionsViewMixin, JSONSnippetTemplateResponseMixin):
 
     site_name = None
     menu_groups = None

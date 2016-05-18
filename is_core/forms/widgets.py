@@ -12,9 +12,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Widget
-from django.forms.util import flatatt
 from django.core.validators import EMPTY_VALUES
 from django.db.models.base import Model
+
+from is_core.utils.compatibility import flatatt
 
 
 try:

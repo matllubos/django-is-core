@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
-from django.template.base import Node, Library, TemplateSyntaxError, NodeList
+from django.template.base import Node, TemplateSyntaxError, NodeList
 from django.utils.functional import SimpleLazyObject
+
+from is_core.utils.compatibility import Library
+
 
 register = Library()
 

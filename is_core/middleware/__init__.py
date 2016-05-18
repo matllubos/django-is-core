@@ -5,8 +5,6 @@ from django.contrib.auth.middleware import AuthenticationMiddleware as DjangoAut
 from django.contrib.auth import get_user
 from django.http.response import HttpResponseRedirect, HttpResponse, Http404
 from django.core.exceptions import ValidationError
-from django.shortcuts import render_to_response
-from django.template.context import RequestContext
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 from django.conf import settings

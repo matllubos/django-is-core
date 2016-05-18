@@ -2,11 +2,11 @@ from __future__ import unicode_literals
 
 from django import template
 from django.forms import CheckboxInput
-from django.template.loader import render_to_string
 from django.template.base import TemplateSyntaxError, token_kwargs
 from django.template.loader_tags import IncludeNode
 
 from is_core.forms.widgets import WrapperWidget
+from is_core.utils.compatibility import render_to_string
 
 
 register = template.Library()
@@ -28,6 +28,8 @@ def do_form_renderer(parser, token):
 
 @register.simple_tag(takes_context=True)
 def fieldset_renderer(context, form, fieldset):
+    context = context.dicts[-1].copy()
+    request = context.pop('request', None)
     values = fieldset[1]
     inline_view_name = values.get('inline_view')
     context.update({
@@ -43,7 +45,7 @@ def fieldset_renderer(context, form, fieldset):
         'class': values.get('class'),
         'fieldsets': values.get('fieldsets')
     })
-    return render_to_string(template, context)
+    return render_to_string(template, context, request=request)
 
 
 @register.assignment_tag(takes_context=True)

@@ -1,12 +1,16 @@
-from django.conf.urls import patterns, include, url
+import django
+from django.conf.urls import include, url
 from django.conf import settings
 
 from is_core.site import site
 
 
-urlpatterns = patterns('',
-    url(r'^', include(site.urls)),
-)
+if django.get_version() >= '1.9':
+    urlpatterns = [url(r'^', include(site.urls))]
+else:
+    from django.conf.urls import patterns
+
+    urlpatterns = patterns('', url(r'^', include(site.urls)))
 
 if settings.DEBUG:
     from django.conf.urls.static import static

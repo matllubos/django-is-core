@@ -1,14 +1,17 @@
 import mimeparse
 
+import django
+
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.template.loader import render_to_string
-from django.template.context import RequestContext
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 from pyston.utils import set_rest_context_to_request
 from pyston.converter import get_converter_from_request, get_supported_mime_types
 from pyston.resource import BaseResource
+
+from is_core.utils.compatibility import render_to_string
 
 
 def responseexception_factory(request, response_code, title, message, response_class=HttpResponse):
@@ -23,8 +26,7 @@ def responseexception_factory(request, response_code, title, message, response_c
             resp_message = ', '.join(resp_message)
 
         context = {'response_code': response_code, 'title': title, 'message': resp_message}
-        content = render_to_string(('%s.html' % response_code, 'error.html'),
-                                   context, context_instance=RequestContext(request))
+        content = render_to_string(('%s.html' % response_code, 'error.html'), context, request=request)
         ct = None
     else:
         if resp_message:

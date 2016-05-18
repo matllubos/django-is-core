@@ -5,6 +5,7 @@ import sys
 import types
 import inspect
 
+import django
 from django.http.request import QueryDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -19,7 +20,7 @@ from django.db.models.base import Model
 
 from chamber.utils import get_class_method
 
-from is_core.forms.forms import ReadonlyValue
+from is_core.utils.compatibility import get_field_from_model
 
 
 def str_to_class(class_string):
@@ -103,13 +104,14 @@ def field_widget(instance, field):
 
 def get_field_from_cls_or_inst_or_none(cls_or_inst, field_name):
     try:
-        return cls_or_inst._meta.get_field_by_name(field_name)[0]
+        return get_field_from_model(cls_or_inst, field_name)
     except (FieldDoesNotExist, AttributeError):
         return None
 
 
 def get_cls_or_inst_model_field_data(field, field_name, cls_or_inst, fun_kwargs):
     from is_core.forms.widgets import ReadonlyWidget
+    from is_core.forms.forms import ReadonlyValue
 
     label = field.verbose_name
     widget = ReadonlyWidget
@@ -167,13 +169,12 @@ def get_readonly_field_data(field_name, instances, fun_kwargs, request):
 
 
 def display_for_value(value):
-    from django.contrib.admin.util import display_for_value as admin_display_for_value
-
     if isinstance(value, bool):
-        value = ugettext('Yes') if value else ugettext('No')
+        return ugettext('Yes') if value else ugettext('No')
     else:
-        value = admin_display_for_value(value)
-    return value
+        from is_core.utils.compatibility import admin_display_for_value
+
+        return admin_display_for_value(value)
 
 
 def get_obj_url(request, obj):

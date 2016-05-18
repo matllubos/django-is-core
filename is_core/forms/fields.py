@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.base import Model
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext
 
 from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, DivButtonWidget, ModelObjectReadonlyWidget
@@ -22,6 +21,9 @@ class ReadonlyField(forms.Field):
                                             help_text=help_text)
 
     def _has_changed(self, initial, data):
+        return self.has_changed(initial, data)
+
+    def has_changed(self, initial, data):
         return False
 
     def validate(self, value):

@@ -10,7 +10,6 @@ from collections import OrderedDict
 
 import django
 
-from django.conf.urls import patterns as django_patterns
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -29,6 +28,7 @@ from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
+from is_core.utils.compatibility import urls_wrapper, get_model_name
 from is_core import config
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
@@ -82,8 +82,8 @@ class ISCore(six.with_metaclass(ISCoreBase, PermissionsMixin)):
             url = pattern.get_url()
             if url:
                 urls.append(url)
-        urlpatterns = django_patterns('', *urls)
-        return urlpatterns
+
+        return urls_wrapper(*urls)
 
     def get_urls(self):
         return ()
@@ -171,10 +171,7 @@ class ModelISCore(ISCore):
 
     @property
     def menu_group(self):
-        if django.get_version() < '1.7':
-            return str(self.model._meta.module_name)
-        else:
-            return str(self.model._meta.model_name)
+        return get_model_name(self.model)
 
     # TODO: remove this function
     def get_obj(self, request, **filters):

@@ -87,18 +87,10 @@ class ModelChoice(list):
 class ModelChoiceIterator(forms.models.ModelChoiceIterator):
 
     def __iter__(self):
-        if self.field.empty_label is not None:
-            yield ModelChoice('', self.field.empty_label)
-        if self.field.cache_choices:
-            if self.field.choice_cache is None:
-                self.field.choice_cache = [
-                    self.choice(obj) for obj in self.queryset.all()
-                ]
-            for choice in self.field.choice_cache:
-                yield choice
-        else:
-            for obj in self.queryset.all():
-                yield self.choice(obj)
+        return (
+            ModelChoice(*choice) if not isinstance(choice, ModelChoice) else choice
+            for choice in super(ModelChoiceIterator, self).__iter__()
+        )
 
     def choice(self, obj):
         attrs = {}

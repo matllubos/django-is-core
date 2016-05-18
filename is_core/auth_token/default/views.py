@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.http.response import HttpResponseRedirect
 
 from is_core.generic_views.auth_views import LogoutView, LoginView
-from is_core.auth_token import login, logout
+from is_core.auth_token.utils import login, logout
 from is_core.auth_token.forms import TokenAuthenticationForm
 
 

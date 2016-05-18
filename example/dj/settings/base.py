@@ -102,7 +102,7 @@ MIDDLEWARE_CLASSES = (
     'is_core.auth_token.middleware.TokenAuthenticationMiddlewares',
     'django.contrib.messages.middleware.MessageMiddleware',
     'is_core.middleware.RequestKwargsMiddleware',
-    'is_core.middleware.HttpExceptionsMiddleware',
+    'is_core.middleware.HTTPExceptionsMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -142,8 +142,6 @@ INSTALLED_APPS = (
     'is_core',
     'is_core.auth_token',
     'block_snippets',
-
-    'compressor',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -195,3 +193,27 @@ CSRF_FAILURE_VIEW = 'is_core.views.csrf.csrf_failure'
 IS_CORE_AUTH_USE_TOKENS = True
 
 PYSTON_CORS = True
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # insert your TEMPLATE_DIRS here
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.request',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
