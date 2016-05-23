@@ -162,8 +162,10 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def get_prefix(self):
         return '-'.join((self.view_type, self.site_name, self.core.get_menu_group_pattern_name())).lower()
 
-    def get_context_data(self, form=None, **kwargs):
-        context_data = super(DefaultFormView, self).get_context_data(form=form, **kwargs)
+    def get_context_data(self, **kwargs):
+        context_data = super(DefaultFormView, self).get_context_data(**kwargs)
+        form = context_data['form']
+        kwargs.pop('form', None)
         context_data.update({
             'view_type': self.view_type,
             'fieldsets': self.generate_fieldsets(),

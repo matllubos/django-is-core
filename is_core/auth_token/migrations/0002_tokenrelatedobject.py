@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
+        ('contenttypes', '0001_initial'),
         ('auth_token', '0001_initial'),
     ]
 

@@ -9,7 +9,7 @@ from django.db import models
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
+from django.utils.encoding import python_2_unicode_compatible, force_text
 
 try:
     from django.contrib.contenttypes.fields import GenericForeignKey
@@ -52,7 +52,7 @@ class Token(models.Model):
         """
         Random id generating
         """
-        return binascii.hexlify(os.urandom(20))
+        return force_text(binascii.hexlify(os.urandom(20)))
 
     @property
     def is_expired(self):

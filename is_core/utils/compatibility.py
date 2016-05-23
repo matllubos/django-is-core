@@ -23,14 +23,19 @@ except ImportError:
 
 
 def admin_display_for_value(value):
-    try:
+    if django.get_version() >= '1.9':
         from django.contrib.admin.utils import display_for_value
 
-        return display_for_value(value)
-    except ImportError:
-        from django.contrib.admin.util import display_for_value
-
         return display_for_value(value, '-')
+    else:
+        try:
+            from django.contrib.admin.utils import display_for_value
+
+            return display_for_value(value)
+        except ImportError:
+            from django.contrib.admin.util import display_for_value
+
+            return display_for_value(value)
 
 
 if django.get_version() >= '1.8':
