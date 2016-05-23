@@ -14,15 +14,19 @@ from is_core.patterns import is_rest_request
 from is_core.utils import header_name_to_django
 
 
-def login(request, user, expiration=True, auth_slug=None):
+def login(request, user, expiration=True, auth_slug=None, related_objs=None):
     """
     Persist token into database. Token is stored inside cookie therefore is not necessary
     reauthenticate user for every request.
     """
+    related_objs = related_objs if related_objs is not None else ()
+
     if user is None:
         user = request.user
     token = Token.objects.create(user=user, user_agent=request.META.get('HTTP_USER_AGENT', '')[:256],
                                  expiration=expiration, auth_slug=auth_slug, ip=get_ip(request))
+    for related_obj in related_objs:
+        token.related_objects.create(content_object=related_obj)
     if hasattr(request, 'user'):
         request.user = user
     request.token = token

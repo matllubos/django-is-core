@@ -1,4 +1,4 @@
-Django==1.6
+Django==1.8
 Pillow==3.0.0
 XlsxWriter==0.7.7
 python-mimeparse==0.1.4

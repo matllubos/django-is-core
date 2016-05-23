@@ -12,7 +12,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext
 from django.utils.html import format_html
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.fields import FieldDoesNotExist
 from django.utils.safestring import mark_safe
 from django.utils.html import linebreaks, conditional_escape
 from django.db.models.fields.related import ManyToManyRel, ForeignKey
@@ -103,6 +102,8 @@ def field_widget(instance, field):
 
 
 def get_field_from_cls_or_inst_or_none(cls_or_inst, field_name):
+    from django.db.models.fields import FieldDoesNotExist
+
     try:
         return get_field_from_model(cls_or_inst, field_name)
     except (FieldDoesNotExist, AttributeError):

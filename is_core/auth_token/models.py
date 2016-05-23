@@ -7,8 +7,14 @@ from datetime import timedelta
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
+
+try:
+    from django.contrib.contenttypes.fields import GenericForeignKey
+except ImportError:  # Django < 1.9 pragma: no cover
+    from django.contrib.contenttypes.generic import GenericForeignKey
 
 from is_core import config
 
@@ -55,6 +61,17 @@ class Token(models.Model):
 
     def __str__(self):
         return self.key
+
+
+class TokenRelatedObject(models.Model):
+    """
+    Generic relation to objects related with authorization token
+    """
+
+    token = models.ForeignKey(Token, related_name='related_objects')
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.TextField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
 
 class AnonymousToken(object):
