@@ -175,7 +175,6 @@ class SmartFormMetaclass(DeclarativeFieldsMetaclass):
         return new_class
 
 
-# TODO: check django version
 class SmartFormMixin(object):
 
     def __init__(self, *args, **kwargs):
