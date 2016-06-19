@@ -60,10 +60,16 @@ class DefaultFilter(Filter):
 
         return {self.full_filter_key: self.value}
 
+    def annotate(self, queryset):
+        return queryset
+
     def filter_queryset(self, queryset, request):
         filter_term = self.get_filter_term(request)
         if isinstance(filter_term, dict):
             filter_term = Q(**filter_term)
+
+        queryset = self.annotate(queryset)
+
         if self.is_exclude:
             return queryset.exclude(filter_term)
         else:
