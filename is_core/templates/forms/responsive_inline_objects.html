@@ -13,7 +13,7 @@
 					</div>
 				{% endblock %}
 			{% endif %}
-			<div class="inline-line form-inline {% cycle odd,even %}{% if row.class_names %} {{ row.class_names|join:' ' }}{% endif %}{% if form.class_names %} {{ form.class_names|join:' ' }}{% endif %}">
+			<div class="inline-line form-inline {% cycle 'odd' 'even' %} {% if row.class_names %} {{ row.class_names|join:' ' }}{% endif %}{% if form.class_names %} {{ form.class_names|join:' ' }}{% endif %}">
 				{% for field_name, field_value in row %}
 					<div class="col-{{ forloop.counter }} form-group field {{ field_name }}">
 						{{ field_value }}

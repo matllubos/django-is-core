@@ -23,7 +23,7 @@
 						</div>
 					{% endblock %}
 				{% endif %}
-				<div class="inline-line form-inline {% cycle odd,even %} {{ form.class_names|join:' ' }}">
+				<div class="inline-line form-inline {% cycle 'odd' 'even' %} {{ form.class_names|join:' ' }}">
 					{% get_visible_fields form fieldset as visible_fields %}
 					{% for field in visible_fields %}
 						<div class="col-{{ forloop.counter }} form-group field {{ field.name }}{% if field.errors %} error{% endif %}">
