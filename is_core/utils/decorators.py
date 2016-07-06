@@ -1,7 +1,5 @@
 def short_description(description):
-    """
-    Sets 'short_description' attribute (this attribute is used by list_display and formular).
-    """
+    """Sets 'short_description' attribute (this attribute is used by list_display and formular)."""
     def decorator(func):
         if isinstance(func, property):
             func = func.fget
@@ -11,9 +9,7 @@ def short_description(description):
 
 
 def filter_class(filter_class):
-    """
-    Sets 'filter' class (this attribute is used inside grid and rest).
-    """
+    """Sets 'filter' class (this attribute is used inside grid and rest)."""
     def decorator(func):
         if isinstance(func, property):
             func = func.fget
@@ -23,9 +19,7 @@ def filter_class(filter_class):
 
 
 def filter_by(field_name):
-    """
-    Sets 'field name' (this is used for grid filtering)
-    """
+    """Sets 'field name' (this is used for grid filtering)"""
     def decorator(func):
         if isinstance(func, property):
             func = func.fget
@@ -35,9 +29,7 @@ def filter_by(field_name):
 
 
 def order_by(field_name):
-    """
-    Sets 'field name' (this is used for grid ordering)
-    """
+    """Sets 'field name' (this is used for grid ordering)"""
     def decorator(func):
         if isinstance(func, property):
             func = func.fget

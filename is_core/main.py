@@ -8,8 +8,6 @@ import sys
 
 from collections import OrderedDict
 
-import django
-
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -38,9 +36,7 @@ from is_core.forms.models import SmartModelForm
 
 
 class ISCoreBase(type):
-    """
-    Metaclass for IS core classes. Its main purpose is automatic registration cores to your application.
-    """
+    """Metaclass for IS core classes. Its main purpose is automatic registration cores to your application."""
 
     def __new__(cls, *args, **kwargs):
         name, _, attrs = args
@@ -197,9 +193,7 @@ class ModelISCore(ISCore):
 
 
 class UIISCore(PermissionsUIMixin, ISCore):
-    """
-    Main core for UI views.
-    """
+    """Main core for UI views."""
 
     abstract = True
 
@@ -260,9 +254,7 @@ class UIISCore(PermissionsUIMixin, ISCore):
 
 
 class RESTISCore(PermissionsRESTMixin, ISCore):
-    """
-    Main core for REST views.
-    """
+    """Main core for REST views."""
 
     rest_classes = ()
     default_rest_pattern_class = RESTPattern
@@ -304,18 +296,14 @@ class RESTISCore(PermissionsRESTMixin, ISCore):
 
 
 class UIRESTISCoreMixin(object):
-    """
-    Helper that joins urls generated wit REST core and UI core.
-    """
+    """Helper that joins urls generated wit REST core and UI core."""
 
     def get_urls(self):
         return self.get_urlpatterns(self.rest_patterns) + self.get_urlpatterns(self.ui_patterns)
 
 
 class UIRESTISCore(UIRESTISCoreMixin, UIISCore, RESTISCore):
-    """
-    UI REST Core, its main purpose is create custom REST resources and UI views.
-    """
+    """UI REST Core, its main purpose is create custom REST resources and UI views."""
 
     abstract = True
 
@@ -340,9 +328,7 @@ class HomeUIISCore(UIISCore):
 
 
 class UIModelISCore(ModelISCore, UIISCore):
-    """
-    Main core controller for specific model that provides UI views for model management (add, edit, list).
-    """
+    """Main core controller for specific model that provides UI views for model management (add, edit, list)."""
 
     abstract = True
 
@@ -555,9 +541,9 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     rest_obj_class_names = ()
 
     def get_rest_extra_fields(self, request, obj=None):
-        fieldset = super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj)
-        fieldset.join(rfs(self.ui_rest_extra_fields))
-        return fieldset.join(
+        fields = super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj)
+        fields.join(rfs(self.ui_rest_extra_fields))
+        return fields.join(
             ModelRESTFieldset.create_from_flat_list(self.get_list_display(request), self.model)
         )
 

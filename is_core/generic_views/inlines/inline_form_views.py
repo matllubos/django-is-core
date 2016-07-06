@@ -12,29 +12,34 @@ from is_core.utils import get_readonly_field_data
 
 class InlineFormView(InlineView):
     form_class = SmartModelForm
+    base_inline_formset_class = BaseInlineFormSet
+
     model = None
-    fk_name = None
-    template_name = None
-    extra = 0
+    fields = None
     exclude = ()
+    inline_views = None
+    field_labels = None
+
+    template_name = None
+
+    fk_name = None
+    extra = 0
     can_add = True
     can_delete = True
+    is_readonly = False
     max_num = None
     min_num = 0
     readonly_fields = ()
-    fields = None
     initial = []
-    base_inline_formset_class = BaseInlineFormSet
     no_items_text = _('There are no items')
     class_names = ['inline-js']
-    field_labels = None
 
     def __init__(self, request, parent_view, parent_instance):
         super(InlineFormView, self).__init__(request, parent_view, parent_instance)
         self.parent_model = parent_view.model
         self.core = parent_view.core
         self.parent_instance = parent_instance
-        self.readonly = self.is_readonly()
+        self.readonly = self._is_readonly()
         self.formset = self.get_formset(parent_instance, self.request.POST, self.request.FILES)
 
         for i in range(self.get_min_num()):
@@ -43,8 +48,8 @@ class InlineFormView(InlineView):
     def _get_field_labels(self):
         return self.field_labels
 
-    def is_readonly(self):
-        return not self.parent_view.has_post_permission(obj=self.parent_view.get_obj())
+    def _is_readonly(self):
+        return self.is_readonly or not self.parent_view.has_post_permission(obj=self.parent_view.get_obj())
 
     def can_form_delete(self, form):
         return not self.is_form_readonly(form)
@@ -54,7 +59,6 @@ class InlineFormView(InlineView):
 
     def get_context_data(self, **kwargs):
         context_data = super(InlineFormView, self).get_context_data(**kwargs)
-
         context_data.update({
             'formset': self.formset,
             'fieldset': self.get_fieldset(self.formset),
@@ -233,6 +237,9 @@ class InlineFormView(InlineView):
         self.pre_delete_obj(obj)
         obj.delete()
         self.post_delete_obj(obj)
+
+    def is_valid(self):
+        return self.formset.is_valid()
 
 
 class TabularInlineFormView(InlineFormView):

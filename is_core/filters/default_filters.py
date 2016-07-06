@@ -141,7 +141,7 @@ class DefaultFieldFilter(DefaultFilter):
                              attrs=self.get_attrs_for_widget())
 
     def _get_in_suffix_value(self, value):
-        for pattern in ('\[(.*)\]', '\((.*)\)'):
+        for pattern in ('\[(.*)\]', '\((.*)\)', '\{(.*)\}'):
             m = re.compile(pattern).match(value)
             if m:
                 return set(m.group(1).split(',')) if m.group(1) else set()
