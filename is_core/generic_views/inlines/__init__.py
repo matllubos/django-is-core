@@ -14,3 +14,9 @@ class InlineView(ContextMixin):
         template = self.template_name
         context.update(self.get_context_data(title=title))
         return render_to_string(template, context)
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self

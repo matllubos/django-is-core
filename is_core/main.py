@@ -8,8 +8,6 @@ import sys
 
 from collections import OrderedDict
 
-import django
-
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _

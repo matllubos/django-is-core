@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
-from collections import OrderedDict
+from copy import deepcopy
 
-import django
-from django.forms.models import ModelForm
+from django.core.exceptions import ImproperlyConfigured
 from django.http.response import HttpResponseRedirect, Http404
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -17,16 +16,20 @@ from chamber.utils.forms import formset_has_file_field
 
 from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
-from is_core.utils import flatten_fieldsets, get_readonly_field_data
+from is_core.utils import (
+    flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets
+)
 from is_core.utils.compatibility import get_model_name
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
+from is_core.forms import SmartModelForm
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
+
     view_type = 'default'
     fieldsets = None
     form_template = 'forms/default_form.html'
@@ -60,7 +63,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         form.readonly = not self.has_post_permission()
 
         for field_name, field in form.fields.items():
-            field = self.form_field(form, field_name, field)
+            self.form_field(form, field_name, field)
 
         return form
 
@@ -168,7 +171,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         kwargs.pop('form', None)
         context_data.update({
             'view_type': self.view_type,
-            'fieldsets': self.generate_fieldsets(),
+            'fieldsets': self.generate_fieldsets(**kwargs),
             'form_template': self.form_template,
             'form_class_names': self.get_form_class_names(),
             'has_file_field': self.get_has_file_field(form, **kwargs),
@@ -199,12 +202,9 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
             }
         }
 
-    def generate_fieldsets(self):
+    def generate_fieldsets(self, **kwargs):
         fieldsets = self.get_fieldsets()
-        if fieldsets:
-            return fieldsets
-        else:
-            return [(None, {'fields': list(self.get_form_class().base_fields.keys())})]
+        return fieldsets if fieldsets else [(None, {'fields': list(self.get_form_class().base_fields.keys())})]
 
     def get_fieldsets(self):
         return self.fieldsets
@@ -274,11 +274,11 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
 class DefaultModelFormView(DefaultFormView):
     model = None
-    exclude = None
     fields = None
+    exclude = None
     inline_views = None
-    form_template = 'forms/model_default_form.html'
     field_labels = None
+    form_template = 'forms/model_default_form.html'
 
     def _get_field_labels(self):
         return self.field_labels
@@ -308,35 +308,39 @@ class DefaultModelFormView(DefaultFormView):
     def get_inline_views(self):
         return self.inline_views or ()
 
+    def generate_inline_views(self):
+        inline_views = self.get_inline_views()
+        fieldsets = self.get_fieldsets()
+        if inline_views and fieldsets:
+            raise ImproperlyConfigured('You can define only one of inline views and fieldsets')
+        return inline_views or get_inline_views_from_fieldsets(fieldsets)
+
     def init_inline_views(self, instance):
-        inline_views = OrderedDict()
-        for inline_view in self.get_inline_views():
-            inline_views[inline_view.__name__] = inline_view(self.request, self, instance)
-        return inline_views
+        return [inline_view(self.request, self, instance) if isinstance(inline_view, type) else inline_view
+                for inline_view in self.generate_inline_views()]
 
     def _filter_inline_form_views(self, inline_views):
-        inline_form_views = OrderedDict()
-        for name, view in inline_views.items():
-            if isinstance(view, InlineFormView):
-                inline_form_views[name] = view
-        return inline_form_views
+        return [view for view in inline_views if isinstance(view, InlineFormView)]
 
-    def generate_fieldsets(self):
-        fieldsets = self.get_fieldsets()
+    def generate_fieldsets(self, inline_views=None, **kwargs):
+        fieldsets = deepcopy(self.get_fieldsets())
 
         if fieldsets is not None:
+            inline_view_opts = get_inline_views_opts_from_fieldsets(fieldsets)
+            for inline_view_inst, inline_view_opt in zip(inline_views, inline_view_opts):
+                inline_view_opt['inline_view'] = inline_view_inst
             return fieldsets
         else:
             fieldsets = [(None, {'fields': self.generate_fields() or
                                  list(self.generate_form_class().base_fields.keys())})]
-            for inline_view in self.get_inline_views():
-                if (issubclass(inline_view, InlineFormView) and (not inline_view.max_num or
+            for inline_view in inline_views:
+                print(inline_view)
+                if (isinstance(inline_view, InlineFormView) and (not inline_view.max_num or
                                                                  inline_view.max_num > 1)):
                     title = inline_view.model._meta.verbose_name_plural
                 else:
                     title = inline_view.model._meta.verbose_name
-                fieldsets.append((title,
-                                  {'inline_view': inline_view.__name__}))
+                fieldsets.append((title, {'inline_view': inline_view}))
             return list(fieldsets)
 
     def get_fields(self):
@@ -344,10 +348,7 @@ class DefaultModelFormView(DefaultFormView):
 
     def generate_fields(self):
         fieldsets = self.get_fieldsets()
-
-        if fieldsets is not None:
-            return flatten_fieldsets(fieldsets)
-        return self.get_fields()
+        return flatten_fieldsets(fieldsets) if fieldsets is not None else self.get_fields()
 
     def get_form_class(self):
         fields = self.generate_fields()
@@ -355,7 +356,7 @@ class DefaultModelFormView(DefaultFormView):
         return self.generate_form_class(fields, readonly_fields)
 
     def get_form_class_base(self):
-        return self.form_class or ModelForm
+        return self.form_class or SmartModelForm
 
     def generate_form_class(self, fields=None, readonly_fields=()):
         form_class = self.get_form_class_base()
@@ -378,11 +379,11 @@ class DefaultModelFormView(DefaultFormView):
                                            {'request': self.request}, self.request)
         return SmartReadonlyField(_get_readonly_field_data)
 
-    def get_has_file_field(self, form, inline_form_views=(), **kwargs):
+    def get_has_file_field(self, form, inline_form_views=None, **kwargs):
         if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
             return True
 
-        inline_form_views = inline_form_views and inline_form_views.values() or ()
+        inline_form_views = inline_form_views or ()
         for inline_form_view in inline_form_views:
             if inline_form_view.get_has_file_field():
                 return True
@@ -396,7 +397,7 @@ class DefaultModelFormView(DefaultFormView):
         return self.has_post_permission()
 
     def is_changed(self, form, inline_form_views, **kwargs):
-        for inline_form_view_instance in inline_form_views.values():
+        for inline_form_view_instance in inline_form_views:
             if inline_form_view_instance.formset.has_changed():
                 return True
         return form.has_changed()
@@ -415,8 +416,8 @@ class DefaultModelFormView(DefaultFormView):
         inline_views = self.init_inline_views(form.instance)
         inline_form_views = self._filter_inline_form_views(inline_views)
 
-        for inline_form_view in inline_form_views.values():
-            inline_forms_is_valid = inline_form_view.formset.is_valid() and inline_forms_is_valid
+        for inline_form_view in inline_form_views:
+            inline_forms_is_valid = inline_form_view.is_valid() and inline_forms_is_valid
 
         is_valid = form.is_valid()
         is_changed = self.is_changed(form, inline_form_views=inline_form_views)
@@ -451,7 +452,7 @@ class DefaultModelFormView(DefaultFormView):
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
 
-        for inline_form_view in inline_form_views.values():
+        for inline_form_view in inline_form_views:
             inline_form_view.form_valid(self.request)
 
         self.post_save_obj(obj, form, change)
@@ -612,7 +613,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
             arguments = (self.kwargs[self.pk_name],)
         return super(EditModelFormView, self).link(arguments=arguments, **kwargs)
 
-    # TODO: get_obj should not be inside cor. get_obj and _get_perm_obj_or_404 should have same implementation
+    # TODO: get_obj should not be inside core get_obj and _get_perm_obj_or_404 should have same implementation
     # this object shoul return None if object does not exists. Becouase has_get_permission and has_post_permission
     # should be called outside
     def _get_perm_obj_or_404(self, pk=None):

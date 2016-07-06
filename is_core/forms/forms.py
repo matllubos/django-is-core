@@ -239,9 +239,13 @@ class SmartFormMixin(object):
                         value = getattr(self, 'clean_%s' % name)()
                         self.cleaned_data[name] = value
                 except ValidationError as e:
+                    print('validation')
+                    print(e)
                     self._errors[name] = self.error_class(e.messages)
                     if name in self.cleaned_data:
                         del self.cleaned_data[name]
+        print('vse ok')
+        print(self._errors)
 
     def _register_readonly_field(self, field_name):
         if field_name not in self.readonly_fields:
