@@ -33,12 +33,12 @@ def fieldset_renderer(context, form, fieldset):
         context_dict.update(data)
     request = context_dict.pop('request', None)
     values = fieldset[1]
-    inline_view_name = values.get('inline_view')
+    inline_view = values.get('inline_view')
     context_dict.update({
         'class': values.get('class'),
     })
-    if inline_view_name:
-        return context_dict.get('inline_views').get(inline_view_name).render(context, fieldset[0])
+    if inline_view:
+        return inline_view.render(context, fieldset[0])
     template = values.get('template') or 'forms/default_fieldset.html'
     context_dict.update({
         'fields': values.get('fields'),
