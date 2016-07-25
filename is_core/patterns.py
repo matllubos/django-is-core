@@ -33,13 +33,6 @@ def pattern_from_request(request):
     return reverse_pattern(resolve(request.path).url_name)
 
 
-def is_rest_request(request):
-    try:
-        return isinstance(pattern_from_request(request), RESTPattern)
-    except Resolver404:
-        return False
-
-
 class Pattern(object):
     send_in_rest = True
 

@@ -23,6 +23,7 @@ def get_token(request):
 
 
 class TokenAuthenticationMiddlewares(object):
+
     def process_request(self, request):
         """
         Lazy set user and token
