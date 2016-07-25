@@ -10,7 +10,6 @@ from ipware.ip import get_ip
 
 from is_core.auth_token.models import Token, AnonymousToken
 from is_core import config
-from is_core.patterns import is_rest_request
 from is_core.utils import header_name_to_django
 
 
@@ -76,7 +75,7 @@ def get_token(request):
 
 def dont_enforce_csrf_checks(request):
     return (getattr(request, '_dont_enforce_csrf_checks', False) or
-            (request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)) and is_rest_request(request)))
+                request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)))
 
 
 def get_user(request):
