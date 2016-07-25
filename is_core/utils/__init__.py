@@ -68,7 +68,7 @@ def get_inline_views_opts_from_fieldsets(fieldsets):
     inline_views = []
     for _, opts in fieldsets or ():
         if 'fieldsets' in opts:
-            inline_views += get_inline_views_from_fieldsets(opts.get('fieldsets'))
+            inline_views += get_inline_views_opts_from_fieldsets(opts.get('fieldsets'))
         elif 'inline_view' in opts:
             inline_views.append(opts)
     return inline_views
