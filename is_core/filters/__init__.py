@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as ugettext
 from django.db.models.fields.related import RelatedField
 from django.db.models.fields import FieldDoesNotExist
 
@@ -9,38 +9,34 @@ from chamber.utils import get_class_method
 from is_core.filters.exceptions import FilterException
 
 
-def get_model_field_or_method_filter(full_field_term, model, value=None, filter_term=None):
-    if not filter_term:
-        filter_term = full_field_term
-
-    next_filter_term = None
-    current_filter_term = filter_term
-
-    if '__' in filter_term:
-        current_filter_term, next_filter_term = filter_term.split('__', 1)
-
-    field_or_method = None
+def get_field_method_or_none(model, name):
     try:
-        field_or_method = model._meta.get_field(current_filter_term)
-
-        if (next_filter_term and next_filter_term not in field_or_method.filter.get_suffixes() and
-                isinstance(field_or_method, RelatedField)):
-            return get_model_field_or_method_filter(filter_term, model._meta.get_field(current_filter_term).rel.to,
-                                                    value, next_filter_term)
-
+        return model._meta.get_field(name)
     except FieldDoesNotExist:
         try:
-            field_or_method = get_class_method(model, current_filter_term)
-            if hasattr(field_or_method, 'filter_by'):
-                full_field_term = full_field_term[:-len(current_filter_term)] + field_or_method.filter_by
-                return get_model_field_or_method_filter(full_field_term, model, value, field_or_method.filter_by)
+            return get_class_method(model, name)
         except (AttributeError, FieldDoesNotExist):
-            raise FilterException(_('Not valid filter: %s') % full_field_term)
+            return None
 
-    if (hasattr(field_or_method, 'filter') and
-        (not next_filter_term or next_filter_term == 'not' or
-            next_filter_term in field_or_method.filter.get_suffixes()) and
+
+def get_model_field_or_method_filter(full_field_term, model, value=None, filter_term=None):
+    filter_term = full_field_term if not filter_term else filter_term
+    current_filter_term, next_filter_term = filter_term.split('__', 1) if '__' in filter_term else (filter_term, None)
+
+    field_or_method = get_field_method_or_none(model, current_filter_term)
+
+    if (field_or_method and next_filter_term and next_filter_term not in field_or_method.filter.get_suffixes() and
+            isinstance(field_or_method, RelatedField)):
+        return get_model_field_or_method_filter(filter_term, model._meta.get_field(current_filter_term).rel.to,
+                                                value, next_filter_term)
+    elif hasattr(field_or_method, 'filter_by'):
+        return get_model_field_or_method_filter(
+            full_field_term[:-len(current_filter_term)] + field_or_method.filter_by, model, value,
+            field_or_method.filter_by)
+    elif (hasattr(field_or_method, 'filter') and
+            (not next_filter_term or next_filter_term == 'not' or
+                next_filter_term in field_or_method.filter.get_suffixes()) and
             field_or_method.filter):
         return field_or_method.filter(filter_term, full_field_term, field_or_method, value)
     else:
-        raise FilterException(_('Not valid filter: %s') % full_field_term)
+        raise FilterException(ugettext('Not valid filter: {}').format(full_field_term))
