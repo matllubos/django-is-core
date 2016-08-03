@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.core.urlresolvers import NoReverseMatch
-from django.db import transaction
 from django.http.response import Http404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext
@@ -16,6 +15,7 @@ from pyston.response import RESTErrorResponse, RESTErrorsResponse
 
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.decorators import classproperty
+from chamber.utils import transaction
 
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
