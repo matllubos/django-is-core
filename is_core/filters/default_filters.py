@@ -85,15 +85,13 @@ class DefaultFilter(Filter):
             full_filter_key.append(default_suffix)
         return '__'.join(full_filter_key)
 
-    def get_widget(self):
+    def get_widget(self, request):
         return self.widget
 
     def render(self, request):
-        widget = self.get_widget()
-        if widget:
-            return widget.render('filter__%s' % self.get_filter_name(), None,
-                                 attrs={'data-filter': self.get_filter_name()})
-        return ''
+        widget = self.get_widget(request)
+        return widget.render('filter__%s' % self.get_filter_name(), None,
+                             attrs={'data-filter': self.get_filter_name()}) if widget else ''
 
 
 class DefaultFieldFilter(DefaultFilter):
@@ -109,7 +107,7 @@ class DefaultFieldFilter(DefaultFilter):
         super(DefaultFieldFilter, self).__init__(filter_key, full_filter_key, field, value)
         self.field = field
 
-    def get_widget(self):
+    def get_widget(self, request):
         if self.widget:
             return self.widget
 
@@ -121,11 +119,11 @@ class DefaultFieldFilter(DefaultFilter):
                     del formfield.choices[0]
                 if self.field.null or self.field.blank:
                     formfield.choices.insert(0, (self.EMPTY_SLUG, self.EMPTY_LABEL))
-                formfield.choices.insert(0, (self.ALL_SLUG, self.get_placeholder() or self.ALL_LABEL))
+                formfield.choices.insert(0, (self.ALL_SLUG, self.get_placeholder(request) or self.ALL_LABEL))
             return formfield.widget
         return forms.TextInput()
 
-    def get_placeholder(self):
+    def get_placeholder(self, request):
         return self.field.model._ui_meta.filter_placeholders.get(self.field.name, '')
 
     def get_attrs_for_widget(self):
@@ -133,8 +131,8 @@ class DefaultFieldFilter(DefaultFilter):
         return attrs
 
     def render(self, request):
-        widget = self.get_widget()
-        placeholder = self.get_placeholder()
+        widget = self.get_widget(request)
+        placeholder = self.get_placeholder(request)
         if placeholder:
             widget.placeholder = placeholder
         return widget.render('filter__%s' % self.get_filter_name(), None,
@@ -183,13 +181,13 @@ class CharFieldFilter(DefaultFieldFilter):
 
 class TextFieldFilter(CharFieldFilter):
 
-    def get_widget(self):
+    def get_widget(self, request):
         return forms.TextInput()
 
 
 class BooleanFieldFilter(DefaultFieldFilter):
 
-    def get_widget(self):
+    def get_widget(self, request):
         return forms.Select(choices=(('', '-----'), (1, _('Yes')), (0, _('No'))))
 
 

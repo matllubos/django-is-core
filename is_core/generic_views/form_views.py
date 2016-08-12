@@ -51,7 +51,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         URL string for redirect after saving
         """
 
-        return ''
+        return self.request.get_full_path()
 
     def get_has_file_field(self, form, **kwargs):
         return formset_has_file_field(form)
@@ -118,9 +118,10 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 obj = self._atomic_save_form(form, **kwargs)
             else:
                 obj = self.save_form(form, **kwargs)
+            return self.success_render_to_response(obj, msg, msg_level)
         except PersistenceException as ex:
+            print (ex)
             return self.form_invalid(form, msg=force_text(ex.message), **kwargs)
-        return self.success_render_to_response(obj, msg, msg_level)
 
     def form_invalid(self, form, msg=None, msg_level=None, **kwargs):
         msg_level = msg_level or constants.ERROR
@@ -554,7 +555,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
                 'save-and-continue' in self.request.POST):
             return self.core.ui_patterns.get('edit').get_url_string(self.request, kwargs={'pk': obj.pk})
         else:
-            return ''
+            return self.request.get_full_path()
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
         context_data = super(DefaultCoreModelFormView, self).get_context_data(form=form,
