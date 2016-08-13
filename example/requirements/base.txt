@@ -4,13 +4,13 @@ XlsxWriter==0.7.7
 python-mimeparse==0.1.4
 pep8==1.6.2
 six==1.10.0
-https://github.com/LukasRychtecky/germanium/tarball/1.0.4#egg=germanium-1.0.4
+https://github.com/LukasRychtecky/germanium/tarball/1.0.14#egg=germanium-1.0.14
 coverage==4.0.2
 https://github.com/druids/django-chamber/tarball/0.1.18#egg=django-chamber-0.1.18
 https://github.com/jezdez/django_compressor/tarball/develop#egg=django_compressor-dev
 https://github.com/druids/django-class-based-auth-views/tarball/0.5#egg=django-class-based-auth-views-0.5druids
 https://github.com/matllubos/django-block-snippets/tarball/1.0.0#egg=django-block-snippets-1.0.0
-https://github.com/druids/django-pyston/tarball/1.0.0#egg=django-pyston-1.0.0
+https://github.com/druids/django-pyston/tarball/1.0.4#egg=django-pyston-1.0.4
 python-dateutil>=2.2
 pytz
 django-apptemplates
