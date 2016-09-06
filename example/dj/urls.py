@@ -1,3 +1,5 @@
+from distutils.version import StrictVersion
+
 import django
 from django.conf.urls import include, url
 from django.conf import settings
@@ -5,7 +7,7 @@ from django.conf import settings
 from is_core.site import site
 
 
-if django.get_version() >= '1.9':
+if StrictVersion(django.get_version()) >= StrictVersion('1.9'):
     urlpatterns = [url(r'^', include(site.urls))]
 else:
     from django.conf.urls import patterns

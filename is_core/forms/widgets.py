@@ -62,7 +62,20 @@ class WrapperWidget(forms.Widget):
 
 class SelectMixin(object):
 
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None:
+            value = ''
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = [format_html('<select{}>', flatatt(final_attrs))]
+        options = self.render_options([value])
+        if options:
+            output.append(options)
+        output.append('</select>')
+        return mark_safe('\n'.join(output))
+
     def render_option(self, selected_choices, option_value, option_label, option_attrs):
+        if option_value is None:
+            option_value = ''
         option_value = force_text(option_value)
         if option_value in selected_choices:
             selected_html = mark_safe(' selected="selected"')
@@ -77,11 +90,11 @@ class SelectMixin(object):
                            flat_data_attrs(option_attrs) or '',
                            force_text(option_label))
 
-    def render_options(self, choices, selected_choices):
+    def render_options(self, selected_choices):
         # Normalize to strings.
         selected_choices = set(force_text(v) for v in selected_choices)
         output = []
-        for choice in chain(self.choices, choices):
+        for choice in self.choices:
             option_value, option_label = choice
             if isinstance(option_label, (list, tuple)):
                 output.append(format_html('<optgroup label="{0}">', force_text(option_value)))

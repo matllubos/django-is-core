@@ -31,7 +31,7 @@ setup(
         'django>=1.6',
         'django-class-based-auth-views==0.5druids',
         'django-pyston>=1.0.4',
-        'django-block-snippets==1.0.0',
+        'django-block-snippets==1.0.1',
         'django-chamber>=0.1.18',
         'python-dateutil>=2.2',
         'pytz',
@@ -42,7 +42,7 @@ setup(
     dependency_links=[
         'https://github.com/druids/django-pyston/tarball/1.0.4#egg=django-pyston-1.0.4',
         'https://github.com/druids/django-chamber/tarball/0.1.18#egg=django-chamber-0.1.18',
-        'https://github.com/druids/django-block-snippets/tarball/1.0.0#egg=django-block-snippets-1.0.0',
+        'https://github.com/druids/django-block-snippets/tarball/1.0.0#egg=django-block-snippets-1.0.1',
         'https://github.com/druids/django-class-based-auth-views/tarball/0.5#egg=django-class-based-auth-views-0.5druids',
     ],
     zip_safe=False

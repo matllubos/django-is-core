@@ -6,9 +6,10 @@ import datetime
 
 import django
 from django.utils import six
-from django.forms.forms import BoundField, DeclarativeFieldsMetaclass, Form
+from django.forms.forms import DeclarativeFieldsMetaclass, Form
 from django.forms.fields import FileField
 from django.core.exceptions import ValidationError
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 
@@ -16,6 +17,7 @@ from pyston.forms import RESTFormMixin
 
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
+from is_core.utils.compatibility import BoundField
 
 
 def pretty_class_name(class_name):
@@ -39,6 +41,7 @@ class SmartBoundField(BoundField):
             widget.is_localized = True
 
         attrs = attrs or {}
+        attrs = self.build_widget_attrs(attrs, widget)
         auto_id = self.auto_id
         if auto_id and 'id' not in attrs and 'id' not in widget.attrs:
             if not only_initial:
@@ -52,9 +55,10 @@ class SmartBoundField(BoundField):
             name = self.html_initial_name
 
         if isinstance(widget, SmartWidgetMixin) and hasattr(self.form, '_request'):
-            return widget.smart_render(self.form._request, name, self.value(), self._form_initial_value(), self.form,
-                                       attrs=attrs)
-        return widget.render(name, self.value(), attrs=attrs)
+            return force_text(widget.smart_render(self.form._request, name, self.value(), self._form_initial_value(),
+                                                  self.form, attrs=attrs))
+        else:
+            return force_text(widget.render(name, self.value(), attrs=attrs))
 
     @property
     def type(self):
