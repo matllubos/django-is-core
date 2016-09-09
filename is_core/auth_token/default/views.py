@@ -11,7 +11,7 @@ class TokenLoginView(LoginView):
 
     form_class = TokenAuthenticationForm
 
-    def _login(self, user, expiration):
+    def _login(self, user, expiration, form):
         login(self.request, user, expiration)
 
     def dispatch(self, request, *args, **kwargs):
@@ -25,7 +25,7 @@ class TokenLoginView(LoginView):
         can check the test cookie stuff and log him in.
         """
         self.check_and_delete_test_cookie()
-        self._login(form.get_user(), not form.is_permanent())
+        self._login(form.get_user(), not form.is_permanent(), form)
         return super(TokenLoginView, self).form_valid(form)
 
 
