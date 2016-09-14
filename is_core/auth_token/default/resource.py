@@ -16,7 +16,7 @@ class AuthResource(RESTResource):
     def _sucessful_login(self, request):
         pass
 
-    def _login(self, user, expiration):
+    def _login(self, user, expiration, form):
         login(self.request, user, expiration)
 
     def _unsucessful_login(self, request):
@@ -39,7 +39,7 @@ class AuthResource(RESTResource):
             return RESTErrorResponse(errors)
 
         self._sucessful_login(self.request)
-        self._login(form.get_user(), not form.is_permanent())
+        self._login(form.get_user(), not form.is_permanent(), form)
         return {'token': self.request.token.key, 'user': form.get_user()}
 
     def delete(self):
