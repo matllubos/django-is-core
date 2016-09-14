@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
-import django
+from distutils.version import StrictVersion
 
+import django
+from django.forms.forms import BoundField as OriginalBoundField
 
 try:
     from django.forms.utils import flatatt
@@ -23,7 +25,7 @@ except ImportError:
 
 
 def admin_display_for_value(value):
-    if django.get_version() >= '1.9':
+    if StrictVersion(django.get_version()) >= StrictVersion('1.9'):
         from django.contrib.admin.utils import display_for_value
 
         return display_for_value(value, '-')
@@ -38,7 +40,7 @@ def admin_display_for_value(value):
             return display_for_value(value)
 
 
-if django.get_version() >= '1.8':
+if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
     from django.template.loader import render_to_string
 else:
     from django.template import loader, RequestContext
@@ -49,14 +51,14 @@ else:
 
 
 def get_field_from_model(model, field_name):
-    if django.get_version() >= '1.8':
+    if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
         return model._meta.get_field(field_name)
     else:
         return model._meta.get_field_by_name(field_name)[0]
 
 
 def urls_wrapper(*urls):
-    if django.get_version() >= '1.9':
+    if StrictVersion(django.get_version()) >= StrictVersion('1.9'):
         return list(urls)
     else:
         from django.conf.urls import patterns
@@ -65,7 +67,16 @@ def urls_wrapper(*urls):
 
 
 def get_model_name(model):
-    if django.get_version() < '1.7':
+    if StrictVersion(django.get_version()) < StrictVersion('1.7'):
         return str(model._meta.module_name)
     else:
         return str(model._meta.model_name)
+
+
+class BoundField(OriginalBoundField):
+
+    def build_widget_attrs(self, attrs, widget=None):
+        if StrictVersion(django.get_version()) >= StrictVersion('1.10'):
+            return super(BoundField, self).build_widget_attrs(attrs, widget)
+        else:
+            return attrs

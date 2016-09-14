@@ -32,7 +32,7 @@ IS_CORE_USERNAME = getattr(settings, 'IS_CORE_USERNAME', 'username')
 IS_CORE_PASSWORD = getattr(settings, 'IS_CORE_PASSWORD', 'password')
 
 IS_CORE_LOGIN_URL = getattr(settings, 'IS_CORE_LOGIN_URL', settings.LOGIN_URL)
-IS_CORE_LOGOUT_URL = getattr(settings, 'IS_CORE_LOGOUT_URL', settings.LOGOUT_URL)
+IS_CORE_LOGOUT_URL = getattr(settings, 'IS_CORE_LOGOUT_URL', getattr(settings, 'LOGOUT_URL', '/logout/'))
 IS_CORE_LOGIN_API_URL = getattr(settings, 'IS_CORE_LOGIN_API_URL', '/api/{}'.format(IS_CORE_LOGIN_URL[1:]))
 
 IS_CORE_EXPORT_TYPES = getattr(settings, 'IS_CORE_EXPORT_TYPES', '')
