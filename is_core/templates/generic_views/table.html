@@ -37,18 +37,20 @@
             {% block table-buttons %}
             <ul class="inline-list">
                 {% block export-menu %}
-                <li>
-                    <div class="dropdown pull-right">
-                        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Exports' %}<span class="caret"></span></button>
-                        <ul class="dropdown-menu" role="menu">
-                            {% for title, type, serialization_format in export_types %}
-                            <li>
-                                <a href="{{ api_url }}?_serialization_format={{ serialization_format }}&_fields={{ rest_export_fieldset }}{% if query_string_filter %}&{{ query_string_filter }}{% endif %}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </li>
+                    {% if request.user.can_export  %}
+                    <li>
+                        <div class="dropdown pull-right">
+                            <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Exports' %}<span class="caret"></span></button>
+                            <ul class="dropdown-menu" role="menu">
+                                {% for title, type, serialization_format in export_types %}
+                                <li>
+                                    <a href="{{ api_url }}?_serialization_format={{ serialization_format }}&_fields={{ rest_export_fieldset }}{% if query_string_filter %}&{{ query_string_filter }}{% endif %}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
                 {% endblock %}
 
                 {% block columns-manager %}
