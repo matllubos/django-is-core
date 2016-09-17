@@ -77,7 +77,7 @@ class SmartBoundField(BoundField):
         data = self.form.initial.get(self.name, self.field.initial)
         if callable(data):
             data = data()
-            if django.get_version() >= '1.7':
+            if StrictVersion(django.get_version()) >= StrictVersion('1.7'):
                 # If this is an auto-generated default date, nix the
                 # microseconds for standardized handling. See #22502.
                 if (isinstance(data, (datetime.datetime, datetime.time)) and

@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from distutils.version import StrictVersion
+
 from copy import deepcopy
 
 from django.core.exceptions import ImproperlyConfigured
@@ -360,6 +362,16 @@ class DefaultModelFormView(DefaultFormView):
                                       formreadonlyfield_callback=self.formfield_for_readonlyfield,
                                       readonly=not self.has_post_permission(),
                                       labels=self._get_field_labels())
+
+    def update_form_initial(self, form):
+        # Only new instance can get data from request queryset
+        if not form.instance.pk:
+            form.initial.update({k: self.request.GET.get(k) for k in self.request.GET.keys()
+                                 if k not in form.readonly_fields})
+        return form
+
+    def get_form(self, form_class=None):
+        return self.update_form_initial(super(DefaultModelFormView, self).get_form(form_class=form_class))
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         return db_field.formfield(**kwargs)
