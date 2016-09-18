@@ -16,19 +16,13 @@ def get_user(request):
     return request._cached_user
 
 
-def get_token(request):
-    if not hasattr(request, '_cached_token'):
-        request._cached_token = utils.get_token(request)
-    return request._cached_token
-
-
 class TokenAuthenticationMiddlewares(object):
 
     def process_request(self, request):
         """
         Lazy set user and token
         """
-        request.token = SimpleLazyObject(lambda: get_token(request))
+        request.token = utils.get_token(request)
         request.user = SimpleLazyObject(lambda: get_user(request))
         request._dont_enforce_csrf_checks = utils.dont_enforce_csrf_checks(request)
 
@@ -50,5 +44,5 @@ class TokenAuthenticationMiddlewares(object):
             request.token.save()
             response.set_cookie(config.IS_CORE_AUTH_COOKIE_NAME, force_text(request.token.key), max_age=max_age,
                                 expires=expires, httponly=config.IS_CORE_AUTH_COOKIE_HTTPONLY,
-                                secure=config.IS_CORE_AUTH_COOKIE_SECURE)
+                                secure=config.IS_CORE_AUTH_COOKIE_SECURE, domain=config.IS_CORE_AUTH_COOKIE_DOMAIN)
         return response

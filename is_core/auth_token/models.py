@@ -41,7 +41,13 @@ class Token(models.Model):
     expiration = models.BooleanField(null=False, default=True)
     ip = models.GenericIPAddressField(null=False, blank=False)
     auth_slug = models.SlugField(null=True, blank=True)
+    backend = models.CharField(max_length=255, null=False, blank=False)
+
     is_from_header = False
+
+    @property
+    def active_takeover(self):
+        return self.user_takeovers.filter(is_active=True).last()
 
     def save(self, *args, **kwargs):
         if not self.key:
@@ -74,6 +80,16 @@ class TokenRelatedObject(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
 
 
+class UserTokenTakeover(models.Model):
+    """
+    The model allows to change user without token change
+    """
+
+    token = models.ForeignKey(Token, related_name='user_takeovers')
+    user = models.ForeignKey(AUTH_USER_MODEL, related_name='user_token_takeovers', null=False, blank=False)
+    is_active = models.BooleanField()
+
+
 class AnonymousToken(object):
     key = None
     user = AnonymousUser
@@ -82,6 +98,8 @@ class AnonymousToken(object):
     user_agent = None
     is_expired = True
     is_from_header = False
+    active_takeover = None
+    backend = None
 
     def save(self):
         raise NotImplementedError
