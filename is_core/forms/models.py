@@ -125,7 +125,7 @@ class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceF
     readonly_widget = widgets.ModelMultipleReadonlyWidget
 
     def get_obj_from_value(self, value):
-        return self.to_python([value])
+        return self.to_python([value])[0]
 
 
 class SmartModelFormMetaclass(ModelFormMetaclass):
