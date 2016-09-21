@@ -76,7 +76,7 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
 
     def get_choice_from_value(self, value):
         try:
-            obj = self.field.to_python(value)
+            obj = self.field.get_obj_from_value(value)
         except forms.ValidationError:
             return None
 
@@ -106,17 +106,26 @@ class ModelChoiceFieldMixin(object):
         attrs['data-model'] = '%s.%s' % (options.app_label, options.object_name)
         return attrs
 
+    def get_obj_from_value(self, value):
+        raise NotImplementedError
+
 
 class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
 
     widget = widgets.Select
     readonly_widget = widgets.ModelChoiceReadonlyWidget
 
+    def get_obj_from_value(self, value):
+        return self.to_python(value)
+
 
 class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceField):
 
     widget = widgets.MultipleSelect
     readonly_widget = widgets.ModelMultipleReadonlyWidget
+
+    def get_obj_from_value(self, value):
+        return self.to_python([value])
 
 
 class SmartModelFormMetaclass(ModelFormMetaclass):
