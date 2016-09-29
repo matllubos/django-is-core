@@ -364,3 +364,12 @@ class DivButtonWidget(ReadonlyWidget):
         return format_html('<div class="%(class_name)s btn btn-primary btn-small" '
                            '%(attrs)s>%(value)s</div>' %
                            {'class_name': class_name, 'value': value, 'attrs': flatatt(final_attrs)})
+
+
+class MultipleTextInput(forms.TextInput):
+
+    def render(self, name, value, attrs=None):
+        return super(MultipleTextInput, self).render(name, ', '.join(map(force_text, value)) if value else value, attrs)
+
+    def value_from_datadict(self, data, files, name):
+        return [v.strip() for v in super(MultipleTextInput, self).value_from_datadict(data, files, name).split(',')]
