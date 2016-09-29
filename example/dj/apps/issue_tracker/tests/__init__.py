@@ -3,3 +3,4 @@ from .ui_permissions import *
 from .rest_permissions import *
 from .http_exceptions import *
 from .ui_ordering import *
+from .commands import *
