@@ -3,16 +3,16 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from django.utils import timezone
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 
 from is_core import config
 from is_core.auth_token.models import Token, AUTH_USER_MODEL
 from is_core.utils.compatibility import get_model
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
 
-    def handle_noargs(self, **options):
+    def handle(self, **options):
         for user in get_model(*AUTH_USER_MODEL.split('.', 1)).objects.all():
             user_last_preserved_token_pks = Token.objects.filter(
                 user=user
