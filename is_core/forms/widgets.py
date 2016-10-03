@@ -63,7 +63,7 @@ class WrapperWidget(forms.Widget):
 class SelectMixin(object):
 
     def render(self, name, value, attrs=None, choices=()):
-        return super(SelectMixin, self).render(self, name, value, attrs=attrs)
+        return super(SelectMixin, self).render(name, value, attrs=attrs)
 
     def render_option(self, selected_choices, option_value, option_label, option_attrs):
         if option_value is None:
