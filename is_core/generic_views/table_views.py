@@ -51,7 +51,7 @@ class TableViewMixin(object):
 
     def _get_filter(self, full_field_name):
         try:
-            return get_model_field_or_method_filter(full_field_name, self.model).render(self.request)
+            return get_model_field_or_method_filter(full_field_name, self.model, ui=True).render(self.request)
         except FilterException:
             return ''
 

@@ -4,13 +4,16 @@ import warnings
 import itertools
 
 from django import forms
+from django.db.utils import ProgrammingError
 from django.forms import models
 from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
 from django.utils import six
+from django.utils.encoding import force_text
 
 from pyston.forms import RESTModelForm
 
+from is_core import config
 from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
@@ -89,9 +92,16 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
 class ModelChoiceFieldMixin(object):
 
     widget = widgets.Select
+    too_much_entries_widget = None
 
     def __init__(self, queryset, *args, **kwargs):
         self.model = queryset.model
+        try:
+            if ('widget' not in kwargs and self.too_much_entries_widget and
+                    queryset.count() > config.IS_CORE_FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
+                kwargs['widget'] = widgets.MultipleTextInput
+        except ProgrammingError:
+            pass
         super(ModelChoiceFieldMixin, self).__init__(queryset, *args, **kwargs)
 
     def _get_choices(self):
@@ -114,6 +124,7 @@ class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
 
     widget = widgets.Select
     readonly_widget = widgets.ModelChoiceReadonlyWidget
+    too_much_entries_widget = forms.TextInput
 
     def get_obj_from_value(self, value):
         return self.to_python(value)
@@ -123,6 +134,7 @@ class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceF
 
     widget = widgets.MultipleSelect
     readonly_widget = widgets.ModelMultipleReadonlyWidget
+    too_much_entries_widget = widgets.MultipleTextInput
 
     def get_obj_from_value(self, value):
         return self.to_python([value])[0]

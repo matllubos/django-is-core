@@ -23,6 +23,7 @@ class UIOptions(Options):
         'edit_verbose_name': '%(obj)s',
         'filter_placeholders': {},
         'placeholders': {},
+        'default_ui_filter_by': None,
     }
 
 
