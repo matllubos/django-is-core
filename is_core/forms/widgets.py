@@ -63,15 +63,7 @@ class WrapperWidget(forms.Widget):
 class SelectMixin(object):
 
     def render(self, name, value, attrs=None, choices=()):
-        if value is None:
-            value = ''
-        final_attrs = self.build_attrs(attrs, name=name)
-        output = [format_html('<select{}>', flatatt(final_attrs))]
-        options = self.render_options([value])
-        if options:
-            output.append(options)
-        output.append('</select>')
-        return mark_safe('\n'.join(output))
+        return super(SelectMixin, self).render(self, name, value, attrs=attrs)
 
     def render_option(self, selected_choices, option_value, option_label, option_attrs):
         if option_value is None:
