@@ -1,15 +1,15 @@
 from __future__ import unicode_literals
 
 from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
-from django.forms.fields import ImageField, FileField, Field, URLField
+from django.forms.fields import ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField
 
 from is_core.forms.utils import add_class_name
 from is_core.forms.widgets import (DragAndDropFileInput, DragAndDropImageInput, ReadonlyWidget, URLReadonlyWidget,
-                                   FileReadonlyWidget)
+                                   FileReadonlyWidget, MultipleSelect, Select)
 
 
 def build_attrs(self, extra_attrs=None, **kwargs):
-    "Helper function for building an attribute dictionary."
+    """ Helper function for building an attribute dictionary. """
     attrs = dict(self.attrs, **kwargs)
     if extra_attrs:
         attrs.update(extra_attrs)
@@ -30,6 +30,8 @@ DateTimeInput.class_name = 'datetime'
 
 FileField.widget = DragAndDropFileInput
 ImageField.widget = DragAndDropImageInput
+ChoiceField.widget = Select
+MultipleChoiceField.widget = MultipleSelect
 
 try:
     from sorl.thumbnail.fields import ImageFormField
