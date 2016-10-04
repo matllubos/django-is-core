@@ -5,6 +5,7 @@ IS_CORE_AUTH_COOKIE_NAME = getattr(settings, 'IS_CORE_AUTH_COOKIE_NAME', 'Author
 IS_CORE_AUTH_COOKIE_AGE = getattr(settings, 'IS_CORE_AUTH_COOKIE_AGE', 60 * 60 * 24 * 7 * 2)
 IS_CORE_AUTH_COOKIE_HTTPONLY = getattr(settings, 'IS_CORE_AUTH_COOKIE_HTTPONLY', False)
 IS_CORE_AUTH_COOKIE_SECURE = getattr(settings, 'IS_CORE_AUTH_COOKIE_SECURE', False)
+IS_CORE_AUTH_COOKIE_DOMAIN = getattr(settings, 'IS_CORE_AUTH_COOKIE_DOMAIN', None)
 IS_CORE_AUTH_HEADER_NAME = getattr(settings, 'IS_CORE_AUTH_HEADER_NAME', 'Authorization')
 # Default token expiration time (default: 1 hour)
 IS_CORE_AUTH_DEFAULT_TOKEN_AGE = getattr(settings, 'IS_CORE_AUTH_DEFAULT_TOKEN_AGE', 60 * 60)
@@ -23,6 +24,7 @@ IS_CORE_AUTH_LOGIN_VIEW = getattr(settings, 'IS_CORE_AUTH_LOGIN_VIEW', IS_CORE_A
 IS_CORE_AUTH_LOGOUT_VIEW = getattr(settings, 'IS_CORE_AUTH_LOGOUT_VIEW', IS_CORE_AUTH_USE_TOKENS and
                                    'is_core.auth_token.auth_views.TokenLogoutView' or
                                    'is_core.generic_views.auth_views.LoginView')
+IS_CORE_AUTH_TAKEOVER_REDIRECT_URL = getattr(settings, 'IS_CORE_AUTH_TAKEOVER_REDIRECT_URL', '/')
 IS_CORE_HOME_IS_CORE = getattr(settings, 'IS_CORE_HOME_IS_CORE', 'is_core.main.HomeUIISCore')
 IS_CORE_HOME_VIEW = getattr(settings, 'IS_CORE_HOME_VIEW', 'is_core.generic_views.HomeView')
 

@@ -10,6 +10,11 @@
 		{% block body %}
 			{% block sticky-flash %}
 				<div id="sticky-flash" class="flash">
+					{% block user-takeover %}
+						{% if request.token and request.token.active_takeover.user.pk == request.user.pk %}
+							<div class="flash-msg alert alert-error"><span class="msg-text">{{ request.user }} {% trans 'is not your account. Be carefull!' %}</span></div>
+						{% endif %}
+					{% endblock %}
 					{% if messages %}
 						{% for message in messages %}
 							<div{% if message.tags %} class="flash-msg alert alert-{{ message.tags }}"{% endif %}><span class="msg-text">{{ message }}</span></div>

@@ -80,3 +80,11 @@ class BoundField(OriginalBoundField):
             return super(BoundField, self).build_widget_attrs(attrs, widget)
         else:
             return attrs
+
+
+try:
+    from django.contrib.auth import _get_backends
+    get_model = apps.get_model
+except ImportError:
+    from django.contrib.auth import get_backends
+    _get_backends = get_backends
