@@ -99,7 +99,7 @@ class ModelChoiceFieldMixin(object):
         try:
             if ('widget' not in kwargs and self.too_much_entries_widget and
                     queryset.count() > config.IS_CORE_FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
-                kwargs['widget'] = widgets.MultipleTextInput
+                kwargs['widget'] = self.too_much_entries_widget
         except ProgrammingError:
             pass
         super(ModelChoiceFieldMixin, self).__init__(queryset, *args, **kwargs)

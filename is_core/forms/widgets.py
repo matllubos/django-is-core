@@ -2,7 +2,9 @@ from __future__ import unicode_literals
 
 import os
 
-from itertools import chain
+import six
+
+from distutils.version import StrictVersion
 
 import django
 from django import forms
@@ -114,7 +116,7 @@ class MultipleSelect(SelectMixin, forms.SelectMultiple):
 class ClearableFileInput(forms.ClearableFileInput):
 
     def render(self, name, value, attrs=None):
-        if django.get_version() >= '1.8':
+        if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
             return super(ClearableFileInput, self).render(name, value, attrs)
         else:
             substitutions = {
@@ -364,4 +366,5 @@ class MultipleTextInput(forms.TextInput):
         return super(MultipleTextInput, self).render(name, ', '.join(map(force_text, value)) if value else value, attrs)
 
     def value_from_datadict(self, data, files, name):
-        return [v.strip() for v in super(MultipleTextInput, self).value_from_datadict(data, files, name).split(',')]
+        value = super(MultipleTextInput, self).value_from_datadict(data, files, name).split(',')
+        return [v.strip() for v in value.split(',')] if isinstance(value, six.string_types) else value
