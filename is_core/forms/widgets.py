@@ -362,9 +362,15 @@ class DivButtonWidget(ReadonlyWidget):
 
 class MultipleTextInput(forms.TextInput):
 
+    def __init__(self, attrs=None, separator=','):
+        super(MultipleTextInput, self).__init__(attrs)
+        self.separator = separator
+
     def render(self, name, value, attrs=None):
-        return super(MultipleTextInput, self).render(name, ', '.join(map(force_text, value)) if value else value, attrs)
+        return super(MultipleTextInput, self).render(
+            name, '{} '.format(self.separator).join(map(force_text, value)) if value else value, attrs
+        )
 
     def value_from_datadict(self, data, files, name):
-        value = super(MultipleTextInput, self).value_from_datadict(data, files, name).split(',')
-        return [v.strip() for v in value.split(',')] if isinstance(value, six.string_types) else value
+        value = super(MultipleTextInput, self).value_from_datadict(data, files, name).split(self.separator)
+        return [v.strip() for v in value.split(self.separator)] if isinstance(value, six.string_types) else value
