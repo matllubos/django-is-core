@@ -96,9 +96,13 @@ class TextPlainSnippetsExtractor(LinkExtractor):
 class CrawlerTestCase(ClientTestCase):
 
     REST_BASE = None
+    exclude_urls = ()
 
     def get_users(self):
         raise NotImplementedError
+
+    def get_exlude_urls(self):
+        return list(self.exclude_urls) + ['/logout/']
 
     @login(users_generator='get_users')
     def test_crawler(self):
@@ -125,7 +129,7 @@ class CrawlerTestCase(ClientTestCase):
                                     (url, referer, resp.status_code, self.logged_user.user))
             assert_not_equal(resp.status_code, 500, msg='Response code for url %s from referer %s is 500, user %s' %
                              (url, referer, self.logged_user.user))
-        Crawler(self.c, ('/',), ('/logout/',), pre_request, post_response,
+        Crawler(self.c, ('/',), self.get_exlude_urls(), pre_request, post_response,
                 extra_link_extractors={'application/json; charset=utf-8': JSONLinkExtractor(),
                                        'text/plain': TextPlainSnippetsExtractor(),
                                        'default': HTMLLinkExtractor()}).run()
