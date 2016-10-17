@@ -4,7 +4,7 @@ import warnings
 import itertools
 
 from django import forms
-from django.db.utils import ProgrammingError
+from django.db.utils import ProgrammingError, OperationalError
 from django.forms import models
 from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
@@ -100,7 +100,7 @@ class ModelChoiceFieldMixin(object):
             if ('widget' not in kwargs and self.too_much_entries_widget and
                     queryset.count() > config.IS_CORE_FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
                 kwargs['widget'] = self.too_much_entries_widget
-        except ProgrammingError:
+        except (ProgrammingError, OperationalError):
             pass
         super(ModelChoiceFieldMixin, self).__init__(queryset, *args, **kwargs)
 
