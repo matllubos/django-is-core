@@ -338,6 +338,7 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     # list view params
     list_display = ('_obj_name',)
+    list_per_page = None
     export_display = ()
     export_types = config.IS_CORE_EXPORT_TYPES
     default_list_filter = {}
@@ -423,6 +424,9 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     def get_export_types(self, request):
         return self.export_types
+
+    def get_list_per_page(self, request):
+        return self.list_per_page
 
     def get_api_url_name(self):
         return self.api_url_name

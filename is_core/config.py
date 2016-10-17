@@ -43,3 +43,4 @@ IS_CORE_LOGIN_THROTTLING_VALIDATORS = getattr(settings, 'IS_CORE_LOGIN_THROTTLIN
                                               'is_core.auth_token.auth_security.default_login_validators.validators')
 
 IS_CORE_FOREIGN_KEY_MAX_SELECBOX_ENTRIES = getattr(settings, 'IS_CORE_FOREIGN_KEY_MAX_SELECBOX_ENTRIES', 500)
+IS_CORE_LIST_PER_PAGE = getattr(settings, 'IS_CORE_LIST_PER_PAGE', 20)

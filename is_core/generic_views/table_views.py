@@ -1,20 +1,19 @@
 from __future__ import unicode_literals
 
 import django
-
 from django.core.urlresolvers import reverse
-from django.views.generic.base import TemplateView
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
+from django.views.generic.base import TemplateView
 
-from chamber.utils import get_class_method
-
-from is_core.generic_views import DefaultModelCoreViewMixin
+from is_core.config import IS_CORE_LIST_PER_PAGE
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.default_filters import *
 from is_core.forms.forms import pretty_class_name
-from is_core.rest.datastructures import ModelRESTFieldset, ModelFlatRESTFields
+from is_core.generic_views import DefaultModelCoreViewMixin
+from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
 
+from chamber.utils import get_class_method
 from chamber.utils.http import query_string_from_dict
 
 
@@ -38,6 +37,7 @@ class TableViewMixin(object):
     export_display = ()
     list_display_extra = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
     list_filter = None
+    list_per_page = None
     model = None
     api_url = ''
     menu_group_pattern_name = None
@@ -126,6 +126,9 @@ class TableViewMixin(object):
     def _get_list_display_extra(self):
         return list(self.list_display_extra)
 
+    def _get_list_per_page(self):
+        return self.list_per_page or IS_CORE_LIST_PER_PAGE
+
     def _generate_rest_fieldset(self):
         return ModelRESTFieldset.create_from_flat_list(
             list(self._get_list_display_extra()) + list(self._get_list_display()), self.model
@@ -193,6 +196,7 @@ class TableViewMixin(object):
             'render_actions': self.render_actions,
             'enable_columns_manager': self.is_columns_manager_enabled(),
             'table_slug': self.get_table_slug(),
+            'list_per_page': self._get_list_per_page(),
         })
         return context_data
 
@@ -219,6 +223,9 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
 
     def _get_export_types(self):
         return self.export_types or self.core.get_export_types(self.request)
+
+    def _get_list_per_page(self):
+        return self.list_per_page or self.core.get_list_per_page(self.request) or IS_CORE_LIST_PER_PAGE
 
     def _get_api_url(self):
         return self.api_url or self.core.get_api_url(self.request)
