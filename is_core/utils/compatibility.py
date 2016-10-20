@@ -5,11 +5,6 @@ from distutils.version import StrictVersion
 import django
 from django.forms.forms import BoundField as OriginalBoundField
 
-try:
-    from django.forms.utils import flatatt
-except ImportError:
-    from django.forms.util import flatatt
-
 
 try:
     from django.apps import apps
@@ -40,21 +35,8 @@ def admin_display_for_value(value):
             return display_for_value(value)
 
 
-if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
-    from django.template.loader import render_to_string
-else:
-    from django.template import loader, RequestContext
-
-    def render_to_string(template_name, context=None, request=None):
-        context_instance = RequestContext(request) if request else None
-        return loader.render_to_string(template_name, context, context_instance)
-
-
 def get_field_from_model(model, field_name):
-    if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
-        return model._meta.get_field(field_name)
-    else:
-        return model._meta.get_field_by_name(field_name)[0]
+    return model._meta.get_field(field_name)
 
 
 def urls_wrapper(*urls):
@@ -67,10 +49,7 @@ def urls_wrapper(*urls):
 
 
 def get_model_name(model):
-    if StrictVersion(django.get_version()) < StrictVersion('1.7'):
-        return str(model._meta.module_name)
-    else:
-        return str(model._meta.model_name)
+    return str(model._meta.model_name)
 
 
 class BoundField(OriginalBoundField):

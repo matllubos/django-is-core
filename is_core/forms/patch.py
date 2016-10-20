@@ -30,7 +30,6 @@ DateTimeInput.class_name = 'datetime'
 
 FileField.widget = DragAndDropFileInput
 ImageField.widget = DragAndDropImageInput
-ChoiceField.widget = Select
 MultipleChoiceField.widget = MultipleSelect
 
 try:

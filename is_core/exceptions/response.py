@@ -11,8 +11,6 @@ from pyston.utils import set_rest_context_to_request
 from pyston.converter import get_converter_from_request, get_supported_mime_types
 from pyston.resource import BaseResource
 
-from is_core.utils.compatibility import render_to_string
-
 
 def responseexception_factory(request, response_code, title, message, response_class=HttpResponse):
     rest_mime_types = list(get_supported_mime_types())

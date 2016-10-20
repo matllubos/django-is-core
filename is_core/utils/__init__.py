@@ -93,34 +93,27 @@ def get_callable_value_or_value(callable_value, fun_kwargs):
 
 def field_humanized_value(instance, field):
     humanize_method_name = 'get_%s_humanized' % field.name
-    if hasattr(getattr(instance, humanize_method_name, None), '__call__'):
-        return getattr(instance, humanize_method_name)()
+    return (
+        getattr(instance, humanize_method_name)() if hasattr(getattr(instance, humanize_method_name, None), '__call__')
+        else None
+    )
 
 
 def field_display_value(instance, field):
     display_method_name = 'get_%s_display' % field.name
-    if hasattr(getattr(instance, display_method_name, None), '__call__'):
-        return getattr(instance, display_method_name)()
+    return (
+        getattr(instance, display_method_name)() if hasattr(getattr(instance, display_method_name, None), '__call__')
+        else None
+    )
 
 
 def field_value(instance, field, value, fun_kwargs):
-    if isinstance(field.rel, ManyToManyRel) and value is not None and hasattr(getattr(value, 'all'), '__call__'):
+    if field.many_to_many or field.one_to_many and value is not None and hasattr(getattr(value, 'all'), '__call__'):
         return [obj for obj in value.all()]
-    elif isinstance(field, ForeignKey):
+    elif field.one_to_one or field.many_to_one:
         return value
-
-    return get_callable_value_or_value(value, fun_kwargs)
-
-
-def field_widget(instance, field):
-    from is_core.forms.widgets import ModelObjectReadonlyWidget, ManyToManyReadonlyWidget, ReadonlyWidget
-
-    if isinstance(field.rel, ManyToManyRel):
-        return ManyToManyReadonlyWidget
-    elif isinstance(field, ForeignKey):
-        return ModelObjectReadonlyWidget
     else:
-        return ReadonlyWidget
+        return get_callable_value_or_value(value, fun_kwargs)
 
 
 def get_field_from_cls_or_inst_or_none(cls_or_inst, field_name):
@@ -132,37 +125,54 @@ def get_field_from_cls_or_inst_or_none(cls_or_inst, field_name):
         return None
 
 
+def get_widget_and_label_from_fiel(field):
+    from is_core.forms.widgets import ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget
+
+    if field.auto_created and (field.one_to_many or field.many_to_many):
+        return (
+            (
+                getattr(field.field, 'reverse_verbose_name', None)
+                if getattr(field.field, 'reverse_verbose_name', None) is not None
+                else field.related_model._meta.verbose_name_plural
+            ), ManyToManyReadonlyWidget
+        )
+    elif field.auto_created and field.one_to_one:
+        return (
+            (
+                getattr(field.field, 'reverse_verbose_name', None)
+                if getattr(field.field, 'reverse_verbose_name', None) is not None
+                else field.related_model._meta.verbose_name_plural
+            ),  ModelObjectReadonlyWidget
+        )
+    else:
+        return (field.verbose_name, ReadonlyWidget)
+
+
 def get_cls_or_inst_model_field_data(field, field_name, cls_or_inst, fun_kwargs):
-    from is_core.forms.widgets import ReadonlyWidget
     from is_core.forms.forms import ReadonlyValue
 
-    label = field.verbose_name
-    widget = ReadonlyWidget
+    label, widget = get_widget_and_label_from_fiel(field)
+
     if not isinstance(cls_or_inst, type):
-        humanized_value = field_humanized_value(cls_or_inst, field)
         display_value = field_display_value(cls_or_inst, field)
-        if display_value is None:
-            value_or_callable = getattr(cls_or_inst, field_name)
-            value = field_value(cls_or_inst, field, value_or_callable, fun_kwargs)
-        else:
-            value = display_value
-        if humanized_value:
-            value = ReadonlyValue(value, humanized_value)
-            widget = field_widget(cls_or_inst, field)
-        return value, label, widget
+        value = (
+            field_value(cls_or_inst, field, getattr(cls_or_inst, field_name), fun_kwargs) if display_value is None
+            else display_value
+        )
+        humanized_value = field_humanized_value(cls_or_inst, field)
+        return (ReadonlyValue(value, humanized_value) if humanized_value else value, label, widget)
     else:
-        return None, label, widget
+        return (None, label, widget)
 
 
 def get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs):
     from is_core.forms.widgets import ReadonlyWidget
 
     label = get_class_method(cls_or_inst, field_name).short_description
-    if not isinstance(cls_or_inst, type):
-        value_or_callable = getattr(cls_or_inst, field_name)
-        return get_callable_value_or_value(value_or_callable, fun_kwargs), label, ReadonlyWidget
-    else:
-        return None, label, ReadonlyWidget
+    return (
+        (None, label, ReadonlyWidget) if isinstance(cls_or_inst, type)
+        else (get_callable_value_or_value(getattr(cls_or_inst, field_name), fun_kwargs), label, ReadonlyWidget)
+    )
 
 
 def get_cls_or_inst_readonly_data(field_name, cls_or_inst, fun_kwargs):
@@ -176,10 +186,10 @@ def get_cls_or_inst_readonly_data(field_name, cls_or_inst, fun_kwargs):
         return get_cls_or_inst_readonly_data(next_field_name, next_cls_or_inst, fun_kwargs)
     else:
         field = get_field_from_cls_or_inst_or_none(cls_or_inst, field_name)
-        if field:
-            return get_cls_or_inst_model_field_data(field, field_name, cls_or_inst, fun_kwargs)
-        else:
-            return get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs)
+        return (
+            get_cls_or_inst_model_field_data(field, field_name, cls_or_inst, fun_kwargs) if field
+            else get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs)
+        )
 
 
 def get_readonly_field_data(field_name, instances, fun_kwargs, request):
@@ -219,7 +229,7 @@ def get_obj_url(request, obj):
 
 def render_model_object_with_link(request, obj, display_value=None):
     obj_url = get_obj_url(request, obj)
-    display_value = display_value or force_text(obj)
+    display_value = force_text(obj) if display_value is None else display_value
     return format_html('<a href="{}">{}</a>', obj_url, display_value) if obj_url else display_value
 
 

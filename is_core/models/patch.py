@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import six
 
 from django.db import models
+from django.db.models.fields import Field
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils.translation import ugettext_lazy as _
 
@@ -63,9 +64,28 @@ def m2m_formfield(self, **kwargs):
     return super(ManyToManyField, self).formfield(**defaults)
 
 
-ForeignKey.formfield = fk_formfield
-ManyToManyField.formfield = m2m_formfield
+def field_init(self, *args, **kwargs):
+    filter = kwargs.pop('filter', None)
+    if filter:
+        self.filter = filter
+    self._old_init(*args, **kwargs)
 
+
+def rel_field_init(self, *args, **kwargs):
+    self.reverse_verbose_name = kwargs.pop('reverse_verbose_name', None)
+    self._old_rel_init(*args, **kwargs)
+
+
+Field._old_init = Field.__init__
+Field.__init__ = field_init
+
+ForeignKey.formfield = fk_formfield
+ForeignKey._old_rel_init = ForeignKey.__init__
+ForeignKey.__init__ = rel_field_init
+
+ManyToManyField.formfield = m2m_formfield
+ManyToManyField._old_rel_init = ManyToManyField.__init__
+ManyToManyField.__init__ = rel_field_init
 
 # because it is not translated in Django
 _('(None)')
