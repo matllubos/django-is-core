@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 from django import template
 from django.forms import CheckboxInput
 from django.template.base import TemplateSyntaxError, token_kwargs
+from django.template.loader import render_to_string
 from django.template.loader_tags import IncludeNode
 
 from is_core.forms.widgets import WrapperWidget
-from is_core.utils.compatibility import render_to_string
 
 
 register = template.Library()

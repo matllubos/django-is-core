@@ -53,7 +53,6 @@ class SmartBoundField(BoundField):
             name = self.html_name
         else:
             name = self.html_initial_name
-
         if isinstance(widget, SmartWidgetMixin) and hasattr(self.form, '_request'):
             return force_text(widget.smart_render(self.form._request, name, self.value(), self._form_initial_value(),
                                                   self.form, attrs=attrs))

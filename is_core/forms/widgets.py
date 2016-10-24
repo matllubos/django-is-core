@@ -15,10 +15,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Widget
+from django.forms.utils import flatatt
 from django.core.validators import EMPTY_VALUES
 from django.db.models.base import Model
-
-from is_core.utils.compatibility import flatatt
 
 
 try:
@@ -259,7 +258,7 @@ class ModelObjectReadonlyWidget(ReadonlyWidget):
         if value and isinstance(value, Model):
             return mark_safe('<p>%s</p>' % self._render_object(request, value))
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, initial_value, form,
+            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, value, initial_value, form,
                                                                         *args, **kwargs)
 
 
@@ -269,7 +268,7 @@ class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
         if value and isinstance(value, (list, tuple)):
             return mark_safe(', '.join((self._render_object(request, obj) for obj in value)))
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(self, request, name, value, initial_value, form,
+            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, value, initial_value, form,
                                                                         *args, **kwargs)
 
 
