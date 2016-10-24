@@ -18,7 +18,6 @@ from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
 from is_core.forms.forms import SmartFormMixin
-from is_core.utils import field_humanized_value
 
 
 class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
@@ -207,9 +206,8 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
         if exclude and f.name in exclude:
             continue
 
-        humanized_value = field_humanized_value(instance, f)
-        if humanized_value:
-            data[f.name] = humanized_value
+        if f.humanized:
+            data[f.name] = f.humanized(getattr(instance, f.name), instance)
     return data
 
 

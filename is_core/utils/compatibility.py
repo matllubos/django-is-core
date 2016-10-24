@@ -35,10 +35,6 @@ def admin_display_for_value(value):
             return display_for_value(value)
 
 
-def get_field_from_model(model, field_name):
-    return model._meta.get_field(field_name)
-
-
 def urls_wrapper(*urls):
     if StrictVersion(django.get_version()) >= StrictVersion('1.9'):
         return list(urls)

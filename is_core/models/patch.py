@@ -68,23 +68,23 @@ def field_init(self, *args, **kwargs):
     filter = kwargs.pop('filter', None)
     if filter:
         self.filter = filter
-    self._old_init(*args, **kwargs)
+    self._init_is_core_tmp(*args, **kwargs)
 
 
 def rel_field_init(self, *args, **kwargs):
     self.reverse_verbose_name = kwargs.pop('reverse_verbose_name', None)
-    self._old_rel_init(*args, **kwargs)
+    self._rel_init_is_core_tmp(*args, **kwargs)
 
 
-Field._old_init = Field.__init__
+Field._init_is_core_tmp = Field.__init__
 Field.__init__ = field_init
 
 ForeignKey.formfield = fk_formfield
-ForeignKey._old_rel_init = ForeignKey.__init__
+ForeignKey._rel_init_is_core_tmp = ForeignKey.__init__
 ForeignKey.__init__ = rel_field_init
 
 ManyToManyField.formfield = m2m_formfield
-ManyToManyField._old_rel_init = ManyToManyField.__init__
+ManyToManyField._rel_init_is_core_tmp = ManyToManyField.__init__
 ManyToManyField.__init__ = rel_field_init
 
 # because it is not translated in Django

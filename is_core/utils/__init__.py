@@ -6,6 +6,7 @@ import types
 import inspect
 
 import django
+from django.forms.forms import pretty_name
 from django.http.request import QueryDict
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -14,12 +15,17 @@ from django.utils.html import format_html
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.safestring import mark_safe
 from django.utils.html import linebreaks, conditional_escape
-from django.db.models.fields.related import ManyToManyRel, ForeignKey
 from django.db.models.base import Model
 
 from chamber.utils import get_class_method
 
-from is_core.utils.compatibility import get_field_from_model
+
+class FieldOrMethodDoesNotExist(Exception):
+    pass
+
+
+class InvalidMethodArguments(Exception):
+    pass
 
 
 def str_to_class(class_string):
@@ -74,63 +80,72 @@ def get_inline_views_opts_from_fieldsets(fieldsets):
     return inline_views
 
 
-def get_callable_value_or_value(callable_value, fun_kwargs):
-    if hasattr(callable_value, '__call__'):
-        maybe_kwargs_names = inspect.getargspec(callable_value)[0][1:]
-        maybe_kwargs = {}
-
-        for arg_name in maybe_kwargs_names:
-            if arg_name in fun_kwargs:
-                maybe_kwargs[arg_name] = fun_kwargs[arg_name]
-
-        if len(maybe_kwargs_names) == len(maybe_kwargs):
-            return callable_value(**maybe_kwargs)
-        else:
-            raise AttributeError
-    else:
-        return callable_value
-
-
-def field_humanized_value(instance, field):
-    humanize_method_name = 'get_%s_humanized' % field.name
-    return (
-        getattr(instance, humanize_method_name)() if hasattr(getattr(instance, humanize_method_name, None), '__call__')
-        else None
-    )
-
-
-def field_display_value(instance, field):
-    display_method_name = 'get_%s_display' % field.name
-    return (
-        getattr(instance, display_method_name)() if hasattr(getattr(instance, display_method_name, None), '__call__')
-        else None
-    )
-
-
-def field_value(instance, field, value, fun_kwargs):
-    if field.many_to_many or field.one_to_many and value is not None and hasattr(getattr(value, 'all'), '__call__'):
-        return [obj for obj in value.all()]
-    elif field.one_to_one or field.many_to_one:
-        return value
-    else:
-        return get_callable_value_or_value(value, fun_kwargs)
-
-
 def get_field_from_cls_or_inst_or_none(cls_or_inst, field_name):
     from django.db.models.fields import FieldDoesNotExist
 
     try:
-        return get_field_from_model(cls_or_inst, field_name)
+        return cls_or_inst._meta.get_field(field_name)
     except (FieldDoesNotExist, AttributeError):
         return None
 
 
-def get_widget_and_label_from_fiel(field):
+def get_verbose_value(raw, field_or_method, obj, **kwargs):
+    if hasattr(field_or_method, 'humanized') and field_or_method.humanized:
+        return field_or_method.humanized(raw, obj, **kwargs)
+    elif hasattr(field_or_method, 'choices') and field_or_method.choices:
+        return getattr(obj, 'get_{}_display'.format(field_or_method.attname))()
+    else:
+        return raw
+
+
+def val_to_readonly_value(value, field_or_method, obj, **kwargs):
+    from is_core.forms.forms import ReadonlyValue
+
+    verbose_value = get_verbose_value(value, field_or_method, obj, **kwargs)
+    return ReadonlyValue(value, verbose_value) if value != verbose_value else value
+
+
+def get_callable_value(method, field_name, inst, fun_kwargs):
+    callable = getattr(inst, field_name)
+    method_kwargs_names = inspect.getargspec(callable)[0][1:]
+    method_kwargs = {arg_name: fun_kwargs[arg_name]  for arg_name in method_kwargs_names if arg_name in fun_kwargs}
+    if len(method_kwargs_names) == len(method_kwargs):
+        return val_to_readonly_value(callable(**method_kwargs), method, inst,
+                                     **{k: v for k, v in method_kwargs.items() if k != 'obj'})
+    else:
+        raise(InvalidMethodArguments('Method {} arguments has not subset of fun kwargs'.format(field_name)))
+
+def get_callable_value_or_value(method, field_name, inst, fun_kwargs):
+    if hasattr(getattr(inst, field_name), '__call__'):
+        return get_callable_value(method, field_name, inst, fun_kwargs)
+    else:
+        return val_to_readonly_value(getattr(inst, field_name), method, inst)
+
+
+def get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs):
+    from is_core.forms.widgets import ReadonlyWidget
+
+    method = get_class_method(cls_or_inst, field_name)
+    if method:
+        label = getattr(method, 'short_description', pretty_name(field_name))
+        try:
+            return (
+                (None, label, ReadonlyWidget) if isinstance(cls_or_inst, type)
+                else (get_callable_value_or_value(method, field_name, cls_or_inst, fun_kwargs), label, ReadonlyWidget)
+            )
+        except InvalidMethodArguments:
+            return None
+    else:
+        return None
+
+
+def get_cls_or_inst_model_field_data(field, cls_or_inst):
+    from is_core.forms.forms import ReadonlyValue
     from is_core.forms.widgets import ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget
 
     if field.auto_created and (field.one_to_many or field.many_to_many):
         return (
-            (
+             None if isinstance(cls_or_inst, type) else [obj for obj in getattr(cls_or_inst, field.name).all()], (
                 getattr(field.field, 'reverse_verbose_name', None)
                 if getattr(field.field, 'reverse_verbose_name', None) is not None
                 else field.related_model._meta.verbose_name_plural
@@ -138,93 +153,76 @@ def get_widget_and_label_from_fiel(field):
         )
     elif field.auto_created and field.one_to_one:
         return (
-            (
+            None if isinstance(cls_or_inst, type) else getattr(cls_or_inst, field.name), (
                 getattr(field.field, 'reverse_verbose_name', None)
                 if getattr(field.field, 'reverse_verbose_name', None) is not None
                 else field.related_model._meta.verbose_name_plural
             ),  ModelObjectReadonlyWidget
         )
     else:
-        return (field.verbose_name, ReadonlyWidget)
-
-
-def get_cls_or_inst_model_field_data(field, field_name, cls_or_inst, fun_kwargs):
-    from is_core.forms.forms import ReadonlyValue
-
-    label, widget = get_widget_and_label_from_fiel(field)
-
-    if not isinstance(cls_or_inst, type):
-        display_value = field_display_value(cls_or_inst, field)
-        value = (
-            field_value(cls_or_inst, field, getattr(cls_or_inst, field_name), fun_kwargs) if display_value is None
-            else display_value
+        return (
+            None if isinstance(cls_or_inst, type)
+            else val_to_readonly_value(getattr(cls_or_inst, field.name), field, cls_or_inst),
+            field.verbose_name, ReadonlyWidget
         )
-        humanized_value = field_humanized_value(cls_or_inst, field)
-        return (ReadonlyValue(value, humanized_value) if humanized_value else value, label, widget)
-    else:
-        return (None, label, widget)
-
-
-def get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs):
-    from is_core.forms.widgets import ReadonlyWidget
-
-    label = get_class_method(cls_or_inst, field_name).short_description
-    return (
-        (None, label, ReadonlyWidget) if isinstance(cls_or_inst, type)
-        else (get_callable_value_or_value(getattr(cls_or_inst, field_name), fun_kwargs), label, ReadonlyWidget)
-    )
 
 
 def get_cls_or_inst_readonly_data(field_name, cls_or_inst, fun_kwargs):
     if '__' in field_name:
         current_field_name, next_field_name = field_name.split('__', 1)
         field = get_field_from_cls_or_inst_or_none(cls_or_inst, current_field_name)
-        next_cls_or_inst = (
-            field.rel.to if field and hasattr(field, 'rel') and not hasattr(cls_or_inst, current_field_name)
-            else getattr(cls_or_inst, current_field_name)
-        )
-        return get_cls_or_inst_readonly_data(next_field_name, next_cls_or_inst, fun_kwargs)
+        if hasattr(cls_or_inst, current_field_name):
+            return get_cls_or_inst_readonly_data(next_field_name, getattr(cls_or_inst, current_field_name), fun_kwargs)
+        elif field and hasattr(field, 'rel'):
+            return get_cls_or_inst_readonly_data(next_field_name, field.rel.to, fun_kwargs)
+        else:
+            return None
     else:
         field = get_field_from_cls_or_inst_or_none(cls_or_inst, field_name)
         return (
-            get_cls_or_inst_model_field_data(field, field_name, cls_or_inst, fun_kwargs) if field
+            get_cls_or_inst_model_field_data(field, cls_or_inst) if field
             else get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs)
         )
 
 
-def get_readonly_field_data(field_name, instances, fun_kwargs, request):
+def get_readonly_field_data(field_name, instances, fun_kwargs):
     for inst in instances:
-        try:
-            return get_cls_or_inst_readonly_data(field_name, inst, fun_kwargs)
-        except AttributeError:
-            pass
+        data = get_cls_or_inst_readonly_data(field_name, inst, fun_kwargs)
+        if data is not None:
+            return data
 
-    raise AttributeError('Field or method with name %s not found' % field_name)
+    raise FieldOrMethodDoesNotExist('Field or method with name {} not found'.format(field_name))
+
+
+def display_object_data(obj, field_name):
+    from is_core.forms.forms import ReadonlyValue
+
+    value, _, _ = get_readonly_field_data(field_name, [obj], {})
+    return display_for_value(value.humanized_value if isinstance(value, ReadonlyValue) else value)
 
 
 def display_for_value(value):
-    if isinstance(value, bool):
-        return ugettext('Yes') if value else ugettext('No')
-    else:
-        from is_core.utils.compatibility import admin_display_for_value
+    from is_core.utils.compatibility import admin_display_for_value
 
-        return admin_display_for_value(value)
+    return (value and ugettext('Yes') or ugettext('No')) if isinstance(value, bool) else admin_display_for_value(value)
 
 
 def get_obj_url(request, obj):
+    from is_core.site import get_model_core
+    model_core = get_model_core(obj.__class__)
+
     if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__') and
             hasattr(getattr(obj, 'can_see_edit_link', None), '__call__') and
             obj.can_see_edit_link(request)):
         return obj.get_absolute_url()
+    elif model_core and hasattr(model_core, 'ui_patterns'):
+        edit_pattern = model_core.ui_patterns.get('edit')
+        return (
+            edit_pattern.get_url_string(request, obj=obj)
+            if edit_pattern and edit_pattern.can_call_get(request, obj=obj) else None
+        )
     else:
-        from is_core.site import get_model_core
-        model_core = get_model_core(obj.__class__)
-
-        if model_core and hasattr(model_core, 'ui_patterns'):
-            edit_pattern = model_core.ui_patterns.get('edit')
-            if edit_pattern and edit_pattern.can_call_get(request, obj=obj):
-                return edit_pattern.get_url_string(request, obj=obj)
-    return None
+        return None
 
 
 def render_model_object_with_link(request, obj, display_value=None):

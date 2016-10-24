@@ -1,5 +1,8 @@
+from django.db.models import Model
+
 from is_core.generic_views.inlines import InlineView
-from is_core.templatetags.utils import display_object_data
+from is_core.utils import display_object_data, display_for_value
+
 
 
 class DataRow(list):
@@ -52,7 +55,12 @@ class InlineObjectsView(InlineView):
         return list(self.obj_class_names)
 
     def get_data_object(self, field_name, obj):
-        return display_object_data(obj, field_name)
+        if isinstance(obj, Model):
+            return display_object_data(obj, field_name)
+        elif isinstance(obj, dict):
+            return display_for_value(obj.get(field_name))
+        else:
+            raise NotImplementedError
 
     def get_header_list(self, fields):
         return self.get_fields()

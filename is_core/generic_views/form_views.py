@@ -379,7 +379,7 @@ class DefaultModelFormView(DefaultFormView):
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
             return get_readonly_field_data(name, (self, self.core, instance),
-                                           {'request': self.request}, self.request)
+                                           {'request': self.request})
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_has_file_field(self, form, inline_form_views=None, **kwargs):

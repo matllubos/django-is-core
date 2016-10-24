@@ -218,7 +218,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
             out = ', '.join([self._get_value(val) for val in value])
         else:
             out = self._get_value(value)
-        return mark_safe('<p>%s</p>' % conditional_escape(out))
+        return mark_safe('<p>{}</p>'.format(conditional_escape(out)))
 
     def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
         return self._render(name, value, attrs, choices)
@@ -238,10 +238,10 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
     def smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
         from is_core.forms.forms import ReadonlyValue
 
-        if isinstance(value, ReadonlyValue):
-            return self._render_readonly_value(value)
-        else:
-            return self._smart_render(request, name, value, initial_value, form, attrs, choices)
+        return (
+            self._render_readonly_value(value) if isinstance(value, ReadonlyValue)
+            else self._smart_render(request, name, value, initial_value, form, attrs, choices)
+        )
 
     def _has_changed(self, initial, data):
         return False
