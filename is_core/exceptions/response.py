@@ -24,7 +24,7 @@ def responseexception_factory(request, response_code, title, message, response_c
             resp_message = ', '.join(resp_message)
 
         context = {'response_code': response_code, 'title': title, 'message': resp_message}
-        content = render_to_string(('%s.html' % response_code, 'error.html'), context, request=request)
+        content = render_to_string(('{}.html'.format(response_code), 'error.html'), context, request=request)
         ct = None
     else:
         if resp_message:
@@ -92,3 +92,9 @@ class HTTPDuplicateResponseException(ResponseException):
 
     title = _('Conflict/Duplicate')
     status_code = 409
+
+
+class HTTPServiceUnavailableException(ResponseException):
+
+    title = _('Temporarily unavailable')
+    status_code = 503

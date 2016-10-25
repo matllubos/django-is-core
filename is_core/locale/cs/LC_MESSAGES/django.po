@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-21 23:10+0200\n"
+"POT-Creation-Date: 2016-10-17 16:41+0200\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -63,7 +63,11 @@ msgstr "Metoda není povolena"
 msgid "Conflict/Duplicate"
 msgstr "Konflikt/Duplikace"
 
-#: filters/__init__.py:42
+#: exceptions/response.py:101
+msgid "Temporarily unavailable"
+msgstr "Služba je dočasně nedostupná"
+
+#: filters/__init__.py:47
 msgid "Not valid filter: {}"
 msgstr "Neplatný filter: {}"
 
@@ -80,7 +84,7 @@ msgstr "Prázdný"
 msgid "Readonly field can not be validated"
 msgstr "Pole pro čtení nemůže být validováno"
 
-#: forms/widgets.py:113 forms/widgets.py:119
+#: forms/widgets.py:107 forms/widgets.py:113
 msgid "Search..."
 msgstr "Hledat..."
 
@@ -139,21 +143,21 @@ msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 msgid "There are no items"
 msgstr "Žádné položky"
 
-#: main.py:525
+#: main.py:529
 #, python-format
 msgid "Do you really want to delete \"%s\""
 msgstr "Opravdu chcete odstranit položku \"%s\""
 
-#: main.py:527
+#: main.py:531
 msgid "Delete"
 msgstr "Smazat"
 
-#: main.py:528
+#: main.py:532
 #, python-format
 msgid "Record \"%s\" was deleted"
 msgstr "Záznam \"%s\" byl smazán"
 
-#: main.py:561
+#: main.py:565
 msgid "Edit"
 msgstr "Upravit"
 
@@ -170,7 +174,7 @@ msgstr "Nenalezeno"
 msgid "add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
 
-#: models/patch.py:70
+#: models/patch.py:71
 msgid "(None)"
 msgstr "---"
 
