@@ -182,11 +182,11 @@ class SmartFormMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(SmartFormMixin, self).__init__(*args, **kwargs)
-        self.readonly_fields = list(self.base_readonly_fields)
+        self.readonly_fields = set(self.base_readonly_fields)
         self._pre_init_fields()
         for field_name, field in self.fields.items():
-            if hasattr(self, '_init_%s' % field_name):
-                getattr(self, '_init_%s' % field_name)(field)
+            if hasattr(self, '_init_{}'.format(field_name)):
+                getattr(self, '_init_{}'.format(field_name))(field)
         self._init_fields()
 
     def _pre_init_fields(self):
