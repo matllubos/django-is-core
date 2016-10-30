@@ -60,3 +60,8 @@ build/config
 ###################
 .idea
 */.idea
+
+# Docs #
+########
+.buile
+
