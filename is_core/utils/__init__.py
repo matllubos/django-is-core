@@ -125,7 +125,14 @@ def get_callable_value_or_value(method, field_name, inst, fun_kwargs):
 def get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs):
     from is_core.forms.widgets import ReadonlyWidget
 
-    method = get_class_method(cls_or_inst, field_name)
+    class_method = get_class_method(cls_or_inst, field_name)
+
+    method = (
+        getattr(cls_or_inst, field_name)
+        if hasattr(cls_or_inst, field_name) and not class_method and is_callable(getattr(cls_or_inst, field_name))
+        else class_method
+    )
+
     if method:
         label = getattr(method, 'short_description', pretty_name(field_name))
         try:
@@ -135,12 +142,13 @@ def get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs)
             )
         except InvalidMethodArguments:
             return None
+    elif hasattr(cls_or_inst, field_name):
+        return (getattr(cls_or_inst, field_name), pretty_name(field_name), ReadonlyWidget)
     else:
         return None
 
 
 def get_cls_or_inst_model_field_data(field, cls_or_inst):
-    from is_core.forms.forms import ReadonlyValue
     from is_core.forms.widgets import ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget
 
     if field.auto_created and (field.one_to_many or field.many_to_many):
