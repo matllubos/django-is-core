@@ -32,7 +32,7 @@ setup(
         'django-class-based-auth-views==0.5druids',
         'django-pyston>=1.0.7',
         'django-block-snippets==1.0.2',
-        'django-chamber>=0.1.20',
+        'django-chamber>=0.1.23',
         'python-dateutil>=2.2',
         'pytz',
         'Unidecode>=0.04.16',
@@ -41,7 +41,7 @@ setup(
     ],
     dependency_links=[
         'https://github.com/druids/django-pyston/tarball/1.0.7#egg=django-pyston-1.0.7',
-        'https://github.com/druids/django-chamber/tarball/0.1.22#egg=django-chamber-0.1.22',
+        'https://github.com/druids/django-chamber/tarball/0.1.23#egg=django-chamber-0.1.23',
         'https://github.com/druids/django-block-snippets/tarball/1.0.2#egg=django-block-snippets-1.0.2',
         'https://github.com/druids/django-class-based-auth-views/tarball/0.5#egg=django-class-based-auth-views-0.5druids',
     ],
