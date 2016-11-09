@@ -1,23 +1,18 @@
 from __future__ import unicode_literals
 
 import re
-import sys
-import types
 import inspect
 
-import django
 from django.forms.forms import pretty_name
-from django.http.request import QueryDict
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext
 from django.utils.html import format_html
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils.safestring import mark_safe
-from django.utils.html import linebreaks, conditional_escape
-from django.db.models.base import Model
 
 from chamber.utils import get_class_method
+
+
+def is_callable(val):
+    return hasattr(val, '__call__')
 
 
 class FieldOrMethodDoesNotExist(Exception):
@@ -115,11 +110,12 @@ def get_callable_value(method, field_name, inst, fun_kwargs):
     else:
         raise(InvalidMethodArguments('Method {} arguments has not subset of fun kwargs'.format(field_name)))
 
+
 def get_callable_value_or_value(method, field_name, inst, fun_kwargs):
-    if hasattr(getattr(inst, field_name), '__call__'):
-        return get_callable_value(method, field_name, inst, fun_kwargs)
-    else:
-        return val_to_readonly_value(getattr(inst, field_name), method, inst)
+    return (
+        get_callable_value(method, field_name, inst, fun_kwargs) if is_callable(getattr(inst, field_name))
+        else val_to_readonly_value(getattr(inst, field_name), method, inst)
+    )
 
 
 def get_cls_or_inst_method_or_property_data(field_name, cls_or_inst, fun_kwargs):
@@ -219,8 +215,8 @@ def get_obj_url(request, obj):
     from is_core.site import get_model_core
     model_core = get_model_core(obj.__class__)
 
-    if (hasattr(getattr(obj, 'get_absolute_url', None), '__call__') and
-            hasattr(getattr(obj, 'can_see_edit_link', None), '__call__') and
+    if (is_callable(getattr(obj, 'get_absolute_url', None)) and
+            is_callable(getattr(obj, 'can_see_edit_link', None)) and
             obj.can_see_edit_link(request)):
         return obj.get_absolute_url()
     elif model_core and hasattr(model_core, 'ui_patterns'):
