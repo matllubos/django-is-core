@@ -166,8 +166,9 @@ def get_cls_or_inst_model_field_data(field, cls_or_inst):
     else:
         return (
             None if isinstance(cls_or_inst, type)
-            else val_to_readonly_value(getattr(cls_or_inst, field.name), field, cls_or_inst),
-            field.verbose_name, ReadonlyWidget
+            else val_to_readonly_value(
+                getattr(cls_or_inst, field.name) if hasattr(cls_or_inst, field.name) else None, field, cls_or_inst
+            ), field.verbose_name, ReadonlyWidget
         )
 
 
