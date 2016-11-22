@@ -16,6 +16,7 @@
                         {% get_field form field_name as field %}
                         <div class="field {{ field_name }} {{ field.type }}{% if field.errors %} error{% endif %}">
                             {% include 'forms/default_field.html' with field=field field_name=field_name %}
+                            {% block below-field %}{% endblock %}
                         </div>
                     {% endfor %}
                     </div>
