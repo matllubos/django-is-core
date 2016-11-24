@@ -9,7 +9,6 @@ from django.forms import models
 from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
 from django.utils import six
-from django.utils.encoding import force_text
 
 from pyston.forms import RESTModelForm
 
@@ -214,7 +213,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
 class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin, RESTModelForm)):
 
     def __init__(self, *args, **kwargs):
-        # Set values must be ommited
+        # Set values must be omitted
         readonly_exclude = kwargs.get('initials', {}).keys()
 
         super(SmartModelForm, self).__init__(*args, **kwargs)
