@@ -19,7 +19,8 @@ def login(request, user, expiration=True):
     """
     if user is None:
         user = request.user
-    token = Token.objects.create(user=user, user_agent=request.META.get('HTTP_USER_AGENT'), expiration=expiration)
+    token = Token.objects.create(user=user, user_agent=request.META.get('HTTP_USER_AGENT', '')[:256],
+                                 expiration=expiration)
     if hasattr(request, 'user'):
         request.user = user
     request.token = token
