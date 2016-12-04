@@ -1,15 +1,15 @@
 import mimeparse
 
-import django
-
+from django.conf import settings
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.template.loader import render_to_string
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 from pyston.utils import set_rest_context_to_request
-from pyston.converter import get_converter_from_request, get_supported_mime_types
+from pyston.converter import get_converter, get_supported_mime_types, get_converter_name_from_request
 from pyston.resource import BaseResource
+from pyston.serializer import DEFAULT_CONVERTER_OPTIONS
 
 
 def responseexception_factory(request, response_code, title, message, response_class=HttpResponse):
@@ -35,8 +35,11 @@ def responseexception_factory(request, response_code, title, message, response_c
         else:
             resp_message = force_text(title)
         set_rest_context_to_request(request, BaseResource.DEFAULT_REST_CONTEXT_MAPPING)
-        converter, ct = get_converter_from_request(request)
-        content = converter().encode({'message': {'error': resp_message}})
+        converter_name = get_converter_name_from_request(request)
+        converter, ct = get_converter(converter_name)
+        converter_options = getattr(settings, 'DEFAULT_CONVERTER_OPTIONS',
+                                    DEFAULT_CONVERTER_OPTIONS).get(converter_name, {})
+        content = converter().encode({'message': {'error': resp_message}}, options=converter_options)
     return response_class(content, status=response_code, content_type=ct)
 
 
