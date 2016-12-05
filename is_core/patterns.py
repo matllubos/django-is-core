@@ -34,6 +34,7 @@ def pattern_from_request(request):
 
 
 class Pattern(object):
+
     send_in_rest = True
 
     def __init__(self, name):
@@ -188,10 +189,7 @@ class RESTPattern(ViewPattern):
         return view
 
     def get_view_dispatch(self):
-        dispatch = self.resource_class.as_view(allowed_methods=self.methods)
-        if self.resource_class.login_required:
-            return rest_login_required(dispatch)
-        return dispatch
+        return self.resource_class.as_view(allowed_methods=self.methods)
 
     def get_allowed_methods(self, request, obj):
         return self._call_view_method_with_request('get_allowed_methods', request, method_args=(obj, self.methods),

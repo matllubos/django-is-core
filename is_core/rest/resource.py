@@ -19,16 +19,52 @@ from chamber.utils import transaction
 
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
-                                         HTTPForbiddenResponseException)
-from is_core.filters import get_model_field_or_method_filter
+                                         HTTPForbiddenResponseException, HTTPUnauthorizedResponseException)
+from is_core.filters import get_model_field_or_method_filter, FilterException, FilterValueException
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
 from is_core.utils.immutable import merge
 from is_core import config
 
 
-class RESTResource(BaseResource):
+class RESTLoginMixin(object):
+
     login_required = True
+    login_post_required = True
+    login_put_required = True
+    login_get_required = True
+    login_delete_required = True
+    login_head_required = True
+    login_options_required = True
+
+    def has_login_post_required(self):
+        return self.login_required and self.login_post_required
+
+    def has_login_put_required(self):
+        return self.login_required and self.login_put_required
+
+    def has_login_get_required(self):
+        return self.login_required and self.login_get_required
+
+    def has_login_delete_required(self):
+        return self.login_required and self.login_delete_required
+
+    def has_login_head_required(self):
+        return self.login_required and self.login_head_required and self.has_login_get_required()
+
+    def has_login_options_required(self):
+        return self.login_required and self.login_options_required
+
+    def dispatch(self, request, *args, **kwargs):
+        if ((not hasattr(request, 'user') or not request.user or not request.user.is_authenticated()) and
+                getattr(self, 'has_login_{}_required'.format(request.method.lower()))()):
+            raise HTTPUnauthorizedResponseException
+        else:
+            return super(RESTLoginMixin, self).dispatch(request, *args, **kwargs)
+
+
+class RESTResource(RESTLoginMixin, BaseResource):
+
     register = False
     abstract = True
 
@@ -76,26 +112,38 @@ class RESTModelCoreResourcePermissionsMixin(object):
 
     def has_get_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.login_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_get_required() or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_get_permission(obj) and
                 self.core.has_rest_read_permission(self.request, obj, via))
 
     def has_post_permission(self, obj=None, via=None):
-        return ((not self.login_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_post_required or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_post_permission(obj) and
                 self.core.has_rest_create_permission(self.request, obj, via))
 
     def has_put_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.login_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_put_required or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_put_permission(obj) and
                 self.core.has_rest_update_permission(self.request, obj, via))
 
     def has_delete_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.login_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_delete_required or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_delete_permission(obj) and
                 self.core.has_rest_delete_permission(self.request, obj, via))
+
+    def has_head_permission(self, obj=None, via=None):
+        obj = obj or self._get_perm_obj_or_none()
+        return ((not self.has_login_head_required or self.request.user.is_authenticated()) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_head_permission(obj) and
+                self.core.has_rest_read_permission(self.request, obj, via))
+
+    def has_options_permission(self, obj=None, via=None):
+        obj = obj or self._get_perm_obj_or_none()
+        return ((not self.has_login_options_required or self.request.user.is_authenticated()) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_options_permission(obj) and
+                self.core.has_rest_read_permission(self.request, obj, via))
 
     def _get_perm_obj_or_none(self, pk=None):
         pk = pk or self.kwargs.get(self.pk_name)
@@ -121,6 +169,7 @@ class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
 
 
 class EntryPointResource(RESTResource):
+
     login_required = False
     allowed_methods = ('get',)
 
@@ -146,6 +195,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     form_class = None
     field_labels = None
     abstract = True
+    filters = {}
 
     def _get_field_labels(self):
         return (
@@ -201,18 +251,40 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     def _preload_queryset(self, qs):
         return self.core.preload_queryset(self.request, qs)
 
+    def _get_filter(self, filter_term, value):
+        filter_name = filter_term.split('__')[0]
+
+        if filter_name in self.filters:
+            return self.filters[filter_name](filter_term, filter_term, value=value)
+        else:
+            try:
+                return get_model_field_or_method_filter(filter_term, self.model, value)
+            except FilterException:
+                return None
+
     def _filter_queryset(self, qs):
-        filter_terms = self.request.GET.dict()
+        filter_terms_with_values = [
+            (filter_term, value) for filter_term, value in self.request.GET.dict().items()
+            if not filter_term.startswith('_')
+        ]
+        qs_filter_terms = []
+        for filter_term, value in filter_terms_with_values:
+            filter = self._get_filter(filter_term, value)
 
-        for filter_term, filter_val in filter_terms.items():
-            if not filter_term.startswith('_'):
+            if filter:
                 try:
-                    filter = get_model_field_or_method_filter(filter_term, self.model, filter_val)
-                    qs = filter.filter_queryset(qs, self.request)
+                    q = filter.get_q(self.request)
+                except FilterValueException:
+                    raise RESTException(mark_safe(ugettext('Invalid filter value "{}={}"').format(filter_term, value)))
+                try:
+                    qs.filter(q)
                 except:
-                    raise RESTException(mark_safe(ugettext('Cannot resolve filter "%s"') % filter_term))
+                    raise RESTException(mark_safe(ugettext('Invalid filter value "{}={}"').format(filter_term, value)))
+                qs_filter_terms.append(q)
+            else:
+                raise RESTException(mark_safe(ugettext('Cannot resolve filter "{}={}"').format(filter_term, value)))
 
-        return qs.distinct()
+        return qs.filter(*qs_filter_terms).distinct()
 
     def _order_queryset(self, qs):
         if 'order' not in self.request._rest_context:
@@ -275,9 +347,12 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     def put(self):
         return super(RESTModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
+    def _get_queryset(self):
+        return self.core.get_queryset(self.request)
+
     @transaction.atomic
     def update_bulk(self):
-        qs = self._filter_queryset(self.core.get_queryset(self.request))
+        qs = self._filter_queryset(self._get_queryset())
         BULK_CHANGE_LIMIT = getattr(settings, 'BULK_CHANGE_LIMIT', 200)
         if qs.count() > BULK_CHANGE_LIMIT:
             return RESTErrorResponse(
