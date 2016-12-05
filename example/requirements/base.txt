@@ -10,7 +10,7 @@ https://github.com/druids/django-chamber/tarball/0.1.19#egg=django-chamber-0.1.1
 https://github.com/jezdez/django_compressor/tarball/develop#egg=django_compressor-dev
 https://github.com/druids/django-class-based-auth-views/tarball/0.5#egg=django-class-based-auth-views-0.5druids
 https://github.com/druids/django-block-snippets/tarball/1.0.1#egg=django-block-snippets-1.0.1
-https://github.com/druids/django-pyston/tarball/1.0.5#egg=django-pyston-1.0.5
+https://github.com/druids/django-pyston/tarball/1.0.10#egg=django-pyston-1.0.10
 python-dateutil>=2.2
 pytz
 django-apptemplates

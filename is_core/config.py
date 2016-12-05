@@ -1,5 +1,6 @@
 from django.conf import settings
 
+
 IS_CORE_AUTH_COOKIE_NAME = getattr(settings, 'IS_CORE_AUTH_COOKIE_NAME', 'Authorization')
 # Age of cookie, in seconds (default: 2 weeks).
 IS_CORE_AUTH_COOKIE_AGE = getattr(settings, 'IS_CORE_AUTH_COOKIE_AGE', 60 * 60 * 24 * 7 * 2)
@@ -38,9 +39,6 @@ IS_CORE_LOGOUT_URL = getattr(settings, 'IS_CORE_LOGOUT_URL', getattr(settings, '
 IS_CORE_LOGIN_API_URL = getattr(settings, 'IS_CORE_LOGIN_API_URL', '/api/{}'.format(IS_CORE_LOGIN_URL[1:]))
 
 IS_CORE_EXPORT_TYPES = getattr(settings, 'IS_CORE_EXPORT_TYPES', '')
-
-IS_CORE_LOGIN_THROTTLING_VALIDATORS = getattr(settings, 'IS_CORE_LOGIN_THROTTLING_VALIDATORS',
-                                              'is_core.auth_token.auth_security.default_login_validators.validators')
 
 IS_CORE_FOREIGN_KEY_MAX_SELECBOX_ENTRIES = getattr(settings, 'IS_CORE_FOREIGN_KEY_MAX_SELECBOX_ENTRIES', 500)
 IS_CORE_LIST_PER_PAGE = getattr(settings, 'IS_CORE_LIST_PER_PAGE', 20)
