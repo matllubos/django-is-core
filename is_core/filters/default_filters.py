@@ -5,14 +5,14 @@ import re
 from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField, Q
-from django.db.models.fields.related import RelatedField
+from django.db.models.fields.related import RelatedField, ManyToManyField
 from django.db.models.fields import (AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField,
                                      IPAddressField)
 from django.utils.timezone import make_aware, get_current_timezone
 
 from dateutil.parser import DEFAULTPARSER
 
-from is_core.filters.exceptions import FilterException
+from is_core.filters.exceptions import FilterException, FilterValueException
 
 
 class Filter(object):
@@ -20,7 +20,7 @@ class Filter(object):
     def get_widget(self, *args, **kwargs):
         raise NotImplemented
 
-    def filter_queryset(self, queryset, request):
+    def get_q(self, queryset, request):
         return queryset
 
     def render(self, request):
@@ -30,10 +30,8 @@ class Filter(object):
 class DefaultFilter(Filter):
     suffixes = []
     default_suffix = None
-    widget = None
 
-    def __init__(self, filter_key, full_filter_key, field_or_method, value=None):
-        self.field_or_method = field_or_method
+    def __init__(self, filter_key, full_filter_key, value=None):
         self.filter_key = filter_key
         self.full_filter_key = full_filter_key
         self.value = value
@@ -56,18 +54,13 @@ class DefaultFilter(Filter):
             return suffix
 
     def get_filter_term(self, request):
-        self._check_suffix()
+        raise NotImplementedError
 
-        return {self.full_filter_key: self.value}
-
-    def filter_queryset(self, queryset, request):
+    def get_q(self, request):
         filter_term = self.get_filter_term(request)
         if isinstance(filter_term, dict):
             filter_term = Q(**filter_term)
-        if self.is_exclude:
-            return queryset.exclude(filter_term)
-        else:
-            return queryset.filter(filter_term)
+        return ~Q(filter_term) if self.is_exclude else filter_term
 
     def get_filter_prefix(self):
         return self.full_filter_key[:-len(self.filter_key)]
@@ -85,6 +78,16 @@ class DefaultFilter(Filter):
             full_filter_key.append(default_suffix)
         return '__'.join(full_filter_key)
 
+
+class DefaultFieldOrMethodFilter(DefaultFilter):
+
+    widget = None
+
+    def get_filter_term(self, request):
+        self._check_suffix()
+
+        return {self.full_filter_key: self.value}
+
     def get_widget(self, request):
         return self.widget
 
@@ -94,7 +97,14 @@ class DefaultFilter(Filter):
                              attrs={'data-filter': self.get_filter_name()}) if widget else ''
 
 
-class DefaultFieldFilter(DefaultFilter):
+class DefaultMethodFilter(DefaultFieldOrMethodFilter):
+
+    def __init__(self, filter_key, full_filter_key, method, value=None):
+        super(DefaultMethodFilter, self).__init__(filter_key, full_filter_key, value=value)
+        self.method = method
+
+
+class DefaultFieldFilter(DefaultFieldOrMethodFilter):
 
     suffixes = ['in', 'isnull']
     default_suffix = None
@@ -104,7 +114,7 @@ class DefaultFieldFilter(DefaultFilter):
     EMPTY_SLUG = '__empty__'
 
     def __init__(self, filter_key, full_filter_key, field, value=None):
-        super(DefaultFieldFilter, self).__init__(filter_key, full_filter_key, field, value)
+        super(DefaultFieldFilter, self).__init__(filter_key, full_filter_key, value)
         self.field = field
 
     def get_widget(self, request):
@@ -127,8 +137,7 @@ class DefaultFieldFilter(DefaultFilter):
         return self.field.model._ui_meta.filter_placeholders.get(self.field.name, '')
 
     def get_attrs_for_widget(self):
-        attrs = {'data-filter': self.get_filter_name()}
-        return attrs
+        return {'data-filter': self.get_filter_name()}
 
     def render(self, request):
         widget = self.get_widget(request)
@@ -138,13 +147,13 @@ class DefaultFieldFilter(DefaultFilter):
         return widget.render('filter__%s' % self.get_filter_name(), None,
                              attrs=self.get_attrs_for_widget())
 
-    def _get_in_suffix_value(self, value):
+    def _parse_list_values(self, value):
         for pattern in ('\[(.*)\]', '\((.*)\)', '\{(.*)\}'):
             m = re.compile(pattern).match(value)
             if m:
                 return set(m.group(1).split(',')) if m.group(1) else set()
 
-        raise ValueError()
+        raise FilterValueException
 
     def _filter_empty(self):
         return Q(**{'%s__isnull' % self.full_filter_key: True})
@@ -155,7 +164,7 @@ class DefaultFieldFilter(DefaultFilter):
         value = self.value
         if suffix == 'in':
             full_filter_key_without_suffix = self.full_filter_key.rsplit('__', 1)[0]
-            value = self._get_in_suffix_value(self.value)
+            value = self._parse_list_values(self.value)
             if 'null' in value:
                 value.remove('null')
                 return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % full_filter_key_without_suffix: True}))
@@ -197,7 +206,22 @@ class NunberFieldFilter(DefaultFieldFilter):
 
 
 class RelatedFieldFilter(DefaultFieldFilter):
+
     pass
+
+
+class ManyToManyFieldFilter(RelatedFieldFilter):
+
+    suffixes = ['all', 'in', 'isnull']
+
+    def get_filter_term(self, request):
+        suffix = self._check_suffix()
+
+        if suffix == 'all':
+            full_filter_key_without_suffix = self.full_filter_key.rsplit('__', 1)[0]
+            return Q(*(Q(**{full_filter_key_without_suffix: value}) for value in self._parse_list_values(self.value)))
+        else:
+            super(ManyToManyFieldFilter, self).get_filter_term(request)
 
 
 class DateFilter(DefaultFieldFilter):
@@ -250,3 +274,4 @@ DateField.filter = DateFilter
 DateTimeField.filter = DateTimeFilter
 GenericIPAddressField.filter = CharFieldFilter
 IPAddressField.filter = CharFieldFilter
+ManyToManyField.filter = ManyToManyFieldFilter

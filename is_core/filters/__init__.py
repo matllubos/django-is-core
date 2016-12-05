@@ -6,7 +6,7 @@ from django.db.models.fields import FieldDoesNotExist
 
 from chamber.utils import get_class_method
 
-from is_core.filters.exceptions import FilterException
+from is_core.filters.exceptions import FilterException, FilterValueException
 
 
 def get_field_method_or_none(model, name):
@@ -27,7 +27,7 @@ def get_model_field_or_method_filter(full_field_term, model, value=None, filter_
 
     if (field_or_method and next_filter_term and next_filter_term not in field_or_method.filter.get_suffixes() and
             isinstance(field_or_method, RelatedField)):
-        return get_model_field_or_method_filter(full_field_term, model._meta.get_field(current_filter_term).rel.to,
+        return get_model_field_or_method_filter(filter_term, model._meta.get_field(current_filter_term).rel.to,
                                                 value, next_filter_term, ui=ui)
     elif ui and hasattr(field_or_method, 'filter_by'):
         return get_model_field_or_method_filter(
