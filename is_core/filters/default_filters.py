@@ -2,17 +2,21 @@ from __future__ import unicode_literals
 
 import re
 
+from decimal import Decimal, InvalidOperation
+
+from django.utils.translation import ugettext
 from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField, Q
-from django.db.models.fields.related import RelatedField
+from django.db.models.fields.related import ForeignObjectRel, ManyToManyField, ForeignKey
 from django.db.models.fields import (AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField,
                                      IPAddressField)
-from django.utils.timezone import make_aware, get_current_timezone
 
 from dateutil.parser import DEFAULTPARSER
 
-from is_core.filters.exceptions import FilterException
+from is_core.filters.exceptions import FilterException, FilterValueException
+
+from chamber.utils.datetimes import make_aware
 
 
 class Filter(object):
@@ -20,8 +24,8 @@ class Filter(object):
     def get_widget(self, *args, **kwargs):
         raise NotImplemented
 
-    def filter_queryset(self, queryset, request):
-        return queryset
+    def get_q(self, value, request):
+        raise NotImplemented
 
     def render(self, request):
         return ''
@@ -30,18 +34,21 @@ class Filter(object):
 class DefaultFilter(Filter):
     suffixes = []
     default_suffix = None
-    widget = None
 
-    def __init__(self, filter_key, full_filter_key, field_or_method, value=None):
-        self.field_or_method = field_or_method
+    def __init__(self, filter_key, full_filter_key):
         self.filter_key = filter_key
         self.full_filter_key = full_filter_key
-        self.value = value
         self.is_exclude = False
         if self.filter_key.endswith('__not'):
             self.is_exclude = True
             self.filter_key = self.filter_key[:-5]
             self.full_filter_key = self.full_filter_key[:-5]
+
+    def clean_value_with_suffix(self, value, suffix):
+        return self.clean_value(value)
+
+    def clean_value(self, value):
+        return value
 
     @classmethod
     def get_suffixes(cls):
@@ -51,23 +58,21 @@ class DefaultFilter(Filter):
         if '__' in self.filter_key:
             suffix = self.filter_key.split('__', 1)[1]
             if suffix not in self.get_suffixes():
-                raise FilterException(_('Not valid filter: %(filter_key)s=%(filter_value)s' %
-                                        {'filter_key': self.full_filter_key, 'filter_value': self.value}))
+                raise FilterValueException(ugettext('Invalid operator {}.').format(suffix))
             return suffix
+        else:
+            return None
 
-    def get_filter_term(self, request):
-        self._check_suffix()
+    def get_filter_term(self, value, suffix, request):
+        raise NotImplementedError
 
-        return {self.full_filter_key: self.value}
-
-    def filter_queryset(self, queryset, request):
-        filter_term = self.get_filter_term(request)
+    def get_q(self, value, request):
+        suffix = self._check_suffix()
+        value = self.clean_value_with_suffix(value, suffix)
+        filter_term = self.get_filter_term(value, suffix, request)
         if isinstance(filter_term, dict):
             filter_term = Q(**filter_term)
-        if self.is_exclude:
-            return queryset.exclude(filter_term)
-        else:
-            return queryset.filter(filter_term)
+        return ~Q(filter_term) if self.is_exclude else filter_term
 
     def get_filter_prefix(self):
         return self.full_filter_key[:-len(self.filter_key)]
@@ -85,16 +90,40 @@ class DefaultFilter(Filter):
             full_filter_key.append(default_suffix)
         return '__'.join(full_filter_key)
 
+
+class DefaultFieldOrMethodFilter(DefaultFilter):
+
+    widget = None
+
+    def get_filter_term(self, value, suffix, request):
+        return {self.full_filter_key: value}
+
     def get_widget(self, request):
         return self.widget
 
+    def get_placeholder(self, request):
+        return None
+
+    def get_attrs_for_widget(self):
+        return {'data-filter': self.get_filter_name()}
+
     def render(self, request):
         widget = self.get_widget(request)
-        return widget.render('filter__%s' % self.get_filter_name(), None,
-                             attrs={'data-filter': self.get_filter_name()}) if widget else ''
+        placeholder = self.get_placeholder(request)
+        if placeholder:
+            widget.placeholder = placeholder
+        return widget.render('filter__{}'.format(self.get_filter_name()), None,
+                             attrs=self.get_attrs_for_widget())
 
 
-class DefaultFieldFilter(DefaultFilter):
+class DefaultMethodFilter(DefaultFieldOrMethodFilter):
+
+    def __init__(self, filter_key, full_filter_key, method):
+        super(DefaultMethodFilter, self).__init__(filter_key, full_filter_key)
+        self.method = method
+
+
+class DefaultFieldFilter(DefaultFieldOrMethodFilter):
 
     suffixes = ['in', 'isnull']
     default_suffix = None
@@ -103,9 +132,22 @@ class DefaultFieldFilter(DefaultFilter):
     ALL_SLUG = '__all__'
     EMPTY_SLUG = '__empty__'
 
-    def __init__(self, filter_key, full_filter_key, field, value=None):
-        super(DefaultFieldFilter, self).__init__(filter_key, full_filter_key, field, value)
+    def __init__(self, filter_key, full_filter_key, field):
+        super(DefaultFieldFilter, self).__init__(filter_key, full_filter_key)
         self.field = field
+
+    def clean_value_with_suffix(self, value, suffix):
+        if suffix == 'isnull':
+            if value not in ['0', '1']:
+                raise FilterValueException(ugettext('Value can be only "0" or "1"'))
+            return value == '1'
+        elif suffix == 'in':
+            return self._parse_list_values(value)
+        else:
+            return self.clean_value(value)
+
+    def clean_value(self, value):
+        return value
 
     def get_widget(self, request):
         if self.widget:
@@ -124,41 +166,33 @@ class DefaultFieldFilter(DefaultFilter):
         return forms.TextInput()
 
     def get_placeholder(self, request):
-        return self.field.model._ui_meta.filter_placeholders.get(self.field.name, '')
+        return self.field.model._ui_meta.filter_placeholders.get(self.field.name, None)
 
     def get_attrs_for_widget(self):
-        attrs = {'data-filter': self.get_filter_name()}
-        return attrs
+        return {'data-filter': self.get_filter_name()}
 
-    def render(self, request):
-        widget = self.get_widget(request)
-        placeholder = self.get_placeholder(request)
-        if placeholder:
-            widget.placeholder = placeholder
-        return widget.render('filter__%s' % self.get_filter_name(), None,
-                             attrs=self.get_attrs_for_widget())
-
-    def _get_in_suffix_value(self, value):
+    def _parse_list_values(self, value):
         for pattern in ('\[(.*)\]', '\((.*)\)', '\{(.*)\}'):
             m = re.compile(pattern).match(value)
             if m:
-                return set(m.group(1).split(',')) if m.group(1) else set()
+                return {self.clean_value(v) for v in m.group(1).split(',')} if m.group(1) else set()
 
-        raise ValueError()
+        raise FilterValueException(
+            ugettext('Value must be in list "[]", tuple "()" or set "{}" format split with char ",".')
+        )
 
     def _filter_empty(self):
-        return Q(**{'%s__isnull' % self.full_filter_key: True})
+        return Q(**{'{}__isnull'.format(self.full_filter_key): True})
 
-    def get_filter_term(self, request):
-        suffix = self._check_suffix()
-
-        value = self.value
+    def get_filter_term(self, value, suffix, request):
         if suffix == 'in':
             full_filter_key_without_suffix = self.full_filter_key.rsplit('__', 1)[0]
-            value = self._get_in_suffix_value(self.value)
             if 'null' in value:
                 value.remove('null')
-                return (Q(**{self.full_filter_key: value}) | Q(**{'%s__isnull' % full_filter_key_without_suffix: True}))
+                return (
+                    Q(**{self.full_filter_key: value}) |
+                    Q(**{'{}__isnull'.format(full_filter_key_without_suffix): True})
+                )
         elif suffix == 'isnull':
             value = value == '1'
         elif not suffix:
@@ -176,7 +210,7 @@ class CharFieldFilter(DefaultFieldFilter):
     default_suffix = 'icontains'
 
     def _filter_empty(self):
-        return super(CharFieldFilter, self)._filter_empty() | Q(**{'%s__exact' % self.full_filter_key: ''})
+        return super(CharFieldFilter, self)._filter_empty() | Q(**{'{}__exact'.format(self.full_filter_key): ''})
 
 
 class TextFieldFilter(CharFieldFilter):
@@ -187,49 +221,149 @@ class TextFieldFilter(CharFieldFilter):
 
 class BooleanFieldFilter(DefaultFieldFilter):
 
+    def clean_value(self, value):
+        if value not in ['0', '1']:
+            raise FilterValueException(ugettext('Value can be only "0" or "1"'))
+        return value == '1'
+
     def get_widget(self, request):
-        return forms.Select(choices=(('', '-----'), (1, _('Yes')), (0, _('No'))))
+        return forms.Select(choices=(('', '-----'), (1, ugettext('Yes')), (0, ugettext('No'))))
 
 
-class NunberFieldFilter(DefaultFieldFilter):
+class NumberFieldFilter(DefaultFieldFilter):
 
     suffixes = ['gt', 'lt', 'gte', 'lte', 'in', 'isnull']
 
 
+class IntegerNumberFieldFilter(NumberFieldFilter):
+
+    def clean_value(self, value):
+        try:
+            return int(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" must be integer.'.format(value)))
+
+
+class FloatNumberFieldFilter(NumberFieldFilter):
+
+    def clean_value(self, value):
+        try:
+            return float(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" must be float.'.format(value)))
+
+
+class DecimalNumberFieldFilter(NumberFieldFilter):
+
+    def clean_value(self, value):
+        try:
+            return Decimal(value)
+        except InvalidOperation:
+            raise FilterValueException(ugettext('Value "{}" must be decimal.'.format(value)))
+
+
 class RelatedFieldFilter(DefaultFieldFilter):
-    pass
+
+    def get_last_rel_field(self, field):
+        if not field.is_relation:
+            return field
+        else:
+            next_field = field.rel.to._meta.get_field(field.rel.field_name)
+            return self.get_last_rel_field(next_field)
+
+
+class ForeignObjectRelFilter(RelatedFieldFilter):
+
+    def clean_value(self, value):
+        try:
+            return self.get_last_rel_field(self.field.field.model._meta.get_field(
+                self.field.field.model._meta.pk.name)).get_prep_value(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" is invalid.'.format(value)))
+
+
+class ForeignKeyFilter(RelatedFieldFilter):
+
+    def clean_value(self, value):
+        try:
+            return self.get_last_rel_field(self.field).get_prep_value(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" is invalid.'.format(value)))
+
+
+class ManyToManyFieldFilter(RelatedFieldFilter):
+
+    suffixes = ['all', 'in', 'isnull']
+
+    def clean_value(self, value):
+        try:
+            return self.get_last_rel_field(
+                self.field.rel.to._meta.get_field(self.field.m2m_target_field_name())
+            ).get_prep_value(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" is invalid.'.format(value)))
+
+    def clean_value_with_suffix(self, value, suffix):
+        if suffix == 'all':
+            return self._parse_list_values(value)
+        else:
+            return super(ManyToManyFieldFilter, self).clean_value_with_suffix(value, suffix)
+
+    def get_filter_term(self, value, suffix, request):
+        if suffix == 'all':
+            full_filter_key_without_suffix = self.full_filter_key.rsplit('__', 1)[0]
+            return Q(*(Q(**{full_filter_key_without_suffix: v}) for v in value))
+        else:
+            return super(ManyToManyFieldFilter, self).get_filter_term(value, suffix, request)
 
 
 class DateFilter(DefaultFieldFilter):
 
-    comparators = ['gt', 'lt', 'gte', 'lte']
+    comparators = ['gt', 'lt', 'gte', 'lte', 'in']
     extra_suffixes = ['day', 'month', 'year']
+
+    def _parse_datetime(self, value):
+        value = DEFAULTPARSER._parse(value, dayfirst='-' not in value)
+        value = value[0] if isinstance(value, tuple) else value
+        if value is None:
+            raise ValueError
+        return value
 
     @classmethod
     def get_suffixes(cls):
         suffixes = cls.comparators + cls.extra_suffixes
         return suffixes
 
-    def get_filter_term(self, request):
-        suffix = self._check_suffix()
-
-        if suffix in self.comparators:
-            value = DEFAULTPARSER.parse(self.value, dayfirst='-' not in self.value)
-            value = make_aware(value, get_current_timezone())
-            return {self.full_filter_key: value}
+    def clean_value_with_suffix(self, value, suffix):
+        if suffix in self.extra_suffixes:
+            try:
+                return int(value)
+            except ValueError:
+                raise FilterValueException(ugettext('Value "{}" must be integer.'.format(value)))
         elif suffix:
-            return super(DateFilter, self).get_filter_term(request)
+            try:
+                return make_aware(DEFAULTPARSER.parse(value, dayfirst='-' not in value))
+            except ValueError:
+                raise FilterValueException(ugettext('Value "{}" must be date date (ISO 8601).'.format(value)))
         else:
-            parse = DEFAULTPARSER._parse(self.value, dayfirst='-' not in self.value)
-            if parse is None:
-                raise ValueError()
-            res = parse[0] if isinstance(parse, tuple) else parse
+            return super(DefaultFieldFilter, self).clean_value_with_suffix(value, suffix)
 
+    def clean_value(self, value):
+        try:
+            return self._parse_datetime(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" must be date date (ISO 8601).'.format(value)))
+
+    def get_filter_term(self, value, suffix, request):
+        if suffix:
+            return super(DateFilter, self).get_filter_term(value, suffix, request)
+        else:
             filter_term = {}
+            print(value)
             for attr in self.extra_suffixes:
-                value = getattr(res, attr)
-                if value:
-                    filter_term['__'.join((self.full_filter_key, attr))] = value
+                date_val = getattr(value, attr)
+                if date_val:
+                    filter_term['__'.join((self.full_filter_key, attr))] = date_val
             return filter_term
 
 
@@ -237,16 +371,24 @@ class DateTimeFilter(DateFilter):
 
     extra_suffixes = ['day', 'month', 'year', 'hour', 'minute', 'second']
 
+    def clean_value(self, value):
+        try:
+            return self._parse_datetime(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" must be date datetime (ISO 8601).'.format(value)))
+
 
 BooleanField.filter = BooleanFieldFilter
 TextField.filter = TextFieldFilter
 CharField.filter = CharFieldFilter
-IntegerField.filter = NunberFieldFilter
-FloatField.filter = NunberFieldFilter
-DecimalField.filter = NunberFieldFilter
-RelatedField.filter = RelatedFieldFilter
-AutoField.filter = NunberFieldFilter
+IntegerField.filter = IntegerNumberFieldFilter
+FloatField.filter = FloatNumberFieldFilter
+DecimalField.filter = DecimalNumberFieldFilter
+AutoField.filter = IntegerNumberFieldFilter
 DateField.filter = DateFilter
 DateTimeField.filter = DateTimeFilter
 GenericIPAddressField.filter = CharFieldFilter
 IPAddressField.filter = CharFieldFilter
+ManyToManyField.filter = ManyToManyFieldFilter
+ForeignKey.filter = ForeignKeyFilter
+ForeignObjectRel.filter = ForeignObjectRelFilter

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-10-17 16:41+0200\n"
+"POT-Creation-Date: 2016-12-07 14:51+0100\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -18,52 +18,74 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Poedit 1.8.1\n"
 
-#: actions.py:49 filters/default_filters.py:191
+#: actions.py:49 filters/default_filters.py:230
 #: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
-#: utils/__init__.py:197
+#: utils/__init__.py:217
 msgid "Yes"
 msgstr "Ano"
 
-#: actions.py:50 filters/default_filters.py:191
+#: actions.py:50 filters/default_filters.py:230
 #: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
-#: utils/__init__.py:197
+#: utils/__init__.py:217
 msgid "No"
 msgstr "Ne"
 
-#: actions.py:51 templates/forms/inline_table.html.py:54
+#: actions.py:51 templates/forms/inline_table.html:54
 #: templates/generic_views/table.html:81
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
+
+#: main.py:314 generic_views/__init__.py:176
+msgid "Home"
+msgstr "Home"
+
+#: main.py:529
+#, python-format
+msgid "Do you really want to delete \"%s\""
+msgstr "Opravdu chcete odstranit položku \"%s\""
+
+#: main.py:531
+msgid "Delete"
+msgstr "Smazat"
+
+#: main.py:532
+#, python-format
+msgid "Record \"%s\" was deleted"
+msgstr "Záznam \"%s\" byl smazán"
+
+#: main.py:565
+msgid "Edit"
+msgstr "Upravit"
 
 #: auth_token/forms.py:15
 msgid "Remember user"
 msgstr "Zapamatovat uživatele"
 
-#: exceptions/response.py:65
+#: exceptions/response.py:63
 msgid "Bad Request"
 msgstr "Špatný požadavek"
 
-#: exceptions/response.py:71
+#: exceptions/response.py:69
 msgid "Unauthorized"
 msgstr "Neoprávněný přístup"
 
-#: exceptions/response.py:77
+#: exceptions/response.py:75
 msgid "Forbidden"
 msgstr "Přístup odepřen"
 
-#: exceptions/response.py:83
+#: exceptions/response.py:81
 msgid "Unsupported Media Type"
 msgstr "Nepodporovaný Media Type"
 
-#: exceptions/response.py:89
+#: exceptions/response.py:87
 msgid "Method Not Allowed"
 msgstr "Metoda není povolena"
 
-#: exceptions/response.py:95
+#: exceptions/response.py:93
 msgid "Conflict/Duplicate"
 msgstr "Konflikt/Duplikace"
 
-#: exceptions/response.py:101
+#: exceptions/response.py:99
 msgid "Temporarily unavailable"
 msgstr "Služba je dočasně nedostupná"
 
@@ -71,26 +93,58 @@ msgstr "Služba je dočasně nedostupná"
 msgid "Not valid filter: {}"
 msgstr "Neplatný filter: {}"
 
-#: filters/default_filters.py:54
-#, python-format
-msgid "Not valid filter: %(filter_key)s=%(filter_value)s"
-msgstr "Neplatný filter: %(filter_key)s=%(filter_value)s"
+#: filters/default_filters.py:61
+msgid "Invalid operator {}."
+msgstr ""
 
-#: filters/default_filters.py:102
+#: filters/default_filters.py:131
 msgid "Empty"
 msgstr "Prázdný"
+
+#: filters/default_filters.py:142 filters/default_filters.py:226
+msgid "Value can be only \"0\" or \"1\""
+msgstr "Hodnota může být pouze \"0\" nebo \"1\""
+
+#: filters/default_filters.py:181
+msgid ""
+"Value must be in list \"[]\", tuple \"()\" or set \"{}\" format split with "
+"char \",\"."
+msgstr ""
+"Hotnota musí být list \"[]\", tuple \"()\" nebo set \"{}\" a hodnoty "
+"oddělené znakem \",\"."
+
+#: filters/default_filters.py:244 filters/default_filters.py:342
+msgid "Value \"{}\" must be integer."
+msgstr "Hodnota \"{}\" musí být celé číslo"
+
+#: filters/default_filters.py:253
+msgid "Value \"{}\" must be float."
+msgstr "Hodnota \"{}\" musí být reálné číslo"
+
+#: filters/default_filters.py:262
+msgid "Value \"{}\" must be decimal."
+msgstr "Hodnota \"{}\" musí být reálné číslo"
+
+#: filters/default_filters.py:282 filters/default_filters.py:291
+#: filters/default_filters.py:304
+msgid "Value \"{}\" is invalid."
+msgstr "Hodnota \"{}\" není ve správném formátu"
+
+#: filters/default_filters.py:347 filters/default_filters.py:355
+msgid "Value \"{}\" must be date date (ISO 8601)."
+msgstr "Hodnota \"{}\" musí být ve formátu data (ISO 8601)"
+
+#: filters/default_filters.py:378
+msgid "Value \"{}\" must be date datetime (ISO 8601)."
+msgstr "Hodnota \"{}\" musí být ve formátu data a času (ISO 8601)"
 
 #: forms/fields.py:30
 msgid "Readonly field can not be validated"
 msgstr "Pole pro čtení nemůže být validováno"
 
-#: forms/widgets.py:107 forms/widgets.py:113
+#: forms/widgets.py:106 forms/widgets.py:112
 msgid "Search..."
 msgstr "Hledat..."
-
-#: generic_views/__init__.py:176 main.py:314
-msgid "Home"
-msgstr "Home"
 
 #: generic_views/form_views.py:39
 msgid "Object was saved successfully."
@@ -143,24 +197,6 @@ msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 msgid "There are no items"
 msgstr "Žádné položky"
 
-#: main.py:529
-#, python-format
-msgid "Do you really want to delete \"%s\""
-msgstr "Opravdu chcete odstranit položku \"%s\""
-
-#: main.py:531
-msgid "Delete"
-msgstr "Smazat"
-
-#: main.py:532
-#, python-format
-msgid "Record \"%s\" was deleted"
-msgstr "Záznam \"%s\" byl smazán"
-
-#: main.py:565
-msgid "Edit"
-msgstr "Upravit"
-
 #: middleware/__init__.py:29
 msgid "Unprocessable Entity"
 msgstr "Nezpracovatelná entita"
@@ -169,26 +205,29 @@ msgstr "Nezpracovatelná entita"
 msgid "Not Found"
 msgstr "Nenalezeno"
 
-#: models/patch.py:20 models/patch.py:21 models/patch.py:22
+#: models/patch.py:21 models/patch.py:22 models/patch.py:23
 #, python-format
 msgid "add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
 
-#: models/patch.py:71
+#: models/patch.py:91
 msgid "(None)"
 msgstr "---"
 
-#: rest/resource.py:213
-#, python-format
-msgid "Cannot resolve filter \"%s\""
-msgstr "Není možné filtrovat data dle hodnoty: \"%s\""
+#: rest/resource.py:289
+msgid "Invalid filter value \"{}={}\". {}"
+msgstr "Nesprávná hodnota filtru \"{}={}\". {}"
 
-#: rest/resource.py:226
+#: rest/resource.py:292
+msgid "Cannot resolve filter \"{}={}\""
+msgstr "Není možné filtrovat data podle hodnoty: \"{}={}\""
+
+#: rest/resource.py:305
 #, python-format
 msgid "Cannot resolve Order value \"%s\" into fields"
 msgstr "Není možné řadit dle hodnoty: \"%s\""
 
-#: rest/resource.py:284
+#: rest/resource.py:366
 #, python-format
 msgid "Only %s objects can be changed by one request"
 msgstr "Pouze %s objektů může být změněno v jednom požadavku"
@@ -208,6 +247,10 @@ msgstr "Interní chyba. Služba je dočasně nedostupná."
 #: templates/base.html:75
 msgid "Loading..."
 msgstr "Načítám..."
+
+#: templates/home.html:4
+msgid "Welcome"
+msgstr "Vítejte"
 
 #: templates/forms/default_form.html:27
 msgid "Fields marked with <span class=\"required\">*</span> are required"
@@ -260,7 +303,7 @@ msgstr "Akce"
 msgid "There are no items."
 msgstr "Žádné položky"
 
-#: templates/forms/login_form.html:5 templates/registration/login.html.py:4
+#: templates/forms/login_form.html:5 templates/registration/login.html:4
 msgid "Login"
 msgstr "Login"
 
@@ -271,10 +314,6 @@ msgstr "Export"
 #: templates/generic_views/table.html:77
 msgid "Bulk change"
 msgstr "Hromadná změna"
-
-#: templates/home.html:4
-msgid "Welcome"
-msgstr "Vítejte"
 
 #: templates/registration/login.html:14
 msgid "Please Sign In"
