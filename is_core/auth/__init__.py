@@ -16,10 +16,10 @@ from is_core.exceptions import HTTPUnauthorizedResponseException
 def rest_login_required(rest_func):
 
     @wraps(rest_func, assigned=available_attrs(rest_func))
-    def _rest_login_requiered(request, *args, **kwargs):
+    def _rest_login_required(request, *args, **kwargs):
         if not hasattr(request, 'user') or not request.user or not request.user.is_authenticated():
             raise HTTPUnauthorizedResponseException
         return rest_func(request, *args, **kwargs)
 
-    return _rest_login_requiered
+    return _rest_login_required
 
