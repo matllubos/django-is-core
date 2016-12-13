@@ -31,7 +31,7 @@ def get_model_field_or_method_filter(full_field_term, model, filter_term=None, u
                                                 next_filter_term, ui=ui)
     elif ui and hasattr(field_or_method, 'filter_by'):
         return get_model_field_or_method_filter(
-            full_field_term[:-len(current_filter_term)] + field_or_method.filter_by, model, value,
+            full_field_term[:-len(current_filter_term)] + field_or_method.filter_by, model,
             field_or_method.filter_by, ui=ui)
     elif ui and (isinstance(field_or_method, RelatedField) and not next_filter_term and
               field_or_method.rel.model._ui_meta.default_ui_filter_by):
