@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-07 14:51+0100\n"
+"POT-Creation-Date: 2016-12-14 20:08+0100\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -18,13 +18,13 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Poedit 1.8.1\n"
 
-#: actions.py:49 filters/default_filters.py:230
+#: actions.py:49 filters/default_filters.py:146
 #: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
 #: utils/__init__.py:217
 msgid "Yes"
 msgstr "Ano"
 
-#: actions.py:50 filters/default_filters.py:230
+#: actions.py:50 filters/default_filters.py:146
 #: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
 #: utils/__init__.py:217
 msgid "No"
@@ -61,31 +61,31 @@ msgstr "Upravit"
 msgid "Remember user"
 msgstr "Zapamatovat uživatele"
 
-#: exceptions/response.py:63
+#: exceptions/response.py:66
 msgid "Bad Request"
 msgstr "Špatný požadavek"
 
-#: exceptions/response.py:69
+#: exceptions/response.py:72
 msgid "Unauthorized"
 msgstr "Neoprávněný přístup"
 
-#: exceptions/response.py:75
+#: exceptions/response.py:78
 msgid "Forbidden"
 msgstr "Přístup odepřen"
 
-#: exceptions/response.py:81
+#: exceptions/response.py:84
 msgid "Unsupported Media Type"
 msgstr "Nepodporovaný Media Type"
 
-#: exceptions/response.py:87
+#: exceptions/response.py:90
 msgid "Method Not Allowed"
 msgstr "Metoda není povolena"
 
-#: exceptions/response.py:93
+#: exceptions/response.py:96
 msgid "Conflict/Duplicate"
 msgstr "Konflikt/Duplikace"
 
-#: exceptions/response.py:99
+#: exceptions/response.py:102
 msgid "Temporarily unavailable"
 msgstr "Služba je dočasně nedostupná"
 
@@ -93,19 +93,27 @@ msgstr "Služba je dočasně nedostupná"
 msgid "Not valid filter: {}"
 msgstr "Neplatný filter: {}"
 
-#: filters/default_filters.py:61
+#: filters/default_filters.py:62
 msgid "Invalid operator {}."
 msgstr ""
 
-#: filters/default_filters.py:131
+#: filters/default_filters.py:143 filters/default_filters.py:211
+msgid "Value can be only \"0\" or \"1\"."
+msgstr "Hodnota může být pouze \"0\" nebo \"1\"."
+
+#: filters/default_filters.py:166 filters/default_filters.py:310
+msgid "Value \"{}\" must be integer."
+msgstr "Hodnota \"{}\" musí být celé číslo"
+
+#: filters/default_filters.py:173 filters/default_filters.py:192
+msgid "Value \"{}\" must be in format ISO 8601."
+msgstr "Hodnota \"{}\" musí být ve formátu ISO 8601"
+
+#: filters/default_filters.py:200
 msgid "Empty"
 msgstr "Prázdný"
 
-#: filters/default_filters.py:142 filters/default_filters.py:226
-msgid "Value can be only \"0\" or \"1\""
-msgstr "Hodnota může být pouze \"0\" nebo \"1\""
-
-#: filters/default_filters.py:181
+#: filters/default_filters.py:250
 msgid ""
 "Value must be in list \"[]\", tuple \"()\" or set \"{}\" format split with "
 "char \",\"."
@@ -113,30 +121,18 @@ msgstr ""
 "Hotnota musí být list \"[]\", tuple \"()\" nebo set \"{}\" a hodnoty "
 "oddělené znakem \",\"."
 
-#: filters/default_filters.py:244 filters/default_filters.py:342
-msgid "Value \"{}\" must be integer."
-msgstr "Hodnota \"{}\" musí být celé číslo"
-
-#: filters/default_filters.py:253
+#: filters/default_filters.py:319
 msgid "Value \"{}\" must be float."
 msgstr "Hodnota \"{}\" musí být reálné číslo"
 
-#: filters/default_filters.py:262
+#: filters/default_filters.py:328
 msgid "Value \"{}\" must be decimal."
 msgstr "Hodnota \"{}\" musí být reálné číslo"
 
-#: filters/default_filters.py:282 filters/default_filters.py:291
-#: filters/default_filters.py:304
+#: filters/default_filters.py:348 filters/default_filters.py:357
+#: filters/default_filters.py:370
 msgid "Value \"{}\" is invalid."
 msgstr "Hodnota \"{}\" není ve správném formátu"
-
-#: filters/default_filters.py:347 filters/default_filters.py:355
-msgid "Value \"{}\" must be date date (ISO 8601)."
-msgstr "Hodnota \"{}\" musí být ve formátu data (ISO 8601)"
-
-#: filters/default_filters.py:378
-msgid "Value \"{}\" must be date datetime (ISO 8601)."
-msgstr "Hodnota \"{}\" musí být ve formátu data a času (ISO 8601)"
 
 #: forms/fields.py:30
 msgid "Readonly field can not be validated"
@@ -205,12 +201,12 @@ msgstr "Nezpracovatelná entita"
 msgid "Not Found"
 msgstr "Nenalezeno"
 
-#: models/patch.py:21 models/patch.py:22 models/patch.py:23
+#: models/patch.py:26 models/patch.py:27 models/patch.py:28
 #, python-format
 msgid "add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
 
-#: models/patch.py:91
+#: models/patch.py:123
 msgid "(None)"
 msgstr "---"
 
