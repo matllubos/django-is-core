@@ -56,9 +56,9 @@ class InlineObjectsView(InlineView):
 
     def get_data_object(self, field_name, obj):
         if isinstance(obj, Model):
-            return display_object_data(obj, field_name)
+            return display_object_data(obj, field_name, request=self.request)
         elif isinstance(obj, dict):
-            return display_for_value(obj.get(field_name))
+            return display_for_value(obj.get(field_name), request=self.request)
         else:
             raise NotImplementedError
 

@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 import inspect
 
+from django.db.models import Model
 from django.forms.forms import pretty_name
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
@@ -204,17 +205,22 @@ def get_readonly_field_data(field_name, instances, fun_kwargs):
     raise FieldOrMethodDoesNotExist('Field or method with name {} not found'.format(field_name))
 
 
-def display_object_data(obj, field_name):
+def display_object_data(obj, field_name, request=None):
     from is_core.forms.forms import ReadonlyValue
 
     value, _, _ = get_readonly_field_data(field_name, [obj], {})
-    return display_for_value(value.humanized_value if isinstance(value, ReadonlyValue) else value)
+    return display_for_value(value.humanized_value if isinstance(value, ReadonlyValue) else value, request=request)
 
 
-def display_for_value(value):
+def display_for_value(value, request=None):
     from is_core.utils.compatibility import admin_display_for_value
 
-    return (value and ugettext('Yes') or ugettext('No')) if isinstance(value, bool) else admin_display_for_value(value)
+    if request and isinstance(value, Model):
+        return render_model_object_with_link(request, value)
+    else:
+        return (
+            (value and ugettext('Yes') or ugettext('No')) if isinstance(value, bool) else admin_display_for_value(value)
+        )
 
 
 def get_obj_url(request, obj):
