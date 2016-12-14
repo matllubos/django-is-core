@@ -32,6 +32,7 @@ class Filter(object):
 
 
 class DefaultFilter(Filter):
+
     suffixes = []
     default_suffix = None
 
@@ -95,9 +96,6 @@ class DefaultFieldOrMethodFilter(DefaultFilter):
 
     widget = None
 
-    def get_filter_term(self, value, suffix, request):
-        return {self.full_filter_key: value}
-
     def get_widget(self, request):
         return self.widget
 
@@ -115,12 +113,83 @@ class DefaultFieldOrMethodFilter(DefaultFilter):
         return widget.render('filter__{}'.format(self.get_filter_name()), None,
                              attrs=self.get_attrs_for_widget())
 
+    def get_filter_term(self, value, suffix, request):
+        raise NotImplementedError
+
 
 class DefaultMethodFilter(DefaultFieldOrMethodFilter):
 
     def __init__(self, filter_key, full_filter_key, method):
         super(DefaultMethodFilter, self).__init__(filter_key, full_filter_key)
         self.method = method
+
+    def _add_prefix_to_term(self, term):
+        prefix = self.get_filter_prefix()
+        return {'{}{}'.format(prefix, k): v for k, v in term.items()}
+
+    def get_filter_term(self, value, suffix, request):
+        return self._add_prefix_to_term(self.get_filter_term_without_prefix(value, suffix, request))
+
+    def get_filter_term_without_prefix(self, value, suffix, request):
+        raise NotImplementedError
+
+
+class BooleanFilterMixin(object):
+
+    def clean_value(self, value, request):
+        if value in ['0', '1']:
+            return value == '1'
+        else:
+            raise FilterValueException(ugettext('Value can be only "0" or "1".'))
+
+    def get_widget(self, request):
+        return self.widget or forms.Select(choices=(('', '-----'), (1, ugettext('Yes')), (0, ugettext('No'))))
+
+
+class DateFilterMixin(object):
+
+    comparators = ['gt', 'lt', 'gte', 'lte', 'in']
+    extra_suffixes = ['day', 'month', 'year']
+
+    def _parse_datetime_to_parts(self, value):
+        value = DEFAULTPARSER._parse(value, dayfirst='-' not in value)
+        value = value[0] if isinstance(value, tuple) else value
+        if value is None:
+            raise ValueError
+        else:
+            return value
+
+    def _parse_integer(self, value):
+        try:
+            return int(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" must be integer.'.format(value)))
+
+    def _parse_whole_datetime(self, value):
+        try:
+            datetime_value = DEFAULTPARSER.parse(value, dayfirst='-' not in value)
+            return make_aware(datetime_value) if datetime_value.tzinfo is None else datetime_value
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" must be in format ISO 8601.'.format(value)))
+
+    @classmethod
+    def get_suffixes(cls):
+        suffixes = cls.comparators + cls.extra_suffixes
+        return suffixes
+
+    def clean_value_with_suffix(self, value, suffix, request):
+        if suffix in self.extra_suffixes:
+            return self._parse_integer(value)
+        elif suffix:
+            return self._parse_whole_datetime(value)
+        else:
+            return super(DateFilterMixin, self).clean_value_with_suffix(value, suffix, request)
+
+    def clean_value(self, value, request):
+        try:
+            return self._parse_datetime_to_parts(value)
+        except ValueError:
+            raise FilterValueException(ugettext('Value "{}" must be in format ISO 8601.'.format(value)))
 
 
 class DefaultFieldFilter(DefaultFieldOrMethodFilter):
@@ -139,7 +208,7 @@ class DefaultFieldFilter(DefaultFieldOrMethodFilter):
     def clean_value_with_suffix(self, value, suffix, request):
         if suffix == 'isnull':
             if value not in ['0', '1']:
-                raise FilterValueException(ugettext('Value can be only "0" or "1"'))
+                raise FilterValueException(ugettext('Value can be only "0" or "1".'))
             return value == '1'
         elif suffix == 'in':
             return self._parse_list_values(value, request)
@@ -203,6 +272,9 @@ class DefaultFieldFilter(DefaultFieldOrMethodFilter):
 
         return {self.full_filter_key: value}
 
+    def get_filter_term(self, value, suffix, request):
+        return {self.full_filter_key: value}
+
 
 class CharFieldFilter(DefaultFieldFilter):
 
@@ -221,13 +293,7 @@ class TextFieldFilter(CharFieldFilter):
 
 class BooleanFieldFilter(DefaultFieldFilter):
 
-    def clean_value(self, value, request):
-        if value not in ['0', '1']:
-            raise FilterValueException(ugettext('Value can be only "0" or "1"'))
-        return value == '1'
-
-    def get_widget(self, request):
-        return forms.Select(choices=(('', '-----'), (1, ugettext('Yes')), (0, ugettext('No'))))
+    pass
 
 
 class NumberFieldFilter(DefaultFieldFilter):
@@ -321,44 +387,7 @@ class ManyToManyFieldFilter(RelatedFieldFilter):
             return super(ManyToManyFieldFilter, self).get_filter_term(value, suffix, request)
 
 
-class DateFilter(DefaultFieldFilter):
-
-    comparators = ['gt', 'lt', 'gte', 'lte', 'in']
-    extra_suffixes = ['day', 'month', 'year']
-
-    def _parse_datetime(self, value):
-        value = DEFAULTPARSER._parse(value, dayfirst='-' not in value)
-        value = value[0] if isinstance(value, tuple) else value
-        if value is None:
-            raise ValueError
-        else:
-            return value
-
-    @classmethod
-    def get_suffixes(cls):
-        suffixes = cls.comparators + cls.extra_suffixes
-        return suffixes
-
-    def clean_value_with_suffix(self, value, suffix, request):
-        if suffix in self.extra_suffixes:
-            try:
-                return int(value)
-            except ValueError:
-                raise FilterValueException(ugettext('Value "{}" must be integer.'.format(value)))
-        elif suffix:
-            try:
-                datetime_value = DEFAULTPARSER.parse(value, dayfirst='-' not in value)
-                return make_aware(datetime_value) if datetime_value.tzinfo is None else datetime_value
-            except ValueError as ex:
-                raise FilterValueException(ugettext('Value "{}" must be date date (ISO 8601).'.format(value)))
-        else:
-            return super(DefaultFieldFilter, self).clean_value_with_suffix(value, suffix, request)
-
-    def clean_value(self, value, request):
-        try:
-            return self._parse_datetime(value)
-        except ValueError:
-            raise FilterValueException(ugettext('Value "{}" must be date date (ISO 8601).'.format(value)))
+class DateFilter(DateFilterMixin, DefaultFieldFilter):
 
     def get_filter_term(self, value, suffix, request):
         if suffix:
@@ -375,12 +404,6 @@ class DateFilter(DefaultFieldFilter):
 class DateTimeFilter(DateFilter):
 
     extra_suffixes = ['day', 'month', 'year', 'hour', 'minute', 'second']
-
-    def clean_value(self, value, request):
-        try:
-            return self._parse_datetime(value)
-        except ValueError:
-            raise FilterValueException(ugettext('Value "{}" must be date datetime (ISO 8601).'.format(value)))
 
 
 BooleanField.default_filter = BooleanFieldFilter

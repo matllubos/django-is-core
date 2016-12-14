@@ -291,7 +291,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
             except FilterException:
                 raise RESTException(mark_safe(ugettext('Cannot resolve filter "{}={}"').format(filter_term, value)))
 
-        return qs.filter(*qs_filter_terms).distinct()
+        return qs.filter(pk__in=qs.filter(*qs_filter_terms).values('pk')) if qs_filter_terms else qs
 
     def _order_queryset(self, qs):
         if 'order' not in self.request._rest_context:
