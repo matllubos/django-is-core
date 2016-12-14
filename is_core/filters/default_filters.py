@@ -55,6 +55,11 @@ class DefaultFilter(Filter):
     def get_suffixes(cls):
         return cls.suffixes
 
+    @classmethod
+    def get_suffixes_with_not(cls):
+        suffixes = cls.get_suffixes()
+        return set(suffixes) | {'not'} | {'{}__not'.format(suffix) for suffix in suffixes}
+
     def _check_suffix(self):
         if '__' in self.filter_key:
             suffix = self.filter_key.split('__', 1)[1]
@@ -340,12 +345,32 @@ class RelatedFieldFilter(DefaultFieldFilter):
 
 class ForeignObjectRelFilter(RelatedFieldFilter):
 
+    suffixes = ['all', 'in', 'isnull']
+
+    def clean_value_with_suffix(self, value, suffix, request):
+        if suffix == 'all':
+            return self._parse_list_values(value, request)
+        else:
+            return super(ForeignObjectRelFilter, self).clean_value_with_suffix(value, suffix, request)
+
     def clean_value(self, value, request):
         try:
-            return self.get_last_rel_field(self.field.field.model._meta.get_field(
-                self.field.field.model._meta.pk.name)).get_prep_value(value)
+            return self.get_last_rel_field(
+                self.field.related_model._meta.get_field(self.field.related_model._meta.pk.name)
+            ).get_prep_value(value)
         except ValueError:
             raise FilterValueException(ugettext('Value "{}" is invalid.'.format(value)))
+
+    def get_filter_term(self, value, suffix, request):
+        if suffix == 'all':
+            filter_key = self.filter_key.rsplit('__', 1)[0]
+
+            qs_obj_with_all_values = self.field.model.objects.all()
+            for v in set(value):
+                qs_obj_with_all_values = qs_obj_with_all_values.filter(**{filter_key: v})
+            return {'{}pk__in'.format(self.get_filter_prefix()): qs_obj_with_all_values.values('pk')}
+        else:
+            return super(ForeignObjectRelFilter, self).get_filter_term(value, suffix, request)
 
 
 class ForeignKeyFilter(RelatedFieldFilter):
