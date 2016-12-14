@@ -2,12 +2,17 @@ from __future__ import unicode_literals
 
 import six
 
+import django.db.models.options as options
+
 from django.db import models
 from django.db.models.fields import Field
-from django.db.models.fields.related import ForeignKey, ManyToManyField
+from django.db.models.fields.related import ForeignKey, ManyToManyField,  ForeignObjectRel
 from django.utils.translation import ugettext_lazy as _
 
 from chamber.patch import Options, OptionsLazy
+
+
+options.DEFAULT_NAMES = options.DEFAULT_NAMES + ('default_fk_filter', 'default_m2m_filter', 'default_rel_filter')
 
 
 class UIOptions(Options):
@@ -65,9 +70,9 @@ def m2m_formfield(self, **kwargs):
 
 
 def field_init(self, *args, **kwargs):
-    filter = kwargs.pop('filter', None)
-    if filter:
-        self.filter = filter
+    _filter = kwargs.pop('filter', None)
+    if _filter:
+        self._filter = _filter
     self._init_is_core_tmp(*args, **kwargs)
 
 
@@ -76,16 +81,43 @@ def rel_field_init(self, *args, **kwargs):
     self._rel_init_is_core_tmp(*args, **kwargs)
 
 
+def field_get_filter_class(self):
+    return self._filter if hasattr(self, '_filter') else self.default_filter
+
+
+def fk_get_filter_class(self):
+    return (
+        self._filter if hasattr(self, '_filter')
+        else getattr(self.rel.to._meta, 'default_fk_filter', None) or self.default_filter
+    )
+
+
+def m2m_get_filter_class(self):
+    return (
+        self._filter if hasattr(self, '_filter')
+        else getattr(self.rel.to._meta, 'default_m2m_filter', None) or self.default_filter
+    )
+
+
+def rel_get_filter_class(self):
+    return getattr(self.field.model._meta, 'default_rel_filter', None) or self.default_filter
+
+
 Field._init_is_core_tmp = Field.__init__
 Field.__init__ = field_init
+Field.filter = property(field_get_filter_class)
 
 ForeignKey.formfield = fk_formfield
 ForeignKey._rel_init_is_core_tmp = ForeignKey.__init__
 ForeignKey.__init__ = rel_field_init
+ForeignKey.filter = property(fk_get_filter_class)
 
 ManyToManyField.formfield = m2m_formfield
 ManyToManyField._rel_init_is_core_tmp = ManyToManyField.__init__
 ManyToManyField.__init__ = rel_field_init
+ManyToManyField.filter = property(m2m_get_filter_class)
+
+ForeignObjectRel.filter = property(rel_get_filter_class)
 
 # because it is not translated in Django
 _('(None)')
