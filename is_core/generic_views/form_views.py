@@ -122,7 +122,6 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 obj = self.save_form(form, **kwargs)
             return self.success_render_to_response(obj, msg, msg_level)
         except PersistenceException as ex:
-            print (ex)
             return self.form_invalid(form, msg=force_text(ex.message), **kwargs)
 
     def form_invalid(self, form, msg=None, msg_level=None, **kwargs):
