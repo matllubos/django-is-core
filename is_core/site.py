@@ -69,13 +69,18 @@ class ISSite(object):
             urlpatterns += urls_wrapper(url(r'^', include(item.get_urls())))
 
     def get_urls(self):
-        LoginView = str_to_class(config.IS_CORE_AUTH_LOGIN_VIEW)
-        LogoutView = str_to_class(config.IS_CORE_AUTH_LOGOUT_VIEW)
-        urlpatterns = urls_wrapper(
-            url(r'^%s$' % config.IS_CORE_LOGIN_URL[1:], LoginView.as_view(
-                form_class=str_to_class(config.IS_CORE_AUTH_FORM_CLASS)), name='login'),
-            url(r'^%s$' % config.IS_CORE_LOGOUT_URL[1:], LogoutView.as_view(), name='logout'),
-        )
+        urlpatterns = urls_wrapper()
+        if config.IS_CORE_AUTH_LOGIN_VIEW:
+            urlpatterns += urls_wrapper(
+                url(r'^%s$' % config.IS_CORE_LOGIN_URL[1:], str_to_class(config.IS_CORE_AUTH_LOGIN_VIEW).as_view(
+                    form_class=str_to_class(config.IS_CORE_AUTH_FORM_CLASS)), name='login'),
+            )
+
+        if config.IS_CORE_AUTH_LOGOUT_VIEW:
+            urlpatterns += urls_wrapper(
+                url(r'^%s$' % config.IS_CORE_LOGOUT_URL[1:],
+                    str_to_class(config.IS_CORE_AUTH_LOGOUT_VIEW).as_view(), name='logout'),
+            )
 
         if config.IS_CORE_AUTH_USE_TOKENS:
             auth_resource_class = str_to_class(config.IS_CORE_AUTH_RESOURCE_CLASS)
