@@ -118,31 +118,31 @@ class RESTModelCoreResourcePermissionsMixin(object):
                 self.core.has_rest_read_permission(self.request, obj, via))
 
     def has_post_permission(self, obj=None, via=None):
-        return ((not self.has_login_post_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_post_required() or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_post_permission(obj) and
                 self.core.has_rest_create_permission(self.request, obj, via))
 
     def has_put_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_put_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_put_required() or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_put_permission(obj) and
                 self.core.has_rest_update_permission(self.request, obj, via))
 
     def has_delete_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_delete_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_delete_required() or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_delete_permission(obj) and
                 self.core.has_rest_delete_permission(self.request, obj, via))
 
     def has_head_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_head_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_head_required() or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_head_permission(obj) and
                 self.core.has_rest_read_permission(self.request, obj, via))
 
     def has_options_permission(self, obj=None, via=None):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_options_required or self.request.user.is_authenticated()) and
+        return ((not self.has_login_options_required() or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_options_permission(obj) and
                 self.core.has_rest_read_permission(self.request, obj, via))
 
