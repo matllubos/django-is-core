@@ -264,14 +264,12 @@ class DefaultFieldFilter(DefaultFieldOrMethodFilter):
         return Q(**{'{}__isnull'.format(self.full_filter_key): True})
 
     def get_filter_term(self, value, suffix, request):
-        if suffix == 'in':
-            full_filter_key_without_suffix = self.full_filter_key.rsplit('__', 1)[0]
-            if 'null' in value:
-                value.remove('null')
-                return (
-                    Q(**{self.full_filter_key: value}) |
-                    Q(**{'{}__isnull'.format(full_filter_key_without_suffix): True})
-                )
+        if suffix == 'in' and 'null' in value:
+            value.remove('null')
+            return (
+                Q(**{self.full_filter_key: value}) |
+                Q(**{'{}__isnull'.format(self.full_filter_key.rsplit('__', 1)[0]): True})
+            )
         elif not suffix and value == self.ALL_SLUG:
             return {}
         elif not suffix and value == self.EMPTY_SLUG:
