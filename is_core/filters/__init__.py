@@ -22,7 +22,7 @@ def get_method_or_none(model, name):
         return None
 
 
-def get_model_field_filter(field, full_field_term, model, filter_term, ui):
+def get_model_field_filter(field, full_field_term, filter_term, ui):
     current_filter_term, next_filter_term = filter_term.split('__', 1) if '__' in filter_term else (filter_term, None)
     if (next_filter_term and next_filter_term not in field.filter.get_suffixes_with_not() and
           not field.auto_created and (field.many_to_one or field.one_to_one or field.many_to_many)):
@@ -30,8 +30,8 @@ def get_model_field_filter(field, full_field_term, model, filter_term, ui):
     elif (next_filter_term and next_filter_term not in field.filter.get_suffixes_with_not() and
            field.auto_created and (field.one_to_many or field.one_to_one or field.many_to_many)):
         return get_model_field_or_method_filter(full_field_term, field.related_model, next_filter_term, ui=ui)
-    elif (ui and not field.auto_created and field.many_to_one or field.one_to_one and not next_filter_term and
-            field.rel.model._ui_meta.default_ui_filter_by):
+    elif (ui and not field.auto_created and (field.many_to_one or field.one_to_one or field.many_to_many) and
+           not next_filter_term and field.rel.model._ui_meta.default_ui_filter_by):
         return get_model_field_or_method_filter(
             '{}__{}'.format(full_field_term, field.rel.model._ui_meta.default_ui_filter_by),
             field.rel.model, field.rel.model._ui_meta.default_ui_filter_by, ui=ui)
@@ -62,7 +62,7 @@ def get_model_field_or_method_filter(full_field_term, model, filter_term=None, u
     field = get_field_or_none(model, current_filter_term)
     method = get_method_or_none(model, filter_term)
     if field:
-        return get_model_field_filter(field, full_field_term, model, filter_term, ui)
+        return get_model_field_filter(field, full_field_term, filter_term, ui)
     elif method:
         return get_model_method_filter(method, full_field_term, model, filter_term, ui)
     else:

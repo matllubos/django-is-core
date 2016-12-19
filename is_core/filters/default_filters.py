@@ -7,10 +7,11 @@ from decimal import Decimal, InvalidOperation
 from django.utils.translation import ugettext
 from django.utils.translation import ugettext_lazy as _
 from django import forms
-from django.db.models import BooleanField, TextField, CharField, IntegerField, FloatField, Q
-from django.db.models.fields.related import ForeignObjectRel, ManyToManyField, ForeignKey
+from django.db.models import Q
 from django.db.models.fields import (AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField,
-                                     IPAddressField)
+                                     IPAddressField, BooleanField, TextField, CharField, IntegerField, FloatField,
+                                     SlugField, EmailField)
+from django.db.models.fields.related import ForeignObjectRel, ManyToManyField, ForeignKey
 
 from dateutil.parser import DEFAULTPARSER
 
@@ -141,14 +142,13 @@ class DefaultMethodFilter(DefaultFieldOrMethodFilter):
 
 class BooleanFilterMixin(object):
 
+    widget = forms.Select(choices=(('', '-----'), (1, _('Yes')), (0, _('No'))))
+
     def clean_value(self, value, request):
         if value in ['0', '1']:
             return value == '1'
         else:
             raise FilterValueException(ugettext('Value can be only "0" or "1".'))
-
-    def get_widget(self, request):
-        return self.widget or forms.Select(choices=(('', '-----'), (1, ugettext('Yes')), (0, ugettext('No'))))
 
 
 class DateFilterMixin(object):
@@ -217,8 +217,13 @@ class DefaultFieldFilter(DefaultFieldOrMethodFilter):
             return value == '1'
         elif suffix == 'in':
             return self._parse_list_values(value, request)
+        elif value in self.get_extra_values():
+            return value
         else:
             return self.clean_value(value, request)
+
+    def get_extra_values(self):
+        return {self.ALL_SLUG, self.EMPTY_SLUG}
 
     def clean_value(self, value, request):
         return value
@@ -267,36 +272,39 @@ class DefaultFieldFilter(DefaultFieldOrMethodFilter):
                     Q(**{self.full_filter_key: value}) |
                     Q(**{'{}__isnull'.format(full_filter_key_without_suffix): True})
                 )
-        elif suffix == 'isnull':
-            value = value == '1'
-        elif not suffix:
-            if value == self.ALL_SLUG:
-                return {}
-            if value == self.EMPTY_SLUG:
-                return self._filter_empty()
-
-        return {self.full_filter_key: value}
-
-    def get_filter_term(self, value, suffix, request):
-        return {self.full_filter_key: value}
+        elif not suffix and value == self.ALL_SLUG:
+            return {}
+        elif not suffix and value == self.EMPTY_SLUG:
+            return self._filter_empty()
+        else:
+            return {self.full_filter_key: value}
 
 
 class CharFieldFilter(DefaultFieldFilter):
 
     suffixes = ['startswith', 'endswith', 'contains', 'icontains', 'in', 'isnull']
-    default_suffix = 'icontains'
 
     def _filter_empty(self):
         return super(CharFieldFilter, self)._filter_empty() | Q(**{'{}__exact'.format(self.full_filter_key): ''})
 
 
-class TextFieldFilter(CharFieldFilter):
+class CaseSensitiveCharFieldFilter(CharFieldFilter):
+
+    default_suffix = 'contains'
+
+
+class CaseInsensitiveCharFieldFilter(CharFieldFilter):
+
+    default_suffix = 'icontains'
+
+
+class TextFieldFilter(CaseInsensitiveCharFieldFilter):
 
     def get_widget(self, request):
         return forms.TextInput()
 
 
-class BooleanFieldFilter(DefaultFieldFilter):
+class BooleanFieldFilter(BooleanFilterMixin, DefaultFieldFilter):
 
     pass
 
@@ -346,6 +354,12 @@ class RelatedFieldFilter(DefaultFieldFilter):
 class ForeignObjectRelFilter(RelatedFieldFilter):
 
     suffixes = ['all', 'in', 'isnull']
+
+    def get_widget(self, request):
+        """
+        Reverse relation cannot be uset as UI filter now. It is left as future work.
+        """
+        raise NotImplementedError
 
     def clean_value_with_suffix(self, value, suffix, request):
         if suffix == 'all':
@@ -415,7 +429,7 @@ class ManyToManyFieldFilter(RelatedFieldFilter):
 class DateFilter(DateFilterMixin, DefaultFieldFilter):
 
     def get_filter_term(self, value, suffix, request):
-        if suffix:
+        if suffix or value in self.get_extra_values():
             return super(DateFilter, self).get_filter_term(value, suffix, request)
         else:
             filter_term = {}
@@ -433,15 +447,17 @@ class DateTimeFilter(DateFilter):
 
 BooleanField.default_filter = BooleanFieldFilter
 TextField.default_filter = TextFieldFilter
-CharField.default_filter = CharFieldFilter
+CharField.default_filter = CaseInsensitiveCharFieldFilter
 IntegerField.default_filter = IntegerNumberFieldFilter
 FloatField.default_filter = FloatNumberFieldFilter
 DecimalField.default_filter = DecimalNumberFieldFilter
 AutoField.default_filter = IntegerNumberFieldFilter
 DateField.default_filter = DateFilter
 DateTimeField.default_filter = DateTimeFilter
-GenericIPAddressField.default_filter = CharFieldFilter
-IPAddressField.default_filter = CharFieldFilter
+GenericIPAddressField.default_filter = CaseSensitiveCharFieldFilter
+IPAddressField.default_filter = CaseSensitiveCharFieldFilter
 ManyToManyField.default_filter = ManyToManyFieldFilter
 ForeignKey.default_filter = ForeignKeyFilter
 ForeignObjectRel.default_filter = ForeignObjectRelFilter
+SlugField.default_filter = CaseSensitiveCharFieldFilter
+EmailField.default_filter = CaseSensitiveCharFieldFilter
