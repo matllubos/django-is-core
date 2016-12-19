@@ -7,9 +7,9 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 from pyston.utils import set_rest_context_to_request
+from pyston.utils.compatibility import UniversalIO
 from pyston.converter import get_converter, get_supported_mime_types, get_converter_name_from_request
-from pyston.resource import BaseResource
-from pyston.serializer import DEFAULT_CONVERTER_OPTIONS
+from pyston.resource import BaseResource, DEFAULT_CONVERTER_OPTIONS
 
 
 def responseexception_factory(request, response_code, title, message, response_class=HttpResponse):
@@ -23,24 +23,27 @@ def responseexception_factory(request, response_code, title, message, response_c
         if isinstance(resp_message, (list, tuple)):
             resp_message = ', '.join(resp_message)
 
-        context = {'response_code': response_code, 'title': title, 'message': resp_message}
-        content = render_to_string(('{}.html'.format(response_code), 'error.html'), context, request=request)
-        ct = None
+        return response_class(
+            render_to_string(
+                ('{}.html'.format(response_code), 'error.html'),
+                {'response_code': response_code, 'title': title, 'message': resp_message},
+                request=request
+            ),
+            status=response_code
+        )
     else:
-        if resp_message:
-            if isinstance(resp_message, (list, tuple)):
-                resp_message = [force_text(val) for val in resp_message]
-            else:
-                resp_message = force_text(resp_message)
-        else:
-            resp_message = force_text(title)
+        resp_message = (
+            [force_text(val) for val in resp_message] if isinstance(resp_message, (list, tuple))
+            else force_text(resp_message)
+        ) if resp_message else force_text(title)
         set_rest_context_to_request(request, BaseResource.DEFAULT_REST_CONTEXT_MAPPING)
         converter_name = get_converter_name_from_request(request)
         converter, ct = get_converter(converter_name)
         converter_options = getattr(settings, 'DEFAULT_CONVERTER_OPTIONS',
                                     DEFAULT_CONVERTER_OPTIONS).get(converter_name, {})
-        content = converter().encode({'message': {'error': resp_message}}, options=converter_options)
-    return response_class(content, status=response_code, content_type=ct)
+        os = UniversalIO()
+        converter().encode_to_stream(os, {'message': {'error': resp_message}}, options=converter_options)
+        return response_class(os.getvalue(), status=response_code, content_type=ct)
 
 
 class ResponseException(Exception):
