@@ -28,11 +28,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Site Management',
     ],
     install_requires=[
-        'django>=1.6',
+        'django>=1.10',
         'django-class-based-auth-views==0.5druids',
-        'django-pyston>=1.0.12',
+        'django-pyston>=1.0.14',
         'django-block-snippets==1.0.2',
-        'django-chamber>=0.1.23',
+        'django-chamber>=0.1.24',
         'python-dateutil>=2.2',
         'pytz',
         'Unidecode>=0.04.16',
@@ -40,8 +40,8 @@ setup(
         'django-ipware>=1.0.0'
     ],
     dependency_links=[
-        'https://github.com/druids/django-pyston/tarball/1.0.12#egg=django-pyston-1.0.12',
-        'https://github.com/druids/django-chamber/tarball/0.1.23#egg=django-chamber-0.1.23',
+        'https://github.com/druids/django-pyston/tarball/1.0.14#egg=django-pyston-1.0.14',
+        'https://github.com/druids/django-chamber/tarball/0.1.24#egg=django-chamber-0.1.24',
         'https://github.com/druids/django-block-snippets/tarball/1.0.2#egg=django-block-snippets-1.0.2',
         'https://github.com/druids/django-class-based-auth-views/tarball/0.5#egg=django-class-based-auth-views-0.5druids',
     ],

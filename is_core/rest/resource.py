@@ -172,9 +172,9 @@ class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
 class EntryPointResource(RESTResource):
 
     login_required = False
-    allowed_methods = ('get',)
+    allowed_methods = ('get', 'head', 'options')
 
-    def read(self):
+    def get(self):
         out = {}
         for pattern_name, pattern in patterns.items():
             if isinstance(pattern, RESTPattern):

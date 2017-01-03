@@ -6,11 +6,11 @@ pep8==1.6.2
 six==1.10.0
 https://github.com/LukasRychtecky/germanium/tarball/1.0.14#egg=germanium-1.0.14
 coverage==4.0.2
-https://github.com/druids/django-chamber/tarball/0.1.19#egg=django-chamber-0.1.19
+https://github.com/druids/django-chamber/tarball/0.1.24#egg=django-chamber-0.1.24
 https://github.com/jezdez/django_compressor/tarball/develop#egg=django_compressor-dev
 https://github.com/druids/django-class-based-auth-views/tarball/0.5#egg=django-class-based-auth-views-0.5druids
 https://github.com/druids/django-block-snippets/tarball/1.0.1#egg=django-block-snippets-1.0.1
-https://github.com/druids/django-pyston/tarball/1.0.10#egg=django-pyston-1.0.10
+https://github.com/druids/django-pyston/tarball/1.0.14#egg=django-pyston-1.0.14
 python-dateutil>=2.2
 pytz
 django-apptemplates
