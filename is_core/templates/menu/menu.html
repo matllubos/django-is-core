@@ -1,15 +1,20 @@
-{% load menu %}
-<ul class="menu collapsable {{ site_name|lower }}">
-	{% for menu_item in menu_items %}
-		{% if menu_item.collapsible %}
-			<li {% if menu_item.active %} class="active"{% endif %}>
-				<a{% if menu_item.url%} href="{{ menu_item.url }}"{% endif %}">{{ menu_item.title|capfirst }}</a>
-				{% submenu menu_item.submenu_items %}
-			</li>
-		{% else %}
-			<li{% if menu_item.active %} class="active"{% endif %}><a href="{{ menu_item.url }}">{{ menu_item.title|capfirst }}</a>
-				{% if menu_item.active and menu_item.submenu_items %}{% submenu menu_item.submenu_items %}{% endif %}
-			</li>
-		{% endif %}
-	{% endfor %}
-</ul>
+{% load menu i18n %}
+<nav class="navbar navbar-default">
+  <ul class="nav navbar-nav">
+    {% for menu_item in menu_items %}
+      {% if menu_item.collapsible %}
+        <li {% if menu_item.active %} class="active"{% endif %}>
+          <a{% if menu_item.url%} href="{{ menu_item.url }}"{% endif %}">{{ menu_item.title|capfirst }}</a>
+          {% submenu menu_item.submenu_items %}
+        </li>
+      {% else %}
+        <li{% if menu_item.active %} class="active"{% endif %}><a href="{{ menu_item.url }}">{{ menu_item.title|capfirst }}</a>
+          {% if menu_item.active and menu_item.submenu_items %}{% submenu menu_item.submenu_items %}{% endif %}
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+  <ul class="nav navbar-nav navbar-right">
+    <li><a href="{% url 'IS:logout' %}">{% trans 'Logout' %}</a></li>
+  </ul>
+</nav>
