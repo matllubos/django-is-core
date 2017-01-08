@@ -5,11 +5,13 @@ import six
 import django.db.models.options as options
 
 from django.db import models
-from django.db.models.fields import Field
+from django.db.models.fields import Field, URLField
 from django.db.models.fields.related import ForeignKey, ManyToManyField,  ForeignObjectRel
 from django.utils.translation import ugettext_lazy as _
 
 from chamber.patch import Options, OptionsLazy
+
+from .humanize import url_humanized
 
 
 options.DEFAULT_NAMES = options.DEFAULT_NAMES + ('default_fk_filter', 'default_m2m_filter', 'default_rel_filter')
@@ -118,6 +120,8 @@ ManyToManyField.__init__ = rel_field_init
 ManyToManyField.filter = property(m2m_get_filter_class)
 
 ForeignObjectRel.filter = property(rel_get_filter_class)
+
+URLField.default_humanized = url_humanized
 
 # because it is not translated in Django
 _('(None)')

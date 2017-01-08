@@ -206,6 +206,15 @@ def get_readonly_field_data(field_name, instances, fun_kwargs):
 
 
 def display_object_data(obj, field_name, request=None):
+    """
+    Returns humanized value of model object that can be rendered to HTML or returned as part of REST
+
+    examples:
+       boolean True/Talse ==> Yes/No
+       objects ==> object display name with link if current user has permissions to see the object
+       field with choices ==> string value of choice
+       field with hummanize function ==> result of humanize function
+    """
     from is_core.forms.forms import ReadonlyValue
 
     value, _, _ = get_readonly_field_data(field_name, [obj], {})
@@ -213,6 +222,14 @@ def display_object_data(obj, field_name, request=None):
 
 
 def display_for_value(value, request=None):
+    """
+    Converts humanized value
+
+    examples:
+        boolean True/Talse ==> Yes/No
+        objects ==> object display name with link if current user has permissions to see the object
+        datetime ==> in localized format
+    """
     from is_core.utils.compatibility import admin_display_for_value
 
     if request and isinstance(value, Model):
@@ -224,6 +241,9 @@ def display_for_value(value, request=None):
 
 
 def get_obj_url(request, obj):
+    """
+    Returns object HTML link if current logged user has permissions to see the object
+    """
     from is_core.site import get_model_core
     model_core = get_model_core(obj.__class__)
 
