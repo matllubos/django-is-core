@@ -158,7 +158,8 @@ def get_cls_or_inst_model_field_data(field, cls_or_inst):
         )
     elif field.auto_created and field.one_to_one:
         return (
-            None if isinstance(cls_or_inst, type) else getattr(cls_or_inst, field.name), (
+            None if isinstance(cls_or_inst, type) or not hasattr(cls_or_inst, field.name)
+            else getattr(cls_or_inst, field.name), (
                 getattr(field.field, 'reverse_verbose_name', None)
                 if getattr(field.field, 'reverse_verbose_name', None) is not None
                 else field.related_model._meta.verbose_name_plural
