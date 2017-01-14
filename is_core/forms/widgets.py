@@ -6,6 +6,8 @@ import six
 
 from distutils.version import StrictVersion
 
+from itertools import chain
+
 import django
 from django import forms
 from django.utils.encoding import force_text
@@ -19,11 +21,12 @@ from django.forms.utils import flatatt
 from django.core.validators import EMPTY_VALUES
 from django.db.models.base import Model
 
-
 try:
     from sorl.thumbnail import default
 except ImportError:
     default = None
+
+from is_core.utils.compatibility import CompatibilitySelectMixin
 
 
 EMPTY_VALUE = '---'
@@ -61,10 +64,7 @@ class WrapperWidget(forms.Widget):
         return self.widget.render(name, value, attrs)
 
 
-class SelectMixin(object):
-
-    def render(self, name, value, attrs=None, choices=()):
-        return super(SelectMixin, self).render(name, value, attrs=attrs)
+class SelectMixin(CompatibilitySelectMixin):
 
     def render_option(self, selected_choices, option_value, option_label, option_attrs):
         if option_value is None:
@@ -83,11 +83,11 @@ class SelectMixin(object):
                            flat_data_attrs(option_attrs) or '',
                            force_text(option_label))
 
-    def render_options(self, selected_choices, value=None):  # value argument is here to ensure Django 1.9 compatibility
+    def render_options_compatible(self, choices, selected_choices):
         # Normalize to strings.
         selected_choices = set(force_text(v) for v in selected_choices)
         output = []
-        for choice in self.choices:
+        for choice in chain(self.choices, choices):
             option_value, option_label = choice
             if isinstance(option_label, (list, tuple)):
                 output.append(format_html('<optgroup label="{0}">', force_text(option_value)))

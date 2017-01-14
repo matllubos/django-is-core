@@ -63,3 +63,25 @@ try:
 except ImportError:
     from django.contrib.auth import get_backends
     _get_backends = get_backends
+
+
+class CompatibilitySelectMixin(object):
+
+    if StrictVersion(django.get_version()) >= StrictVersion('1.10'):
+        def render(self, name, value, attrs=None, choices=()):
+            return super(CompatibilitySelectMixin, self).render(name, value, attrs=attrs)
+
+        def render_options(self, selected_choices):
+            if hasattr(self, 'render_options_compatible'):
+                return self.render_options_compatible((), selected_choices)
+            else:
+                return super(CompatibilitySelectMixin, self).render_options(selected_choices)
+    else:
+        def render(self, name, value, attrs=None, choices=()):
+            return super(CompatibilitySelectMixin, self).render(name, value, attrs=attrs, choices=choices)
+
+        def render_options(self, choices, selected_choices):
+            if hasattr(self, 'render_options_compatible'):
+                return self.render_options_compatible(choices, selected_choices)
+            else:
+                return super(CompatibilitySelectMixin, self).render_options(choices, selected_choices)
