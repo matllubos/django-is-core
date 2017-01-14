@@ -3,8 +3,10 @@
 OPENHTML := open
 
 pip:
+	iARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future $(PYTHON_BIN)/pip \
+	install -r requirements/dependency_base.txt
 	ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future $(PYTHON_BIN)/pip \
-	install --process-dependency-links --allow-all-external -r requirements/base.txt
+	install -r requirements/base.txt
 
 installpackages:
 	brew install python postgresql nodejs npm wget libjpeg libpng gettext msgpack
