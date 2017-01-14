@@ -83,7 +83,7 @@ class SelectMixin(object):
                            flat_data_attrs(option_attrs) or '',
                            force_text(option_label))
 
-    def render_options(self, selected_choices):
+    def render_options(self, selected_choices, value=None):  # value argument is here to ensure Django 1.9 compatibility
         # Normalize to strings.
         selected_choices = set(force_text(v) for v in selected_choices)
         output = []
