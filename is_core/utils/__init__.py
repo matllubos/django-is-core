@@ -9,7 +9,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 from django.utils.html import format_html
 
-from chamber.utils import get_class_method
+from chamber.utils import get_class_method, call_method_with_unknown_input
 
 
 def is_callable(val):
@@ -241,18 +241,14 @@ def display_for_value(value, request=None):
         )
 
 
-def get_obj_url(request, obj):
+def get_url_from_model_core(request, obj):
     """
-    Returns object HTML link if current logged user has permissions to see the object
+    Returns object URL from model core.
     """
     from is_core.site import get_model_core
     model_core = get_model_core(obj.__class__)
 
-    if (is_callable(getattr(obj, 'get_absolute_url', None)) and
-            is_callable(getattr(obj, 'can_see_edit_link', None)) and
-            obj.can_see_edit_link(request)):
-        return obj.get_absolute_url()
-    elif model_core and hasattr(model_core, 'ui_patterns'):
+    if model_core and hasattr(model_core, 'ui_patterns'):
         edit_pattern = model_core.ui_patterns.get('edit')
         return (
             edit_pattern.get_url_string(request, obj=obj)
@@ -260,6 +256,18 @@ def get_obj_url(request, obj):
         )
     else:
         return None
+
+
+def get_obj_url(request, obj):
+    """
+    Returns object URL if current logged user has permissions to see the object
+    """
+    if (is_callable(getattr(obj, 'get_absolute_url', None)) and
+            (not hasattr(obj, 'can_see_edit_link') or
+             (is_callable(getattr(obj, 'can_see_edit_link', None)) and obj.can_see_edit_link(request)))):
+        return call_method_with_unknown_input(obj.get_absolute_url, request=request)
+    else:
+        return get_url_from_model_core(request, obj)
 
 
 def render_model_object_with_link(request, obj, display_value=None):
