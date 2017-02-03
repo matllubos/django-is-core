@@ -1,0 +1,151 @@
+@import ../mixins
+
+form
+  margin-right: 0
+  padding: 0
+  width: 100%
+
+  .required
+    color: $red
+
+  .required-hint
+    color: $light-gray
+    margin: 15px 0
+    clear: both
+
+  .btn
+    margin-top: 15px
+
+  .field-value a
+    line-height: $input-height
+
+  div
+    margin-bottom: 0
+    padding: 0
+    vertical-align: middle
+    clear: none
+
+  .errorlist
+    margin-top: 5px
+    padding: 0
+
+    li
+      list-style-type: none
+      @include alert
+      @include alert-variant($alert-red, $alert-red-border, #fff)
+      padding: 10px
+      text-align: center
+
+      .btn
+        border: none
+        background: none
+        @include box-shadow(none)
+        padding: 0
+        margin: 0
+        width: auto
+        min-width: 0
+        text-decoration: underline
+        height: auto
+        vertical-align: bottom
+
+  .field.error
+    input, textarea, select, .ac-item input
+      border-color: $alert-danger-text
+
+input[type=checkbox]
+  font-size: 20px
+
+fieldset
+  display: inline-block
+  width: 100%
+
+legend
+  margin: 0 0 10px 0
+  padding: 30px 0 0
+
+[type=text], [type=number], [type=email], [type=password], [type=tel], [type=url]
+  @include field
+  background: $input-bg-clr
+  height: $input-height
+
+input[type=text]
+  &.datetime, &.date
+    padding-left: 36px
+    position: relative
+    background: #fbfbfb url($IMG_URL + '/cal.png') 10px center no-repeat
+
+select, select.form-control
+  @include field
+  background-color: $select-bg-clr
+  cursor: pointer
+  height: $input-height
+  -webkit-appearance: button
+  background-image: url($select-arr)
+  background-position: center right
+  background-repeat: no-repeat
+  margin: 0
+  width: 100%
+  font-size: 14px
+  overflow: hidden
+  padding-left: 14px
+  white-space: nowrap
+  position: relative
+  vertical-align: middle
+
+textarea
+  @include field
+  background-color: $select-bg-clr
+  height: 140px
+  resize: vertical
+
+.form-group
+  margin-bottom: 13px
+
+  label
+    color: $label-clr
+    margin: 15px 0 4px
+    font-weight: normal
+
+*::-webkit-input-placeholder
+  color: #a4a4a4
+  font-weight: normal
+
+
+*::-moz-placeholder
+  color: #a4a4a4
+  font-weight: normal
+
+
+/* firefox 19+ */
+*:-ms-input-placeholder
+  color: #a4a4a4
+  font-weight: normal
+
+
+/* ie */
+input:-moz-placeholder
+  color: #a4a4a4
+  font-weight: normal
+
+input:focus, select:focus, textarea:focus
+  outline-color: $focus-clr
+
+table.form td, table.form th
+  padding: 0 5px 0
+
+.form-btns
+
+  .pull-left
+    margin-top: 10px
+    width: 100%
+
+    .btn
+      margin: 3px 0 3px 3px
+      float: right
+
+    .btn-cancel
+      float: left
+      margin: 3px 3px 3px 0
+
+.form-horizontal .form-group
+  margin: 0

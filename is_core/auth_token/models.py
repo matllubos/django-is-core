@@ -4,7 +4,7 @@ import os, binascii
 
 from datetime import timedelta
 
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.db import models
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
@@ -16,11 +16,11 @@ try:
 except ImportError:  # Django < 1.9 pragma: no cover
     from django.contrib.contenttypes.generic import GenericForeignKey
 
-from is_core import config
+from is_core.config import settings
 
 
 # Prior to Django 1.5, the AUTH_USER_MODEL setting does not exist.
-AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+AUTH_USER_MODEL = getattr(django_settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 @python_2_unicode_compatible
@@ -62,7 +62,7 @@ class Token(models.Model):
 
     @property
     def is_expired(self):
-        token_age = self.expiration and config.IS_CORE_AUTH_DEFAULT_TOKEN_AGE or config.IS_CORE_AUTH_MAX_TOKEN_AGE
+        token_age = self.expiration and settings.AUTH_DEFAULT_TOKEN_AGE or settings.AUTH_MAX_TOKEN_AGE
         return self.last_access + timedelta(seconds=token_age) < timezone.now()
 
     def __str__(self):

@@ -4,11 +4,11 @@ from django.middleware.csrf import rotate_token
 from django.contrib.auth import load_backend
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.auth.models import AnonymousUser
-from django.conf import settings
+from django.conf import settings as django_settings
 
 from ipware.ip import get_ip
 
-from is_core import config
+from is_core.config import settings
 from is_core.auth_token.models import Token, AnonymousToken
 from is_core.utils import header_name_to_django
 from is_core.utils.compatibility import _get_backends
@@ -84,12 +84,12 @@ def get_token(request):
     If no user is retrieved AnonymousToken is returned.
     """
 
-    auth_token = (request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)) or
-                  request.COOKIES.get(config.IS_CORE_AUTH_COOKIE_NAME))
+    auth_token = (request.META.get(header_name_to_django(settings.AUTH_HEADER_NAME)) or
+                  request.COOKIES.get(settings.AUTH_COOKIE_NAME))
     try:
         token = Token.objects.get(key=auth_token, is_active=True)
         if not token.is_expired:
-            if auth_token == request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)):
+            if auth_token == request.META.get(header_name_to_django(settings.AUTH_HEADER_NAME)):
                 token.is_from_header = True
             return token
     except Token.DoesNotExist:
@@ -99,13 +99,13 @@ def get_token(request):
 
 def dont_enforce_csrf_checks(request):
     return (getattr(request, '_dont_enforce_csrf_checks', False) or
-                request.META.get(header_name_to_django(config.IS_CORE_AUTH_HEADER_NAME)))
+                request.META.get(header_name_to_django(settings.AUTH_HEADER_NAME)))
 
 
 def get_user_from_token(token):
     if token:
         backend_path = token.backend
-        if backend_path in settings.AUTHENTICATION_BACKENDS:
+        if backend_path in django_settings.AUTHENTICATION_BACKENDS:
             active_takeover_id = token.active_takeover.user.pk if token.active_takeover else None
             user_id = token.user.pk
             backend = load_backend(backend_path)

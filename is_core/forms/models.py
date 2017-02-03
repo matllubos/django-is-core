@@ -12,7 +12,7 @@ from django.utils import six
 
 from pyston.forms import RESTModelForm
 
-from is_core import config
+from is_core.config import settings
 from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
@@ -96,7 +96,7 @@ class ModelChoiceFieldMixin(object):
         self.model = queryset.model
         try:
             if ('widget' not in kwargs and self.too_much_entries_widget and
-                    queryset.count() > config.IS_CORE_FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
+                    queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
                 kwargs['widget'] = self.too_much_entries_widget
         except (ProgrammingError, OperationalError):
             pass

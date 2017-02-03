@@ -1,0 +1,177 @@
+@import vars
+
+@mixin clear-user-select-focus()
+  -moz-user-focus: normal
+  -moz-user-select: none
+
+@mixin box-shadow($args)
+  -webkit-box-shadow: $args
+  -moz-box-shadow: $args
+  box-shadow: $args
+
+@mixin transition
+  -webkit-transition: all 0.4s ease
+  -moz-transition: all 0.4s ease
+  -o-transition: all 0.4s ease
+  transition: all 0.4s ease
+
+@mixin transition-background
+  -webkit-transition: background 0.4s ease
+  -moz-transition: background 0.4s ease
+  -o-transition: background 0.4s ease
+  transition: background 0.4s ease
+
+@mixin transition-color
+  -webkit-transition: color 0.4s ease
+  -moz-transition: color 0.4s ease
+  -o-transition: color 0.4s ease
+  transition: color 0.4s ease
+
+@mixin cover
+  -webkit-background-size: cover
+  -moz-background-size: cover
+  -o-background-size: cover
+  background-size: cover
+
+@mixin deg($deg)
+  -webkit-transform: rotate($deg)
+  -moz-transform: rotate($deg)
+  -o-transform: rotate($deg)
+  -ms-transform: rotate($deg)
+  transform: rotate($deg)
+
+@mixin deg180
+  @include deg(180deg)
+
+@mixin deg0
+  @include deg(0deg)
+
+@mixin deg90
+  @include deg(90deg)
+
+@mixin text-shadow($string: 0 1px 3px rgba(0, 0, 0, 0.25))
+  text-shadow: $string
+
+@mixin transform-scale($str)
+  transform: scale($str)
+  -ms-transform: scale($str)
+  -webkit-transform: scale($str)
+
+@mixin border-radius($radius: 5px)
+  -webkit-border-radius: $radius
+  -moz-border-radius: $radius
+  border-radius: $radius
+
+  -moz-background-clip: padding
+  -webkit-background-clip: padding-box
+  background-clip: padding-box
+
+@mixin opacity($opacity: 0.5)
+  -webkit-opacity: $opacity
+  -moz-opacity: $opacity
+  opacity: $opacity
+
+@mixin gradient($from: #eee, $to: white)
+  background-color: $from
+  background: -webkit-gradient(linear, left top, left bottom, from($from), to($to))
+  background: -webkit-linear-gradient(top, $from, $to)
+  background: -moz-linear-gradient(top, $from, $to)
+  background: -ms-linear-gradient(top, $from, $to)
+  background: -o-linear-gradient(top, $from, $to)
+
+@mixin linear-gradient($from, $to)
+  background-color: $from
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, $from), color-stop(1, $to))
+  background-image: -o-linear-gradient(bottom, $from 50%, $to 100%)
+  background-image: -moz-linear-gradient(bottom, $from 50%, $to 100%)
+  background-image: -webkit-linear-gradient(bottom, $from 50%, $to 100%)
+  background-image: -ms-linear-gradient(bottom, $from 50%, $to 100%)
+  background-image: linear-gradient(to bottom, $from 50%, $to 100%)
+
+@mixin horizontal-gradient($from: #eee, $to: white)
+  background-color: $from
+  background-image: -webkit-gradient(linear, left top, right top, from($from), to($to))
+  background-image: -webkit-linear-gradient(left, $from, $to)
+  background-image: -moz-linear-gradient(left, $from, $to)
+  background-image: -ms-linear-gradient(left, $from, $to)
+  background-image: -o-linear-gradient(left, $from, $to)
+
+@mixin field
+  border: 1px solid $input-border-clr
+  background: $input-bg-clr
+  padding: 5px 14px
+  color: $input-clr
+  width: 100%
+  @include box-shadow(none)
+  @include border-radius(2px)
+
+@mixin clean-btn
+  background: none
+  border: none
+  @include box-shadow(none)
+
+@mixin img-small
+  @include border-radius(50%)
+  width: $user-img-small-size
+  height: $user-img-small-size
+  border: 1px solid #d2d2d2
+
+@mixin img-placeholder
+  @include img-small
+  text-align: center
+  display: inline-block
+  font-family: FontAwesome
+  font-style: normal
+  font-weight: normal
+  line-height: 1
+  -webkit-font-smoothing: antialiased
+  -moz-osx-font-smoothing: grayscale
+  border: none
+  padding-top: 3px
+
+  &:before
+    font-family: 'se'
+    content: "\e60d"
+    font-size: 20px
+    color: $light-gray
+
+@mixin fa
+  display: inline-block
+  font-family: FontAwesome
+  font-style: normal
+  font-weight: normal
+  line-height: 1
+  -webkit-font-smoothing: antialiased
+  -moz-osx-font-smoothing: grayscale
+
+@mixin ac-small-img
+  width: $ac-img-small-size
+  height: $ac-img-small-size
+
+@mixin alert
+  padding: $alert-padding
+  margin-bottom: $line-height-computed
+  border: 1px solid transparent
+  border-radius: $alert-border-radius
+
+  // Headings for larger alerts
+  h4
+    margin-top: 0
+    // Specified for the h4 to prevent conflicts of changing $headings-color
+    color: inherit
+
+  // Provide class for links that match alerts
+  .alert-link
+    font-weight: $alert-link-font-weight
+
+  // Improve alignment and spacing of inner content
+  > p,
+  > ul
+    margin-bottom: 0
+
+  > p + p
+    margin-top: 5px
+
+@mixin main-content
+  margin: 0 0 0 250px
+  border-left: 1px solid #e7e7e7

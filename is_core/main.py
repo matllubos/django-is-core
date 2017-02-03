@@ -19,6 +19,7 @@ from django.utils.functional import cached_property
 
 from pyston.utils import rfs
 
+from is_core.config import settings
 from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView, BulkChangeFormView
 from is_core.generic_views.table_views import TableView
@@ -27,7 +28,6 @@ from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsR
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
 from is_core.utils.compatibility import urls_wrapper, get_model_name
-from is_core import config
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
@@ -313,11 +313,11 @@ class HomeUIISCore(UIISCore):
     menu_url_name = 'index'
     verbose_name_plural = _('Home')
     menu_group = 'home'
-    abstract = config.IS_CORE_HOME_IS_CORE != 'is_core.main.HomeUIISCore'
+    abstract = settings.HOME_CORE != 'is_core.main.HomeUIISCore'
 
     def get_view_classes(self):
         view_classes = super(HomeUIISCore, self).get_view_classes()
-        view_classes.append(('index', r'', str_to_class(config.IS_CORE_HOME_VIEW)))
+        view_classes.append(('index', r'', str_to_class(settings.HOME_VIEW)))
         return view_classes
 
     def menu_url(self, request):
@@ -340,7 +340,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     list_display = ('_obj_name',)
     list_per_page = None
     export_display = ()
-    export_types = config.IS_CORE_EXPORT_TYPES
+    export_types = settings.EXPORT_TYPES
     default_list_filter = {}
 
     # add/edit view params

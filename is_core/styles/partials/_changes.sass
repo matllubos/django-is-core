@@ -1,0 +1,34 @@
+@import ../mixins
+
+.changed-value, .changed-new-line
+  @include border-radius(2px)
+  padding: 10px 1px
+
+  &.not-discarded
+    background-color: #d9edf7
+
+.changed-new-line.not-discarded .changed-value
+  background-color: transparent
+
+
+.origin-values
+  list-style-type: none
+  padding: 0
+  background-color: $input-border-clr
+  margin: 1px 0
+  @include border-radius(2px)
+  color: $btn-def-clr
+
+  li
+    display: inline-block
+    padding: 10px 14px
+    height: $input-height
+
+.discard-change
+
+  margin-left: 4px
+  margin-top: 6px
+
+  &:hover
+    i
+      color: $rb-yellow

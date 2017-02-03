@@ -1,0 +1,32 @@
+@import ../vars
+
+#sticky-flash
+  position: fixed
+  left: 0
+  right: 0
+  margin: 15px 40% 0 40%
+  width: 20%
+  z-index: 99
+
+.alert
+  padding: 10px
+  text-align: center
+  position: relative
+
+  .close
+    position: absolute
+    top: 30%
+    margin-top: -5px
+    right: 6px
+
+  .btn
+    border: none
+    background: none
+    @include box-shadow(none)
+    padding: 0
+    margin: 0
+    width: auto
+    min-width: 0
+    text-decoration: underline
+    height: auto
+    vertical-align: bottom

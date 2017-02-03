@@ -1,0 +1,31 @@
+@import ../vars
+
+.breadcrumb
+  padding: 0
+  margin: 0
+  background-color: transparent
+  float: left
+  margin-top: -2px
+  color: $bread-crumbs-clr
+  a
+    color: $bread-crumbs-clr
+  li
+    float: left
+    display: block
+    overflow: hidden
+    text-overflow: ellipsis
+    line-height: 32px
+
+  > li + li:before
+    font-family: FontAwesome
+    content: "\f105"
+    font-size: 13px
+    vertical-align: middle
+    padding: 0 10px
+
+  .active
+    color: $bread-crumbs-clr
+    font-weight: normal
+
+  li:first-child:before
+    display: none

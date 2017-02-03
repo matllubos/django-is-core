@@ -6,7 +6,7 @@ from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 from django.views.generic.base import TemplateView
 
-from is_core.config import IS_CORE_LIST_PER_PAGE
+from is_core.config import settings
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.default_filters import *
 from is_core.forms.forms import pretty_class_name
@@ -33,13 +33,13 @@ class Header(object):
 
 
 class TableViewMixin(object):
-    list_display = ()
-    export_display = ()
+    list_display = None
+    export_display = None
     list_display_extra = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
     list_filter = None
     list_per_page = None
     model = None
-    api_url = ''
+    api_url = None
     menu_group_pattern_name = None
     render_actions = True
     enable_columns_manager = False
@@ -118,16 +118,16 @@ class TableViewMixin(object):
         )
 
     def _get_list_display(self):
-        return self.list_display
+        return () if self.list_display is None else self.list_display
 
     def _get_export_display(self):
-        return self.export_display or self.list_display
+        return self._get_list_display() if self.export_display is None else self.export_display
 
     def _get_list_display_extra(self):
         return list(self.list_display_extra)
 
     def _get_list_per_page(self):
-        return self.list_per_page or IS_CORE_LIST_PER_PAGE
+        return settings.LIST_PER_PAGE if self.list_per_page is None else self.list_per_page
 
     def _generate_rest_fieldset(self):
         return ModelRESTFieldset.create_from_flat_list(
@@ -152,7 +152,7 @@ class TableViewMixin(object):
         return self.api_url
 
     def _get_list_filter(self):
-        return self.list_filter or {}
+        return {} if self.list_filter is None else self.list_filter
 
     def _prepare_filter_val(self, val):
         if isinstance(val, bool):
@@ -216,22 +216,25 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
         return self.field_labels if self.field_labels is not None else self.core.get_ui_list_field_labels(self.request)
 
     def _get_list_display(self):
-        return self.list_display or self.core.get_list_display(self.request)
+        return self.core.get_list_display(self.request) if self.list_display is None else self.list_display
 
     def _get_export_display(self):
-        return self.export_display or self.core.get_export_display(self.request)
+        return self.core.get_export_display(self.request) if self.export_display is None else self.export_display
 
     def _get_export_types(self):
-        return self.export_types or self.core.get_export_types(self.request)
+        return self.core.get_export_types(self.request) if self.export_types is None else self.export_types
 
     def _get_list_per_page(self):
-        return self.list_per_page or self.core.get_list_per_page(self.request) or IS_CORE_LIST_PER_PAGE
+        return (
+            self.core.get_list_per_page(self.request) or settings.LIST_PER_PAGE
+            if self.list_per_page is None else self.list_per_page
+        )
 
     def _get_api_url(self):
-        return self.api_url or self.core.get_api_url(self.request)
+        return self.core.get_api_url(self.request) if self.api_url is None else self.api_url
 
     def _get_list_filter(self):
-        return self.list_filter or self.core.get_default_list_filter(self.request)
+        return self.core.get_default_list_filter(self.request) if self.list_filter is None else self.list_filter
 
     def _get_add_url(self):
         return self.core.get_add_url(self.request)

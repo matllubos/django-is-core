@@ -1,0 +1,32 @@
+@import ../mixins
+
+.tag-container
+  margin-top: 5px
+
+.tag
+  float: left
+  border: 1px solid #ddd
+  position: relative
+  background: #fdfdfd
+  padding: 5px
+  height: 40px
+  margin: 0px 5px 5px 0
+  @include border-radius(3px)
+
+  .ac-image
+    margin-right: 10px
+    @include img-small
+
+  .ac-image-placeholder
+    @include img-placeholder
+
+  .goog-icon-remove
+    cursor: pointer
+    right: 6px
+    bottom: 5px
+    margin-left: 10px
+    color: $close-clr
+
+    &:before
+      font-family: FontAwesome
+      content: "\f00d"

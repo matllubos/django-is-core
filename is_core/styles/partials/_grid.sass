@@ -1,0 +1,174 @@
+@import ../mixins
+
+.grid
+
+  tr:focus
+    outline: none
+
+  tbody > tr > td
+    vertical-align: middle
+    padding: 4px 4px 2px 4px
+
+  thead > tr > th
+    vertical-align: top
+    position: relative
+    white-space: nowrap
+    padding: 8px 4px
+
+    &:after
+      content: ''
+      position: absolute
+      bottom: 44px
+      left: 0
+      width: 100%
+      height: 1px
+      background: #ddd
+
+    select, input
+      width: 100%
+      font-size: 12px
+      height: 29px
+      padding: 3px 7px
+      margin-top: 13px
+
+    .filter-extended
+      width: 50px
+      margin-top: 0
+      margin-right: 5px
+
+    input
+      &.date, &.datetime, &[type=number]
+        width: 60%
+
+    .ac-buttons
+
+      & > .ac-image
+        @include ac-small-img
+        top: 17px
+
+      & > .ac-image-placeholder
+        @include ac-small-img
+        top: 9px
+
+    .ac-item
+      .open-list
+        top: 13px
+        right: -3px
+
+      .goog-icon-remove
+        top: 15px
+
+  td
+    padding: 10px
+
+    &.id
+      width: 7%
+      color: #9a9a9a
+
+    &.date
+      width: 11%
+
+    &.status
+      width: 12%
+
+    &.actions
+      white-space: nowrap
+      a
+        margin-left: 6px
+        color: $mid-gray
+        text-decoration: none
+
+      .btn
+        height: auto
+        padding: 0 4px
+        margin-left: 5px
+        min-width: 0
+        border-color: transparent
+        color: $mid-gray
+        font-family: FontAwesome
+        font-size: 20px
+        background-color: transparent
+
+        &:hover
+          color: #000
+          background: none
+
+        &.btn-danger, &.remote-button
+          color: $red
+
+        &.btn-danger:before, &.remote-button:before
+          content: "\f00d"
+
+        &.activate, &.deactivate
+          &:before
+            content: "\f011"
+
+        &.edit:before
+          content: "\f040"
+
+        &.detail:before
+          content: "\f129"
+
+        &:before
+          font-family: FontAwesome
+
+        &.download:before
+          content: "\f0ed"
+
+        span
+          display: none
+
+  .filter
+    position: relative
+
+  & > thead > tr > th
+    border-bottom: 1px solid #ddd
+
+.paginator
+
+  background-color: #fff
+
+  .caption
+    vertical-align: text-bottom
+    margin: 0 2px
+
+  i.fa
+    font-size: 25px
+
+  .pagination
+    float: right
+    margin: -2px 0 0
+
+    &:hover
+      cursor: pointer
+
+    i
+      color: #565656
+
+      &:hover
+        color: $light-gray
+
+    span:hover
+      background-color: #fff
+
+    .disabled i
+      color: $light-gray
+
+  .result-displayed
+    text-align: right
+    margin-right: 2px
+
+  .result-caption
+    color: $light-gray
+
+  .result-number
+    padding-left: 5px
+
+@media (min-width: 1200px)
+  .paginator.bottom
+    width: 100%
+    padding: 0
+
+@media (max-width: 1199px)
+  .paginator.bottom
+    background: none

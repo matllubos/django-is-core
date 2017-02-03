@@ -1,0 +1,115 @@
+@import ../mixins
+
+.goog-date-picker
+  position: absolute
+  left: 0
+  float: left
+  min-width: 160px
+  margin: 2px 0 0
+  font-size: 14px
+  list-style: none
+  background-color: #fff
+  background-clip: padding-box
+  border: 1px solid rgba(0, 0, 0, .15)
+  @include border-radius(4px)
+  @include box-shadow(0 6px 12px rgba(0, 0, 0, .175))
+  top: 0
+  width: 250px
+  padding: 4px
+  margin-top: 1px
+  z-index: 99999
+
+  th
+    text-align: center
+    font-size: .9em
+    div
+      float: left
+
+  td
+    text-align: center
+    vertical-align: middle
+    padding: 1px 3px
+
+  button
+    padding: 5px 0
+    margin: 1px 0
+    border: 0
+    font-weight: normal
+    background: none
+    box-shadow: none
+
+    &:hover
+      text-decoration: underline
+
+.goog-date-picker-menu
+  position: absolute
+  background: threedface
+  border: 1px solid gray
+  @include clear-user-select-focus
+  z-index: 1
+  outline: none
+
+  ul
+    list-style: none
+    margin: 0px
+    padding: 0px
+
+    li
+      cursor: default
+
+.goog-date-picker-menu-selected
+  background: #3276b1
+  color: #FFFFFF
+
+.goog-date-picker-date
+  background: #fff
+
+.goog-date-picker-week,
+.goog-date-picker-wday
+  padding: 1px 3px
+  border: 0
+  border-color: #E0E0E0
+  border-style: solid
+
+.goog-date-picker-week
+  border-right-width: 1px
+
+.goog-date-picker-wday
+  border-bottom-width: 1px
+
+.goog-date-picker-head td
+  text-align: center
+
+/** Use td.className instead of !important */
+td.goog-date-picker-today-cont, td.goog-date-picker-none-cont
+  text-align: center
+
+.goog-date-picker-month
+  white-space: nowrap
+
+.goog-date-picker-year
+  white-space: nowrap
+
+.goog-date-picker-monthyear
+  white-space: nowrap
+
+.goog-date-picker table
+  border-collapse: collapse
+
+.goog-date-picker-other-month
+  color: #888
+
+.goog-date-picker-wkend-start,
+.goog-date-picker-wkend-end
+  background: #eee
+
+/** Use td.className instead of !important */
+td.goog-date-picker-selected
+  background: #3276b1
+  color: #FFFFFF
+
+.goog-date-picker-today
+  background: #9ab
+  font-weight: bold
+  border-color: #246 #9bd #9bd #246
+  color: #fff

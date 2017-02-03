@@ -18,6 +18,7 @@ from chamber.shortcuts import get_object_or_none
 from chamber.utils.decorators import classproperty
 from chamber.utils import transaction
 
+from is_core.config import settings
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
                                          HTTPForbiddenResponseException, HTTPUnauthorizedResponseException)
@@ -25,7 +26,6 @@ from is_core.filters import get_model_field_or_method_filter, FilterException, F
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
 from is_core.utils.immutable import merge
-from is_core import config
 
 
 class RESTLoginMixin(object):
@@ -104,7 +104,7 @@ class RESTResource(RESTLoginMixin, BaseResource):
         return super(RESTResource, self)._get_error_response(exception)
 
     def _get_cors_allowed_headers(self):
-        return super(RESTResource, self)._get_cors_allowed_headers() + (config.IS_CORE_AUTH_HEADER_NAME,)
+        return super(RESTResource, self)._get_cors_allowed_headers() + (settings.AUTH_HEADER_NAME,)
 
 
 class RESTModelCoreResourcePermissionsMixin(object):
