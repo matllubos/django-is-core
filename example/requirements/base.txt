@@ -4,7 +4,7 @@ XlsxWriter==0.7.7
 python-mimeparse==0.1.4
 pep8==1.6.2
 six==1.10.0
-https://github.com/LukasRychtecky/germanium/tarball/1.0.14#egg=germanium-1.0.14
+https://github.com/druids/germanium/tarball/2.0.0#egg=germanium-2.0.0
 coverage==4.0.2
 https://github.com/jezdez/django_compressor/tarball/develop#egg=django_compressor-dev
 python-dateutil>=2.2
