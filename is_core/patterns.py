@@ -191,7 +191,8 @@ class RESTPattern(ViewPattern):
         return self.resource_class.as_view(allowed_methods=self.methods)
 
     def get_allowed_methods(self, request, obj):
-        return self._call_view_method_with_request('get_allowed_methods', request, method_args=(obj, self.methods),
+        return self._call_view_method_with_request('get_allowed_methods', request,
+                                                   method_kwargs={'restricted_methods': self.methods, 'obj': obj},
                                                    obj=obj)
 
 

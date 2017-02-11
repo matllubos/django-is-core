@@ -306,6 +306,7 @@ class DefaultModelFormView(DefaultFormView):
     def generate_inline_views(self):
         inline_views = self.get_inline_views()
         fieldsets = self.get_fieldsets()
+
         if inline_views is not None and fieldsets:
             raise ImproperlyConfigured('You can define either inline views or fieldsets.')
         return inline_views or get_inline_views_from_fieldsets(fieldsets)

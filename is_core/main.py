@@ -346,7 +346,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     # add/edit view params
     form_fieldsets = None
     form_readonly_fields = ()
-    form_inline_views = ()
+    form_inline_views = None
 
     ui_form_add_class = None
     ui_form_edit_class = None
@@ -454,16 +454,11 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     abstract = True
 
     # Allowed rest fields
+    rest_fields = None
     rest_extra_fields = None
     rest_detailed_fields = None
     rest_general_fields = None
     rest_guest_fields = None
-
-    # Default rest fields for list, obj and guest
-    rest_default_detailed_fields = ('id', '_rest_links', '_obj_name')
-    rest_default_general_fields = ('id', '_rest_links', '_obj_name')
-    rest_default_guest_fields = ()
-    rest_default_extra_fields = ()
 
     rest_form_edit_class = None
     rest_form_add_class = None
@@ -490,30 +485,31 @@ class RESTModelISCore(RESTISCore, ModelISCore):
         return self.get_form_exclude(request, obj)
 
     def get_rest_extra_fields(self, request, obj=None):
-        if self.rest_extra_fields:
-            return rfs(self.rest_extra_fields)
-        else:
-            return rfs(self.model._rest_meta.extra_fields).join(rfs(self.rest_default_extra_fields))
+        return (
+            self.model._rest_meta.extra_fields if self.rest_extra_fields is None
+            else self.rest_extra_fields
+        )
 
-    def get_rest_general_fields(self, request, obj=None):
-        if self.rest_general_fields:
-            return rfs(self.rest_general_fields)
-        else:
-            return rfs(self.model._rest_meta.default_general_fields).join(rfs(self.rest_default_general_fields))
+    def get_rest_fields(self, request, obj=None):
+        return self.rest_fields
 
-    def get_rest_detailed_fields(self, request, obj=None):
-        if self.rest_detailed_fields:
-            return rfs(self.rest_detailed_fields)
-        else:
-            return rfs(self.model._rest_meta.default_detailed_fields).join(rfs(self.rest_default_detailed_fields))
+    def get_rest_general_fields(self, request):
+        return (
+            self.model._rest_meta.general_fields if self.rest_general_fields is None
+            else self.rest_general_fields
+        )
+
+    def get_rest_detailed_fields(self, request):
+        return (
+            self.model._rest_meta.detailed_fields if self.rest_detailed_fields is None
+            else self.rest_detailed_fields
+        )
 
     def get_rest_guest_fields(self, request, obj=None):
-        if self.rest_guest_fields:
-            return rfs(self.rest_guest_fields)
-        else:
-            return rfs(self.model._rest_meta.guest_fields).join(rfs(self.rest_default_guest_fields))
-
-        return rfs(self.rest_guest_fields)
+        return (
+            self.model._rest_meta.guest_fields if self.rest_guest_fields is None
+            else self.rest_guest_fields
+        )
 
     def get_rest_class(self):
         return modelrest_factory(self.model, self.rest_resource_class)
@@ -545,7 +541,7 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     rest_obj_class_names = ()
 
     def get_rest_extra_fields(self, request, obj=None):
-        fields = super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj)
+        fields = rfs(super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj))
         fields.join(rfs(self.ui_rest_extra_fields))
         return fields.join(
             ModelRESTFieldset.create_from_flat_list(self.get_list_display(request), self.model)

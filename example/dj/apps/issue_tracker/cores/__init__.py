@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 
 from is_core.main import UIRESTModelISCore
-from is_core.patterns import RESTPattern
 
 from issue_tracker.models import Issue
 from issue_tracker.forms import UserForm
