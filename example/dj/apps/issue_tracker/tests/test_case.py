@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 
-from germanium.auth import UserProxy
+from germanium.test_cases.auth import UserProxy
 
 
 class HelperTestCase(object):

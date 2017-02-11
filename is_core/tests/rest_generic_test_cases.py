@@ -3,8 +3,11 @@ import types
 from django.core.urlresolvers import reverse
 from django.db.models.fields.files import FieldFile
 
-from germanium.rest import RESTTestCase
+from germanium.test_cases.rest import RESTTestCase
 from germanium.anotations import login_all, data_provider
+from germanium.tools.trivials import assert_equal
+from germanium.tools.http import assert_http_not_found, assert_http_accepted
+from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_created_response
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RESTAuthMixin
@@ -74,7 +77,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
         # Removed instance (must be created because FK)
         inst.delete()
 
-        return self.serialize(data), inst
+        return data, inst
 
     @data_provider(get_rest_resources)
     def test_should_return_data_from_resource_list(self, resource_name, resource, model):
@@ -89,8 +92,8 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
         for i in range(self.iteration):
             self.new_instance(model)
             resp = self.get(list_url)
-            self.assert_valid_JSON_response(resp, 'REST get list of model: %s\n response: %s' % (model, resp))
-            self.assertEqual(int(resp['X-Total']) - i, started_total_count + 1)
+            assert_valid_JSON_response(resp, 'REST get list of model: %s\n response: %s' % (model, resp))
+            assert_equal(int(resp['X-Total']) - i, started_total_count + 1)
 
     @data_provider(get_rest_resources)
     def test_should_return_data_from_resource(self, resource_name, resource, model):
@@ -101,9 +104,8 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             if not resource(self.get_request_with_user(self.r_factory.get(url))).has_get_permission(inst):
                 break
-
             resp = self.get(url)
-            self.assert_valid_JSON_response(resp, 'REST get of model: %s\n response: %s' % (model, resp))
+            assert_valid_JSON_response(resp, 'REST get of model: %s\n response: %s' % (model, resp))
 
     @data_provider(get_rest_resources)
     def test_should_delete_data_from_resource(self, resource_name, resource, model):
@@ -116,10 +118,10 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
                 break
 
             resp = self.delete(url)
-            self.assert_http_accepted(resp, 'REST delete of model: %s\n response: %s' % (model, resp))
+            assert_http_accepted(resp, 'REST delete of model: %s\n response: %s' % (model, resp))
             resp = self.get(url)
-            self.assert_http_not_found(resp, 'REST get (should not found) of model: %s\n response: %s' %
-                                       (model, resp))
+            assert_http_not_found(resp, 'REST get (should not found) of model: %s\n response: %s' %
+                                  (model, resp))
 
     @data_provider(get_rest_resources)
     def test_should_create_data_of_resource(self, resource_name, resource, model):
@@ -137,8 +139,8 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
             resp = self.post(list_url, data=data)
 
             count_after = model._default_manager.all().count()
-            self.assert_valid_JSON_created_response(resp, 'REST create of model: %s\n response: %s' % (model, resp))
-            self.assertEqual(count_before + 1, count_after)
+            assert_valid_JSON_created_response(resp, 'REST create of model: %s\n response: %s' % (model, resp))
+            assert_equal(count_before + 1, count_after)
 
     @data_provider(get_rest_resources)
     def test_should_update_data_of_resource(self, resource_name, resource, model):
@@ -153,6 +155,5 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
                 break
 
             data, _ = self.get_serialized_data(request, resource, True)
-
             resp = self.put(url, data=data)
-            self.assert_valid_JSON_response(resp, 'REST update of model: %s\n response: %s' % (model, resp))
+            assert_valid_JSON_response(resp, 'REST update of model: %s\n response: %s' % (model, resp))

@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.utils import timezone
 
-from germanium.testcase import GermaniumTestCase
+from germanium.test_cases.default import GermaniumTestCase
 from germanium.tools import assert_equal, assert_false, assert_true
 
 from is_core import config

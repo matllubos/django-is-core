@@ -1,7 +1,8 @@
 from django.core.urlresolvers import reverse
 
-from germanium.client import ClientTestCase
+from germanium.test_cases.client import ClientTestCase
 from germanium.anotations import login_all, data_provider
+from germanium.tools.http import assert_http_ok
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 
@@ -60,7 +61,7 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
         if 'list' in model_view.ui_patterns:
             url = self.list_url(model_view.site_name, model_view.get_menu_groups())
             if model_view.has_ui_read_permission(self.get_request_with_user(self.r_factory.get(url))):
-                self.assert_http_ok(self.get(url), '%s should return 200' % url)
+                assert_http_ok(self.get(url), '%s should return 200' % url)
 
     @data_provider(get_ui_main_views)
     def test_should_return_right_add_page_for_all_model_view(self, model_view, model):
@@ -68,7 +69,7 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
         if 'add' in model_view.ui_patterns:
             url = self.add_url(model_view.site_name, model_view.get_menu_groups())
             if model_view.has_ui_create_permission(self.get_request_with_user(self.r_factory.get(url))):
-                self.assert_http_ok(self.get(url), '%s should return 200' % url)
+                assert_http_ok(self.get(url), '%s should return 200' % url)
 
     @data_provider(get_ui_main_views)
     def test_should_return_right_edit_page_for_all_model_view(self, model_view, model):
@@ -79,4 +80,4 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
             url = self.edit_url(model_view.site_name, model_view.get_menu_groups(), inst)
             request = self.get_request_with_user(self.r_factory.get(url))
             if model_view.has_ui_read_permission(request, inst) or model_view.has_ui_update_permission(request, inst.pk):
-                self.assert_http_ok(self.get(url), '%s should return 200' % url)
+                assert_http_ok(self.get(url), '%s should return 200' % url)
