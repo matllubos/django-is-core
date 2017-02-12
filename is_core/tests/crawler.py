@@ -3,8 +3,8 @@ import json
 from django.utils.encoding import force_text
 
 from germanium.tools import assert_true, assert_not_equal
-from germanium.client import ClientTestCase
-from germanium.anotations import login
+from germanium.test_cases.client import ClientTestCase
+from germanium.annotations import login
 from germanium.crawler import Crawler, LinkExtractor, HtmlLinkExtractor as OriginalHtmlLinkExtractor
 
 from six.moves import html_parser

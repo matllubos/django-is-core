@@ -17,8 +17,6 @@ from django.utils import six
 from django.forms.models import _get_foreign_key
 from django.utils.functional import cached_property
 
-from pyston.utils import rfs
-
 from is_core.config import settings
 from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView, BulkChangeFormView
@@ -31,7 +29,6 @@ from is_core.utils.compatibility import urls_wrapper, get_model_name
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
-from is_core.rest.datastructures import ModelRESTFieldset
 from is_core.forms.models import SmartModelForm
 
 
@@ -459,6 +456,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     rest_detailed_fields = None
     rest_general_fields = None
     rest_guest_fields = None
+    rest_default_fields = None
 
     rest_form_edit_class = None
     rest_form_add_class = None
@@ -485,28 +483,34 @@ class RESTModelISCore(RESTISCore, ModelISCore):
         return self.get_form_exclude(request, obj)
 
     def get_rest_extra_fields(self, request, obj=None):
-        return (
+        return list(
             self.model._rest_meta.extra_fields if self.rest_extra_fields is None
             else self.rest_extra_fields
+        )
+
+    def get_rest_default_fields(self, request, obj=None):
+        return list(
+            self.model._rest_meta.default_fields if self.rest_default_fields is None
+            else self.rest_default_fields
         )
 
     def get_rest_fields(self, request, obj=None):
         return self.rest_fields
 
     def get_rest_general_fields(self, request):
-        return (
+        return list(
             self.model._rest_meta.general_fields if self.rest_general_fields is None
             else self.rest_general_fields
         )
 
     def get_rest_detailed_fields(self, request):
-        return (
+        return list(
             self.model._rest_meta.detailed_fields if self.rest_detailed_fields is None
             else self.rest_detailed_fields
         )
 
     def get_rest_guest_fields(self, request, obj=None):
-        return (
+        return list(
             self.model._rest_meta.guest_fields if self.rest_guest_fields is None
             else self.rest_guest_fields
         )
@@ -541,10 +545,10 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     rest_obj_class_names = ()
 
     def get_rest_extra_fields(self, request, obj=None):
-        fields = rfs(super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj))
-        fields.join(rfs(self.ui_rest_extra_fields))
-        return fields.join(
-            ModelRESTFieldset.create_from_flat_list(self.get_list_display(request), self.model)
+        return (
+            super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj) +
+            self.get_list_display(request) +
+            list(self.ui_rest_extra_fields)
         )
 
     def get_api_url_name(self):

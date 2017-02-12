@@ -9,7 +9,7 @@ from django.db.models.fields import Field, URLField
 from django.db.models.fields.related import ForeignKey, ManyToManyField,  ForeignObjectRel
 from django.utils.translation import ugettext_lazy as _
 
-from chamber.patch import Options, OptionsLazy
+from chamber.patch import Options
 
 from .humanize import url_humanized
 

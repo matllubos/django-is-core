@@ -10,7 +10,7 @@ from django.utils.encoding import force_text
 from pyston.exception import (RESTException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
                               ConflictException, DataInvalidException)
-from pyston.resource import BaseResource, BaseModelResource
+from pyston.resource import BaseResource, BaseModelResource, DefaultRESTModelResource
 from pyston.response import RESTErrorResponse, RESTErrorsResponse
 from pyston.utils import rfs
 
@@ -195,6 +195,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     field_labels = None
     abstract = True
     filters = {}
+    default_fields_extension = ('_rest_links',)
 
     def _get_field_labels(self):
         return (
@@ -202,24 +203,31 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
         )
 
     def get_fields(self):
-        fields = super(RESTModelResource, self).get_fields()
+        fields = super(DefaultRESTModelResource, self).get_fields()
         return self.core.get_rest_fields(self.request) if fields is None else fields
 
     def get_detailed_fields(self):
-        detailed_fields = super(RESTModelResource, self).get_detailed_fields()
+        detailed_fields = super(DefaultRESTModelResource, self).get_detailed_fields()
         return self.core.get_rest_detailed_fields(self.request) if detailed_fields is None else detailed_fields
 
     def get_general_fields(self):
-        general_fields = super(RESTModelResource, self).get_general_fields()
+        general_fields = super(DefaultRESTModelResource, self).get_general_fields()
         return self.core.get_rest_general_fields(self.request) if general_fields is None else general_fields
 
     def get_guest_fields(self, obj=None):
-        guest_fields = super(RESTModelResource, self).get_guest_fields()
+        guest_fields = super(DefaultRESTModelResource, self).get_guest_fields()
         return self.core.get_rest_guest_fields(self.request, obj=obj) if guest_fields is None else guest_fields
 
     def get_extra_fields(self):
-        extra_fields = super(RESTModelResource, self).get_extra_fields()
+        extra_fields = super(DefaultRESTModelResource, self).get_extra_fields()
         return self.core.get_rest_extra_fields(self.request) if extra_fields is None else extra_fields
+
+    def get_default_fields(self):
+        default_fields = super(DefaultRESTModelResource, self).get_default_fields()
+        return self.core.get_rest_default_fields(self.request) if default_fields is None else default_fields
+
+    def get_default_fields_rfs(self):
+        return super(RESTModelResource, self).get_default_fields_rfs().join(rfs(self.default_fields_extension))
 
     def _rest_links(self, obj):
         rest_links = {}
