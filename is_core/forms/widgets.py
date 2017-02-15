@@ -366,6 +366,8 @@ class MultipleTextInput(forms.TextInput):
         self.separator = separator
 
     def render(self, name, value, attrs=None):
+        if isinstance(value, six.string_types):
+            value = [value]
         return super(MultipleTextInput, self).render(
             name, '{} '.format(self.separator).join(map(force_text, value)) if value else value, attrs
         )
