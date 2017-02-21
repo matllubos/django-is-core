@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.http.response import HttpResponseRedirect
 from django.views.generic.base import RedirectView
 
-from is_core import config
+from is_core.config import settings
 from is_core.generic_views import DefaultCoreViewMixin
 from is_core.generic_views.mixins import GetCoreObjViewMixin
 from is_core.generic_views.auth_views import LogoutView, LoginView
@@ -44,7 +44,7 @@ class TokenLogoutView(LogoutView):
 class UserTakeover(GetCoreObjViewMixin, DefaultCoreViewMixin, RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
-        return config.IS_CORE_AUTH_TAKEOVER_REDIRECT_URL
+        return settings.AUTH_TAKEOVER_REDIRECT_URL
 
     def get(self, request, *args, **kwargs):
         user = self.get_obj()

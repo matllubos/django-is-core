@@ -9,8 +9,8 @@ from django.core.urlresolvers import reverse, resolve
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
 
+from is_core.config import settings
 from is_core.utils import get_new_class_name
-from is_core import config
 
 
 logger = logging.getLogger('is-core')
@@ -158,7 +158,7 @@ class UIPattern(ViewPattern):
     def get_view_dispatch(self):
         dispatch = self.view_class.as_view()
         if self.view_class.login_required:
-            return login_required(dispatch, login_url=config.IS_CORE_LOGIN_URL)
+            return login_required(dispatch, login_url=settings.LOGIN_URL)
         return dispatch
 
 
@@ -191,7 +191,8 @@ class RESTPattern(ViewPattern):
         return self.resource_class.as_view(allowed_methods=self.methods)
 
     def get_allowed_methods(self, request, obj):
-        return self._call_view_method_with_request('get_allowed_methods', request, method_args=(obj, self.methods),
+        return self._call_view_method_with_request('get_allowed_methods', request,
+                                                   method_kwargs={'restricted_methods': self.methods, 'obj': obj},
                                                    obj=obj)
 
 

@@ -52,7 +52,7 @@ class AuthResource(RESTResource):
         cls.core = core
         cls.pattern = pattern
 
-    def has_delete_permission(self, obj=None, via=None):
+    def has_delete_permission(self, **kwargs):
         return (
-            self.request.user.is_authenticated() and super(AuthResource, self).has_delete_permission(self.request, obj)
+            self.request.user.is_authenticated() and super(AuthResource, self).has_delete_permission(**kwargs)
         )

@@ -1,1 +1,0 @@
-/home/lubos/workspace/django/django-is-core/example/var/cs/start.js

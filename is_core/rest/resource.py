@@ -10,7 +10,7 @@ from django.utils.encoding import force_text
 from pyston.exception import (RESTException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
                               ConflictException, DataInvalidException)
-from pyston.resource import BaseResource, BaseModelResource
+from pyston.resource import BaseResource, BaseModelResource, DefaultRESTModelResource
 from pyston.response import RESTErrorResponse, RESTErrorsResponse
 from pyston.utils import rfs
 
@@ -18,6 +18,7 @@ from chamber.shortcuts import get_object_or_none
 from chamber.utils.decorators import classproperty
 from chamber.utils import transaction
 
+from is_core.config import settings
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
                                          HTTPForbiddenResponseException, HTTPUnauthorizedResponseException)
@@ -25,7 +26,6 @@ from is_core.filters import get_model_field_or_method_filter, FilterException, F
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
 from is_core.utils.immutable import merge
-from is_core import config
 
 
 class RESTLoginMixin(object):
@@ -104,47 +104,47 @@ class RESTResource(RESTLoginMixin, BaseResource):
         return super(RESTResource, self)._get_error_response(exception)
 
     def _get_cors_allowed_headers(self):
-        return super(RESTResource, self)._get_cors_allowed_headers() + (config.IS_CORE_AUTH_HEADER_NAME,)
+        return super(RESTResource, self)._get_cors_allowed_headers() + (settings.AUTH_HEADER_NAME,)
 
 
 class RESTModelCoreResourcePermissionsMixin(object):
 
     pk_name = 'pk'
 
-    def has_get_permission(self, obj=None, via=None):
+    def has_get_permission(self, obj=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.has_login_get_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_get_permission(obj) and
-                self.core.has_rest_read_permission(self.request, obj, via))
+                super(RESTModelCoreResourcePermissionsMixin, self).has_get_permission(obj=obj, **kwargs) and
+                self.core.has_rest_read_permission(self.request, obj=obj, **kwargs))
 
-    def has_post_permission(self, obj=None, via=None):
+    def has_post_permission(self, obj=None, **kwargs):
         return ((not self.has_login_post_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_post_permission(obj) and
-                self.core.has_rest_create_permission(self.request, obj, via))
+                super(RESTModelCoreResourcePermissionsMixin, self).has_post_permission(obj=obj, **kwargs) and
+                self.core.has_rest_create_permission(self.request, obj=obj, **kwargs))
 
-    def has_put_permission(self, obj=None, via=None):
+    def has_put_permission(self, obj=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.has_login_put_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_put_permission(obj) and
-                self.core.has_rest_update_permission(self.request, obj, via))
+                super(RESTModelCoreResourcePermissionsMixin, self).has_put_permission(obj=obj, **kwargs) and
+                self.core.has_rest_update_permission(self.request, obj=obj, **kwargs))
 
-    def has_delete_permission(self, obj=None, via=None):
+    def has_delete_permission(self, obj=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.has_login_delete_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_delete_permission(obj) and
-                self.core.has_rest_delete_permission(self.request, obj, via))
+                super(RESTModelCoreResourcePermissionsMixin, self).has_delete_permission(obj=obj, **kwargs) and
+                self.core.has_rest_delete_permission(self.request, obj=obj, **kwargs))
 
-    def has_head_permission(self, obj=None, via=None):
+    def has_head_permission(self, obj=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.has_login_head_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_head_permission(obj) and
-                self.core.has_rest_read_permission(self.request, obj, via))
+                super(RESTModelCoreResourcePermissionsMixin, self).has_head_permission(obj=obj, **kwargs) and
+                self.core.has_rest_read_permission(self.request, obj=obj, **kwargs))
 
-    def has_options_permission(self, obj=None, via=None):
+    def has_options_permission(self, obj=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.has_login_options_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_options_permission(obj) and
-                self.core.has_rest_read_permission(self.request, obj, via))
+                super(RESTModelCoreResourcePermissionsMixin, self).has_options_permission(obj=obj, **kwargs) and
+                self.core.has_rest_read_permission(self.request, obj=obj, **kwargs))
 
     def _get_perm_obj_or_none(self, pk=None):
         pk = pk or self.kwargs.get(self.pk_name)
@@ -191,43 +191,43 @@ class EntryPointResource(RESTResource):
 
 class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
 
-    default_detailed_fields = None
-    default_general_fields = None
-    extra_fields = None
-    guest_fields = None
     form_class = None
     field_labels = None
     abstract = True
     filters = {}
+    default_fields_extension = ('_rest_links',)
 
     def _get_field_labels(self):
         return (
             self.field_labels if self.field_labels is not None else self.core.get_rest_form_field_labels(self.request)
         )
 
-    def get_extra_fields(self, obj=None):
-        return (
-            self.core.get_rest_extra_fields(self.request, obj=obj) if self.extra_fields is None
-            else rfs(self.extra_fields)
-        )
+    def get_fields(self):
+        fields = super(DefaultRESTModelResource, self).get_fields()
+        return self.core.get_rest_fields(self.request) if fields is None else fields
 
-    def get_default_detailed_fields(self, obj=None):
-        return (
-            self.core.get_rest_detailed_fields(self.request, obj=obj) if self.default_detailed_fields is None
-            else rfs(self.default_detailed_fields)
-        )
+    def get_detailed_fields(self):
+        detailed_fields = super(DefaultRESTModelResource, self).get_detailed_fields()
+        return self.core.get_rest_detailed_fields(self.request) if detailed_fields is None else detailed_fields
 
-    def get_default_general_fields(self, obj=None):
-        return (
-            self.core.get_rest_general_fields(self.request, obj=obj) if self.default_general_fields is None
-            else rfs(self.default_general_fields)
-        )
+    def get_general_fields(self):
+        general_fields = super(DefaultRESTModelResource, self).get_general_fields()
+        return self.core.get_rest_general_fields(self.request) if general_fields is None else general_fields
 
     def get_guest_fields(self, obj=None):
-        return (
-            self.core.get_rest_guest_fields(self.request, obj=obj) if self.guest_fields is None
-            else rfs(self.guest_fields)
-        )
+        guest_fields = super(DefaultRESTModelResource, self).get_guest_fields()
+        return self.core.get_rest_guest_fields(self.request, obj=obj) if guest_fields is None else guest_fields
+
+    def get_extra_fields(self):
+        extra_fields = super(DefaultRESTModelResource, self).get_extra_fields()
+        return self.core.get_rest_extra_fields(self.request) if extra_fields is None else extra_fields
+
+    def get_default_fields(self):
+        default_fields = super(DefaultRESTModelResource, self).get_default_fields()
+        return self.core.get_rest_default_fields(self.request) if default_fields is None else default_fields
+
+    def get_default_fields_rfs(self):
+        return super(RESTModelResource, self).get_default_fields_rfs().join(rfs(self.default_fields_extension))
 
     def _rest_links(self, obj):
         rest_links = {}

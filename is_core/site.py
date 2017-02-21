@@ -6,9 +6,9 @@ from django.conf.urls import url, include
 from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
 
+from is_core.config import settings
 from is_core.utils.compatibility import urls_wrapper
 
-from . import config
 from .utils import str_to_class
 from .loading import get_cores
 from .patterns import RESTPattern
@@ -70,22 +70,22 @@ class ISSite(object):
 
     def get_urls(self):
         urlpatterns = urls_wrapper()
-        if config.IS_CORE_AUTH_LOGIN_VIEW:
+        if settings.AUTH_LOGIN_VIEW:
             urlpatterns += urls_wrapper(
-                url(r'^%s$' % config.IS_CORE_LOGIN_URL[1:], str_to_class(config.IS_CORE_AUTH_LOGIN_VIEW).as_view(
-                    form_class=str_to_class(config.IS_CORE_AUTH_FORM_CLASS)), name='login'),
+                url(r'^{}$'.format(settings.LOGIN_URL[1:]), str_to_class(settings.AUTH_LOGIN_VIEW).as_view(
+                    form_class=str_to_class(settings.AUTH_FORM_CLASS)), name='login'),
             )
 
-        if config.IS_CORE_AUTH_LOGOUT_VIEW:
+        if settings.AUTH_LOGOUT_VIEW:
             urlpatterns += urls_wrapper(
-                url(r'^%s$' % config.IS_CORE_LOGOUT_URL[1:],
-                    str_to_class(config.IS_CORE_AUTH_LOGOUT_VIEW).as_view(), name='logout'),
+                url(r'^{}$'.format(settings.LOGOUT_URL[1:]),
+                    str_to_class(settings.AUTH_LOGOUT_VIEW).as_view(), name='logout'),
             )
 
-        if config.IS_CORE_AUTH_USE_TOKENS:
-            auth_resource_class = str_to_class(config.IS_CORE_AUTH_RESOURCE_CLASS)
-            auth_resource_class.form_class = str_to_class(config.IS_CORE_AUTH_FORM_CLASS)
-            pattern = RESTPattern('api-login', self.name, config.IS_CORE_LOGIN_API_URL[1:],
+        if settings.AUTH_USE_TOKENS:
+            auth_resource_class = str_to_class(settings.AUTH_RESOURCE_CLASS)
+            auth_resource_class.form_class = str_to_class(settings.AUTH_FORM_CLASS)
+            pattern = RESTPattern('api-login', self.name, settings.LOGIN_API_URL[1:],
                                   auth_resource_class)
             urlpatterns += urls_wrapper(pattern.get_url())
 

@@ -36,8 +36,10 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     fieldsets = None
     form_template = 'forms/default_form.html'
     template_name = 'generic_views/default_form.html'
-    messages = {'success': _('Object was saved successfully.'),
-                'error': _('Please correct the error below.')}
+    messages = {
+        'success': _('Object was saved successfully.'),
+        'error': _('Please correct the error below.'),
+    }
     readonly_fields = None
 
     save_button_label = _('Save')
@@ -74,7 +76,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         return self.request.get_full_path()
 
     def get_readonly_fields(self):
-        return self.readonly_fields or ()
+        return () if self.readonly_fields is None else self.readonly_fields
 
     def get_message_kwargs(self, obj):
         return {'obj': force_text(obj)}
@@ -196,7 +198,8 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         }
 
     def generate_fieldsets(self, **kwargs):
-        return self.get_fieldsets() or [(None, {'fields': list(self.get_form_class().base_fields.keys())})]
+        fieldsets = self.get_fieldsets()
+        return [(None, {'fields': list(self.get_form_class().base_fields.keys())})] if fieldsets is None else fieldsets
 
     def get_fieldsets(self):
         return self.fieldsets
@@ -292,18 +295,19 @@ class DefaultModelFormView(DefaultFormView):
         return {'obj': force_text(obj), 'name': force_text(obj._meta.verbose_name)}
 
     def get_exclude(self):
-        return self.exclude or ()
+        return () if self.exclude is None else self.exclude
 
     def generate_readonly_fields(self):
         return self.get_readonly_fields()
 
     def get_inline_views(self):
-        return self.inline_views or ()
+        return self.inline_views
 
     def generate_inline_views(self):
         inline_views = self.get_inline_views()
         fieldsets = self.get_fieldsets()
-        if inline_views and fieldsets:
+
+        if inline_views is not None and fieldsets:
             raise ImproperlyConfigured('You can define either inline views or fieldsets.')
         return inline_views or get_inline_views_from_fieldsets(fieldsets)
 
@@ -385,8 +389,7 @@ class DefaultModelFormView(DefaultFormView):
         if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
             return True
 
-        inline_form_views = inline_form_views or ()
-        for inline_form_view in inline_form_views:
+        for inline_form_view in () if inline_form_views is None else inline_form_views:
             if inline_form_view.get_has_file_field():
                 return True
 
@@ -444,8 +447,6 @@ class DefaultModelFormView(DefaultFormView):
         return kwargs
 
     def save_form(self, form, inline_form_views=None, **kwargs):
-        inline_form_views = inline_form_views or {}
-
         obj = form.save(commit=False)
         change = obj.pk is not None
 
@@ -454,7 +455,7 @@ class DefaultModelFormView(DefaultFormView):
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
 
-        for inline_form_view in inline_form_views:
+        for inline_form_view in {} if inline_form_views is None else inline_form_views:
             inline_form_view.form_valid(self.request)
 
         self.post_save_obj(obj, form, change)
@@ -671,11 +672,16 @@ class BulkChangeFormView(DefaultModelFormView):
         return super(BulkChangeFormView, self).dispatch(request, *args, **kwargs)
 
     def get_fields(self):
-        return self.fields or (self.core.bulk_change_fields if hasattr(self.core, 'bulk_change_fields') else ())
+        return (
+            (self.core.bulk_change_fields if hasattr(self.core, 'bulk_change_fields') else ())
+            if self.fields is None else self.fields
+        )
 
     def get_fieldsets(self):
-        return (self.fieldsets or
-                (self.core.bulk_change_fieldsets if hasattr(self.core, 'bulk_change_fieldsets') else None))
+        return (
+            (self.core.bulk_change_fieldsets if hasattr(self.core, 'bulk_change_fieldsets') else None)
+            if self.fieldsets is None else self.fieldsets
+        )
 
     def get_readonly_fields(self):
         return ()

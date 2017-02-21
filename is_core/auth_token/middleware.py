@@ -6,7 +6,7 @@ from django.utils.functional import SimpleLazyObject
 from django.utils.http import cookie_date
 from django.utils.encoding import force_text
 
-from is_core import config
+from is_core.config import settings
 from is_core.auth_token import utils
 
 
@@ -34,7 +34,7 @@ class TokenAuthenticationMiddlewares(object):
         # Skip session save for 500 responses, refs #3881.
         if response.status_code != 500 and hasattr(request, 'token') and request.token.is_active:
             if not request.token.expiration:
-                max_age = config.IS_CORE_AUTH_COOKIE_AGE
+                max_age = settings.AUTH_COOKIE_AGE
                 expires_time = time.time() + max_age
                 expires = cookie_date(expires_time)
             else:
@@ -42,7 +42,7 @@ class TokenAuthenticationMiddlewares(object):
                 expires = None
 
             request.token.save()
-            response.set_cookie(config.IS_CORE_AUTH_COOKIE_NAME, force_text(request.token.key), max_age=max_age,
-                                expires=expires, httponly=config.IS_CORE_AUTH_COOKIE_HTTPONLY,
-                                secure=config.IS_CORE_AUTH_COOKIE_SECURE, domain=config.IS_CORE_AUTH_COOKIE_DOMAIN)
+            response.set_cookie(settings.AUTH_COOKIE_NAME, force_text(request.token.key), max_age=max_age,
+                                expires=expires, httponly=settings.AUTH_COOKIE_HTTPONLY,
+                                secure=settings.AUTH_COOKIE_SECURE, domain=settings.AUTH_COOKIE_DOMAIN)
         return response
