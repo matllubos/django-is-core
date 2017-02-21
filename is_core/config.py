@@ -31,6 +31,8 @@ DEFAULTS = {
     'EXPORT_TYPES': '',
     'FOREIGN_KEY_MAX_SELECBOX_ENTRIES': 500,
     'LIST_PER_PAGE': 20,
+    'AUTH_TOKEN_RENEWAL_EXEMPT_HEADER': 'X-Authorization-Renewal-Exempt',
+    'AUTH_TOKEN_EXPIRATION_HEADER': 'X-Authorization-Expiration',
 }
 
 
