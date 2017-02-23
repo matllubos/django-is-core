@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.utils.encoding import python_2_unicode_compatible
 
 
@@ -39,7 +41,6 @@ class MenuGenerator(object):
     def get_menu_items(self, items):
         from .main import UIISCore
 
-        menu_items = []
         if self.active_groups:
             group = self.active_groups[0]
         else:
@@ -47,14 +48,16 @@ class MenuGenerator(object):
 
         for item in items:
             if isinstance(item, MenuItem):
-                menu_items.append(item)
+                if item.submenu_items:
+                    item = deepcopy(item)
+                    item.submenu_items = list(self.get_menu_items(item.submenu_items))
+                yield item
             else:
                 item = self.site._registry[item]
                 if isinstance(item, UIISCore):
                     menu_item = item.get_menu_item(self.request, group)
                     if menu_item:
-                        menu_items.append(menu_item)
-        return menu_items
+                        yield item
 
     def get_menu_structure(self):
         return self.site._registry.keys()
