@@ -60,10 +60,16 @@ class Token(models.Model):
         """
         return force_text(binascii.hexlify(os.urandom(20)))
 
+    def _get_token_age(self):
+        return self.expiration and settings.AUTH_DEFAULT_TOKEN_AGE or settings.AUTH_MAX_TOKEN_AGE
+
     @property
     def is_expired(self):
-        token_age = self.expiration and settings.AUTH_DEFAULT_TOKEN_AGE or settings.AUTH_MAX_TOKEN_AGE
-        return self.last_access + timedelta(seconds=token_age) < timezone.now()
+        return self.last_access + timedelta(seconds=self._get_token_age()) < timezone.now()
+
+    @property
+    def time_to_expiration(self):
+        return (self.last_access + timedelta(seconds=self._get_token_age())) - timezone.now()
 
     def __str__(self):
         return self.key
