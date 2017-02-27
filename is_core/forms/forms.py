@@ -183,6 +183,7 @@ class SmartFormMixin(object):
             if hasattr(self, '_init_%s' % field_name):
                 getattr(self, '_init_%s' % field_name)(field)
         self._init_fields()
+        self._changed_data = None
 
     def _pre_init_fields(self):
         for required_field_name in self.base_required_fields:
@@ -270,7 +271,7 @@ class SmartFormMixin(object):
                             # Always assume data has changed if validation fails.
                             self._changed_data.append(name)
                             continue
-                    if field._has_changed(initial_value, data_value):
+                    if field.has_changed(initial_value, data_value):
                         self._changed_data.append(name)
         return self._changed_data
 

@@ -206,7 +206,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         else:
             return self._smart_render(request, name, value, initial_value, attrs, choices)
 
-    def _has_changed(self, initial, data):
+    def has_changed(self, initial, data):
         return False
 
 

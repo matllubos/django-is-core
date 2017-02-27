@@ -29,6 +29,7 @@ class RESTResource(BaseResource):
     register = False
 
     @classproperty
+    @classmethod
     def csrf_exempt(cls):
         return not cls.login_required
 
