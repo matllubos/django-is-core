@@ -3,7 +3,7 @@ from django.conf import settings as django_settings
 
 DEFAULTS = {
     'AUTH_COOKIE_NAME': 'Authorization',
-    'AUTH_COOKIE_AGE': '60 * 60 * 24 * 7 * 2',  # Age of cookie, in seconds (default: 2 weeks)
+    'AUTH_COOKIE_AGE': 60 * 60 * 24 * 7 * 2,  # Age of cookie, in seconds (default: 2 weeks)
     'AUTH_COOKIE_HTTPONLY': False,
     'AUTH_COOKIE_SECURE': False,
     'AUTH_COOKIE_DOMAIN': None,
