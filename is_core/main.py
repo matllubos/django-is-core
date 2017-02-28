@@ -241,10 +241,10 @@ class UIISCore(PermissionsUIMixin, ISCore):
     def is_active_menu_item(self, request, active_group):
         return active_group == self.menu_group
 
-    def get_menu_item(self, request, active_group):
+    def get_menu_item(self, request, active_group, item_class=LinkMenuItem):
         if self.get_show_in_menu(request):
-            return LinkMenuItem(self.verbose_name_plural, self.menu_url(request),
-                                self.menu_group, self.is_active_menu_item(request, active_group))
+            return item_class(self.verbose_name_plural, self.menu_url(request),
+                              self.menu_group, self.is_active_menu_item(request, active_group))
 
     def menu_url(self, request):
         return self.ui_patterns.get(self.menu_url_name).get_url_string(request)

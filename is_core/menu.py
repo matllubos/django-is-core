@@ -33,14 +33,24 @@ class CollapsibleMenuItem(MenuItem):
 
 class MenuGenerator(object):
 
+    default_menu_item_class = LinkMenuItem
+
     def __init__(self, request, site, active_groups):
         self.request = request
         self.site = site
         self.active_groups = active_groups
 
-    def get_menu_items(self, items):
+    def get_core(self, core_name):
         from .main import UIISCore
 
+        core = self.site._registry[core_name]
+        return core if isinstance(core, UIISCore) else None
+
+    def get_menu_item(self, core_name, group=None):
+        core = self.get_core(core_name)
+        return core.get_menu_item(self.request, group, self.default_menu_item_class) if core else None
+
+    def get_menu_items(self, items):
         if self.active_groups:
             group = self.active_groups[0]
         else:
@@ -51,14 +61,14 @@ class MenuGenerator(object):
                 if item.submenu_items:
                     item = deepcopy(item)
                     item.submenu_items = list(self.get_menu_items(item.submenu_items))
+
                 yield item
+
             else:
-                item = self.site._registry[item]
-                if isinstance(item, UIISCore):
-                    menu_item = item.get_menu_item(self.request, group)
-                    if menu_item:
-                        yield item
+                menu_item = self.get_menu_item(item, group)
+
+                if menu_item:
+                    yield menu_item
 
     def get_menu_structure(self):
         return self.site._registry.keys()
-
