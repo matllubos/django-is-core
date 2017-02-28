@@ -43,7 +43,7 @@ class MenuGenerator(object):
     def get_core(self, core_name):
         from .main import UIISCore
 
-        core = self.site._registry[core_name]
+        core = self.site._registry.get(core_name)
         return core if isinstance(core, UIISCore) else None
 
     def get_menu_item(self, core_name, group=None):
