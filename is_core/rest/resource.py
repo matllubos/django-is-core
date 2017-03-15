@@ -159,14 +159,20 @@ class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
     def _get_queryset(self):
         return self.core.get_queryset(self.request)
 
+    def _get_pk(self):
+        return self.kwargs.get(self.pk_name)
+
     def _get_obj_or_none(self, pk=None):
-        return get_object_or_none(self._get_queryset(), pk=(pk or self.kwargs.get(self.pk_name)))
+        if pk or self._get_pk():
+            return get_object_or_none(self._get_queryset(), pk=(pk or self._get_pk()))
+        else:
+            return None
 
     def _get_obj_or_404(self, pk=None):
-        obj = self._get_obj_or_none(pk)
-        if not obj:
-            raise Http404
-        return obj
+         obj = self._get_obj_or_none(pk)
+         if not obj:
+             raise Http404
+         return obj
 
 
 class EntryPointResource(RESTResource):
@@ -202,32 +208,32 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
             self.field_labels if self.field_labels is not None else self.core.get_rest_form_field_labels(self.request)
         )
 
-    def get_fields(self):
-        fields = super(DefaultRESTModelResource, self).get_fields()
-        return self.core.get_rest_fields(self.request) if fields is None else fields
+    def get_fields(self, obj=None):
+        fields = super(DefaultRESTModelResource, self).get_fields(obj=obj)
+        return self.core.get_rest_fields(self.request, obj=None) if fields is None else fields
 
-    def get_detailed_fields(self):
-        detailed_fields = super(DefaultRESTModelResource, self).get_detailed_fields()
-        return self.core.get_rest_detailed_fields(self.request) if detailed_fields is None else detailed_fields
+    def get_detailed_fields(self, obj=None):
+        detailed_fields = super(DefaultRESTModelResource, self).get_detailed_fields(obj=obj)
+        return self.core.get_rest_detailed_fields(self.request, obj=obj) if detailed_fields is None else detailed_fields
 
-    def get_general_fields(self):
-        general_fields = super(DefaultRESTModelResource, self).get_general_fields()
-        return self.core.get_rest_general_fields(self.request) if general_fields is None else general_fields
+    def get_general_fields(self, obj=None):
+        general_fields = super(DefaultRESTModelResource, self).get_general_fields(obj=obj)
+        return self.core.get_rest_general_fields(self.request, obj=obj) if general_fields is None else general_fields
 
     def get_guest_fields(self, obj=None):
-        guest_fields = super(DefaultRESTModelResource, self).get_guest_fields()
+        guest_fields = super(DefaultRESTModelResource, self).get_guest_fields(obj=obj)
         return self.core.get_rest_guest_fields(self.request, obj=obj) if guest_fields is None else guest_fields
 
-    def get_extra_fields(self):
-        extra_fields = super(DefaultRESTModelResource, self).get_extra_fields()
+    def get_extra_fields(self, obj=None):
+        extra_fields = super(DefaultRESTModelResource, self).get_extra_fields(obj=obj)
         return self.core.get_rest_extra_fields(self.request) if extra_fields is None else extra_fields
 
-    def get_default_fields(self):
-        default_fields = super(DefaultRESTModelResource, self).get_default_fields()
-        return self.core.get_rest_default_fields(self.request) if default_fields is None else default_fields
+    def get_default_fields(self, obj=None):
+        default_fields = super(DefaultRESTModelResource, self).get_default_fields(obj=obj)
+        return self.core.get_rest_default_fields(self.request, obj=None) if default_fields is None else default_fields
 
-    def get_default_fields_rfs(self):
-        return super(RESTModelResource, self).get_default_fields_rfs().join(rfs(self.default_fields_extension))
+    def get_default_fields_rfs(self, obj=None):
+        return super(RESTModelResource, self).get_default_fields_rfs(obj=obj).join(rfs(self.default_fields_extension))
 
     def _rest_links(self, obj):
         rest_links = {}

@@ -30,7 +30,7 @@ setup(
     install_requires=[
         'django>=1.10',
         'django-class-based-auth-views==0.5druids',
-        'django-pyston>=2.0.0',
+        'django-pyston>=2.2.0',
         'django-block-snippets==1.0.2',
         'django-chamber>=0.2.1',
         'python-dateutil>=2.2',
@@ -40,7 +40,7 @@ setup(
         'django-ipware>=1.0.0'
     ],
     dependency_links=[
-        'https://github.com/druids/django-pyston/tarball/2.0.0#egg=django-pyston-2.0.0',
+        'https://github.com/druids/django-pyston/tarball/2.2.0#egg=django-pyston-2.2.0',
         'https://github.com/druids/django-chamber/tarball/0.2.1#egg=django-chamber-0.2.1',
         'https://github.com/druids/django-block-snippets/tarball/1.0.2#egg=django-block-snippets-1.0.2',
         'https://github.com/druids/django-class-based-auth-views/tarball/0.5#egg=django-class-based-auth-views-0.5druids',
