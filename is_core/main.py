@@ -497,13 +497,13 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     def get_rest_fields(self, request, obj=None):
         return self.rest_fields
 
-    def get_rest_general_fields(self, request):
+    def get_rest_general_fields(self, request, obj=None):
         return list(
             self.model._rest_meta.general_fields if self.rest_general_fields is None
             else self.rest_general_fields
         )
 
-    def get_rest_detailed_fields(self, request):
+    def get_rest_detailed_fields(self, request, obj=None):
         return list(
             self.model._rest_meta.detailed_fields if self.rest_detailed_fields is None
             else self.rest_detailed_fields
