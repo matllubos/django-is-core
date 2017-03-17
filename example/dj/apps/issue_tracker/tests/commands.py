@@ -9,10 +9,10 @@ from django.core.management import call_command
 from django.utils import timezone
 
 from germanium.test_cases.default import GermaniumTestCase
-from germanium.tools import assert_equal, assert_false, assert_true
+from germanium.tools import assert_equal, assert_false
 
-from is_core.config import settings
 from is_core.auth_token.models import Token
+from is_core.config import settings
 
 
 class CleanTokensCommandTestCase(GermaniumTestCase):
