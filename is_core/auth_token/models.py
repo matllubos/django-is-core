@@ -71,6 +71,10 @@ class Token(models.Model):
     def time_to_expiration(self):
         return (self.last_access + timedelta(seconds=self._get_token_age())) - timezone.now()
 
+    @property
+    def str_time_to_expiration(self):
+        return str(self.time_to_expiration) if self.time_to_expiration.total_seconds() > 0 else '00:00:00'
+
     def __str__(self):
         return self.key
 
