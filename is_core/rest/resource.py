@@ -54,7 +54,7 @@ class RESTLoginMixin(object):
         return self.login_required and self.login_head_required and self.has_login_get_required()
 
     def has_login_options_required(self):
-        return self.login_required and self.login_options_required
+        return self.login_required and self.login_options_required and not self._is_cors_options_request()
 
     def dispatch(self, request, *args, **kwargs):
         if ((not hasattr(request, 'user') or not request.user or not request.user.is_authenticated()) and
