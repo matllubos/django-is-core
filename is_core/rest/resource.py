@@ -201,7 +201,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     field_labels = None
     abstract = True
     filters = {}
-    default_fields_extension = ('_rest_links',)
+    default_fields_extension = settings.REST_DEFAULT_FIELDS_EXTENSION
 
     def _get_field_labels(self):
         return (
