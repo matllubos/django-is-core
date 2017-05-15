@@ -2,6 +2,7 @@ import types
 
 from django.core.urlresolvers import reverse
 from django.db.models.fields.files import FieldFile
+from django.urls.resolvers import get_resolver
 
 from germanium.test_cases.rest import RESTTestCase
 from germanium.annotations import login_all, data_provider
@@ -44,7 +45,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
     @classmethod
     def set_up_rest_resources(cls):
         # Must be here, because hanlers is not registered
-        import urls
+        get_resolver()
 
         resources_dict = model_resources_to_dict()
         rest_resources = []

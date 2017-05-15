@@ -1,4 +1,5 @@
 from django.core.urlresolvers import reverse
+from django.urls.resolvers import get_resolver
 
 from germanium.test_cases.client import ClientTestCase
 from germanium.annotations import login_all, data_provider
@@ -20,10 +21,11 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
 
     @classmethod
     def set_up_main_views(cls):
-        # Must be here, because hanlers is not registered
-        import urls
         from is_core.site import registered_model_cores
         from is_core.main import UIRESTModelISCore
+
+        # Must be here, because hanlers is not registered
+        get_resolver()
 
         ui_main_views = []
         for main_view in [model_view for model_view in registered_model_cores.values() if isinstance(model_view,
