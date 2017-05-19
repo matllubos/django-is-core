@@ -7,8 +7,10 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 from pyston.utils import set_rest_context_to_request
+from pyston.utils.helpers import str_to_class
 from pyston.converters import get_converter, get_supported_mime_types, get_converter_name_from_request
 from pyston.resource import BaseResource
+from pyston.conf import settings as pyston_settings
 
 
 def responseexception_factory(request, response_code, title, message, response_class=HttpResponse):
@@ -32,14 +34,18 @@ def responseexception_factory(request, response_code, title, message, response_c
         )
     else:
         resp_message = (
-            [force_text(val) for val in resp_message] if isinstance(resp_message, (list, tuple))
+            ', '.join([force_text(val) for val in resp_message])
+            if isinstance(resp_message, (list, tuple))
             else force_text(resp_message)
         ) if resp_message else force_text(title)
         set_rest_context_to_request(request, BaseResource.DEFAULT_REST_CONTEXT_MAPPING)
         converter_name = get_converter_name_from_request(request)
         converter = get_converter(converter_name)
         response = response_class(status=response_code, content_type=converter.content_type)
-        converter.encode_to_stream(response, {'message': {'error': resp_message}})
+
+        rest_error_response = str_to_class(pyston_settings.ERROR_RESPONSE_CLASS)
+
+        converter.encode_to_stream(response, rest_error_response(msg=resp_message).result)
         return response
 
 

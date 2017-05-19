@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
-from pyston.utils import rc
-from pyston.response import RESTErrorResponse
+from django.utils.translation import ugettext
+
+from pyston.response import RESTErrorResponse, RESTNoContentResponse
+from pyston.exception import RESTException
 
 from is_core.rest.resource import RESTResource
 from is_core.auth_token.utils import login, logout
@@ -30,7 +32,7 @@ class AuthResource(RESTResource):
 
     def post(self):
         if not self.request.data:
-            return rc.BAD_REQUEST
+            raise RESTException(ugettext('Missing data'))
         form = self.get_form_class()(**self.get_form_kwargs())
 
         errors = form.is_invalid()
@@ -45,7 +47,7 @@ class AuthResource(RESTResource):
     def delete(self):
         if self.request.user.is_authenticated():
             logout(self.request)
-        return rc.DELETED
+        return RESTNoContentResponse()
 
     @classmethod
     def __init_core__(cls, core, pattern):
