@@ -201,7 +201,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
     field_labels = None
     abstract = True
     filters = {}
-    default_fields_extension = settings.REST_DEFAULT_FIELDS_EXTENSION
+    default_fields_extension = None
 
     def _get_field_labels(self):
         return (
@@ -233,7 +233,15 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
         return self.core.get_rest_default_fields(self.request, obj=None) if default_fields is None else default_fields
 
     def get_default_fields_rfs(self, obj=None):
-        return super(RESTModelResource, self).get_default_fields_rfs(obj=obj).join(rfs(self.default_fields_extension))
+        return super(RESTModelResource, self).get_default_fields_rfs(obj=obj).join(
+            rfs(self.get_default_fields_extension(obj))
+        )
+
+    def get_default_fields_extension(self, obj=None):
+        return (
+            self.core.get_rest_default_fields_extension(self.request, obj=None)
+            if self.default_fields_extension is None else self.default_fields_extension
+        )
 
     def _rest_links(self, obj):
         rest_links = {}
