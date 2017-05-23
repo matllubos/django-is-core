@@ -23,7 +23,7 @@ from is_core.generic_views.form_views import AddModelFormView, EditModelFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
-from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern
+from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
 from is_core.utils.compatibility import urls_wrapper, get_model_name
 from is_core.menu import LinkMenuItem
@@ -582,6 +582,7 @@ class ViaRESTModelISCore(RESTModelISCore):
     via_model = None
     fk_name = None
     abstract = True
+    default_rest_pattern_class = HiddenRESTPattern
 
     def get_form_exclude(self, request, obj=None):
         exclude = super(ViaRESTModelISCore, self).get_form_exclude(request, obj)
