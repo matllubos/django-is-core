@@ -93,7 +93,19 @@ class TableViewMixin(object):
             return field_labels.get(full_field_name)
         else:
             try:
-                return model._meta.get_field(field_name).verbose_name
+                field = model._meta.get_field(field_name)
+                if field.auto_created and (field.one_to_many or field.many_to_many):
+                    return (
+                        getattr(field.field, 'reverse_verbose_name', None) or
+                        field.related_model._meta.verbose_name_plural
+                    )
+                elif field.auto_created and field.one_to_one:
+                    return (
+                        getattr(field.field, 'reverse_verbose_name', None) or
+                        field.related_model._meta.verbose_name
+                    )
+                else:
+                    return field.verbose_name
             except FieldDoesNotExist:
                 method = get_class_method(model, field_name)
                 return getattr(method, 'short_description', pretty_name(field_name))
