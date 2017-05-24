@@ -35,6 +35,11 @@ def get_model_field_filter(field, full_field_term, filter_term, ui):
         return get_model_field_or_method_filter(
             '{}__{}'.format(full_field_term, field.rel.model._ui_meta.default_ui_filter_by),
             field.rel.model, field.rel.model._ui_meta.default_ui_filter_by, ui=ui)
+    elif (ui and field.auto_created and (field.one_to_many or field.one_to_one or field.many_to_many) and
+           not next_filter_term and field.related_model._ui_meta.default_ui_filter_by):
+        return get_model_field_or_method_filter(
+            '{}__{}'.format(full_field_term, field.related_model._ui_meta.default_ui_filter_by),
+            field.related_model, field.related_model._ui_meta.default_ui_filter_by, ui=ui)
     elif (hasattr(field, 'filter') and
             (not next_filter_term or next_filter_term in field.filter.get_suffixes_with_not())):
         return field.filter(filter_term, full_field_term, field)
@@ -52,7 +57,6 @@ def get_model_method_filter(method, full_field_term, model, filter_term, ui=Fals
         return method.filter(filter_term, full_field_term, method)
     else:
         raise FilterException(ugettext('Not valid filter: {}').format(full_field_term))
-
 
 
 def get_model_field_or_method_filter(full_field_term, model, filter_term=None, ui=False):

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-14 20:08+0100\n"
+"POT-Creation-Date: 2017-05-23 20:03+0200\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -18,15 +18,15 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Poedit 1.8.1\n"
 
-#: actions.py:49 filters/default_filters.py:146
+#: actions.py:49 filters/default_filters.py:145
 #: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
-#: utils/__init__.py:217
+#: utils/__init__.py:240
 msgid "Yes"
 msgstr "Ano"
 
-#: actions.py:50 filters/default_filters.py:146
+#: actions.py:50 filters/default_filters.py:145
 #: templates/forms/inline_table.html:54 templates/generic_views/table.html:81
-#: utils/__init__.py:217
+#: utils/__init__.py:240
 msgid "No"
 msgstr "Ne"
 
@@ -35,85 +35,67 @@ msgstr "Ne"
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
 
-#: main.py:314 generic_views/__init__.py:176
-msgid "Home"
-msgstr "Home"
-
-#: main.py:529
-#, python-format
-msgid "Do you really want to delete \"%s\""
-msgstr "Opravdu chcete odstranit položku \"%s\""
-
-#: main.py:531
-msgid "Delete"
-msgstr "Smazat"
-
-#: main.py:532
-#, python-format
-msgid "Record \"%s\" was deleted"
-msgstr "Záznam \"%s\" byl smazán"
-
-#: main.py:565
-msgid "Edit"
-msgstr "Upravit"
+#: auth_token/default/resource.py:35
+msgid "Missing data"
+msgstr "Chybí data"
 
 #: auth_token/forms.py:15
 msgid "Remember user"
 msgstr "Zapamatovat uživatele"
 
-#: exceptions/response.py:66
+#: exceptions/response.py:72
 msgid "Bad Request"
 msgstr "Špatný požadavek"
 
-#: exceptions/response.py:72
+#: exceptions/response.py:78
 msgid "Unauthorized"
 msgstr "Neoprávněný přístup"
 
-#: exceptions/response.py:78
+#: exceptions/response.py:84
 msgid "Forbidden"
 msgstr "Přístup odepřen"
 
-#: exceptions/response.py:84
+#: exceptions/response.py:90
 msgid "Unsupported Media Type"
 msgstr "Nepodporovaný Media Type"
 
-#: exceptions/response.py:90
+#: exceptions/response.py:96
 msgid "Method Not Allowed"
 msgstr "Metoda není povolena"
 
-#: exceptions/response.py:96
+#: exceptions/response.py:102
 msgid "Conflict/Duplicate"
 msgstr "Konflikt/Duplikace"
 
-#: exceptions/response.py:102
+#: exceptions/response.py:108
 msgid "Temporarily unavailable"
 msgstr "Služba je dočasně nedostupná"
 
-#: filters/__init__.py:47
+#: filters/__init__.py:42 filters/__init__.py:54 filters/__init__.py:69
 msgid "Not valid filter: {}"
 msgstr "Neplatný filter: {}"
 
-#: filters/default_filters.py:62
+#: filters/default_filters.py:68
 msgid "Invalid operator {}."
 msgstr ""
 
-#: filters/default_filters.py:143 filters/default_filters.py:211
+#: filters/default_filters.py:151 filters/default_filters.py:216
 msgid "Value can be only \"0\" or \"1\"."
 msgstr "Hodnota může být pouze \"0\" nebo \"1\"."
 
-#: filters/default_filters.py:166 filters/default_filters.py:310
+#: filters/default_filters.py:171 filters/default_filters.py:321
 msgid "Value \"{}\" must be integer."
 msgstr "Hodnota \"{}\" musí být celé číslo"
 
-#: filters/default_filters.py:173 filters/default_filters.py:192
+#: filters/default_filters.py:178 filters/default_filters.py:197
 msgid "Value \"{}\" must be in format ISO 8601."
 msgstr "Hodnota \"{}\" musí být ve formátu ISO 8601"
 
-#: filters/default_filters.py:200
+#: filters/default_filters.py:205
 msgid "Empty"
 msgstr "Prázdný"
 
-#: filters/default_filters.py:250
+#: filters/default_filters.py:260
 msgid ""
 "Value must be in list \"[]\", tuple \"()\" or set \"{}\" format split with "
 "char \",\"."
@@ -121,16 +103,16 @@ msgstr ""
 "Hotnota musí být list \"[]\", tuple \"()\" nebo set \"{}\" a hodnoty "
 "oddělené znakem \",\"."
 
-#: filters/default_filters.py:319
+#: filters/default_filters.py:330
 msgid "Value \"{}\" must be float."
 msgstr "Hodnota \"{}\" musí být reálné číslo"
 
-#: filters/default_filters.py:328
+#: filters/default_filters.py:339
 msgid "Value \"{}\" must be decimal."
 msgstr "Hodnota \"{}\" musí být reálné číslo"
 
-#: filters/default_filters.py:348 filters/default_filters.py:357
-#: filters/default_filters.py:370
+#: filters/default_filters.py:375 filters/default_filters.py:395
+#: filters/default_filters.py:408
 msgid "Value \"{}\" is invalid."
 msgstr "Hodnota \"{}\" není ve správném formátu"
 
@@ -142,24 +124,28 @@ msgstr "Pole pro čtení nemůže být validováno"
 msgid "Search..."
 msgstr "Hledat..."
 
-#: generic_views/form_views.py:39
+#: generic_views/__init__.py:176 main.py:311
+msgid "Home"
+msgstr "Home"
+
+#: generic_views/form_views.py:40
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:40 generic_views/form_views.py:587
+#: generic_views/form_views.py:41 generic_views/form_views.py:587
 #: generic_views/form_views.py:603
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:43
+#: generic_views/form_views.py:45
 msgid "Save"
 msgstr "Uložit"
 
-#: generic_views/form_views.py:46
+#: generic_views/form_views.py:48
 msgid "Back"
 msgstr "Zpět"
 
-#: generic_views/form_views.py:224 generic_views/form_views.py:435
+#: generic_views/form_views.py:226 generic_views/form_views.py:437
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
@@ -193,6 +179,24 @@ msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 msgid "There are no items"
 msgstr "Žádné položky"
 
+#: main.py:529
+#, python-format
+msgid "Do you really want to delete \"%s\""
+msgstr "Opravdu chcete odstranit položku \"%s\""
+
+#: main.py:531
+msgid "Delete"
+msgstr "Smazat"
+
+#: main.py:532
+#, python-format
+msgid "Record \"%s\" was deleted"
+msgstr "Záznam \"%s\" byl smazán"
+
+#: main.py:565
+msgid "Edit"
+msgstr "Upravit"
+
 #: middleware/__init__.py:29
 msgid "Unprocessable Entity"
 msgstr "Nezpracovatelná entita"
@@ -201,29 +205,29 @@ msgstr "Nezpracovatelná entita"
 msgid "Not Found"
 msgstr "Nenalezeno"
 
-#: models/patch.py:26 models/patch.py:27 models/patch.py:28
+#: models/patch.py:28 models/patch.py:29 models/patch.py:30
 #, python-format
 msgid "add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
 
-#: models/patch.py:123
+#: models/patch.py:127
 msgid "(None)"
 msgstr "---"
 
-#: rest/resource.py:289
+#: rest/resource.py:295
 msgid "Invalid filter value \"{}={}\". {}"
 msgstr "Nesprávná hodnota filtru \"{}={}\". {}"
 
-#: rest/resource.py:292
+#: rest/resource.py:298
 msgid "Cannot resolve filter \"{}={}\""
 msgstr "Není možné filtrovat data podle hodnoty: \"{}={}\""
 
-#: rest/resource.py:305
+#: rest/resource.py:311
 #, python-format
 msgid "Cannot resolve Order value \"%s\" into fields"
 msgstr "Není možné řadit dle hodnoty: \"%s\""
 
-#: rest/resource.py:366
+#: rest/resource.py:372
 #, python-format
 msgid "Only %s objects can be changed by one request"
 msgstr "Pouze %s objektů může být změněno v jednom požadavku"
@@ -236,17 +240,13 @@ msgstr "Interní chyba serveru (500)"
 msgid "is not your account. Be carefull!"
 msgstr "není váš účet. Buďte opatrní!"
 
-#: templates/base.html:75
+#: templates/base.html:77
 msgid "Internal error occurred. Service is unavailable, sorry."
 msgstr "Interní chyba. Služba je dočasně nedostupná."
 
-#: templates/base.html:75
+#: templates/base.html:77
 msgid "Loading..."
 msgstr "Načítám..."
-
-#: templates/home.html:4
-msgid "Welcome"
-msgstr "Vítejte"
 
 #: templates/forms/default_form.html:27
 msgid "Fields marked with <span class=\"required\">*</span> are required"
@@ -311,6 +311,14 @@ msgstr "Export"
 msgid "Bulk change"
 msgstr "Hromadná změna"
 
+#: templates/home.html:4
+msgid "Welcome"
+msgstr "Vítejte"
+
+#: templates/menu/menu.html:18 templates/registration/logout.html:4
+msgid "Logout"
+msgstr "Odhlásit"
+
 #: templates/registration/login.html:14
 msgid "Please Sign In"
 msgstr "Prosím přihlašte se"
@@ -318,10 +326,6 @@ msgstr "Prosím přihlašte se"
 #: templates/registration/login.html:17
 msgid "Fill your credentials"
 msgstr "Vyplňte své přihlašovací údaje"
-
-#: templates/registration/logout.html:4
-msgid "Logout"
-msgstr "Odhlásit"
 
 #: templates/registration/logout.html:7
 msgid "Thanks for spending some quality time with the Web site today."

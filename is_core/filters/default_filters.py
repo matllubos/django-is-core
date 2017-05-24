@@ -23,10 +23,10 @@ from chamber.utils.datetimes import make_aware
 class Filter(object):
 
     def get_widget(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_q(self, value, request):
-        raise NotImplemented
+        raise NotImplementedError
 
     def render(self, request):
         return ''
@@ -168,14 +168,14 @@ class DateFilterMixin(object):
         try:
             return int(value)
         except ValueError:
-            raise FilterValueException(ugettext('Value "{}" must be integer.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" must be integer.').format(value))
 
     def _parse_whole_datetime(self, value):
         try:
             datetime_value = DEFAULTPARSER.parse(value, dayfirst='-' not in value)
             return make_aware(datetime_value) if datetime_value.tzinfo is None else datetime_value
         except ValueError:
-            raise FilterValueException(ugettext('Value "{}" must be in format ISO 8601.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" must be in format ISO 8601.').format(value))
 
     @classmethod
     def get_suffixes(cls):
@@ -194,7 +194,7 @@ class DateFilterMixin(object):
         try:
             return self._parse_datetime_to_parts(value)
         except ValueError:
-            raise FilterValueException(ugettext('Value "{}" must be in format ISO 8601.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" must be in format ISO 8601.').format(value))
 
 
 class DefaultFieldFilter(DefaultFieldOrMethodFilter):
@@ -318,7 +318,7 @@ class IntegerNumberFieldFilter(NumberFieldFilter):
         try:
             return int(value)
         except ValueError:
-            raise FilterValueException(ugettext('Value "{}" must be integer.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" must be integer.').format(value))
 
 
 class FloatNumberFieldFilter(NumberFieldFilter):
@@ -327,7 +327,7 @@ class FloatNumberFieldFilter(NumberFieldFilter):
         try:
             return float(value)
         except ValueError:
-            raise FilterValueException(ugettext('Value "{}" must be float.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" must be float.').format(value))
 
 
 class DecimalNumberFieldFilter(NumberFieldFilter):
@@ -336,7 +336,7 @@ class DecimalNumberFieldFilter(NumberFieldFilter):
         try:
             return Decimal(value)
         except InvalidOperation:
-            raise FilterValueException(ugettext('Value "{}" must be decimal.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" must be decimal.').format(value))
 
 
 class RelatedFieldFilter(DefaultFieldFilter):
@@ -354,10 +354,7 @@ class ForeignObjectRelFilter(RelatedFieldFilter):
     suffixes = ['all', 'in', 'isnull']
 
     def get_widget(self, request):
-        """
-        Reverse relation cannot be uset as UI filter now. It is left as future work.
-        """
-        raise NotImplementedError
+        return forms.TextInput()
 
     def clean_value_with_suffix(self, value, suffix, request):
         if suffix == 'all':
@@ -371,7 +368,7 @@ class ForeignObjectRelFilter(RelatedFieldFilter):
                 self.field.related_model._meta.get_field(self.field.related_model._meta.pk.name)
             ).get_prep_value(value)
         except ValueError:
-            raise FilterValueException(ugettext('Value "{}" is invalid.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" is invalid.').format(value))
 
     def get_filter_term(self, value, suffix, request):
         if suffix == 'all':
@@ -391,7 +388,7 @@ class ForeignKeyFilter(RelatedFieldFilter):
         try:
             return self.get_last_rel_field(self.field).get_prep_value(value)
         except ValueError:
-            raise FilterValueException(ugettext('Value "{}" is invalid.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" is invalid.').format(value))
 
 
 class ManyToManyFieldFilter(RelatedFieldFilter):
@@ -404,7 +401,7 @@ class ManyToManyFieldFilter(RelatedFieldFilter):
                 self.field.rel.to._meta.get_field(self.field.m2m_target_field_name())
             ).get_prep_value(value)
         except ValueError:
-            raise FilterValueException(ugettext('Value "{}" is invalid.'.format(value)))
+            raise FilterValueException(ugettext('Value "{}" is invalid.').format(value))
 
     def clean_value_with_suffix(self, value, suffix, request):
         if suffix == 'all':

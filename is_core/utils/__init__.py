@@ -162,7 +162,7 @@ def get_cls_or_inst_model_field_data(field, cls_or_inst):
             else getattr(cls_or_inst, field.name), (
                 getattr(field.field, 'reverse_verbose_name', None)
                 if getattr(field.field, 'reverse_verbose_name', None) is not None
-                else field.related_model._meta.verbose_name_plural
+                else field.related_model._meta.verbose_name
             ),  ModelObjectReadonlyWidget
         )
     elif field.many_to_many:

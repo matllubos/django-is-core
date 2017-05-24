@@ -6,7 +6,7 @@ import django.db.models.options as options
 
 from django.db import models
 from django.db.models.fields import Field, URLField
-from django.db.models.fields.related import ForeignKey, ManyToManyField,  ForeignObjectRel
+from django.db.models.fields.related import ForeignKey, ManyToManyField, ForeignObjectRel
 from django.utils.translation import ugettext_lazy as _
 
 from chamber.patch import Options
