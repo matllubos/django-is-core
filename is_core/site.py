@@ -66,7 +66,9 @@ class ISSite(object):
 
     def _set_items_urls(self, items, urlpatterns):
         for item in items:
-            urlpatterns += urls_wrapper(url(r'^', include(item.get_urls())))
+            urls = item.get_urls()
+            if urls:
+                urlpatterns += urls_wrapper(url(r'^', include(urls)))
 
     def get_urls(self):
         urlpatterns = urls_wrapper()
