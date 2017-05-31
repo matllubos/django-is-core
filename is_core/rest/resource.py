@@ -32,6 +32,7 @@ class RESTLoginMixin(object):
 
     login_required = True
     login_post_required = True
+    login_patch_required = True
     login_put_required = True
     login_get_required = True
     login_delete_required = True
@@ -40,6 +41,9 @@ class RESTLoginMixin(object):
 
     def has_login_post_required(self):
         return self.login_required and self.login_post_required
+
+    def has_login_patch_required(self):
+        return self.login_required and self.login_patch_required
 
     def has_login_put_required(self):
         return self.login_required and self.login_put_required
