@@ -32,6 +32,7 @@ class RESTLoginMixin(object):
 
     login_required = True
     login_post_required = True
+    login_patch_required = True
     login_put_required = True
     login_get_required = True
     login_delete_required = True
@@ -43,6 +44,9 @@ class RESTLoginMixin(object):
 
     def has_login_put_required(self):
         return self.login_required and self.login_put_required
+
+    def has_login_patch_required(self):
+        return self.login_required and self.login_patch_required
 
     def has_login_get_required(self):
         return self.login_required and self.login_get_required
@@ -126,6 +130,12 @@ class RESTModelCoreResourcePermissionsMixin(object):
         obj = obj or self._get_perm_obj_or_none()
         return ((not self.has_login_put_required() or self.request.user.is_authenticated()) and
                 super(RESTModelCoreResourcePermissionsMixin, self).has_put_permission(obj=obj, **kwargs) and
+                self.core.has_rest_update_permission(self.request, obj=obj, **kwargs))
+
+    def has_patch_permission(self, obj=None, **kwargs):
+        obj = obj or self._get_perm_obj_or_none()
+        return ((not self.has_login_patch_required() or self.request.user.is_authenticated()) and
+                super(RESTModelCoreResourcePermissionsMixin, self).has_patch_permission(obj=obj, **kwargs) and
                 self.core.has_rest_update_permission(self.request, obj=obj, **kwargs))
 
     def has_delete_permission(self, obj=None, **kwargs):
@@ -366,7 +376,11 @@ class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
                                       labels=self._get_field_labels())
 
     def put(self):
+        # TODO: backward compatibility for bulk update should be used only patch
         return super(RESTModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
+
+    def patch(self):
+        return super(RESTModelResource, self).patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
     def _get_queryset(self):
         return self.core.get_queryset(self.request)
@@ -419,4 +433,3 @@ class UIRESTModelResource(RESTModelResource):
 
     def _class_names(self, obj):
         return self.core.get_rest_obj_class_names(self.request, obj)
-
