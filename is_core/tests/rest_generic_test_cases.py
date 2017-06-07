@@ -45,8 +45,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
     @classmethod
     def set_up_rest_resources(cls):
         # Must be here, because hanlers is not registered
-        get_resolver()
-
+        get_resolver().url_patterns
         resources_dict = model_resources_to_dict()
         rest_resources = []
         for resource_name, resource in resources_dict.items():
@@ -103,7 +102,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             url = resource._resource_url(inst.pk)
 
-            if not resource(self.get_request_with_user(self.r_factory.get(url))).has_get_permission(inst):
+            if not resource(self.get_request_with_user(self.r_factory.get(url))).has_get_permission(obj=inst):
                 break
             resp = self.get(url)
             assert_valid_JSON_response(resp, 'REST get of model: %s\n response: %s' % (model, resp))
@@ -115,7 +114,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             url = resource._resource_url(inst.pk)
 
-            if not resource(self.get_request_with_user(self.r_factory.delete(url))).has_delete_permission(inst):
+            if not resource(self.get_request_with_user(self.r_factory.delete(url))).has_delete_permission(obj=inst):
                 break
 
             resp = self.delete(url)
@@ -152,7 +151,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             request = self.get_request_with_user(self.r_factory.put(url))
 
-            if not resource(request).has_put_permission(inst_from):
+            if not resource(request).has_put_permission(obj=inst_from):
                 break
 
             data, _ = self.get_serialized_data(request, resource, True)

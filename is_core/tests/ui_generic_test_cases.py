@@ -25,7 +25,7 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
         from is_core.main import UIRESTModelISCore
 
         # Must be here, because hanlers is not registered
-        get_resolver()
+        get_resolver().url_patterns
 
         ui_main_views = []
         for main_view in [model_view for model_view in registered_model_cores.values() if isinstance(model_view,

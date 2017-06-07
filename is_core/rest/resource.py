@@ -60,6 +60,30 @@ class RESTLoginMixin(object):
     def has_login_options_required(self):
         return self.login_required and self.login_options_required and not self._is_cors_options_request()
 
+    def has_get_permission(self, **kwargs):
+        return ((not self.has_login_get_required() or self.request.user.is_authenticated()) and
+                super(RESTLoginMixin, self).has_get_permission(**kwargs))
+
+    def has_post_permission(self, **kwargs):
+        return ((not self.has_login_post_required() or self.request.user.is_authenticated()) and
+                super(RESTLoginMixin, self).has_post_permission(**kwargs))
+
+    def has_put_permission(self, **kwargs):
+        return ((not self.has_login_put_required() or self.request.user.is_authenticated()) and
+                super(RESTLoginMixin, self).has_put_permission(**kwargs))
+
+    def has_patch_permission(self, **kwargs):
+        return ((not self.has_login_patch_required() or self.request.user.is_authenticated()) and
+                super(RESTLoginMixin, self).has_patch_permission(**kwargs))
+
+    def has_delete_permission(self, **kwargs):
+        return ((not self.has_login_delete_required() or self.request.user.is_authenticated()) and
+                super(RESTLoginMixin, self).has_delete_permission(**kwargs))
+
+    def has_options_permission(self, **kwargs):
+        return ((not self.has_login_options_required() or self.request.user.is_authenticated()) and
+                super(RESTLoginMixin, self).has_options_permission(**kwargs))
+
     def dispatch(self, request, *args, **kwargs):
         if ((not hasattr(request, 'user') or not request.user or not request.user.is_authenticated()) and
                 getattr(self, 'has_login_{}_required'.format(request.method.lower()))()):
@@ -68,7 +92,48 @@ class RESTLoginMixin(object):
             return super(RESTLoginMixin, self).dispatch(request, *args, **kwargs)
 
 
-class RESTResource(RESTLoginMixin, BaseResource):
+class RESTObjectLoginMixin(RESTLoginMixin):
+
+    login_create_obj_required = True
+    login_update_obj_required = True
+    login_delete_obj_required = True
+    login_read_obj_required = True
+
+    read_obj_permission = True
+    create_obj_permission = True
+    update_obj_permission = True
+    delete_obj_permission = True
+
+    def has_login_read_obj_required(self):
+        return self.login_required and self.login_read_obj_required
+
+    def has_login_create_obj_required(self):
+        return self.login_required and self.login_create_obj_required
+
+    def has_login_update_obj_required(self):
+        return self.login_required and self.login_update_obj_required
+
+    def has_login_delete_obj_required(self):
+        return self.login_required and self.login_delete_obj_required
+
+    def has_create_obj_permission(self, obj=None, **kwargs):
+        return ((not self.has_login_create_obj_required() or self.request.user.is_authenticated()) and
+                super(RESTObjectLoginMixin, self).has_create_obj_permission(obj=obj, **kwargs))
+
+    def has_update_obj_permission(self, obj=None, **kwargs):
+        return ((not self.has_login_update_obj_required() or self.request.user.is_authenticated()) and
+                super(RESTObjectLoginMixin, self).has_update_obj_permission(obj=obj, **kwargs))
+
+    def has_delete_obj_permission(self, obj=None, **kwargs):
+        return ((not self.has_login_delete_obj_required() or self.request.user.is_authenticated()) and
+                super(RESTObjectLoginMixin, self).has_delete_obj_permission(obj=obj, **kwargs))
+
+    def has_read_obj_permission(self, obj=None, **kwargs):
+        return ((not self.has_login_read_obj_required() or self.request.user.is_authenticated()) and
+                super(RESTObjectLoginMixin, self).has_read_obj_permission(obj=obj, **kwargs))
+
+
+class RESTResourceMixin(object):
 
     register = False
     abstract = True
@@ -81,7 +146,7 @@ class RESTResource(RESTLoginMixin, BaseResource):
     def dispatch(self, request, *args, **kwargs):
         if hasattr(self, 'core'):
             self.core.init_rest_request(request)
-        return super(RESTResource, self).dispatch(request, *args, **kwargs)
+        return super(RESTResourceMixin, self).dispatch(request, *args, **kwargs)
 
     @classmethod
     def __init_core__(cls, core, pattern):
@@ -105,55 +170,33 @@ class RESTResource(RESTLoginMixin, BaseResource):
         response_exception = response_exceptions.get(type(exception))
         if response_exception:
             raise response_exception
-        return super(RESTResource, self)._get_error_response(exception)
+        return super(RESTResourceMixin, self)._get_error_response(exception)
 
     def _get_cors_allowed_headers(self):
-        return super(RESTResource, self)._get_cors_allowed_headers() + (settings.AUTH_HEADER_NAME,)
+        return super(RESTResourceMixin, self)._get_cors_allowed_headers() + (settings.AUTH_HEADER_NAME,)
 
 
-class RESTModelCoreResourcePermissionsMixin(object):
+class RESTModelCoreResourcePermissionsMixin(RESTObjectLoginMixin):
 
     pk_name = 'pk'
 
-    def has_get_permission(self, obj=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_get_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_get_permission(obj=obj, **kwargs) and
-                self.core.has_rest_read_permission(self.request, obj=obj, **kwargs))
-
-    def has_post_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_post_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_post_permission(obj=obj, **kwargs) and
+    def has_create_obj_permission(self, obj=None, **kwargs):
+        return (super(RESTModelCoreResourcePermissionsMixin, self).has_create_obj_permission(obj=obj, **kwargs) and
                 self.core.has_rest_create_permission(self.request, obj=obj, **kwargs))
 
-    def has_put_permission(self, obj=None, **kwargs):
+    def has_update_obj_permission(self, obj=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_put_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_put_permission(obj=obj, **kwargs) and
+        return (super(RESTModelCoreResourcePermissionsMixin, self).has_update_obj_permission(obj=obj, **kwargs) and
                 self.core.has_rest_update_permission(self.request, obj=obj, **kwargs))
 
-    def has_patch_permission(self, obj=None, **kwargs):
+    def has_delete_obj_permission(self, obj=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_patch_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_patch_permission(obj=obj, **kwargs) and
-                self.core.has_rest_update_permission(self.request, obj=obj, **kwargs))
-
-    def has_delete_permission(self, obj=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_delete_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_delete_permission(obj=obj, **kwargs) and
+        return (super(RESTModelCoreResourcePermissionsMixin, self).has_delete_obj_permission(obj=obj, **kwargs) and
                 self.core.has_rest_delete_permission(self.request, obj=obj, **kwargs))
 
-    def has_head_permission(self, obj=None, **kwargs):
+    def has_read_obj_permission(self, obj=None, **kwargs):
         obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_head_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_head_permission(obj=obj, **kwargs) and
-                self.core.has_rest_read_permission(self.request, obj=obj, **kwargs))
-
-    def has_options_permission(self, obj=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_none()
-        return ((not self.has_login_options_required() or self.request.user.is_authenticated()) and
-                super(RESTModelCoreResourcePermissionsMixin, self).has_options_permission(obj=obj, **kwargs) and
+        return (super(RESTModelCoreResourcePermissionsMixin, self).has_read_obj_permission(obj=obj, **kwargs) and
                 self.core.has_rest_read_permission(self.request, obj=obj, **kwargs))
 
     def _get_perm_obj_or_none(self, pk=None):
@@ -185,6 +228,10 @@ class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
          return obj
 
 
+class RESTResource(RESTLoginMixin, RESTResourceMixin, BaseResource):
+    pass
+
+
 class EntryPointResource(RESTResource):
 
     login_required = False
@@ -205,7 +252,7 @@ class EntryPointResource(RESTResource):
         return out
 
 
-class RESTModelResource(RESTModelCoreMixin, RESTResource, BaseModelResource):
+class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResource):
 
     form_class = None
     field_labels = None
