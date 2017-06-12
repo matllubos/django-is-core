@@ -465,6 +465,8 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     rest_resource_class = RESTModelResource
     rest_form_field_labels = None
 
+    rest_allowed_methods = ('get', 'put', 'post', 'delete', 'head', 'options')
+
     def get_rest_form_field_labels(self, request):
         return (
             self.rest_form_field_labels if self.rest_form_field_labels is not None
@@ -524,7 +526,8 @@ class RESTModelISCore(RESTISCore, ModelISCore):
 
     def get_rest_patterns(self):
         rest_patterns = super(RESTModelISCore, self).get_rest_patterns()
-        rest_patterns.update(DoubleRESTPattern(self.get_rest_class(), self.default_rest_pattern_class, self).patterns)
+        rest_patterns.update(DoubleRESTPattern(self.get_rest_class(), self.default_rest_pattern_class, self,
+                                               self.rest_allowed_methods).patterns)
         return rest_patterns
 
     def get_list_actions(self, request, obj):

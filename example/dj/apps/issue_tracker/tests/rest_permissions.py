@@ -1,7 +1,8 @@
 from germanium.annotations import login
 from germanium.test_cases.rest import RESTTestCase
 from germanium.tools import assert_equal
-from germanium.tools.http import assert_http_forbidden, assert_http_unauthorized, assert_http_accepted
+from germanium.tools.http import (assert_http_forbidden, assert_http_unauthorized, assert_http_accepted,
+                                  assert_http_not_found)
 from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_created_response
 
 from is_core.tests.auth_test_cases import RESTAuthMixin
@@ -105,7 +106,7 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, RESTAuthMixin, HelperTestCase
     def test_only_superuser_can_get_number_of_other_users_issues(self):
         user = self.get_user_obj()
         resp = self.get(self.USER_ISSUES_API_URL % {'user_pk': user.pk})
-        assert_http_forbidden(resp)
+        assert_http_not_found(resp)
 
     @login(is_superuser=False)
     def test_user_can_get_number_of_its_issues(self):

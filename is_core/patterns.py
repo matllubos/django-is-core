@@ -210,24 +210,34 @@ class HiddenUIPattern(HiddenPatternMixin, UIPattern):
 
 class DoubleRESTPattern(object):
 
-    def __init__(self, resource_class, pattern_class, core):
+    def __init__(self, resource_class, pattern_class, core, methods=None):
         self.resource_class = resource_class
         self.pattern_class = pattern_class
         self.core = core
+        self.methods = set(methods) if methods else methods
 
     @property
     def patterns(self):
+        detail_resource_methods = {'get', 'put', 'patch', 'delete', 'head', 'options'}
+        list_resource_methods = self._get_list_allowed_methods()
+        if self.methods is not None:
+            detail_resource_methods &= self.methods
+            list_resource_methods &= self.methods
+
         result = OrderedDict()
         result['api-resource'] = self.pattern_class(
             'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^(?P<pk>[-\w]+)/$',
-            self.resource_class, self.core, ('get', 'put', 'delete', 'head', 'options'), clone_view_class=False
+            self.resource_class, self.core, detail_resource_methods, clone_view_class=False
         )
         result['api'] = self.pattern_class(
             'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'$', self.resource_class,
-            self.core, self._get_api_allowed_methods(), clone_view_class=False
+            self.core, list_resource_methods, clone_view_class=False
         )
         return result
 
-    def _get_api_allowed_methods(self):
-        return (('get', 'post', 'head', 'options') + (
-            ('put',) if hasattr(self.core, 'is_bulk_change_enabled') and self.core.is_bulk_change_enabled() else ()))
+    def _get_list_allowed_methods(self):
+        return (
+            {'get', 'post', 'head', 'options', 'put'}
+            if hasattr(self.core, 'is_bulk_change_enabled') and self.core.is_bulk_change_enabled()
+            else {'get', 'post', 'head', 'options'}
+        )
