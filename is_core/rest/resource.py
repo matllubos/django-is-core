@@ -345,13 +345,15 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
         else:
             return get_model_field_or_method_filter(filter_term, self.model)
 
-    def _filter_queryset(self, qs):
-        filter_terms_with_values = [
+    def _get_filter_terms_with_values(self):
+        return [
             (filter_term, value) for filter_term, value in self.request.GET.dict().items()
             if not filter_term.startswith('_')
         ]
+
+    def _filter_queryset(self, qs):
         qs_filter_terms = []
-        for filter_term, value in filter_terms_with_values:
+        for filter_term, value in self._get_filter_terms_with_values():
             try:
                 q = self._get_filter(filter_term).get_q(value, self.request)
                 qs_filter_terms.append(q)

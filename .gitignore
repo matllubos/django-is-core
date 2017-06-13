@@ -41,12 +41,7 @@ Thumbs.db
 node_modules/
 bower_components/
 var/
-dj/static/js/bower_components
-dj/static/js/goog
-dj/static/js/var
-dj/static/js/start.js
-dj/static/js/deps.js
-dj/static/js/app.js
+example/static/
 
 # Coverage #
 ############
