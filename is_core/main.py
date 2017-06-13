@@ -21,7 +21,7 @@ from is_core.config import settings
 from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, EditModelFormView, BulkChangeFormView
 from is_core.generic_views.table_views import TableView
-from is_core.rest.resource import RESTModelResource, UIRESTModelResource
+from is_core.rest.resource import RESTModelCoreResource, UIRESTModelCoreResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
@@ -462,7 +462,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     rest_form_edit_class = None
     rest_form_add_class = None
 
-    rest_resource_class = RESTModelResource
+    rest_resource_class = RESTModelCoreResource
     rest_form_field_labels = None
 
     rest_allowed_methods = ('get', 'put', 'post', 'delete', 'head', 'options')
@@ -548,7 +548,7 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
 
     abstract = True
     ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
-    rest_resource_class = UIRESTModelResource
+    rest_resource_class = UIRESTModelCoreResource
     rest_obj_class_names = ()
 
     def get_rest_extra_fields(self, request, obj=None):

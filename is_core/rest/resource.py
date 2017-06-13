@@ -252,79 +252,9 @@ class EntryPointResource(RESTResource):
         return out
 
 
-class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResource):
+class RESTModelResource(RESTResourceMixin, BaseModelResource):
 
-    form_class = None
-    field_labels = None
-    abstract = True
     filters = {}
-    default_fields_extension = None
-
-    def _get_field_labels(self):
-        return (
-            self.field_labels if self.field_labels is not None else self.core.get_rest_form_field_labels(self.request)
-        )
-
-    def get_fields(self, obj=None):
-        fields = super(DefaultRESTModelResource, self).get_fields(obj=obj)
-        return self.core.get_rest_fields(self.request, obj=None) if fields is None else fields
-
-    def get_detailed_fields(self, obj=None):
-        detailed_fields = super(DefaultRESTModelResource, self).get_detailed_fields(obj=obj)
-        return self.core.get_rest_detailed_fields(self.request, obj=obj) if detailed_fields is None else detailed_fields
-
-    def get_general_fields(self, obj=None):
-        general_fields = super(DefaultRESTModelResource, self).get_general_fields(obj=obj)
-        return self.core.get_rest_general_fields(self.request, obj=obj) if general_fields is None else general_fields
-
-    def get_guest_fields(self, obj=None):
-        guest_fields = super(DefaultRESTModelResource, self).get_guest_fields(obj=obj)
-        return self.core.get_rest_guest_fields(self.request, obj=obj) if guest_fields is None else guest_fields
-
-    def get_extra_fields(self, obj=None):
-        extra_fields = super(DefaultRESTModelResource, self).get_extra_fields(obj=obj)
-        return self.core.get_rest_extra_fields(self.request) if extra_fields is None else extra_fields
-
-    def get_default_fields(self, obj=None):
-        default_fields = super(DefaultRESTModelResource, self).get_default_fields(obj=obj)
-        return self.core.get_rest_default_fields(self.request, obj=None) if default_fields is None else default_fields
-
-    def get_default_fields_rfs(self, obj=None):
-        return super(RESTModelResource, self).get_default_fields_rfs(obj=obj).join(
-            rfs(self.get_default_fields_extension(obj))
-        )
-
-    def get_default_fields_extension(self, obj=None):
-        return (
-            self.core.get_rest_default_fields_extension(self.request, obj=None)
-            if self.default_fields_extension is None else self.default_fields_extension
-        )
-
-    def _rest_links(self, obj):
-        rest_links = {}
-        for pattern in self.core.rest_patterns.values():
-            if pattern.send_in_rest:
-                url = pattern.get_url_string(self.request, obj=obj)
-                if url:
-                    allowed_methods = pattern.get_allowed_methods(self.request, obj)
-                    if allowed_methods:
-                        rest_links[pattern.name] = {
-                            'url': url,
-                            'methods': [method.upper() for method in allowed_methods]
-                        }
-        return rest_links
-
-    def _default_action(self, obj):
-        return self.core.get_default_action(self.request, obj=obj)
-
-    def _actions(self, obj):
-        return self.core.get_list_actions(self.request, obj)
-
-    def _class_names(self, obj):
-        return self.core.get_rest_obj_class_names(self.request, obj)
-
-    def get_queryset(self):
-        return self.core.get_queryset(self.request)
 
     def _get_headers_queryset_context_mapping(self):
         mapping = super(RESTModelResource, self)._get_headers_queryset_context_mapping()
@@ -334,8 +264,8 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
         })
         return mapping
 
-    def _preload_queryset(self, qs):
-        return self.core.preload_queryset(self.request, qs)
+    def _get_form_initial(self, obj):
+        return {'_request': self.request, '_user': self.request.user}
 
     def _get_filter(self, filter_term):
         filter_name = filter_term.split('__')[0]
@@ -378,6 +308,83 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
             raise RESTException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
         return qs
 
+
+class RESTModelCoreResource(RESTModelCoreMixin, RESTModelResource):
+
+    form_class = None
+    field_labels = None
+    abstract = True
+    default_fields_extension = None
+
+    def _get_field_labels(self):
+        return (
+            self.field_labels if self.field_labels is not None else self.core.get_rest_form_field_labels(self.request)
+        )
+
+    def get_fields(self, obj=None):
+        fields = super(DefaultRESTModelResource, self).get_fields(obj=obj)
+        return self.core.get_rest_fields(self.request, obj=None) if fields is None else fields
+
+    def get_detailed_fields(self, obj=None):
+        detailed_fields = super(DefaultRESTModelResource, self).get_detailed_fields(obj=obj)
+        return self.core.get_rest_detailed_fields(self.request, obj=obj) if detailed_fields is None else detailed_fields
+
+    def get_general_fields(self, obj=None):
+        general_fields = super(DefaultRESTModelResource, self).get_general_fields(obj=obj)
+        return self.core.get_rest_general_fields(self.request, obj=obj) if general_fields is None else general_fields
+
+    def get_guest_fields(self, obj=None):
+        guest_fields = super(DefaultRESTModelResource, self).get_guest_fields(obj=obj)
+        return self.core.get_rest_guest_fields(self.request, obj=obj) if guest_fields is None else guest_fields
+
+    def get_extra_fields(self, obj=None):
+        extra_fields = super(DefaultRESTModelResource, self).get_extra_fields(obj=obj)
+        return self.core.get_rest_extra_fields(self.request) if extra_fields is None else extra_fields
+
+    def get_default_fields(self, obj=None):
+        default_fields = super(DefaultRESTModelResource, self).get_default_fields(obj=obj)
+        return self.core.get_rest_default_fields(self.request, obj=None) if default_fields is None else default_fields
+
+    def get_default_fields_rfs(self, obj=None):
+        return super(RESTModelCoreResource, self).get_default_fields_rfs(obj=obj).join(
+            rfs(self.get_default_fields_extension(obj))
+        )
+
+    def get_default_fields_extension(self, obj=None):
+        return (
+            self.core.get_rest_default_fields_extension(self.request, obj=None)
+            if self.default_fields_extension is None else self.default_fields_extension
+        )
+
+    def _rest_links(self, obj):
+        rest_links = {}
+        for pattern in self.core.rest_patterns.values():
+            if pattern.send_in_rest:
+                url = pattern.get_url_string(self.request, obj=obj)
+                if url:
+                    allowed_methods = pattern.get_allowed_methods(self.request, obj)
+                    if allowed_methods:
+                        rest_links[pattern.name] = {
+                            'url': url,
+                            'methods': [method.upper() for method in allowed_methods]
+                        }
+        return rest_links
+
+    def _default_action(self, obj):
+        return self.core.get_default_action(self.request, obj=obj)
+
+    def _actions(self, obj):
+        return self.core.get_list_actions(self.request, obj)
+
+    def _class_names(self, obj):
+        return self.core.get_rest_obj_class_names(self.request, obj)
+
+    def get_queryset(self):
+        return self.core.get_queryset(self.request)
+
+    def _preload_queryset(self, qs):
+        return self.core.preload_queryset(self.request, qs)
+
     def _get_exclude(self, obj=None):
         return self.core.get_rest_form_exclude(self.request, obj)
 
@@ -393,9 +400,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
                 else self.core.get_rest_form_add_class(self.request, obj)
             )
         )
-
-    def _get_form_initial(self, obj):
-        return {'_request': self.request, '_user': self.request.user}
 
     def _pre_save_obj(self, obj, form, change):
         self.core.pre_save_model(self.request, obj, form, change)
@@ -415,22 +419,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
     def _post_delete_obj(self, obj):
         self.core.post_delete_model(self.request, obj)
 
-    def _generate_form_class(self, inst, exclude=[]):
-        form_class = self._get_form_class(inst)
-        exclude = list(self._get_exclude(inst)) + exclude
-        fields = self._get_form_fields(inst)
-        if hasattr(form_class, '_meta') and form_class._meta.exclude:
-            exclude.extend(form_class._meta.exclude)
-        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields,
-                                      labels=self._get_field_labels())
-
-    def put(self):
-        # TODO: backward compatibility for bulk update should be used only patch
-        return super(RESTModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
-
-    def patch(self):
-        return super(RESTModelResource, self).patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
-
     def _get_queryset(self):
         return self.core.get_queryset(self.request)
 
@@ -447,6 +435,13 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
         objects, errors = zip(*(self._update_obj(obj, data) for obj in qs))
         compact_errors = tuple(err for err in errors if err)
         return RESTErrorsResponse(compact_errors) if len(compact_errors) > 0 else objects
+
+    def put(self):
+        # TODO: backward compatibility for bulk update should be used only patch
+        return super(RESTModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
+
+    def patch(self):
+        return super(RESTModelResource, self).patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
     def _update_obj(self, obj, data):
         try:
@@ -468,8 +463,19 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
             '_obj_name': mark_safe(''.join(('#', str(obj.pk), ' ', self._extract_message(ex)))),
         }
 
+    def _generate_form_class(self, inst, exclude=None):
+        exclude = exclude if exclude is not None else []
 
-class UIRESTModelResource(RESTModelResource):
+        form_class = self._get_form_class(inst)
+        exclude = list(self._get_exclude(inst)) + exclude
+        fields = self._get_form_fields(inst)
+        if hasattr(form_class, '_meta') and form_class._meta.exclude:
+            exclude.extend(form_class._meta.exclude)
+        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields,
+                                      labels=self._get_field_labels())
+
+
+class UIRESTModelCoreResource(RESTModelCoreResource):
 
     def _web_links(self, obj):
         web_links = {}
