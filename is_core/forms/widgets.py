@@ -373,5 +373,5 @@ class MultipleTextInput(forms.TextInput):
         )
 
     def value_from_datadict(self, data, files, name):
-        value = super(MultipleTextInput, self).value_from_datadict(data, files, name).split(self.separator)
+        value = super(MultipleTextInput, self).value_from_datadict(data, files, name)
         return [v.strip() for v in value.split(self.separator)] if isinstance(value, six.string_types) else value
