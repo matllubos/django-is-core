@@ -268,12 +268,7 @@ class RESTModelResource(RESTResourceMixin, BaseModelResource):
         return {'_request': self.request, '_user': self.request.user}
 
     def _get_filter(self, filter_term):
-        filter_name = filter_term.split('__')[0]
-
-        if filter_name in self.filters:
-            return self.filters[filter_name](filter_term, filter_term)
-        else:
-            return get_model_field_or_method_filter(filter_term, self.model)
+        return get_model_field_or_method_filter(filter_term, self.model, resource=self)
 
     def _get_filter_terms_with_values(self):
         return [
