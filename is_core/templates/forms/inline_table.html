@@ -4,7 +4,7 @@
 	<div class="table-responsive">
 		{% block tabs-menu-wrapper %}{% endblock %}
 		{% block table-paginator %}
-			<div class="row paginator" style="visibility: hidden" data-base="{% block table-base %}20{% endblock %}" data-paging="{% block table-paging %}simple{% endblock %}">
+			<div class="row paginator" style="visibility: hidden" data-base="{% block table-base %}{{ list_per_page }}{% endblock %}" data-paging="{% block table-paging %}simple{% endblock %}">
 				<div class="col-sm-4">
 					{% block paginator-result %}
 					<span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span>
