@@ -13,7 +13,7 @@ from pyston.resource import BaseResource
 from pyston.conf import settings as pyston_settings
 
 
-def responseexception_factory(request, response_code, title, message, response_class=HttpResponse):
+def response_exception_factory(request, response_code, title, message, response_class=HttpResponse):
     rest_mime_types = list(get_supported_mime_types())
     ui_mime_types = ['text/html', 'application/xhtml+xml']
 
@@ -45,7 +45,7 @@ def responseexception_factory(request, response_code, title, message, response_c
 
         rest_error_response = str_to_class(pyston_settings.ERROR_RESPONSE_CLASS)
 
-        converter.encode_to_stream(response, rest_error_response(msg=resp_message).result)
+        converter.encode_to_stream(response, rest_error_response(msg=resp_message, code=response_code).result)
         return response
 
 
@@ -55,7 +55,7 @@ class ResponseException(Exception):
         self.message = message
 
     def get_response(self, request):
-        return responseexception_factory(request, self.status_code, self.title, self.message)
+        return response_exception_factory(request, self.status_code, self.title, self.message)
 
 
 class HTTPRedirectResponseException(ResponseException):
