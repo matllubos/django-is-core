@@ -355,7 +355,7 @@ def smartinlineformset_factory(parent_model, model, request, form=ModelForm,
                                labels=None, help_texts=None, error_messages=None,
                                formreadonlyfield_callback=None, readonly_fields=None,
                                readonly=False):
-    fk = _get_foreign_key(parent_model, model, fk_name=fk_name)
+    fk = _get_foreign_key(parent_model, model, fk_name=fk_name, can_fail=True) or _get_foreign_key(model, parent_model, fk_name=fk_name)
     # enforce a max_num=1 when the foreign key to the parent model is unique.
     if fk.unique:
         max_num = 1
