@@ -10,7 +10,7 @@ from django.utils.translation import ugettext
 from django.conf import settings
 
 from is_core.exceptions import ResponseException
-from is_core.exceptions.response import responseexception_factory
+from is_core.exceptions.response import response_exception_factory
 
 
 class RequestKwargsMiddleware(object):
@@ -26,6 +26,6 @@ class HTTPExceptionsMiddleware(object):
         if isinstance(exception, ResponseException):
             return exception.get_response(request)
         if isinstance(exception, ValidationError):
-            return responseexception_factory(request, 422, ugettext('Unprocessable Entity'), exception.messages)
+            return response_exception_factory(request, 422, ugettext('Unprocessable Entity'), exception.messages)
         if not settings.DEBUG and isinstance(exception, Http404):
-            return responseexception_factory(request, 404, ugettext('Not Found'), force_text(exception))
+            return response_exception_factory(request, 404, ugettext('Not Found'), force_text(exception))
