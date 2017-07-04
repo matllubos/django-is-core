@@ -7,6 +7,7 @@ from decimal import Decimal, InvalidOperation
 from django.utils.translation import ugettext
 from django.utils.translation import ugettext_lazy as _
 from django import forms
+from django.forms import widgets
 from django.db.models import Q
 from django.db.models.fields import (AutoField, DateField, DateTimeField, DecimalField, GenericIPAddressField,
                                      IPAddressField, BooleanField, TextField, CharField, IntegerField, FloatField,
@@ -440,6 +441,87 @@ class DateTimeFilter(DateFilter):
     extra_suffixes = ['day', 'month', 'year', 'hour', 'minute', 'second']
 
 
+class AbstractDateRangeWidget(widgets.MultiWidget):
+
+    def __init__(self, filter_name):
+        class_from, class_to = self.get_range_classes()
+        super(AbstractDateRangeWidget, self).__init__(
+            (
+                widgets.TextInput(attrs={'class': class_from, 'data-filter': '{}__gte'.format(filter_name)}),
+                widgets.TextInput(attrs={'class': class_to, 'data-filter': '{}__lte'.format(filter_name)}),
+            )
+        )
+
+    def get_range_classes(self):
+        raise NotImplemented
+
+    def decompress(self, value):
+        # TODO edit
+        if value:
+            return [value.day, value.month, value.year]
+        return [None, None, None]
+
+    def value_from_datadict(self, data, files, name):
+        # TODO edit
+        datelist = [
+            widget.value_from_datadict(data, files, name + '_%s' % i)
+            for i, widget in enumerate(self.widgets)]
+        try:
+            pass
+        except ValueError:
+            return ''
+        else:
+            return ''
+
+
+class DateRangeWidget(AbstractDateRangeWidget):
+
+    def get_range_classes(self):
+        return 'date-range-from', 'date-range-to'
+
+
+class DateTimeRangeWidget(AbstractDateRangeWidget):
+
+    def get_range_classes(self):
+        return 'datetime-range-from', 'datetime-range-to'
+
+
+class DateRangeFilterMixin(object):
+
+    def __init__(self, *args, **kwargs):
+        super(DateRangeFilterMixin, self).__init__(*args, **kwargs)
+        self.widget = self.get_widget_class()(self.get_filter_name())
+
+    def get_widget_class(self):
+        raise NotImplemented
+
+    def get_filter_term(self, value, suffix, request):
+        if suffix or value in self.get_extra_values():
+            return super(DateRangeFilterMixin, self).get_filter_term(value, suffix, request)
+        else:
+            filter_term = {}
+            for attr in self.extra_suffixes:
+                date_val = getattr(value, attr)
+                if date_val:
+                    filter_term['__'.join((self.full_filter_key, attr))] = date_val
+            return filter_term
+
+    def get_attrs_for_widget(self):
+        pass
+
+
+class DateRangeFilter(DateRangeFilterMixin, DateFilterMixin, DefaultFieldFilter):
+
+    def get_widget_class(self):
+        return DateRangeWidget
+
+
+class DateTimeRangeFilter(DateRangeFilterMixin, DateFilterMixin, DefaultFieldFilter):
+
+    def get_widget_class(self):
+        return DateTimeRangeWidget
+
+
 BooleanField.default_filter = BooleanFieldFilter
 TextField.default_filter = TextFieldFilter
 CharField.default_filter = CaseInsensitiveCharFieldFilter
@@ -447,8 +529,8 @@ IntegerField.default_filter = IntegerNumberFieldFilter
 FloatField.default_filter = FloatNumberFieldFilter
 DecimalField.default_filter = DecimalNumberFieldFilter
 AutoField.default_filter = IntegerNumberFieldFilter
-DateField.default_filter = DateFilter
-DateTimeField.default_filter = DateTimeFilter
+DateField.default_filter = DateRangeFilter
+DateTimeField.default_filter = DateTimeRangeFilter
 GenericIPAddressField.default_filter = CaseSensitiveCharFieldFilter
 IPAddressField.default_filter = CaseSensitiveCharFieldFilter
 ManyToManyField.default_filter = ManyToManyFieldFilter
