@@ -13,6 +13,7 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
     add_disabled_views = ()
     edit_disabled_views = ()
     list_disabled_views = ()
+    ignore_warnings = False
 
     @classmethod
     def setUpClass(cls):
@@ -33,22 +34,22 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
             model = main_view.model
             if cls.get_model_label(model) in cls.factories:
                 ui_main_views.append((main_view, model))
-            else:
-                cls.logger.warning('Model %s has not created factory class' % model)
+            elif not cls.ignore_warnings:
+                cls.logger.warning('Model {} has not created factory class'.format(model))
 
         return ui_main_views
 
     def list_url(self, site_name, menu_groups):
-        return reverse('%s:list-%s' % (site_name, '-'.join(menu_groups)))
+        return reverse('{}:list-{}'.format(site_name, '-'.join(menu_groups)))
 
     def add_url(self, site_name, menu_groups):
-        return reverse('%s:add-%s' % (site_name, '-'.join(menu_groups)))
+        return reverse('{}:add-{}'.format(site_name, '-'.join(menu_groups)))
 
     def edit_url(self, site_name, menu_groups, obj):
-        return reverse('%s:edit-%s' % (site_name, '-'.join(menu_groups)), args=(obj.pk,))
+        return reverse('{}:edit-{}'.format(site_name, '-'.join(menu_groups)), args=(obj.pk,))
 
     def view_name(self, model_view):
-        return '%s-%s' % (model_view.site_name, '-'.join(model_view.get_menu_groups()))
+        return '{}-{}'.format(model_view.site_name, '-'.join(model_view.get_menu_groups()))
 
 
 @login_all
@@ -63,7 +64,7 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
         if 'list' in model_view.ui_patterns:
             url = self.list_url(model_view.site_name, model_view.get_menu_groups())
             if model_view.has_ui_read_permission(self.get_request_with_user(self.r_factory.get(url))):
-                assert_http_ok(self.get(url), '%s should return 200' % url)
+                assert_http_ok(self.get(url), '{} should return 200'.format(url))
 
     @data_provider(get_ui_main_views)
     def test_should_return_right_add_page_for_all_model_view(self, model_view, model):
@@ -71,7 +72,7 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
         if 'add' in model_view.ui_patterns:
             url = self.add_url(model_view.site_name, model_view.get_menu_groups())
             if model_view.has_ui_create_permission(self.get_request_with_user(self.r_factory.get(url))):
-                assert_http_ok(self.get(url), '%s should return 200' % url)
+                assert_http_ok(self.get(url), '{} should return 200'.format(url))
 
     @data_provider(get_ui_main_views)
     def test_should_return_right_edit_page_for_all_model_view(self, model_view, model):
@@ -82,4 +83,4 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
             url = self.edit_url(model_view.site_name, model_view.get_menu_groups(), inst)
             request = self.get_request_with_user(self.r_factory.get(url))
             if model_view.has_ui_read_permission(request, inst) or model_view.has_ui_update_permission(request, inst.pk):
-                assert_http_ok(self.get(url), '%s should return 200' % url)
+                assert_http_ok(self.get(url), '{} should return 200'.format(url))
