@@ -36,6 +36,7 @@ def add_urls_to_resource(resource):
 class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
     iteration = 5
+    ignore_warnings = False
 
     @classmethod
     def setUpClass(cls):
@@ -52,8 +53,8 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
             if cls.get_model_label(resource.model) in cls.factories:
                 add_urls_to_resource(resource)
                 rest_resources.append((resource_name, resource, resource.model))
-            else:
-                cls.logger.warning('Model %s has not created factory class' % resource.model)
+            elif not cls.ignore_warnings:
+                cls.logger.warning('Model {} has not created factory class'.format(resource.model))
 
         return rest_resources
 
@@ -92,7 +93,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
         for i in range(self.iteration):
             self.new_instance(model)
             resp = self.get(list_url)
-            assert_valid_JSON_response(resp, 'REST get list of model: %s\n response: %s' % (model, resp))
+            assert_valid_JSON_response(resp, 'REST get list of model: {}\n response: {}'.format(model, resp))
             assert_equal(int(resp['X-Total']) - i, started_total_count + 1)
 
     @data_provider(get_rest_resources)
@@ -118,10 +119,9 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
                 break
 
             resp = self.delete(url)
-            assert_http_accepted(resp, 'REST delete of model: %s\n response: %s' % (model, resp))
+            assert_http_accepted(resp, 'REST delete of model: {}\n response: {}'.format(model, resp))
             resp = self.get(url)
-            assert_http_not_found(resp, 'REST get (should not found) of model: %s\n response: %s' %
-                                  (model, resp))
+            assert_http_not_found(resp, 'REST get (should not found) of model: {}\n response: {}'.format(model, resp))
 
     @data_provider(get_rest_resources)
     def test_should_create_data_of_resource(self, resource_name, resource, model):
@@ -139,7 +139,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
             resp = self.post(list_url, data=data)
 
             count_after = model._default_manager.all().count()
-            assert_valid_JSON_created_response(resp, 'REST create of model: %s\n response: %s' % (model, resp))
+            assert_valid_JSON_created_response(resp, 'REST create of model: {}\n response: {}'.format(model, resp))
             assert_equal(count_before + 1, count_after)
 
     @data_provider(get_rest_resources)
@@ -156,4 +156,4 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
 
             data, _ = self.get_serialized_data(request, resource, True)
             resp = self.put(url, data=data)
-            assert_valid_JSON_response(resp, 'REST update of model: %s\n response: %s' % (model, resp))
+            assert_valid_JSON_response(resp, 'REST update of model: {}\n response: {}'.format(model, resp))
