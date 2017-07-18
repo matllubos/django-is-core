@@ -456,22 +456,7 @@ class AbstractDateRangeWidget(widgets.MultiWidget):
         raise NotImplemented
 
     def decompress(self, value):
-        # TODO edit
-        if value:
-            return [value.day, value.month, value.year]
-        return [None, None, None]
-
-    def value_from_datadict(self, data, files, name):
-        # TODO edit
-        datelist = [
-            widget.value_from_datadict(data, files, name + '_%s' % i)
-            for i, widget in enumerate(self.widgets)]
-        try:
-            pass
-        except ValueError:
-            return ''
-        else:
-            return ''
+        return []
 
 
 class DateRangeWidget(AbstractDateRangeWidget):
