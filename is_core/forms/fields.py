@@ -7,8 +7,11 @@ from django.utils.translation import ugettext
 
 from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, DivButtonWidget, ModelObjectReadonlyWidget
 
+from .boundfield import ReadonlyBoundField
+
 
 class ReadonlyField(forms.Field):
+
     widget = ReadonlyWidget
     readonly_widget = ReadonlyWidget
 
@@ -29,6 +32,9 @@ class ReadonlyField(forms.Field):
     def validate(self, value):
         raise ValidationError(ugettext('Readonly field can not be validated'))
 
+    def get_bound_field(self, form, field_name):
+        return ReadonlyBoundField(form, self, field_name)
+
 
 class EmptyReadonlyField(ReadonlyField):
     widget = EmptyWidget
@@ -39,6 +45,7 @@ class EmptyReadonlyField(ReadonlyField):
 
 
 class ButtonField(ReadonlyField):
+
     widget = DivButtonWidget
     readonly_widget = None
 

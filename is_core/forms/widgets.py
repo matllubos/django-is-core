@@ -28,6 +28,8 @@ except ImportError:
 
 from is_core.utils.compatibility import CompatibilitySelectMixin
 
+from .utils import ReadonlyValue
+
 
 EMPTY_VALUE = '---'
 
@@ -228,16 +230,12 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
                                                                 conditional_escape(readonly_value.humanized_value)))
 
     def render(self, name, value, attrs=None, choices=()):
-        from is_core.forms.forms import ReadonlyValue
-
         if isinstance(value, ReadonlyValue):
             return self._render_readonly_value(value)
         else:
             return self._render(name, value, attrs, choices)
 
     def smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
-        from is_core.forms.forms import ReadonlyValue
-
         return (
             self._render_readonly_value(value) if isinstance(value, ReadonlyValue)
             else self._smart_render(request, name, value, initial_value, form, attrs, choices)

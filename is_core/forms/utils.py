@@ -10,3 +10,10 @@ def add_class_name(attrs, class_name):
     class_names.append(class_name)
     attrs['class'] = ' '.join(class_names)
     return attrs
+
+
+class ReadonlyValue(object):
+
+    def __init__(self, value, humanized_value):
+        self.value = value
+        self.humanized_value = humanized_value

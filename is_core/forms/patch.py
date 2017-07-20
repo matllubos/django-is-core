@@ -7,6 +7,8 @@ from is_core.forms.utils import add_class_name
 from is_core.forms.widgets import (DragAndDropFileInput, DragAndDropImageInput, ReadonlyWidget, URLReadonlyWidget,
                                    FileReadonlyWidget, MultipleSelect, Select)
 
+from .boundfield import SmartBoundField
+
 
 def build_attrs(self, extra_attrs=None, **kwargs):
     """ Helper function for building an attribute dictionary. """
@@ -18,6 +20,10 @@ def build_attrs(self, extra_attrs=None, **kwargs):
     if self.placeholder:
         attrs['placeholder'] = self.placeholder
     return attrs
+
+
+def get_bound_field(self, form, field_name):
+    return SmartBoundField(form, self, field_name)
 
 
 Widget.placeholder = None
@@ -42,3 +48,4 @@ Field.is_readonly = False
 Field.readonly_widget = ReadonlyWidget
 URLField.readonly_widget = URLReadonlyWidget
 FileField.readonly_widget = FileReadonlyWidget
+Field.get_bound_field = get_bound_field
