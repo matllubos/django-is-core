@@ -12,4 +12,4 @@ pytz
 django-apptemplates
 https://github.com/lukasrychtecky/django-project-info/tarball/0.2.4#egg=django-project-info-0.2.4
 django-ipware>=1.0.0
-https://github.com/druids/django-pyston/tarball/2.5.0#egg=django-pyston-2.5.0
+https://github.com/druids/django-pyston/tarball/2.6.0#egg=django-pyston-2.6.0

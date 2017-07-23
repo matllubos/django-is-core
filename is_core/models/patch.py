@@ -71,57 +71,17 @@ def m2m_formfield(self, **kwargs):
     return super(ManyToManyField, self).formfield(**defaults)
 
 
-def field_init(self, *args, **kwargs):
-    _filter = kwargs.pop('filter', None)
-    if _filter:
-        self._filter = _filter
-    self._init_is_core_tmp(*args, **kwargs)
-
-
 def rel_field_init(self, *args, **kwargs):
     self.reverse_verbose_name = kwargs.pop('reverse_verbose_name', None)
     self._rel_init_is_core_tmp(*args, **kwargs)
 
 
-def field_get_filter_class(self):
-    return self._filter if hasattr(self, '_filter') else self.default_filter
-
-
-def fk_get_filter_class(self):
-    return (
-        self._filter if hasattr(self, '_filter')
-        else getattr(self.rel.to._meta, 'default_fk_filter', None) or self.default_filter
-    )
-
-
-def m2m_get_filter_class(self):
-    return (
-        self._filter if hasattr(self, '_filter')
-        else getattr(self.rel.to._meta, 'default_m2m_filter', None) or self.default_filter
-    )
-
-
-def rel_get_filter_class(self):
-    return getattr(self.field.model._meta, 'default_rel_filter', None) or self.default_filter
-
-
-Field._init_is_core_tmp = Field.__init__
-Field.__init__ = field_init
-Field.filter = property(field_get_filter_class)
-
 ForeignKey.formfield = fk_formfield
 ForeignKey._rel_init_is_core_tmp = ForeignKey.__init__
 ForeignKey.__init__ = rel_field_init
-ForeignKey.filter = property(fk_get_filter_class)
 
 ManyToManyField.formfield = m2m_formfield
 ManyToManyField._rel_init_is_core_tmp = ManyToManyField.__init__
 ManyToManyField.__init__ = rel_field_init
-ManyToManyField.filter = property(m2m_get_filter_class)
-
-ForeignObjectRel.filter = property(rel_get_filter_class)
 
 URLField.default_humanized = url_humanized
-
-# because it is not translated in Django
-_('(None)')

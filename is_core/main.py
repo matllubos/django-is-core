@@ -457,6 +457,11 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     rest_general_fields = None
     rest_guest_fields = None
     rest_default_fields = None
+    rest_filter_fields = None
+    rest_extra_filter_fields = None
+    rest_order_fields = None
+    rest_extra_order_fields = None
+
     rest_default_fields_extension = settings.REST_DEFAULT_FIELDS_EXTENSION
 
     rest_form_edit_class = None
@@ -519,6 +524,30 @@ class RESTModelISCore(RESTISCore, ModelISCore):
         return list(
             self.model._rest_meta.guest_fields if self.rest_guest_fields is None
             else self.rest_guest_fields
+        )
+
+    def get_rest_extra_filter_fields(self, request):
+        return (
+            self.model._rest_meta.extra_filter_fields if self.rest_extra_filter_fields is None
+            else self.rest_extra_filter_fields
+        )
+
+    def get_rest_filter_fields(self, request):
+        return (
+            self.model._rest_meta.filter_fields if self.rest_filter_fields is None
+            else self.rest_filter_fields
+        )
+
+    def get_rest_extra_order_fields(self, request):
+        return (
+            self.model._rest_meta.extra_order_fields if self.rest_extra_order_fields is None
+            else self.rest_extra_order_fields
+        )
+
+    def get_rest_order_fields(self, request):
+        return (
+            self.model._rest_meta.order_fields if self.rest_order_fields is None
+            else self.rest_order_fields
         )
 
     def get_rest_class(self):
