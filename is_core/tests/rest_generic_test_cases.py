@@ -12,7 +12,7 @@ from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_c
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RESTAuthMixin
-from is_core.forms.forms import SmartBoundField
+from is_core.forms.boundfield import ReadonlyBoundField
 
 from pyston.utils import model_resources_to_dict
 
@@ -69,7 +69,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
         data = {}
 
         for field in form:
-            if not isinstance(field, SmartBoundField) or not field.is_readonly:
+            if isinstance(field, ReadonlyBoundField):
                 value = field.value()
                 if isinstance(value, FieldFile):
                     value = None

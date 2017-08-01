@@ -4,6 +4,8 @@ import re
 import warnings
 import datetime
 
+from collections import OrderedDict
+
 import django
 from django.utils import six
 from django.forms.forms import DeclarativeFieldsMetaclass, Form
@@ -17,128 +19,6 @@ from pyston.forms import RESTFormMixin
 
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms.widgets import SmartWidgetMixin
-from is_core.utils.compatibility import BoundField
-
-
-def pretty_class_name(class_name):
-    return re.sub(r'(\w)([A-Z])', r'\1-\2', class_name).lower()
-
-
-class SmartBoundField(BoundField):
-
-    is_readonly = False
-
-    def as_widget(self, widget=None, attrs=None, only_initial=False):
-        """
-        Renders the field by rendering the passed widget, adding any HTML
-        attributes passed as attrs.  If no widget is specified, then the
-        field's default widget will be used.
-        """
-        if not widget:
-            widget = self.field.widget
-
-        if self.field.localize:
-            widget.is_localized = True
-
-        attrs = attrs or {}
-        attrs = self.build_widget_attrs(attrs, widget)
-        auto_id = self.auto_id
-        if auto_id and 'id' not in attrs and 'id' not in widget.attrs:
-            if not only_initial:
-                attrs['id'] = auto_id
-            else:
-                attrs['id'] = self.html_initial_id
-
-        if not only_initial:
-            name = self.html_name
-        else:
-            name = self.html_initial_name
-        if isinstance(widget, SmartWidgetMixin) and hasattr(self.form, '_request'):
-            return force_text(widget.smart_render(self.form._request, name, self.value(), self._form_initial_value(),
-                                                  self.form, attrs=attrs))
-        else:
-            return force_text(widget.render(name, self.value(), attrs=attrs))
-
-    @property
-    def type(self):
-        if self.is_readonly:
-            return 'readonly'
-        else:
-            return pretty_class_name(self.field.widget.__class__.__name__)
-
-    def _bound_value(self):
-        data = self.field.bound_data(
-            self.data, self.form.initial.get(self.name, self.field.initial)
-        )
-        return self.field.prepare_value(data)
-
-    def _form_initial_value(self):
-        data = self.form.initial.get(self.name, self.field.initial)
-        if callable(data):
-            data = data()
-            # If this is an auto-generated default date, nix the
-            # microseconds for standardized handling. See #22502.
-            if (isinstance(data, (datetime.datetime, datetime.time)) and
-                    not getattr(self.field.widget, 'supports_microseconds', True)):
-                data = data.replace(microsecond=0)
-
-        return self.field.prepare_value(data)
-
-    def value(self):
-        if not self.form.is_bound:
-            return self._form_initial_value()
-        else:
-            return self._bound_value()
-
-
-class ReadonlyValue(object):
-
-    def __init__(self, value, humanized_value):
-        self.value = value
-        self.humanized_value = humanized_value
-
-
-class ReadonlyBoundField(SmartBoundField):
-
-    is_readonly = True
-
-    def __init__(self, form, field, name):
-        if isinstance(field, SmartReadonlyField):
-            field._set_readonly_field(name, form)
-        super(ReadonlyBoundField, self).__init__(form, field, name)
-
-    def as_widget(self, widget=None, attrs=None, only_initial=False):
-        if not widget:
-            widget = self.field.widget
-
-        if widget.is_hidden:
-            return mark_safe('')
-        else:
-            return super(ReadonlyBoundField, self).as_widget(
-                self.form._get_readonly_widget(self.name, self.field, widget), attrs, only_initial
-            )
-
-    def as_hidden(self, attrs=None, **kwargs):
-        """
-        Returns a string of HTML for representing this as an <input type="hidden">.
-        Because readonly has not hidden input there must be returned empty string.
-        """
-        return mark_safe('')
-
-    def _form_initial_value(self):
-        data = self.form.initial.get(self.name, self.field.initial)
-        if callable(data):
-            data = data()
-
-        value = self.field.prepare_value(data)
-
-        if hasattr(self.form, 'humanized_data') and self.name in self.form.humanized_data:
-            humanized_value = self.form.humanized_data.get(self.name)
-            return ReadonlyValue(value, humanized_value)
-        return value
-
-    def value(self):
-        return self._form_initial_value()
 
 
 class SmartFormMetaclass(DeclarativeFieldsMetaclass):
@@ -196,18 +76,6 @@ class SmartFormMixin(object):
     def _init_fields(self):
         pass
 
-    def __getitem__(self, name):
-        "Returns a BoundField with the given name."
-        try:
-            field = self.fields[name]
-        except KeyError:
-            raise KeyError('Key %r not found in Form' % name)
-
-        if name in self.readonly_fields:
-            return ReadonlyBoundField(self, field, name)
-        else:
-            return SmartBoundField(self, field, name)
-
     def _get_readonly_widget(self, field_name, field, widget):
         if field.readonly_widget:
             if isinstance(field.readonly_widget, type):
@@ -224,27 +92,12 @@ class SmartFormMixin(object):
         return self.Meta.fields_to_clean if hasattr(self, 'Meta') else None
 
     def _clean_fields(self):
-        for name, field in self._get_filtered_fields_to_clean():
-            if name not in self.readonly_fields:
-                # value_from_datadict() gets the data from the data dictionaries.
-                # Each widget type knows how to retrieve its own data, because some
-                # widgets split data over several HTML fields.
-
-                value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
-                try:
-                    if isinstance(field, FileField):
-                        initial = self.initial.get(name, field.initial)
-                        value = field.clean(value, initial)
-                    else:
-                        value = field.clean(value)
-                    self.cleaned_data[name] = value
-                    if hasattr(self, 'clean_%s' % name):
-                        value = getattr(self, 'clean_%s' % name)()
-                        self.cleaned_data[name] = value
-                except ValidationError as e:
-                    self._errors[name] = self.error_class(e.messages)
-                    if name in self.cleaned_data:
-                        del self.cleaned_data[name]
+        tmp_fields = self.fields
+        self.fields = OrderedDict((
+            (name, field) for name, field in self._get_filtered_fields_to_clean() if name not in self.readonly_fields
+        ))
+        super(SmartFormMixin, self)._clean_fields()
+        self.fields = tmp_fields
 
     def _register_readonly_field(self, field_name):
         if field_name not in self.readonly_fields:
@@ -256,35 +109,13 @@ class SmartFormMixin(object):
 
     @cached_property
     def changed_data(self):
-        data = []
-        for name, field in self.fields.items():
-            if name not in self.readonly_fields:
-                prefixed_name = self.add_prefix(name)
-                data_value = field.widget.value_from_datadict(self.data, self.files, prefixed_name)
-                if not field.show_hidden_initial:
-                    initial_value = self.initial.get(name, field.initial)
-                    if callable(initial_value):
-                        initial_value = initial_value()
-                else:
-                    initial_prefixed_name = self.add_initial_prefix(name)
-                    hidden_widget = field.hidden_widget()
-                    try:
-                        initial_value = field.to_python(hidden_widget.value_from_datadict(
-                            self.data, self.files, initial_prefixed_name))
-                    except ValidationError:
-                        # Always assume data has changed if validation fails.
-                        data.append(name)
-                        continue
-                if hasattr(field.widget, '_has_changed'):
-                    warnings.warn("The _has_changed method on widgets is deprecated,"
-                                  " define it at field level instead.",
-                        PendingDeprecationWarning, stacklevel=2)
-                    if field.widget._has_changed(initial_value, data_value):
-                        data.append(name)
-                elif field.has_changed(initial_value, data_value):
-                    data.append(name)
-        return data
-
+        tmp_fields = self.fields
+        self.fields = OrderedDict((
+            (name, field) for name, field in self.fields.items() if name not in self.readonly_fields
+        ))
+        changed_data = super(SmartFormMixin, self).changed_data
+        self.fields = tmp_fields
+        return changed_data
 
 class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RESTFormMixin, Form)):
     pass

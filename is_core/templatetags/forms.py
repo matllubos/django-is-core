@@ -6,6 +6,7 @@ from django.template.base import TemplateSyntaxError, token_kwargs
 from django.template.loader import render_to_string
 from django.template.loader_tags import IncludeNode
 
+from is_core.utils import pretty_class_name
 from is_core.forms.widgets import WrapperWidget
 
 
@@ -93,3 +94,8 @@ def is_checkbox(field):
     return (hasattr(field, 'field') and hasattr(field.field, 'widget') and
             (isinstance(field.field.widget, CheckboxInput) or
              (isinstance(field.field.widget, WrapperWidget) and isinstance(field.field.widget.widget, CheckboxInput))))
+
+
+@register.filter
+def field_type(field):
+    return field.type if hasattr(field, 'type') else pretty_class_name(field.field.widget.__class__.__name__)

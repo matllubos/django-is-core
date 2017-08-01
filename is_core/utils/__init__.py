@@ -95,7 +95,7 @@ def get_verbose_value(raw, field_or_method, obj, **kwargs):
 
 
 def val_to_readonly_value(value, field_or_method, obj, **kwargs):
-    from is_core.forms.forms import ReadonlyValue
+    from is_core.forms.utils import ReadonlyValue
 
     verbose_value = get_verbose_value(value, field_or_method, obj, **kwargs)
     return ReadonlyValue(value, verbose_value) if value != verbose_value else value
@@ -216,7 +216,7 @@ def display_object_data(obj, field_name, request=None):
        field with choices ==> string value of choice
        field with hummanize function ==> result of humanize function
     """
-    from is_core.forms.forms import ReadonlyValue
+    from is_core.forms.utils import ReadonlyValue
 
     value, _, _ = get_readonly_field_data(field_name, [obj], {})
     return display_for_value(value.humanized_value if isinstance(value, ReadonlyValue) else value, request=request)
@@ -278,3 +278,7 @@ def render_model_object_with_link(request, obj, display_value=None):
 
 def header_name_to_django(header_name):
     return '_'.join(('HTTP', header_name.replace('-', '_').upper()))
+
+
+def pretty_class_name(class_name):
+    return re.sub(r'(\w)([A-Z])', r'\1-\2', class_name).lower()

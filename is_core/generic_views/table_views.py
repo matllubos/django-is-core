@@ -9,7 +9,7 @@ from django.views.generic.base import TemplateView
 from is_core.config import settings
 from is_core.filters import get_model_field_or_method_filter
 from is_core.filters.default_filters import *
-from is_core.forms.forms import pretty_class_name
+from is_core.utils import pretty_class_name
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
 
