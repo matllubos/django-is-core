@@ -252,12 +252,63 @@ class EntryPointResource(RESTResource):
         return out
 
 
-class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResource):
+class RESTModelResource(RESTResourceMixin, BaseModelResource):
+
+    filters = {}
+
+    def _get_headers_queryset_context_mapping(self):
+        mapping = super(RESTModelResource, self)._get_headers_queryset_context_mapping()
+        mapping.update({
+            'direction': ('HTTP_X_DIRECTION', '_direction'),
+            'order': ('HTTP_X_ORDER', '_order')
+        })
+        return mapping
+
+    def _get_form_initial(self, obj):
+        return {'_request': self.request, '_user': self.request.user}
+
+    def _get_filter(self, filter_term):
+        return get_model_field_or_method_filter(filter_term, self.model, resource=self)
+
+    def _get_filter_terms_with_values(self):
+        return [
+            (filter_term, value) for filter_term, value in self.request.GET.dict().items()
+            if not filter_term.startswith('_')
+        ]
+
+    def _filter_queryset(self, qs):
+        qs_filter_terms = []
+        for filter_term, value in self._get_filter_terms_with_values():
+            try:
+                q = self._get_filter(filter_term).get_q(value, self.request)
+                qs_filter_terms.append(q)
+            except FilterValueException as ex:
+                raise RESTException(
+                    mark_safe(ugettext('Invalid filter value "{}={}". {}').format(filter_term, value, ex))
+                )
+            except FilterException:
+                raise RESTException(mark_safe(ugettext('Cannot resolve filter "{}={}"').format(filter_term, value)))
+
+        return qs.filter(pk__in=qs.filter(*qs_filter_terms).values('pk')) if qs_filter_terms else qs
+
+    def _order_queryset(self, qs):
+        if 'order' not in self.request._rest_context:
+            return qs
+        order_field = self.request._rest_context.get('order')
+        try:
+            qs = qs.order_by(*order_field.split(','))
+            # Queryset validation, there is no other option
+            force_text(qs.query)
+        except Exception:
+            raise RESTException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
+        return qs
+
+
+class RESTModelCoreResource(RESTModelCoreMixin, RESTModelResource):
 
     form_class = None
     field_labels = None
     abstract = True
-    filters = {}
     default_fields_extension = None
 
     def _get_field_labels(self):
@@ -290,7 +341,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
         return self.core.get_rest_default_fields(self.request, obj=None) if default_fields is None else default_fields
 
     def get_default_fields_rfs(self, obj=None):
-        return super(RESTModelResource, self).get_default_fields_rfs(obj=obj).join(
+        return super(RESTModelCoreResource, self).get_default_fields_rfs(obj=obj).join(
             rfs(self.get_default_fields_extension(obj))
         )
 
@@ -326,55 +377,8 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
     def get_queryset(self):
         return self.core.get_queryset(self.request)
 
-    def _get_headers_queryset_context_mapping(self):
-        mapping = super(RESTModelResource, self)._get_headers_queryset_context_mapping()
-        mapping.update({
-            'direction': ('HTTP_X_DIRECTION', '_direction'),
-            'order': ('HTTP_X_ORDER', '_order')
-        })
-        return mapping
-
     def _preload_queryset(self, qs):
         return self.core.preload_queryset(self.request, qs)
-
-    def _get_filter(self, filter_term):
-        filter_name = filter_term.split('__')[0]
-
-        if filter_name in self.filters:
-            return self.filters[filter_name](filter_term, filter_term)
-        else:
-            return get_model_field_or_method_filter(filter_term, self.model)
-
-    def _filter_queryset(self, qs):
-        filter_terms_with_values = [
-            (filter_term, value) for filter_term, value in self.request.GET.dict().items()
-            if not filter_term.startswith('_')
-        ]
-        qs_filter_terms = []
-        for filter_term, value in filter_terms_with_values:
-            try:
-                q = self._get_filter(filter_term).get_q(value, self.request)
-                qs_filter_terms.append(q)
-            except FilterValueException as ex:
-                raise RESTException(
-                    mark_safe(ugettext('Invalid filter value "{}={}". {}').format(filter_term, value, ex))
-                )
-            except FilterException:
-                raise RESTException(mark_safe(ugettext('Cannot resolve filter "{}={}"').format(filter_term, value)))
-
-        return qs.filter(pk__in=qs.filter(*qs_filter_terms).values('pk')) if qs_filter_terms else qs
-
-    def _order_queryset(self, qs):
-        if 'order' not in self.request._rest_context:
-            return qs
-        order_field = self.request._rest_context.get('order')
-        try:
-            qs = qs.order_by(*order_field.split(','))
-            # Queryset validation, there is no other option
-            force_text(qs.query)
-        except Exception:
-            raise RESTException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
-        return qs
 
     def _get_exclude(self, obj=None):
         return self.core.get_rest_form_exclude(self.request, obj)
@@ -391,9 +395,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
                 else self.core.get_rest_form_add_class(self.request, obj)
             )
         )
-
-    def _get_form_initial(self, obj):
-        return {'_request': self.request, '_user': self.request.user}
 
     def _pre_save_obj(self, obj, form, change):
         self.core.pre_save_model(self.request, obj, form, change)
@@ -413,22 +414,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
     def _post_delete_obj(self, obj):
         self.core.post_delete_model(self.request, obj)
 
-    def _generate_form_class(self, inst, exclude=[]):
-        form_class = self._get_form_class(inst)
-        exclude = list(self._get_exclude(inst)) + exclude
-        fields = self._get_form_fields(inst)
-        if hasattr(form_class, '_meta') and form_class._meta.exclude:
-            exclude.extend(form_class._meta.exclude)
-        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields,
-                                      labels=self._get_field_labels())
-
-    def put(self):
-        # TODO: backward compatibility for bulk update should be used only patch
-        return super(RESTModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
-
-    def patch(self):
-        return super(RESTModelResource, self).patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
-
     def _get_queryset(self):
         return self.core.get_queryset(self.request)
 
@@ -445,6 +430,13 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
         objects, errors = zip(*(self._update_obj(obj, data) for obj in qs))
         compact_errors = tuple(err for err in errors if err)
         return RESTErrorsResponse(compact_errors) if len(compact_errors) > 0 else objects
+
+    def put(self):
+        # TODO: backward compatibility for bulk update should be used only patch
+        return super(RESTModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
+
+    def patch(self):
+        return super(RESTModelResource, self).patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
     def _update_obj(self, obj, data):
         try:
@@ -466,8 +458,19 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
             '_obj_name': mark_safe(''.join(('#', str(obj.pk), ' ', self._extract_message(ex)))),
         }
 
+    def _generate_form_class(self, inst, exclude=None):
+        exclude = exclude if exclude is not None else []
 
-class UIRESTModelResource(RESTModelResource):
+        form_class = self._get_form_class(inst)
+        exclude = list(self._get_exclude(inst)) + exclude
+        fields = self._get_form_fields(inst)
+        if hasattr(form_class, '_meta') and form_class._meta.exclude:
+            exclude.extend(form_class._meta.exclude)
+        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields,
+                                      labels=self._get_field_labels())
+
+
+class UIRESTModelCoreResource(RESTModelCoreResource):
 
     def _web_links(self, obj):
         web_links = {}

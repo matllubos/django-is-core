@@ -5,6 +5,8 @@ from django.db.models.fields import FieldDoesNotExist
 
 from chamber.utils import get_class_method
 
+from pyston.serializer import get_resource_class_or_none
+
 from is_core.filters.exceptions import FilterException, FilterValueException
 
 
@@ -22,24 +24,26 @@ def get_method_or_none(model, name):
         return None
 
 
-def get_model_field_filter(field, full_field_term, filter_term, ui):
+def get_model_field_filter(field, full_field_term, filter_term, ui, resource=None):
     current_filter_term, next_filter_term = filter_term.split('__', 1) if '__' in filter_term else (filter_term, None)
     if (next_filter_term and next_filter_term not in field.filter.get_suffixes_with_not() and
           not field.auto_created and (field.many_to_one or field.one_to_one or field.many_to_many)):
-        return get_model_field_or_method_filter(full_field_term, field.rel.to, next_filter_term, ui=ui)
+        return get_model_field_or_method_filter(full_field_term, field.rel.to, next_filter_term, ui=ui,
+                                                resource=resource)
     elif (next_filter_term and next_filter_term not in field.filter.get_suffixes_with_not() and
            field.auto_created and (field.one_to_many or field.one_to_one or field.many_to_many)):
-        return get_model_field_or_method_filter(full_field_term, field.related_model, next_filter_term, ui=ui)
+        return get_model_field_or_method_filter(full_field_term, field.related_model, next_filter_term, ui=ui,
+                                                resource=resource)
     elif (ui and not field.auto_created and (field.many_to_one or field.one_to_one or field.many_to_many) and
            not next_filter_term and field.rel.model._ui_meta.default_ui_filter_by):
         return get_model_field_or_method_filter(
             '{}__{}'.format(full_field_term, field.rel.model._ui_meta.default_ui_filter_by),
-            field.rel.model, field.rel.model._ui_meta.default_ui_filter_by, ui=ui)
+            field.rel.model, field.rel.model._ui_meta.default_ui_filter_by, ui=ui, resource=resource)
     elif (ui and field.auto_created and (field.one_to_many or field.one_to_one or field.many_to_many) and
            not next_filter_term and field.related_model._ui_meta.default_ui_filter_by):
         return get_model_field_or_method_filter(
             '{}__{}'.format(full_field_term, field.related_model._ui_meta.default_ui_filter_by),
-            field.related_model, field.related_model._ui_meta.default_ui_filter_by, ui=ui)
+            field.related_model, field.related_model._ui_meta.default_ui_filter_by, ui=ui, resource=resource)
     elif (hasattr(field, 'filter') and
             (not next_filter_term or next_filter_term in field.filter.get_suffixes_with_not())):
         return field.filter(filter_term, full_field_term, field)
@@ -47,11 +51,12 @@ def get_model_field_filter(field, full_field_term, filter_term, ui):
         raise FilterException(ugettext('Not valid filter: {}').format(full_field_term))
 
 
-def get_model_method_filter(method, full_field_term, model, filter_term, ui=False):
+def get_model_method_filter(method, full_field_term, model, filter_term, ui=False, resource=None):
     current_filter_term, next_filter_term = filter_term.split('__', 1) if '__' in filter_term else (filter_term, None)
     if ui and hasattr(method, 'filter_by'):
         return get_model_field_or_method_filter(
-            full_field_term[:-len(current_filter_term)] + method.filter_by, model, method.filter_by, ui=ui)
+            full_field_term[:-len(current_filter_term)] + method.filter_by, model, method.filter_by, ui=ui,
+            resource=resource)
     elif (hasattr(method, 'filter') and
             (not next_filter_term or next_filter_term in method.filter.get_suffixes_with_not())):
         return method.filter(filter_term, full_field_term, method)
@@ -59,15 +64,20 @@ def get_model_method_filter(method, full_field_term, model, filter_term, ui=Fals
         raise FilterException(ugettext('Not valid filter: {}').format(full_field_term))
 
 
-def get_model_field_or_method_filter(full_field_term, model, filter_term=None, ui=False):
+def get_model_field_or_method_filter(full_field_term, model, filter_term=None, ui=False, resource=None):
     filter_term = full_field_term if not filter_term else filter_term
     current_filter_term, next_filter_term = filter_term.split('__', 1) if '__' in filter_term else (filter_term, None)
+
+    if resource is not None:
+        resource = get_resource_class_or_none(model, resource.resource_typemapper) or resource
+        if current_filter_term in resource.filters:
+            return resource.filters[current_filter_term](full_field_term, full_field_term)
 
     field = get_field_or_none(model, current_filter_term)
     method = get_method_or_none(model, filter_term)
     if field:
-        return get_model_field_filter(field, full_field_term, filter_term, ui)
+        return get_model_field_filter(field, full_field_term, filter_term, ui, resource=resource)
     elif method:
-        return get_model_method_filter(method, full_field_term, model, filter_term, ui)
+        return get_model_method_filter(method, full_field_term, model, filter_term, ui, resource=resource)
     else:
         raise FilterException(ugettext('Not valid filter: {}').format(full_field_term))
