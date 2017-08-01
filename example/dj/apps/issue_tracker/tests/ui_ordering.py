@@ -11,4 +11,4 @@ class UIOrderingTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase):
     @login(is_superuser=True)
     def test_superuser_may_read_users_grid(self):
         resp = self.get(self.ISSUE_UI_URL)
-        assert_contains(resp, 'data-col="watched_by"')
+        assert_contains(resp, 'data-col="watched_by_string"')

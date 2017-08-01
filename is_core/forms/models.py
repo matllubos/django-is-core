@@ -97,7 +97,7 @@ class ModelChoiceFieldMixin(object):
         try:
             if ('widget' not in kwargs and self.too_much_entries_widget and
                     queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
-                kwargs['widget'] = self.too_much_entries_widget
+                kwargs['widget'] = self.too_much_entries_widget()
         except (ProgrammingError, OperationalError):
             pass
         super(ModelChoiceFieldMixin, self).__init__(queryset, *args, **kwargs)

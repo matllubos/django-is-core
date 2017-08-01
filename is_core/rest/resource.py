@@ -22,7 +22,6 @@ from is_core.config import settings
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
                                          HTTPForbiddenResponseException, HTTPUnauthorizedResponseException)
-from is_core.filters import get_model_field_or_method_filter, FilterException, FilterValueException
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
 from is_core.utils.immutable import merge
@@ -252,7 +251,7 @@ class EntryPointResource(RESTResource):
         return out
 
 
-class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResource):
+class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource):
 
     form_class = None
     field_labels = None
@@ -288,6 +287,22 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
     def get_default_fields(self, obj=None):
         default_fields = super(DefaultRESTModelResource, self).get_default_fields(obj=obj)
         return self.core.get_rest_default_fields(self.request, obj=None) if default_fields is None else default_fields
+
+    def get_extra_filter_fields(self):
+        extra_filter_fields = super(DefaultRESTModelResource, self).get_extra_filter_fields()
+        return self.core.get_rest_extra_filter_fields(self.request) if extra_filter_fields is None else extra_filter_fields
+
+    def get_filter_fields(self):
+        filter_fields = super(DefaultRESTModelResource, self).get_filter_fields()
+        return self.core.get_rest_filter_fields(self.request) if filter_fields is None else filter_fields
+
+    def get_extra_order_fields(self):
+        extra_order_fields = super(DefaultRESTModelResource, self).get_extra_order_fields()
+        return self.core.get_rest_extra_order_fields(self.request) if extra_order_fields is None else extra_order_fields
+
+    def get_order_fields(self):
+        order_fields = super(DefaultRESTModelResource, self).get_order_fields()
+        return self.core.get_rest_order_fields(self.request) if order_fields is None else order_fields
 
     def get_default_fields_rfs(self, obj=None):
         return super(RESTModelResource, self).get_default_fields_rfs(obj=obj).join(
@@ -336,45 +351,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin , BaseModelResourc
 
     def _preload_queryset(self, qs):
         return self.core.preload_queryset(self.request, qs)
-
-    def _get_filter(self, filter_term):
-        filter_name = filter_term.split('__')[0]
-
-        if filter_name in self.filters:
-            return self.filters[filter_name](filter_term, filter_term)
-        else:
-            return get_model_field_or_method_filter(filter_term, self.model)
-
-    def _filter_queryset(self, qs):
-        filter_terms_with_values = [
-            (filter_term, value) for filter_term, value in self.request.GET.dict().items()
-            if not filter_term.startswith('_')
-        ]
-        qs_filter_terms = []
-        for filter_term, value in filter_terms_with_values:
-            try:
-                q = self._get_filter(filter_term).get_q(value, self.request)
-                qs_filter_terms.append(q)
-            except FilterValueException as ex:
-                raise RESTException(
-                    mark_safe(ugettext('Invalid filter value "{}={}". {}').format(filter_term, value, ex))
-                )
-            except FilterException:
-                raise RESTException(mark_safe(ugettext('Cannot resolve filter "{}={}"').format(filter_term, value)))
-
-        return qs.filter(pk__in=qs.filter(*qs_filter_terms).values('pk')) if qs_filter_terms else qs
-
-    def _order_queryset(self, qs):
-        if 'order' not in self.request._rest_context:
-            return qs
-        order_field = self.request._rest_context.get('order')
-        try:
-            qs = qs.order_by(*order_field.split(','))
-            # Queryset validation, there is no other option
-            force_text(qs.query)
-        except Exception:
-            raise RESTException(mark_safe(ugettext('Cannot resolve Order value "%s" into fields') % order_field))
-        return qs
 
     def _get_exclude(self, obj=None):
         return self.core.get_rest_form_exclude(self.request, obj)

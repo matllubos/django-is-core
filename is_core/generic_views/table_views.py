@@ -1,29 +1,55 @@
 from __future__ import unicode_literals
 
 import django
+from django import forms
 from django.core.urlresolvers import reverse
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 from django.views.generic.base import TemplateView
+from django.utils.translation import ugettext
 
 from is_core.config import settings
-from is_core.filters import get_model_field_or_method_filter
-from is_core.filters.default_filters import *
 from is_core.utils import pretty_class_name
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
+from is_core.filters import UIFilterMixin
 
 from chamber.utils import get_class_method
 from chamber.utils.http import query_string_from_dict
 
+from pyston.filters.exceptions import FilterIdentifierError
+from pyston.order.exceptions import OrderIdentifierError
+from pyston.serializer import get_resource_or_none
+from pyston.filters.default_filters import NONE_LABEL
+
+
+class FilterChoiceIterator(object):
+
+    def __init__(self, choices, field):
+        self.choices = choices
+        self.field = field
+
+    def __iter__(self):
+        yield ('', '')
+
+        if self.field.null or self.field.blank:
+            yield ('__none__', NONE_LABEL)
+
+        for k, v in self.choices:
+            if k:
+                yield (k, v)
+
+    def __len__(self):
+        return len(self.choices)
+
 
 class Header(object):
 
-    def __init__(self, field_name, text, order_by, filter=''):
+    def __init__(self, field_name, text, order_by, filter_html=''):
         self.field_name = field_name
         self.text = text
         self.order_by = order_by
-        self.filter = filter
+        self.filter = filter_html
 
     def __unicode__(self):
         return self.text
@@ -33,6 +59,7 @@ class Header(object):
 
 
 class TableViewMixin(object):
+
     list_display = None
     export_display = None
     list_display_extra = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
@@ -49,39 +76,72 @@ class TableViewMixin(object):
         return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
                                                         'verbose_name_plural': self.model._meta.verbose_name_plural}
 
-    def _get_filter(self, full_field_name):
-        try:
-            return get_model_field_or_method_filter(full_field_name, self.model, ui=True).render(self.request)
-        except FilterException:
-            return ''
-
-    def _full_field_name_prefix(self, full_field_name):
-        if '__' in full_field_name:
-            return full_field_name.rsplit('__', 1)
+    def _get_field_filter_widget(self, filter_obj, full_field_name, field):
+        if filter_obj.choices:
+            return forms.Select(choices=filter_obj.choices)
         else:
-            return ''
+            formfield = field.formfield() if hasattr(field, 'formfield') else None
+            if formfield:
+                widget = formfield.widget
+                if hasattr(widget, 'choices'):
+                    widget.choices = FilterChoiceIterator(widget.choices, field)
+
+                if not isinstance(widget, forms.widgets.Textarea):
+                    return widget
+
+            return forms.TextInput()
+
+    def _get_method_filter_widget(self, filter_obj, full_field_name, method):
+        if filter_obj.choices:
+            return forms.Select(choices=filter_obj.choices)
+        else:
+            return forms.TextInput()
+
+    def _get_resource_filter_widget(self, filter_obj, full_field_name):
+        if filter_obj.choices:
+            return forms.Select(choices=filter_obj.choices)
+        else:
+            return forms.TextInput()
+
+    def _get_filter_widget(self, filter_obj, full_field_name):
+        if isinstance(filter_obj, UIFilterMixin):
+            return filter_obj.get_widget(self.request)
+        elif filter_obj.field:
+            return self._get_field_filter_widget(filter_obj, full_field_name, filter_obj.field)
+        elif filter_obj.method:
+            return self._get_method_filter_widget(filter_obj, full_field_name, filter_obj.method)
+        else:
+            return self._get_resource_filter_widget(filter_obj, full_field_name)
+
+    def _get_filter(self, full_field_name):
+        resource = self.get_resource()
+        if resource:
+            try:
+                filter_obj = resource.filter_manager.get_filter(full_field_name.split('__'), resource, self.request)
+                if (not filter_obj.identifiers_suffix and filter_obj.field and filter_obj.field.is_relation and
+                        filter_obj.field.related_model and
+                        filter_obj.field.related_model._ui_meta.default_ui_filter_by):
+                    return self._get_filter('{}__{}'.format(
+                        full_field_name, filter_obj.field.related_model._ui_meta.default_ui_filter_by)
+                    )
+                widget = self._get_filter_widget(filter_obj, full_field_name)
+                operator = filter_obj.get_allowed_operators()[0].lower()
+                filter_term = '{}__{}'.format(full_field_name, operator)
+                return widget.render('filter__{}'.format(filter_term), None, attrs={'data-filter': filter_term})
+            except FilterIdentifierError:
+                pass
+        return ''
 
     def _get_header_order_by(self, model, full_field_name):
-        if '__' in full_field_name:
-            prefix, field_name = full_field_name.rsplit('__', 1)
+        resource = self.get_resource()
+        if resource:
+            try:
+                resource.order_manager.get_order_string(full_field_name.split('__'), resource, self.request)
+                return full_field_name
+            except OrderIdentifierError:
+                return False
         else:
-            prefix, field_name = '', full_field_name
-
-        try:
-            field = model._meta.get_field(field_name)
-            default_order_by = full_field_name
-        except FieldDoesNotExist:
-            field = get_class_method(model, field_name)
-            default_order_by = False
-
-        order_by = getattr(field, 'order_by', None)
-        if order_by:
-            return '__'.join(filter(None, (prefix, order_by)))
-
-        if order_by is None:
-            return default_order_by
-
-        return order_by
+            return False
 
     def _get_field_labels(self):
         return self.field_labels
@@ -218,8 +278,12 @@ class TableViewMixin(object):
     def get_table_slug(self):
         return pretty_class_name(self.__class__.__name__)
 
+    def get_resource(self):
+        return get_resource_or_none(self.request, self.model)
+
 
 class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
+
     template_name = 'generic_views/table.html'
     view_type = 'list'
     export_types = None
