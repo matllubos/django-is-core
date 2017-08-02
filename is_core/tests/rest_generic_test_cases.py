@@ -69,7 +69,7 @@ class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
         data = {}
 
         for field in form:
-            if isinstance(field, ReadonlyBoundField):
+            if not isinstance(field, ReadonlyBoundField):
                 value = field.value()
                 if isinstance(value, FieldFile):
                     value = None
