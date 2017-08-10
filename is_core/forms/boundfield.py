@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.utils.encoding import force_text
+from django.utils.safestring import mark_safe
 
 from is_core.utils import pretty_class_name
 from is_core.utils.compatibility import BoundField
