@@ -32,9 +32,6 @@ class ReadonlyField(forms.Field):
     def validate(self, value):
         raise ValidationError(ugettext('Readonly field can not be validated'))
 
-    def get_bound_field(self, form, field_name):
-        return ReadonlyBoundField(form, self, field_name)
-
 
 class EmptyReadonlyField(ReadonlyField):
     widget = EmptyWidget
