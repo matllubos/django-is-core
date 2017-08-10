@@ -17,8 +17,9 @@ from django.utils.functional import cached_property
 
 from pyston.forms import RESTFormMixin
 
-from is_core.forms.fields import SmartReadonlyField
-from is_core.forms.widgets import SmartWidgetMixin
+from .fields import SmartReadonlyField
+from .widgets import SmartWidgetMixin
+from .boundfield import ReadonlyBoundField, SmartBoundField
 
 
 class SmartFormMetaclass(DeclarativeFieldsMetaclass):
@@ -76,6 +77,28 @@ class SmartFormMixin(object):
     def _init_fields(self):
         pass
 
+    def __getitem__(self, name):
+        "Returns a BoundField with the given name."
+        try:
+            field = self.fields[name]
+        except KeyError:
+            raise KeyError(
+                "Key '%s' not found in '%s'. Choices are: %s." % (
+                    name,
+                    self.__class__.__name__,
+                    ', '.join(sorted(f for f in self.fields)),
+                )
+            )
+        if name not in self._bound_fields_cache:
+            self._bound_fields_cache[name] = self._get_bound_field(name, field)
+        return self._bound_fields_cache[name]
+
+    def _get_bound_field(self, name, field):
+        if name in self.readonly_fields:
+            return ReadonlyBoundField(self, field, name)
+        else:
+            return SmartBoundField(self, field, name)
+
     def _get_readonly_widget(self, field_name, field, widget):
         if field.readonly_widget:
             if isinstance(field.readonly_widget, type):
@@ -116,6 +139,7 @@ class SmartFormMixin(object):
         changed_data = super(SmartFormMixin, self).changed_data
         self.fields = tmp_fields
         return changed_data
+
 
 class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RESTFormMixin, Form)):
     pass

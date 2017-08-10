@@ -22,10 +22,6 @@ def build_attrs(self, extra_attrs=None, **kwargs):
     return attrs
 
 
-def get_bound_field(self, form, field_name):
-    return SmartBoundField(form, self, field_name)
-
-
 Widget.placeholder = None
 Widget.class_name = None
 Widget.build_attrs = build_attrs
@@ -48,4 +44,3 @@ Field.is_readonly = False
 Field.readonly_widget = ReadonlyWidget
 URLField.readonly_widget = URLReadonlyWidget
 FileField.readonly_widget = FileReadonlyWidget
-Field.get_bound_field = get_bound_field
