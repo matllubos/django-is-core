@@ -182,7 +182,9 @@ class TableViewMixin(object):
 
         if '__' in field_name:
             current_field_name, next_field_name = field_name.split('__', 1)
-            return self._get_header(full_field_name, next_field_name, model._meta.get_field(current_field_name).rel.to)
+            return self._get_header(
+                full_field_name, next_field_name, model._meta.get_field(current_field_name).related_model
+            )
 
         return Header(
             full_field_name, self._get_header_label(model, full_field_name, field_name),
