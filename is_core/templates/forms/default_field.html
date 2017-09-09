@@ -5,7 +5,7 @@
 		<label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}>
 			{{ field.label|capfirst }}
 		</label>
-		<div class="field-value {{ field_name }}">{{ field }}</div>
+		<div{% if field.auto_id %} id="{{ field.auto_id }}"{% endif %} class="field-value {{ field_name }}">{{ field }}</div>
 	{% elif field|is_checkbox %}
 		<div class="checkbox">
 			<label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}{% if field.help_text %} data-title="{{ field.help_text }}"{% endif %}>
