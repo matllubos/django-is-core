@@ -3,4 +3,7 @@ class UIFilterMixin(object):
     widget = None
 
     def get_widget(self, request):
-        return self.widget()
+        widget = self.widget
+        if isinstance(widget, type):
+            widget = widget()
+        return widget

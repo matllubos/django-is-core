@@ -128,14 +128,7 @@ class TableViewMixin(object):
                 operator = filter_obj.get_allowed_operators()[0].lower()
                 filter_term = '{}__{}'.format(full_field_name, operator)
                 name = 'filter__{}'.format(filter_term)
-                if isinstance(widget, AbstractDateRangeWidget):
-                    operators = ['gte', 'lte']
-                    for i in range(len(operators)):
-                        widget_attrs = widget.widgets[i].attrs
-                        widget_attrs['data-filter'] = '{}__{}'.format(full_field_name, operators[i])
-                    return widget.render(name, None)
-                else:
-                    return widget.render(name, None, attrs={'data-filter': filter_term})
+                return widget.render(name, None, attrs={'data-filter': filter_term})
             except FilterIdentifierError:
                 pass
         return ''
@@ -188,7 +181,7 @@ class TableViewMixin(object):
         if field_name == '_obj_name':
             return Header(full_field_name, model._meta.verbose_name, False)
 
-        if '__' in field_name and hasattr(model, 'meta_'):
+        if '__' in field_name:
             current_field_name, next_field_name = field_name.split('__', 1)
             return self._get_header(
                 full_field_name, next_field_name, model._meta.get_field(current_field_name).related_model
