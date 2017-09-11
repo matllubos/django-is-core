@@ -84,7 +84,7 @@ class ISSite(object):
                     str_to_class(settings.AUTH_LOGOUT_VIEW).as_view(), name='logout'),
             )
 
-        if settings.AUTH_USE_TOKENS:
+        if settings.AUTH_USE_TOKENS and settings.AUTH_RESOURCE_CLASS:
             auth_resource_class = str_to_class(settings.AUTH_RESOURCE_CLASS)
             auth_resource_class.form_class = str_to_class(settings.AUTH_FORM_CLASS)
             pattern = RESTPattern('api-login', self.name, settings.LOGIN_API_URL[1:],

@@ -47,6 +47,7 @@ class SmartBoundField(BoundField):
 class ReadonlyBoundField(SmartBoundField):
 
     type = 'readonly'
+    is_readonly = True
 
     def __init__(self, form, field, name):
         from .fields import SmartReadonlyField
