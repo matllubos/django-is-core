@@ -6,21 +6,21 @@ from django.core.urlresolvers import reverse
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 from django.views.generic.base import TemplateView
-from django.utils.translation import ugettext
 
 from is_core.config import settings
-from is_core.utils import pretty_class_name
+from is_core.filters import UIFilterMixin
+from is_core.forms.widgets import AbstractDateRangeWidget, DateRangeWidget, DateTimeRangeWidget
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
-from is_core.filters import UIFilterMixin
+from is_core.utils import pretty_class_name
 
 from chamber.utils import get_class_method
 from chamber.utils.http import query_string_from_dict
 
+from pyston.filters.default_filters import NONE_LABEL
 from pyston.filters.exceptions import FilterIdentifierError
 from pyston.order.exceptions import OrderIdentifierError
 from pyston.serializer import get_resource_or_none
-from pyston.filters.default_filters import NONE_LABEL
 
 
 class FilterChoiceIterator(object):
@@ -127,7 +127,8 @@ class TableViewMixin(object):
                 widget = self._get_filter_widget(filter_obj, full_field_name)
                 operator = filter_obj.get_allowed_operators()[0].lower()
                 filter_term = '{}__{}'.format(full_field_name, operator)
-                return widget.render('filter__{}'.format(filter_term), None, attrs={'data-filter': filter_term})
+                name = 'filter__{}'.format(filter_term)
+                return widget.render(name, None, attrs={'data-filter': filter_term})
             except FilterIdentifierError:
                 pass
         return ''

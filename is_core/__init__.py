@@ -6,6 +6,7 @@ try:
     from django.core.exceptions import ImproperlyConfigured
     try:
         from django.db import models
+        from .filters.patch import *
         from .models.patch import *
         from .forms.patch import *
     except ImproperlyConfigured:

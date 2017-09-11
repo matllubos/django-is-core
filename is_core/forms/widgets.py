@@ -16,7 +16,7 @@ from django.utils.html import format_html, format_html_join, conditional_escape
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
-from django.forms.widgets import Widget
+from django.forms.widgets import Widget, MultiWidget, TextInput
 from django.forms.utils import flatatt
 from django.core.validators import EMPTY_VALUES
 from django.db.models.base import Model
@@ -373,3 +373,51 @@ class MultipleTextInput(forms.TextInput):
     def value_from_datadict(self, data, files, name):
         value = super(MultipleTextInput, self).value_from_datadict(data, files, name)
         return [v.strip() for v in value.split(self.separator)] if isinstance(value, six.string_types) else value
+
+
+class AbstractDateRangeWidget(MultiWidget):
+
+    def __init__(self):
+        class_from, class_to = self.get_range_classes()
+        super(AbstractDateRangeWidget, self).__init__(
+            (
+                TextInput(attrs={'class': class_from}),
+                TextInput(attrs={'class': class_to}),
+            )
+        )
+
+    def get_range_classes(self):
+        raise NotImplemented
+
+    def decompress(self, value):
+        return []
+
+
+class DateRangeWidget(AbstractDateRangeWidget):
+
+    def get_range_classes(self):
+        return 'date-range-from', 'date-range-to'
+
+
+class DateTimeRangeWidget(AbstractDateRangeWidget):
+
+    def get_range_classes(self):
+        return 'datetime-range-from', 'datetime-range-to'
+
+
+class FilterDateRangeWidgetMixin(object):
+
+    def render(self, name, value, attrs=None):
+        if attrs and 'data-filter' in attrs:
+            filter_term = attrs.pop('data-filter')
+            for widget, operator in zip(self.widgets, ('gte', 'lte')):
+                widget.attrs['data-filter'] = '{}__{}'.format(filter_term.rsplit('__', 1)[0], operator)
+        return super(FilterDateRangeWidgetMixin, self).render(name, value, attrs)
+
+
+class DateRangeFilterWidget(FilterDateRangeWidgetMixin, DateRangeWidget):
+    pass
+
+
+class DateTimeRangeFilterWidget(FilterDateRangeWidgetMixin, DateTimeRangeWidget):
+    pass

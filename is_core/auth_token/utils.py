@@ -86,6 +86,7 @@ def get_token(request):
 
     auth_token = (request.META.get(header_name_to_django(settings.AUTH_HEADER_NAME)) or
                   request.COOKIES.get(settings.AUTH_COOKIE_NAME))
+
     try:
         token = Token.objects.get(key=auth_token, is_active=True)
         if not token.is_expired:
