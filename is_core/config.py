@@ -34,6 +34,7 @@ DEFAULTS = {
     'AUTH_TOKEN_RENEWAL_EXEMPT_HEADER': 'X-Authorization-Renewal-Exempt',
     'AUTH_TOKEN_EXPIRATION_HEADER': 'X-Authorization-Expiration',
     'REST_DEFAULT_FIELDS_EXTENSION': ('_rest_links',),
+    'RESPONSE_EXCEPTION_FACTORY': 'is_core.exceptions.response.ui_rest_response_exception_factory',
 }
 
 
