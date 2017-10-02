@@ -410,7 +410,7 @@ class FilterDateRangeWidgetMixin(object):
     def render(self, name, value, attrs=None):
         if attrs and 'data-filter' in attrs:
             filter_term = attrs.pop('data-filter')
-            for widget, operator in zip(self.widgets, ('gte', 'lte')):
+            for widget, operator in zip(self.widgets, ('gte', 'lt')):
                 widget.attrs['data-filter'] = '{}__{}'.format(filter_term.rsplit('__', 1)[0], operator)
         return super(FilterDateRangeWidgetMixin, self).render(name, value, attrs)
 
