@@ -25,18 +25,18 @@ from pyston.serializer import get_resource_or_none
 
 class FilterChoiceIterator(object):
 
-    def __init__(self, choices, field):
+    def __init__(self, choices, field=None):
         self.choices = choices
         self.field = field
 
     def __iter__(self):
         yield ('', '')
 
-        if self.field.null or self.field.blank:
+        if self.field and (self.field.null or self.field.blank):
             yield ('__none__', NONE_LABEL)
 
         for k, v in self.choices:
-            if k:
+            if k is not None and k != '':
                 yield (k, v)
 
     def __len__(self):
@@ -78,7 +78,7 @@ class TableViewMixin(object):
 
     def _get_field_filter_widget(self, filter_obj, full_field_name, field):
         if filter_obj.choices:
-            return forms.Select(choices=filter_obj.choices)
+            return forms.Select(choices=FilterChoiceIterator(filter_obj.choices))
         else:
             formfield = field.formfield() if hasattr(field, 'formfield') else None
             if formfield:
@@ -93,13 +93,13 @@ class TableViewMixin(object):
 
     def _get_method_filter_widget(self, filter_obj, full_field_name, method):
         if filter_obj.choices:
-            return forms.Select(choices=filter_obj.choices)
+            return forms.Select(choices=FilterChoiceIterator(filter_obj.choices))
         else:
             return forms.TextInput()
 
     def _get_resource_filter_widget(self, filter_obj, full_field_name):
         if filter_obj.choices:
-            return forms.Select(choices=filter_obj.choices)
+            return forms.Select(choices=FilterChoiceIterator(filter_obj.choices))
         else:
             return forms.TextInput()
 
