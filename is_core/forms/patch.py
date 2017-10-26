@@ -1,11 +1,12 @@
 from __future__ import unicode_literals
 
 from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
-from django.forms.fields import ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField
+from django.forms.fields import (ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField,
+                                 NullBooleanField)
 
 from is_core.forms.utils import add_class_name
 from is_core.forms.widgets import (DragAndDropFileInput, DragAndDropImageInput, ReadonlyWidget, URLReadonlyWidget,
-                                   FileReadonlyWidget, MultipleSelect, Select)
+                                   FileReadonlyWidget, MultipleSelect, Select, NullBooleanReadonlyWidget)
 
 from .boundfield import SmartBoundField
 
@@ -44,3 +45,4 @@ Field.is_readonly = False
 Field.readonly_widget = ReadonlyWidget
 URLField.readonly_widget = URLReadonlyWidget
 FileField.readonly_widget = FileReadonlyWidget
+NullBooleanField.readonly_widget = NullBooleanReadonlyWidget

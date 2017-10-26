@@ -202,24 +202,24 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         return widget
 
     def _get_value(self, value):
+        widget = self._get_widget()
+        return dict(self.widget.choices).get(value, value) if widget and hasattr(widget, 'choices') else value
+
+    def _get_value_display(self, value):
         from is_core.utils import display_for_value
 
-        widget = self._get_widget()
-        if widget and hasattr(widget, 'choices'):
-            result = dict(self.widget.choices).get(value)
-        else:
-            result = value
+        value = self._get_value(value)
 
-        if result in EMPTY_VALUES:
-            result = EMPTY_VALUE
+        if value in EMPTY_VALUES:
+            value = EMPTY_VALUE
 
-        return display_for_value(result)
+        return display_for_value(value)
 
     def _render(self, name, value, attrs=None, choices=()):
         if isinstance(value, (list, tuple)):
-            out = ', '.join([self._get_value(val) for val in value])
+            out = ', '.join([self._get_value_display(val) for val in value])
         else:
-            out = self._get_value(value)
+            out = self._get_value_display(value)
         return mark_safe('<p>{}</p>'.format(conditional_escape(out)))
 
     def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
@@ -258,6 +258,19 @@ class ModelObjectReadonlyWidget(ReadonlyWidget):
         else:
             return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, value, initial_value, form,
                                                                         *args, **kwargs)
+
+
+class NullBooleanReadonlyWidget(ReadonlyWidget):
+
+    def _get_value(self, value):
+        return {
+            '2': True,
+            True: True,
+            'True': True,
+            '3': False,
+            'False': False,
+            False: False,
+        }.get(value)
 
 
 class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
