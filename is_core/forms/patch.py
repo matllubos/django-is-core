@@ -6,9 +6,7 @@ from django.forms.fields import (ImageField, FileField, Field, URLField, Multipl
 
 from is_core.forms.utils import add_class_name
 from is_core.forms.widgets import (DragAndDropFileInput, DragAndDropImageInput, ReadonlyWidget, URLReadonlyWidget,
-                                   FileReadonlyWidget, MultipleSelect, Select, NullBooleanReadonlyWidget)
-
-from .boundfield import SmartBoundField
+                                   FileReadonlyWidget, FulltextSelectMultiple, NullBooleanReadonlyWidget)
 
 
 def build_attrs(self, extra_attrs=None, **kwargs):
@@ -33,7 +31,7 @@ DateTimeInput.class_name = 'datetime'
 
 FileField.widget = DragAndDropFileInput
 ImageField.widget = DragAndDropImageInput
-MultipleChoiceField.widget = MultipleSelect
+MultipleChoiceField.widget = FulltextSelectMultiple
 
 try:
     from sorl.thumbnail.fields import ImageFormField
