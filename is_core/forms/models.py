@@ -89,17 +89,10 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
 
 class ModelChoiceFieldMixin(object):
 
-    widget = widgets.Select
-    too_much_entries_widget = None
+    widget = widgets.FulltextSelect
 
     def __init__(self, queryset, *args, **kwargs):
         self.model = queryset.model
-        try:
-            if ('widget' not in kwargs and self.too_much_entries_widget and
-                    queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
-                kwargs['widget'] = self.too_much_entries_widget()
-        except (ProgrammingError, OperationalError):
-            pass
         super(ModelChoiceFieldMixin, self).__init__(queryset, *args, **kwargs)
 
     def _get_choices(self):
@@ -120,9 +113,8 @@ class ModelChoiceFieldMixin(object):
 
 class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
 
-    widget = widgets.Select
+    widget = widgets.RestrictedSelectWidget
     readonly_widget = widgets.ModelChoiceReadonlyWidget
-    too_much_entries_widget = forms.TextInput
 
     def get_obj_from_value(self, value):
         return self.to_python(value)
@@ -130,9 +122,8 @@ class ModelChoiceField(ModelChoiceFieldMixin, forms.ModelChoiceField):
 
 class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceField):
 
-    widget = widgets.MultipleSelect
+    widget = widgets.RestrictedSelectMultipleWidget
     readonly_widget = widgets.ModelMultipleReadonlyWidget
-    too_much_entries_widget = widgets.MultipleTextInput
 
     def get_obj_from_value(self, value):
         return self.to_python([value])[0]

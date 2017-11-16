@@ -42,6 +42,9 @@ class FilterChoiceIterator(object):
     def __len__(self):
         return len(self.choices)
 
+    def __getattr__(self, name):
+        return getattr(self.choices, name)
+
 
 class Header(object):
 

@@ -26,9 +26,10 @@ try:
 except ImportError:
     default = None
 
+from is_core.config import settings
 from is_core.utils.compatibility import CompatibilitySelectMixin
 
-from .utils import ReadonlyValue
+from .utils import ReadonlyValue, add_class_name
 
 
 EMPTY_VALUE = '---'
@@ -102,13 +103,13 @@ class SelectMixin(CompatibilitySelectMixin):
         return '\n'.join(output)
 
 
-class Select(SelectMixin, forms.Select):
+class FulltextSelect(SelectMixin, forms.Select):
 
     class_name = 'fulltext-search'
     placeholder = _('Search...')
 
 
-class MultipleSelect(SelectMixin, forms.SelectMultiple):
+class FulltextSelectMultiple(SelectMixin, forms.SelectMultiple):
 
     class_name = 'fulltext-search-multiple'
     placeholder = _('Search...')
@@ -434,3 +435,44 @@ class DateRangeFilterWidget(FilterDateRangeWidgetMixin, DateRangeWidget):
 
 class DateTimeRangeFilterWidget(FilterDateRangeWidgetMixin, DateTimeRangeWidget):
     pass
+
+
+class RestictedSelectWidgetMixin(object):
+
+    select_class_name = None
+    select_class_placeholder = None
+
+    def render(self, name, value, attrs=None):
+        if (not hasattr(self.choices, 'queryset') or
+              self.choices.queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
+            if value is None:
+                value = ''
+            final_attrs = self.build_attrs(attrs, type='text', name=name)
+            if value != '':
+                # Only add the 'value' attribute if a value is non-empty.
+                final_attrs['value'] = force_text(self.format_value(value))
+            return format_html('<input{} />', flatatt(final_attrs))
+        else:
+            attrs = add_class_name(attrs, self.select_class_name)
+            attrs['placeholder'] = self.select_class_placeholder
+            return super(RestictedSelectWidgetMixin, self).render(name, value, attrs)
+
+
+class RestrictedSelectWidget(RestictedSelectWidgetMixin, forms.Select):
+
+    select_class_name = 'fulltext-search'
+    select_placeholder = _('Search...')
+
+
+class RestrictedSelectMultipleWidget(forms.SelectMultiple):
+
+    select_class_name = 'fulltext-search-multiple'
+    select_placeholder = _('Search...')
+
+    def __init__(self, attrs=None, separator=','):
+        super(RestrictedSelectMultipleWidget, self).__init__(attrs)
+        self.separator = separator
+
+    def value_from_datadict(self, data, files, name):
+        value = super(RestrictedSelectMultipleWidget, self).value_from_datadict(data, files, name)
+        return [v.strip() for v in value.split(self.separator)] if isinstance(value, six.string_types) else value
