@@ -5,11 +5,15 @@ import six
 import django.db.models.options as options
 
 from django.db import models
-from django.db.models.fields import Field, URLField
+from django.db.models.fields import Field, URLField, DateTimeField, DateField
 from django.db.models.fields.related import ForeignKey, ManyToManyField, ForeignObjectRel
 from django.utils.translation import ugettext_lazy as _
 
 from chamber.patch import Options
+
+from is_core.filters.default_filters import (
+    ISCoreDateRangeFilter, ISCoreDateTimeRangeFilter, ISCoreForeignObjectRelFilter, ISCoreManyToManyFieldFilter
+)
 
 from .humanize import url_humanized
 
@@ -85,3 +89,8 @@ ManyToManyField._rel_init_is_core_tmp = ManyToManyField.__init__
 ManyToManyField.__init__ = rel_field_init
 
 URLField.default_humanized = url_humanized
+
+DateField.default_filter = ISCoreDateRangeFilter
+DateTimeField.default_filter = ISCoreDateTimeRangeFilter
+ForeignObjectRel.default_filter = ISCoreForeignObjectRelFilter
+ManyToManyField.default_filter = ISCoreManyToManyFieldFilter
