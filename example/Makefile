@@ -41,6 +41,7 @@ cleanjs:
 cleanall: cleanvar
 
 pip:
+	$(PYTHON_BIN)/pip install -r requirements/local.txt
 	$(PYTHON_BIN)/pip install -r requirements/dependency_base.txt
 	$(PYTHON_BIN)/pip install -r requirements/base.txt
 
