@@ -3,6 +3,8 @@
 OPENHTML := open
 
 pip:
+    ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future $(PYTHON_BIN)/pip \
+    install -r requirements/local.txt
 	iARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future $(PYTHON_BIN)/pip \
 	install -r requirements/dependency_base.txt
 	ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future $(PYTHON_BIN)/pip \
