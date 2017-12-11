@@ -61,7 +61,6 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         return formset_has_file_field(form)
 
     def get_form(self, form_class=None):
-
         if form_class is None:
             form_class = self.get_form_class()
         form = form_class(**self.get_form_kwargs())
@@ -580,6 +579,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
 
 class AddModelFormView(DefaultCoreModelFormView):
+
     template_name = 'generic_views/add_form.html'
     form_template = 'forms/model_add_form.html'
     view_type = 'add'
@@ -596,6 +596,7 @@ class AddModelFormView(DefaultCoreModelFormView):
 
 
 class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
+
     template_name = 'generic_views/edit_form.html'
     form_template = 'forms/model_edit_form.html'
     view_type = 'edit'
@@ -650,6 +651,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
 
 
 class DetailModelFormView(EditModelFormView):
+
     show_save_and_continue = False
 
     def has_post_permission(self, **kwargs):
@@ -660,10 +662,11 @@ class DetailModelFormView(EditModelFormView):
 
 
 class BulkChangeFormView(DefaultModelFormView):
+
     form_template = 'views/bulk-change-view.html'
     is_ajax_form = False
 
-    def get_form_class(self):
+    def get_form_class_base(self):
         return self.form_class or self.core.get_rest_form_edit_class(self.request)
 
     def dispatch(self, request, *args, **kwargs):
