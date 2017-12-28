@@ -8,7 +8,7 @@ from django.forms.forms import pretty_name
 from django.views.generic.base import TemplateView
 
 from is_core.config import settings
-from is_core.filters import UIFilterMixin
+from is_core.filters import UIFilterMixin, FilterChoiceIterator
 from is_core.forms.widgets import AbstractDateRangeWidget, DateRangeWidget, DateTimeRangeWidget
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
@@ -21,29 +21,6 @@ from pyston.filters.default_filters import NONE_LABEL
 from pyston.filters.exceptions import FilterIdentifierError
 from pyston.order.exceptions import OrderIdentifierError
 from pyston.serializer import get_resource_or_none
-
-
-class FilterChoiceIterator(object):
-
-    def __init__(self, choices, field=None):
-        self.choices = choices
-        self.field = field
-
-    def __iter__(self):
-        yield ('', '')
-
-        if self.field and (self.field.null or self.field.blank):
-            yield ('__none__', NONE_LABEL)
-
-        for k, v in self.choices:
-            if k is not None and k != '':
-                yield (k, v)
-
-    def __len__(self):
-        return len(self.choices)
-
-    def __getattr__(self, name):
-        return getattr(self.choices, name)
 
 
 class Header(object):
@@ -116,6 +93,12 @@ class TableViewMixin(object):
         else:
             return self._get_resource_filter_widget(filter_obj, full_field_name)
 
+    def _get_filter_operator_string(self, filter_obj, widget):
+        if isinstance(filter_obj, UIFilterMixin):
+            return filter_obj.get_operator(widget).lower()
+        else:
+            return filter_obj.get_allowed_operators()[0].lower()
+
     def _get_filter(self, full_field_name):
         resource = self.get_resource()
         if resource:
@@ -128,7 +111,7 @@ class TableViewMixin(object):
                         full_field_name, filter_obj.field.related_model._ui_meta.default_ui_filter_by)
                     )
                 widget = self._get_filter_widget(filter_obj, full_field_name)
-                operator = filter_obj.get_allowed_operators()[0].lower()
+                operator = self._get_filter_operator_string(filter_obj, widget)
                 filter_term = '{}__{}'.format(full_field_name, operator)
                 name = 'filter__{}'.format(filter_term)
                 return widget.render(name, None, attrs={'data-filter': filter_term})
