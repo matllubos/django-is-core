@@ -11,6 +11,7 @@ from itertools import chain
 import django
 from django import forms
 from django.utils.encoding import force_text
+from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html, format_html_join, conditional_escape
 from django.utils.translation import ugettext_lazy as _
@@ -437,14 +438,24 @@ class DateTimeRangeFilterWidget(FilterDateRangeWidgetMixin, DateTimeRangeWidget)
     pass
 
 
-class RestictedSelectWidgetMixin(object):
+class RestrictedSelectWidgetMixin(object):
 
     select_class_name = None
     select_class_placeholder = None
 
+    @cached_property
+    def is_restricted(self):
+        """
+        Returns True or False according to number of objects in queryset.
+        If queryset contains too much objects the widget will be restricted and won't be used select box with choices.
+        """
+        return (
+            not hasattr(self.choices, 'queryset') or
+            self.choices.queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES
+        )
+
     def render(self, name, value, attrs=None):
-        if (not hasattr(self.choices, 'queryset') or
-              self.choices.queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES):
+        if self.is_restricted:
             if value is None:
                 value = ''
             final_attrs = self.build_attrs(attrs, type='text', name=name)
@@ -458,13 +469,13 @@ class RestictedSelectWidgetMixin(object):
             return super(RestictedSelectWidgetMixin, self).render(name, value, attrs)
 
 
-class RestrictedSelectWidget(RestictedSelectWidgetMixin, forms.Select):
+class RestrictedSelectWidget(RestrictedSelectWidgetMixin, forms.Select):
 
     select_class_name = 'fulltext-search'
     select_placeholder = _('Search...')
 
 
-class RestrictedSelectMultipleWidget(forms.SelectMultiple):
+class RestrictedSelectMultipleWidget(RestrictedSelectWidgetMixin, forms.SelectMultiple):
 
     select_class_name = 'fulltext-search-multiple'
     select_placeholder = _('Search...')
