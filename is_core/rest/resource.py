@@ -7,6 +7,8 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext
 from django.utils.encoding import force_text
 
+from pyston.conf import settings as pyston_settings
+from pyston.forms import rest_modelform_factory
 from pyston.exception import (RESTException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
                               ConflictException, DataInvalidException)
@@ -395,7 +397,10 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
         fields = self._get_form_fields(inst)
         if hasattr(form_class, '_meta') and form_class._meta.exclude:
             exclude.extend(form_class._meta.exclude)
-        return smartmodelform_factory(self.model, self.request, form=form_class, exclude=exclude, fields=fields,
+        return rest_modelform_factory(self.model, form=form_class, form_factory=smartmodelform_factory,
+                                      auto_related_direct_fields=pyston_settings.AUTO_RELATED_DIRECT_FIELDS,
+                                      auto_related_reverse_fields=pyston_settings.AUTO_RELATED_REVERSE_FIELDS,
+                                      request=self.request, exclude=exclude, fields=fields,
                                       labels=self._get_field_labels())
 
     def put(self):
