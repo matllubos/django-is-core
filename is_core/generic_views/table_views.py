@@ -19,6 +19,7 @@ from chamber.utils.http import query_string_from_dict
 
 from pyston.filters.default_filters import NONE_LABEL
 from pyston.filters.exceptions import FilterIdentifierError
+from pyston.order.utils import DIRECTION
 from pyston.order.exceptions import OrderIdentifierError
 from pyston.serializer import get_resource_or_none
 
@@ -123,7 +124,7 @@ class TableViewMixin(object):
         resource = self.get_resource()
         if resource:
             try:
-                resource.order_manager.get_order_string(full_field_name.split('__'), resource, self.request)
+                resource.order_manager.get_sorter(full_field_name.split('__'), DIRECTION.ASC, resource, self.request)
                 return full_field_name
             except OrderIdentifierError:
                 return False
