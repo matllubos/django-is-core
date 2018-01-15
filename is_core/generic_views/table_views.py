@@ -193,7 +193,8 @@ class TableViewMixin(object):
 
     def _generate_rest_fieldset(self):
         return ModelRESTFieldset.create_from_flat_list(
-            list(self._get_list_display_extra()) + list(self._get_list_display()), self.model
+            list(self._get_list_display_extra()) + list(self._get_list_display()),
+            self.model
         )
 
     def _generate_rest_export_fieldset(self):

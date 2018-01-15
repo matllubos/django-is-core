@@ -583,7 +583,8 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     def get_rest_extra_fields(self, request, obj=None):
         return (
             super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj) +
-            self.get_list_display(request) +
+            list(self.get_list_display(request)) +
+            list(self.get_export_display(request)) +
             list(self.ui_rest_extra_fields)
         )
 
