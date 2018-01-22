@@ -10,7 +10,7 @@ from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
 from django.utils import six
 
-from pyston.forms import RESTModelForm
+from pyston.forms import RESTModelForm, RESTFormMetaclass
 
 from is_core.config import settings
 from is_core.forms import widgets
@@ -129,7 +129,7 @@ class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceF
         return self.to_python([value])[0]
 
 
-class SmartModelFormMetaclass(ModelFormMetaclass):
+class SmartModelFormMetaclass(RESTFormMetaclass):
 
     def __new__(cls, name, bases, attrs):
         new_class = super(SmartModelFormMetaclass, cls).__new__(cls, name, bases, attrs)
@@ -220,31 +220,6 @@ class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin,
             if field in self.readonly_fields and field not in exclude:
                 exclude.append(field)
         return exclude
-
-    def _pre_save(self, obj):
-        pass
-
-    def _post_save(self, obj):
-        pass
-
-    def _set_post_save(self, commit, obj):
-        if commit:
-            self._post_save(obj)
-        else:
-            self.old_save_m2m = self.save_m2m
-
-            def post_save_m2m():
-                self.old_save_m2m()
-                self._post_save(obj)
-            self.save_m2m = post_save_m2m
-
-    def save(self, commit=True):
-        obj = super(SmartModelForm, self).save(commit=False)
-        self._pre_save(obj)
-        if commit:
-            obj.save()
-        self._set_post_save(commit, obj)
-        return obj
 
 
 def get_model_fields(model, fields):
