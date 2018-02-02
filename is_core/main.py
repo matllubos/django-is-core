@@ -114,7 +114,7 @@ class ModelISCore(ISCore):
     form_edit_class = None
     form_add_class = None
 
-    ordering = None
+    default_ordering = None
 
     field_labels = {}
 
@@ -173,11 +173,11 @@ class ModelISCore(ISCore):
         except (ValidationError, ValueError):
             raise Http404
 
-    def get_ordering(self):
-        return self.model._meta.ordering or ('pk',)
+    def get_default_ordering(self):
+        return self.default_ordering if self.default_ordering is not None else (self.model._meta.ordering or ('pk',))
 
     def get_queryset(self, request):
-        return self.model._default_manager.get_queryset().order_by(*self.get_ordering())
+        return self.model._default_manager.get_queryset().order_by(*self.get_default_ordering())
 
     def preload_queryset(self, request, qs):
         return qs
