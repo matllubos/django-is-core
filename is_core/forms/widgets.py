@@ -454,6 +454,9 @@ class RestrictedSelectWidgetMixin(object):
             self.choices.queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES
         )
 
+    def format_value(self, value):
+        return force_text(value)
+
     def render(self, name, value, attrs=None):
         if self.is_restricted:
             if value is None:
@@ -461,7 +464,7 @@ class RestrictedSelectWidgetMixin(object):
             final_attrs = self.build_attrs(attrs, type='text', name=name)
             if value != '':
                 # Only add the 'value' attribute if a value is non-empty.
-                final_attrs['value'] = force_text(self.format_value(value))
+                final_attrs['value'] = self.format_value(value)
             return format_html('<input{} />', flatatt(final_attrs))
         else:
             attrs = add_class_name(attrs, self.select_class_name)
@@ -484,6 +487,16 @@ class RestrictedSelectMultipleWidget(RestrictedSelectWidgetMixin, forms.SelectMu
         super(RestrictedSelectMultipleWidget, self).__init__(attrs)
         self.separator = separator
 
+    def format_value(self, value):
+        return (
+            self.separator.join([super(RestrictedSelectMultipleWidget, self).format_value(v) for v in value])
+            if isinstance(value, (list, tuple))
+            else super(RestrictedSelectMultipleWidget, self).format_value(value)
+        )
+
     def value_from_datadict(self, data, files, name):
-        value = super(RestrictedSelectMultipleWidget, self).value_from_datadict(data, files, name)
-        return [v.strip() for v in value.split(self.separator)] if isinstance(value, six.string_types) else value
+        if self.is_restricted:
+            value = data.get(name)
+            return [v.strip() for v in value.split(self.separator)] if isinstance(value, six.string_types) else value
+        else:
+            return super(RestrictedSelectMultipleWidget, self).value_from_datadict(data, files, name)
