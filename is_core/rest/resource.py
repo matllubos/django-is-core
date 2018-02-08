@@ -429,7 +429,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
 
     def _update_obj(self, obj, data):
         try:
-            return (self._create_or_update(merge(data, {self.pk_field_name: obj.pk})), None)
+            return (self._create_or_update(merge(data, {self.pk_field_name: obj.pk}), partial_update=True), None)
         except DataInvalidException as ex:
             return (None, self._format_message(obj, ex))
         except (ConflictException, NotAllowedException):
@@ -438,12 +438,12 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
             return (None, self._format_message(obj, ex))
 
     def _extract_message(self, ex):
-        return '\n'.join(ex.errors.values()) if hasattr(ex, 'errors') else ex.message
+        return '\n'.join([force_text(v) for v in ex.errors.values()]) if hasattr(ex, 'errors') else ex.message
 
     def _format_message(self, obj, ex):
         return {
             'id': obj.pk,
-            'errors': {k: mark_safe(v) for k, v in ex.errors.items()} if hasattr(ex, 'errors') else {},
+            'errors': {k: mark_safe(force_text(v)) for k, v in ex.errors.items()} if hasattr(ex, 'errors') else {},
             '_obj_name': mark_safe(''.join(('#', str(obj.pk), ' ', self._extract_message(ex)))),
         }
 
