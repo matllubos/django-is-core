@@ -7,6 +7,8 @@ from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 from django.views.generic.base import TemplateView
 
+from pyston.filters.default_filters import OPERATORS
+
 from is_core.config import settings
 from is_core.filters import UIFilterMixin, FilterChoiceIterator
 from is_core.forms.widgets import AbstractDateRangeWidget, DateRangeWidget, DateTimeRangeWidget
@@ -95,10 +97,14 @@ class TableViewMixin(object):
             return self._get_resource_filter_widget(filter_obj, full_field_name)
 
     def _get_filter_operator_string(self, filter_obj, widget):
+        allowed_operators = filter_obj.get_allowed_operators()
+
         if isinstance(filter_obj, UIFilterMixin):
             return filter_obj.get_operator(widget).lower()
+        if hasattr(widget, 'choices') and OPERATORS.EQ in allowed_operators:
+            return OPERATORS.EQ
         else:
-            return filter_obj.get_allowed_operators()[0].lower()
+            return allowed_operators[0].lower()
 
     def _get_filter(self, full_field_name):
         resource = self.get_resource()
