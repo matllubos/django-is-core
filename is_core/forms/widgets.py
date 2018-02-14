@@ -475,13 +475,13 @@ class RestrictedSelectWidgetMixin(object):
 class RestrictedSelectWidget(RestrictedSelectWidgetMixin, forms.Select):
 
     select_class_name = 'fulltext-search'
-    select_placeholder = _('Search...')
+    select_class_placeholder = _('Search...')
 
 
 class RestrictedSelectMultipleWidget(RestrictedSelectWidgetMixin, forms.SelectMultiple):
 
     select_class_name = 'fulltext-search-multiple'
-    select_placeholder = _('Search...')
+    select_class_placeholder = _('Search...')
 
     def __init__(self, attrs=None, separator=','):
         super(RestrictedSelectMultipleWidget, self).__init__(attrs)
