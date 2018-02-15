@@ -73,9 +73,17 @@
                 {% endif %}
             {% endblock %}
 
-            {% if enable_bulk_change %}
-            <span class="btn btn-primary" id="bulk-change-{{ table_slug }}" data-form-snippet="{{ bulk_change_snippet_name }}" data-form-url="{{ bulk_change_form_url }}" data-api-url="{{ api_url }}">{% trans 'Bulk change' %}</span>
-            {% endif %}
+            {% block bulk-change %}
+                {% if enable_bulk_change %}
+                <span class="btn btn-primary"
+                      id="bulk-change-{{ table_slug }}"
+                      data-form-snippet="{{ bulk_change_snippet_name }}"
+                      data-form-url="{{ bulk_change_form_url }}"
+                      data-api-url="{{ api_url }}"
+                      data-bulk-error-message="{% trans 'Please fix errors for following objects: %s' %}"
+                      >{% trans 'Bulk change' %}</span>
+                {% endif %}
+            {% endblock %}
 
             {% block table %}
             <table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}"{% if enable_columns_manager %} data-columns-manager="columns-manager-{{ table_slug }}"{% endif %}{% if enable_bulk_change %} data-bulk-change="bulk-change-{{ table_slug }}" data-row-selectable="true"{% endif %} id="table-{{ table_slug }}" {% block table-attributes %}{% endblock %}>
