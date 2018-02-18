@@ -233,7 +233,7 @@ def get_model_fields(model, fields):
 def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, readonly_fields=None, exclude=None,
                            formfield_callback=None, widgets=None, localized_fields=None, required_fields=None,
                            labels=None, help_texts=None, error_messages=None, formreadonlyfield_callback=None,
-                           readonly=False, fields_to_clean=None):
+                           readonly=False, fields_to_clean=None, is_bulk=False):
     attrs = {'model': model}
     if fields is not None:
         model_fields = get_model_fields(model, fields)
@@ -259,6 +259,7 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
     if fields_to_clean is not None:
         attrs['fields_to_clean'] = fields_to_clean
     attrs['readonly'] = readonly
+    attrs['is_bulk'] = is_bulk
     # If parent form class already has an inner Meta, the Meta we're
     # creating needs to inherit from the parent's inner meta.
     parent = (object,)

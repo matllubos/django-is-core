@@ -353,6 +353,9 @@ class DefaultModelFormView(DefaultFormView):
     def get_form_class_base(self):
         return self.form_class or SmartModelForm
 
+    def get_is_bulk(self):
+        return False
+
     def generate_form_class(self, fields=None, readonly_fields=()):
         form_class = self.get_form_class_base()
         exclude = list(self.get_exclude())
@@ -363,7 +366,7 @@ class DefaultModelFormView(DefaultFormView):
                                       readonly_fields=readonly_fields,
                                       formreadonlyfield_callback=self.formfield_for_readonlyfield,
                                       readonly=not self.has_post_permission(),
-                                      labels=self._get_field_labels())
+                                      labels=self._get_field_labels(), is_bulk=self.get_is_bulk())
 
     def update_form_initial(self, form):
         # Only new instance can get data from request queryset
@@ -688,3 +691,6 @@ class BulkChangeFormView(DefaultModelFormView):
 
     def get_readonly_fields(self):
         return ()
+
+    def get_is_bulk(self):
+        return True
