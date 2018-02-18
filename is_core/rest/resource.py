@@ -444,7 +444,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
         return {
             'id': obj.pk,
             'errors': {k: mark_safe(force_text(v)) for k, v in ex.errors.items()} if hasattr(ex, 'errors') else {},
-            '_obj_name': mark_safe(''.join(('#', str(obj.pk), ' ', self._extract_message(ex)))),
+            '_obj_name': force_text(obj),
         }
 
 
