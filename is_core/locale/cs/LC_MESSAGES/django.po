@@ -346,3 +346,7 @@ msgstr "Neplatný Csrf Token"
 #: views/throttling.py:8
 msgid "Too Many Requests"
 msgstr "Příliš mnoho požadavků"
+
+#, python-format
+msgid "Please fix errors for following objects: %%s"
+msgstr "Prosím opravte chyby následujících objektů: %%s"
