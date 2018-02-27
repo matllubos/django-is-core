@@ -678,10 +678,7 @@ class BulkChangeFormView(DefaultModelFormView):
         return super(BulkChangeFormView, self).dispatch(request, *args, **kwargs)
 
     def get_fields(self):
-        return (
-            (self.core.bulk_change_fields if hasattr(self.core, 'bulk_change_fields') else ())
-            if self.fields is None else self.fields
-        )
+        return self.core.get_bulk_change_fields(self.request) if self.fields is None else self.fields
 
     def get_fieldsets(self):
         return (
