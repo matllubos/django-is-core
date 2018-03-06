@@ -401,6 +401,9 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_bulk_change_url_name(self):
         return self.bulk_change_url_name
 
+    def get_bulk_change_fields(self, request):
+        return getattr(self, 'bulk_change_fields', ())
+
     def get_urls(self):
         return self.get_urlpatterns(self.ui_patterns)
 
