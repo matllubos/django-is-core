@@ -1,7 +1,7 @@
 from is_core.tests.factory.fields import delete_test_files
 
 
-class DataGeneratorTestCase(object):
+class DataGeneratorTestCase:
 
     factories = {}
 

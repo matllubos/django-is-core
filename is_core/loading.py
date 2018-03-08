@@ -1,5 +1,3 @@
-import six
-
 from collections import OrderedDict
 
 from importlib import import_module
@@ -9,7 +7,7 @@ from django.utils.encoding import force_text
 from django.apps import apps
 
 
-class App(object):
+class App:
 
     def __init__(self):
         self.cores = []
@@ -19,7 +17,7 @@ class App(object):
             self.cores.append(core)
 
 
-class CoresLoader(object):
+class CoresLoader:
 
     def __init__(self):
         self.apps = OrderedDict()
@@ -36,8 +34,7 @@ class CoresLoader(object):
             try:
                 import_module('{}.cores'.format(app.name))
             except ImportError as ex:
-                if ((six.PY2 and force_text(ex) != 'No module named cores') or
-                        (six.PY3 and force_text(ex) != 'No module named \'{}.cores\''.format(app.name))):
+                if force_text(ex) != 'No module named \'{}.cores\''.format(app.name):
                     raise ex
 
     def get_cores(self):

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from is_core.auth_token.default.resource import AuthResource as DefaultAuthResource
 from is_core.auth_token.auth_security import LOGIN_THROTTLING_VALIDATORS
 

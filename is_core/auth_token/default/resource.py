@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.utils.translation import ugettext
 
 from pyston.response import RESTErrorResponse, RESTNoContentResponse
@@ -45,7 +43,7 @@ class AuthResource(RESTResource):
         return {'token': self.request.token.key, 'user': form.get_user()}
 
     def delete(self):
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             logout(self.request)
         return RESTNoContentResponse()
 
@@ -56,5 +54,5 @@ class AuthResource(RESTResource):
 
     def has_delete_permission(self, **kwargs):
         return (
-            self.request.user.is_authenticated() and super(AuthResource, self).has_delete_permission(**kwargs)
+            self.request.user.is_authenticated and super(AuthResource, self).has_delete_permission(**kwargs)
         )

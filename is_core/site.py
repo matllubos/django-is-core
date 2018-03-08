@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from collections import OrderedDict
 
 from django.conf.urls import url, include
@@ -35,11 +33,10 @@ def get_model_core(model):
     return registered_model_cores.get(model_label)
 
 
-class ISSite(object):
+class ISSite:
 
     def __init__(self, name='IS'):
         self.name = name
-        self.app_name = name
         sites[name] = self
         self._registry = self._init_items()
 
@@ -62,7 +59,7 @@ class ISSite(object):
 
     @property
     def urls(self):
-        return self.get_urls(), self.app_name, self.name
+        return self.get_urls(), self.name
 
     def _set_items_urls(self, items, urlpatterns):
         for item in items:

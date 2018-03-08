@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-
 from django.conf import settings
-from django.core.urlresolvers import NoReverseMatch
 from django.http.response import Http404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext
@@ -27,9 +24,10 @@ from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUn
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
 from is_core.utils.immutable import merge
+from is_core.utils.compatibility import NoReverseMatch
 
 
-class RESTLoginMixin(object):
+class RESTLoginMixin:
 
     login_required = True
     login_post_required = True
@@ -62,31 +60,31 @@ class RESTLoginMixin(object):
         return self.login_required and self.login_options_required and not self._is_cors_options_request()
 
     def has_get_permission(self, **kwargs):
-        return ((not self.has_login_get_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_get_required() or self.request.user.is_authenticated) and
                 super(RESTLoginMixin, self).has_get_permission(**kwargs))
 
     def has_post_permission(self, **kwargs):
-        return ((not self.has_login_post_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_post_required() or self.request.user.is_authenticated) and
                 super(RESTLoginMixin, self).has_post_permission(**kwargs))
 
     def has_put_permission(self, **kwargs):
-        return ((not self.has_login_put_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_put_required() or self.request.user.is_authenticated) and
                 super(RESTLoginMixin, self).has_put_permission(**kwargs))
 
     def has_patch_permission(self, **kwargs):
-        return ((not self.has_login_patch_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_patch_required() or self.request.user.is_authenticated) and
                 super(RESTLoginMixin, self).has_patch_permission(**kwargs))
 
     def has_delete_permission(self, **kwargs):
-        return ((not self.has_login_delete_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_delete_required() or self.request.user.is_authenticated) and
                 super(RESTLoginMixin, self).has_delete_permission(**kwargs))
 
     def has_options_permission(self, **kwargs):
-        return ((not self.has_login_options_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_options_required() or self.request.user.is_authenticated) and
                 super(RESTLoginMixin, self).has_options_permission(**kwargs))
 
     def dispatch(self, request, *args, **kwargs):
-        if ((not hasattr(request, 'user') or not request.user or not request.user.is_authenticated()) and
+        if ((not hasattr(request, 'user') or not request.user or not request.user.is_authenticated) and
                 getattr(self, 'has_login_{}_required'.format(request.method.lower()))()):
             raise HTTPUnauthorizedResponseException
         else:
@@ -118,23 +116,23 @@ class RESTObjectLoginMixin(RESTLoginMixin):
         return self.login_required and self.login_delete_obj_required
 
     def has_create_obj_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_create_obj_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_create_obj_required() or self.request.user.is_authenticated) and
                 super(RESTObjectLoginMixin, self).has_create_obj_permission(obj=obj, **kwargs))
 
     def has_update_obj_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_update_obj_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_update_obj_required() or self.request.user.is_authenticated) and
                 super(RESTObjectLoginMixin, self).has_update_obj_permission(obj=obj, **kwargs))
 
     def has_delete_obj_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_delete_obj_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_delete_obj_required() or self.request.user.is_authenticated) and
                 super(RESTObjectLoginMixin, self).has_delete_obj_permission(obj=obj, **kwargs))
 
     def has_read_obj_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_read_obj_required() or self.request.user.is_authenticated()) and
+        return ((not self.has_login_read_obj_required() or self.request.user.is_authenticated) and
                 super(RESTObjectLoginMixin, self).has_read_obj_permission(obj=obj, **kwargs))
 
 
-class RESTResourceMixin(object):
+class RESTResourceMixin:
 
     register = False
     abstract = True

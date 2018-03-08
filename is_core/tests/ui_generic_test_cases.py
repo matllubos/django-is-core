@@ -1,4 +1,3 @@
-from django.core.urlresolvers import reverse
 from django.urls.resolvers import get_resolver
 
 from germanium.test_cases.client import ClientTestCase
@@ -6,6 +5,7 @@ from germanium.annotations import login_all, data_provider
 from germanium.tools.http import assert_http_ok
 
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
+from is_core.utils.compatibility import reverse
 
 
 class ModelUITestCaseMiddleware(DataGeneratorTestCase):

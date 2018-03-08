@@ -1,7 +1,7 @@
 from django.forms.formsets import DEFAULT_MAX_NUM, BaseFormSet as OriginBaseFormSet
 
 
-class BaseFormSetMixin(object):
+class BaseFormSetMixin:
     """
     Mixin that add method all_forms which return existing forms and empty form in one list
     """

@@ -1,7 +1,7 @@
 from pyston.filters.default_filters import NONE_LABEL
 
 
-class FilterChoiceIterator(object):
+class FilterChoiceIterator:
     """
     Filter iterator surrounds default model iterator, removes blank values and adds possibilities
     to remove filtered value (blank) and filter according to "None" value.
@@ -28,7 +28,7 @@ class FilterChoiceIterator(object):
         return getattr(self.choices, name)
 
 
-class UIFilterMixin(object):
+class UIFilterMixin:
     """
     Special mixin for improve Pyston filters. There can be defined UI appearance (widget) and used operator.
     """

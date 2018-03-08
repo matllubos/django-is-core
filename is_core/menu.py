@@ -3,7 +3,7 @@ from copy import deepcopy
 from django.utils.encoding import python_2_unicode_compatible
 
 
-class MenuItem(object):
+class MenuItem:
 
     def __init__(self, title, collapsible, group, active=False, submenu_items=[]):
         self.title = title
@@ -31,7 +31,7 @@ class CollapsibleMenuItem(MenuItem):
         self.url = url
 
 
-class MenuGenerator(object):
+class MenuGenerator:
 
     default_menu_item_class = LinkMenuItem
 

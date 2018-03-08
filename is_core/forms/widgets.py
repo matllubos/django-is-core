@@ -1,8 +1,4 @@
-from __future__ import unicode_literals
-
 import os
-
-import six
 
 from distutils.version import StrictVersion
 
@@ -28,7 +24,7 @@ except ImportError:
     default = None
 
 from is_core.config import settings
-from is_core.utils.compatibility import CompatibilitySelectMixin
+from is_core.utils.compatibility import CompatibilitySelectMixin, CompatibilityWidgetMixin
 
 from .utils import ReadonlyValue, add_class_name
 
@@ -53,9 +49,9 @@ class WrapperWidget(forms.Widget):
     def attrs(self):
         return self.widget.attrs
 
-    def build_attrs(self, extra_attrs=None, **kwargs):
+    def build_attrs(self, *args, **kwargs):
         "Helper function for building an attribute dictionary."
-        self.attrs = self.widget.build_attrs(extra_attrs=None, **kwargs)
+        self.attrs = self.widget.build_attrs(*args, **kwargs)
         return self.attrs
 
     def value_from_datadict(self, data, files, name):
@@ -185,7 +181,7 @@ class DragAndDropImageInput(DragAndDropFileInput):
         return '<img src="%s" alt="%s">' % (thumbnail.url, thumbnail.name)
 
 
-class SmartWidgetMixin(object):
+class SmartWidgetMixin:
 
     def smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
         return self.render(name, value, *args, **kwargs)
@@ -353,19 +349,19 @@ class EmptyWidget(ReadonlyWidget):
         return ''
 
 
-class ButtonWidget(ReadonlyWidget):
+class ButtonWidget(CompatibilityWidgetMixin, ReadonlyWidget):
 
     def _render(self, name, value, attrs=None, *args, **kwargs):
-        final_attrs = self.build_attrs(attrs, name=name)
+        final_attrs = self.build_attrs(self.attrs, attrs, name=name)
 
         return format_html('<button %(attrs)s>%(value)s</button>' %
                            {'value': value, 'attrs': flatatt(final_attrs)})
 
 
-class DivButtonWidget(ReadonlyWidget):
+class DivButtonWidget(CompatibilityWidgetMixin, ReadonlyWidget):
 
     def _render(self, name, value, attrs=None, *args, **kwargs):
-        final_attrs = self.build_attrs(attrs)
+        final_attrs = self.build_attrs(self.attrs, attrs)
         class_name = final_attrs.pop('class', '')
         return format_html('<div class="%(class_name)s btn btn-primary btn-small" '
                            '%(attrs)s>%(value)s</div>' %
@@ -379,7 +375,7 @@ class MultipleTextInput(forms.TextInput):
         self.separator = separator
 
     def render(self, name, value, attrs=None):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = [value]
         return super(MultipleTextInput, self).render(
             name, '{} '.format(self.separator).join(map(force_text, value)) if value else value, attrs
@@ -387,7 +383,7 @@ class MultipleTextInput(forms.TextInput):
 
     def value_from_datadict(self, data, files, name):
         value = super(MultipleTextInput, self).value_from_datadict(data, files, name)
-        return [v.strip() for v in value.split(self.separator)] if isinstance(value, six.string_types) else value
+        return [v.strip() for v in value.split(self.separator)] if isinstance(value, str) else value
 
 
 class AbstractDateRangeWidget(MultiWidget):
@@ -420,7 +416,7 @@ class DateTimeRangeWidget(AbstractDateRangeWidget):
         return 'datetime-range-from', 'datetime-range-to'
 
 
-class FilterDateRangeWidgetMixin(object):
+class FilterDateRangeWidgetMixin:
 
     def render(self, name, value, attrs=None):
         if attrs and 'data-filter' in attrs:
@@ -438,7 +434,7 @@ class DateTimeRangeFilterWidget(FilterDateRangeWidgetMixin, DateTimeRangeWidget)
     pass
 
 
-class RestrictedSelectWidgetMixin(object):
+class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
 
     select_class_name = None
     select_class_placeholder = None
@@ -461,7 +457,7 @@ class RestrictedSelectWidgetMixin(object):
         if self.is_restricted:
             if value is None:
                 value = ''
-            final_attrs = self.build_attrs(attrs, type='text', name=name)
+            final_attrs = self.build_attrs(self.attrs, attrs, type='text', name=name)
             if value != '':
                 # Only add the 'value' attribute if a value is non-empty.
                 final_attrs['value'] = self.format_value(value)
@@ -497,6 +493,6 @@ class RestrictedSelectMultipleWidget(RestrictedSelectWidgetMixin, forms.SelectMu
     def value_from_datadict(self, data, files, name):
         if self.is_restricted:
             value = data.get(name)
-            return [v.strip() for v in value.split(self.separator)] if isinstance(value, six.string_types) else value
+            return [v.strip() for v in value.split(self.separator)] if isinstance(value, str) else value
         else:
             return super(RestrictedSelectMultipleWidget, self).value_from_datadict(data, files, name)

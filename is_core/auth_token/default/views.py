@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.http.response import HttpResponseRedirect
 from django.views.generic.base import RedirectView
 
@@ -19,7 +17,7 @@ class TokenLoginView(LoginView):
         login(self.request, user, expiration)
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user and request.user.is_authenticated():
+        if request.user and request.user.is_authenticated:
             return HttpResponseRedirect(self.get_success_url())
         return super(TokenLoginView, self).dispatch(request, *args, **kwargs)
 
@@ -36,7 +34,7 @@ class TokenLoginView(LoginView):
 class TokenLogoutView(LogoutView):
 
     def get(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             logout(self.request)
         return super(LogoutView, self).get(*args, **kwargs)
 
@@ -53,4 +51,3 @@ class UserTakeover(GetCoreObjViewMixin, DefaultCoreViewMixin, RedirectView):
 
     def has_get_permission(self, *args, **kwargs):
         return self.request.user.is_superuser
-

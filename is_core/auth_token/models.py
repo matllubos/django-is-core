@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import os, binascii
 
 from datetime import timedelta
@@ -9,7 +7,7 @@ from django.db import models
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible, force_text
+from django.utils.encoding import force_text
 
 try:
     from django.contrib.contenttypes.fields import GenericForeignKey
@@ -23,14 +21,14 @@ from is_core.config import settings
 AUTH_USER_MODEL = getattr(django_settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
-@python_2_unicode_compatible
 class Token(models.Model):
     """
     The default authorization token model.
     """
 
     key = models.CharField(max_length=40, primary_key=True, null=False, blank=False)
-    user = models.ForeignKey(AUTH_USER_MODEL, related_name='auth_token', null=False, blank=False)
+    user = models.ForeignKey(AUTH_USER_MODEL, related_name='auth_token', null=False, blank=False,
+                             on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     last_access = models.DateTimeField(auto_now=True, null=False, blank=False)
     is_active = models.BooleanField(default=True)
@@ -84,7 +82,7 @@ class TokenRelatedObject(models.Model):
     Generic relation to objects related with authorization token
     """
 
-    token = models.ForeignKey(Token, related_name='related_objects')
+    token = models.ForeignKey(Token, related_name='related_objects', on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.TextField()
     content_object = GenericForeignKey('content_type', 'object_id')
@@ -95,12 +93,13 @@ class UserTokenTakeover(models.Model):
     The model allows to change user without token change
     """
 
-    token = models.ForeignKey(Token, related_name='user_takeovers')
-    user = models.ForeignKey(AUTH_USER_MODEL, related_name='user_token_takeovers', null=False, blank=False)
+    token = models.ForeignKey(Token, related_name='user_takeovers', on_delete=models.CASCADE)
+    user = models.ForeignKey(AUTH_USER_MODEL, related_name='user_token_takeovers', null=False, blank=False,
+                             on_delete=models.CASCADE)
     is_active = models.BooleanField()
 
 
-class AnonymousToken(object):
+class AnonymousToken:
     key = None
     user = AnonymousUser
     creted_at = None

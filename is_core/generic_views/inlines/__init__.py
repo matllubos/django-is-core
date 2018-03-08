@@ -13,7 +13,7 @@ class InlineView(ContextMixin):
     def render(self, context, title):
         template = self.template_name
         context.update(self.get_context_data(title=title))
-        return render_to_string(template, context)
+        return render_to_string(template, context.flatten())
 
     def __copy__(self):
         return self

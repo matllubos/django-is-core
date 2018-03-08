@@ -1,8 +1,5 @@
-from __future__ import unicode_literals
-
 import django
 from django import forms
-from django.core.urlresolvers import reverse
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 from django.views.generic.base import TemplateView
@@ -15,6 +12,7 @@ from is_core.forms.widgets import AbstractDateRangeWidget, DateRangeWidget, Date
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
 from is_core.utils import pretty_class_name
+from is_core.utils.compatibility import reverse
 
 from chamber.utils import get_class_method
 from chamber.utils.http import query_string_from_dict
@@ -26,7 +24,7 @@ from pyston.order.exceptions import OrderIdentifierError
 from pyston.serializer import get_resource_or_none
 
 
-class Header(object):
+class Header:
 
     def __init__(self, field_name, text, order_by, filter_html=''):
         self.field_name = field_name
@@ -41,7 +39,7 @@ class Header(object):
         return self.text
 
 
-class TableViewMixin(object):
+class TableViewMixin:
 
     list_display = None
     export_display = None

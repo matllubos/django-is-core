@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import re
 import warnings
 import datetime
@@ -7,7 +5,6 @@ import datetime
 from collections import OrderedDict
 
 import django
-from django.utils import six
 from django.forms.forms import DeclarativeFieldsMetaclass, Form
 from django.forms.fields import FileField
 from django.core.exceptions import ValidationError
@@ -58,7 +55,7 @@ class SmartFormMetaclass(DeclarativeFieldsMetaclass):
         return new_class
 
 
-class SmartFormMixin(object):
+class SmartFormMixin:
 
     def __init__(self, *args, **kwargs):
         super(SmartFormMixin, self).__init__(*args, **kwargs)
@@ -141,7 +138,7 @@ class SmartFormMixin(object):
         return changed_data
 
 
-class SmartForm(six.with_metaclass(SmartFormMetaclass, SmartFormMixin, RESTFormMixin, Form)):
+class SmartForm(SmartFormMixin, RESTFormMixin, Form, metaclass=SmartFormMetaclass):
     pass
 
 

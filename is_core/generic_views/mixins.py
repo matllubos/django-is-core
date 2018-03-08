@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.utils.functional import cached_property
 
 from is_core.patterns import reverse_pattern
@@ -7,7 +5,7 @@ from is_core.patterns import reverse_pattern
 from .exceptions import GenericViewException
 
 
-class ListParentMixin(object):
+class ListParentMixin:
 
     def list_bread_crumbs_menu_item(self):
         from is_core.menu import LinkMenuItem
@@ -60,7 +58,7 @@ class EditParentMixin(ListParentMixin):
         return self.get_obj()
 
 
-class TabItem(object):
+class TabItem:
 
     def __init__(self, pattern_name, label, can_show=None, is_active=None, pattern_kwargs=None,
                  is_active_starts_with=True):
@@ -106,7 +104,7 @@ class TabItem(object):
             self._label, self.get_url(view), active=self.is_active(view)) if self.can_show(view) else None
 
 
-class TabsViewMixin(object):
+class TabsViewMixin:
 
     tabs = ()
 
@@ -124,7 +122,7 @@ class TabsViewMixin(object):
         return context_data
 
 
-class GetCoreObjViewMixin(object):
+class GetCoreObjViewMixin:
     pk_name = 'pk'
 
     def get_obj_filters(self):

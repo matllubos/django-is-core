@@ -1,7 +1,7 @@
 import itertools
 
 
-class Fieldsets(object):
+class Fieldsets:
 
     def __init__(self, *args):
         self.fieldsets = []
@@ -24,7 +24,7 @@ class Fieldsets(object):
         return result
 
 
-class AbstractFieldset(object):
+class AbstractFieldset:
 
     def __init__(self, title):
         self.title = title
@@ -82,7 +82,7 @@ class InlineFieldset(AbstractFieldset):
         return True
 
 
-class Field(object):
+class Field:
 
     def __init__(self, name, readonly=None):
         self.name = name

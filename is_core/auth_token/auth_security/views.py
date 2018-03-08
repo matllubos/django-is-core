@@ -1,9 +1,7 @@
-from __future__ import unicode_literals
-
-from is_core.auth_token.default.views import TokenLoginView as DefaultTokenLoginView
-
 from security.models import InputLoggedRequest
 from security.decorators import hide_request_body_all, throttling_all
+
+from is_core.auth_token.default.views import TokenLoginView as DefaultTokenLoginView
 from is_core.auth_token.auth_security import LOGIN_THROTTLING_VALIDATORS
 
 
