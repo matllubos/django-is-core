@@ -16,6 +16,8 @@ from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
 from chamber.utils import transaction
 
+from pyston.converters import get_converter
+
 from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import (
@@ -28,6 +30,7 @@ from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms import SmartModelForm
+from is_core.rest.datastructures import ModelFlatRESTFields
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -571,6 +574,27 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         else:
             return self.request.get_full_path()
 
+    def _generate_export_types(self):
+        generated_export_types = []
+        for export_type in self._get_export_types():
+            generated_export_type = list(export_type)
+            try:
+                generated_export_types.append(
+                    list(export_type) + [get_converter(export_type[1]).media_type]
+                )
+            except KeyError:
+                raise ImproperlyConfigured('Export types improperly configured')
+        return generated_export_types
+
+    def _get_export_types(self):
+        return self.export_types if getattr(self, 'export_types', None) is not None else self.core.get_detail_export_types()
+
+    def _get_export_display(self):
+        return list(self.core.get_export_display(self.request))
+
+    def _generate_rest_detail_export_fieldset(self):
+        return ModelFlatRESTFields.create_from_flat_list(self._get_export_display(), self.model)
+
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
         context_data = super(DefaultCoreModelFormView, self).get_context_data(form=form,
                                                                               inline_form_views=inline_form_views,
@@ -578,6 +602,11 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         context_data.update({
             'show_save_and_continue': self.has_save_and_continue_button()
         })
+        if self._get_export_types() is not None:
+            context_data.update({
+                'detail_export_types': self._generate_export_types(),
+                'rest_detail_export_fieldset': self._generate_rest_detail_export_fieldset()
+            })
         return context_data
 
 
