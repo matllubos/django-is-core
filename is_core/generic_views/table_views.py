@@ -8,16 +8,14 @@ from pyston.filters.default_filters import OPERATORS
 
 from is_core.config import settings
 from is_core.filters import UIFilterMixin, FilterChoiceIterator
-from is_core.forms.widgets import AbstractDateRangeWidget, DateRangeWidget, DateTimeRangeWidget
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
-from is_core.utils import pretty_class_name
+from is_core.utils import pretty_class_name, get_export_types_with_content_type
 from is_core.utils.compatibility import reverse
 
 from chamber.utils import get_class_method
 from chamber.utils.http import query_string_from_dict
 
-from pyston.filters.default_filters import NONE_LABEL
 from pyston.filters.exceptions import FilterIdentifierError
 from pyston.order.utils import DIRECTION
 from pyston.order.exceptions import OrderIdentifierError
@@ -41,9 +39,8 @@ class Header:
 
 class TableViewMixin:
 
-    list_display = None
-    export_display = None
-    list_display_extra = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
+    fields = None
+    extra_fields = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
     list_filter = None
     list_per_page = None
     model = None
@@ -183,32 +180,24 @@ class TableViewMixin:
             self._get_header_order_by(model, full_field_name), self._get_filter(full_field_name)
         )
 
-    def _get_list_display(self):
-        return () if self.list_display is None else self.list_display
+    def _get_fields(self):
+        return () if self.fields is None else self.fields
 
-    def _get_export_display(self):
-        return self._get_list_display() if self.export_display is None else self.export_display
-
-    def _get_list_display_extra(self):
-        return list(self.list_display_extra)
+    def _get_extra_fields(self):
+        return list(self.extra_fields)
 
     def _get_list_per_page(self):
         return settings.LIST_PER_PAGE if self.list_per_page is None else self.list_per_page
 
     def _generate_rest_fieldset(self):
         return ModelRESTFieldset.create_from_flat_list(
-            list(self._get_list_display_extra()) + list(self._get_list_display()),
+            list(self._get_extra_fields()) + list(self._get_fields()),
             self.model
-        )
-
-    def _generate_rest_export_fieldset(self):
-        return ModelFlatRESTFields.create_from_flat_list(
-            list(self._get_export_display()), self.model
         )
 
     def _get_headers(self):
         headers = []
-        for field in self._get_list_display():
+        for field in self._get_fields():
             if isinstance(field, (tuple, list)):
                 headers.append(self._get_header(field[0]))
             else:
@@ -255,9 +244,8 @@ class TableViewMixin:
             'headers': self._get_headers(),
             'api_url': self._get_api_url(),
             'module_name': module_name,
-            'list_display': self._get_list_display(),
+            'fields': self._get_fields(),
             'rest_fieldset': self._generate_rest_fieldset(),
-            'rest_export_fieldset': self._generate_rest_export_fieldset(),
             'query_string_filter': self._get_query_string_filter(),
             'menu_group_pattern_name': self._get_menu_group_pattern_name(),
             'render_actions': self.render_actions,
@@ -282,18 +270,19 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
     template_name = 'generic_views/table.html'
     view_type = 'list'
     export_types = None
+    export_fields = None
 
     def _get_field_labels(self):
         return self.field_labels if self.field_labels is not None else self.core.get_ui_list_field_labels(self.request)
 
-    def _get_list_display(self):
-        return self.core.get_list_display(self.request) if self.list_display is None else self.list_display
+    def _get_fields(self):
+        return self.core.get_ui_list_fields(self.request) if self.fields is None else self.fields
 
-    def _get_export_display(self):
-        return self.core.get_export_display(self.request) if self.export_display is None else self.export_display
+    def _get_export_fields(self):
+        return self.core.get_ui_list_export_fields(self.request) if self.export_fields is None else self.export_fields
 
     def _get_export_types(self):
-        return self.core.get_export_types(self.request) if self.export_types is None else self.export_types
+        return self.core.get_ui_list_export_types(self.request) if self.export_types is None else self.export_types
 
     def _get_list_per_page(self):
         return (
@@ -310,6 +299,11 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
     def _get_add_url(self):
         return self.core.get_add_url(self.request)
 
+    def _generate_rest_export_fieldset(self):
+        return ModelFlatRESTFields.create_from_flat_list(
+            list(self._get_export_fields()), self.model
+        )
+
     def is_bulk_change_enabled(self):
         return hasattr(self.core, 'get_bulk_change_url_name') and self.core.get_bulk_change_url_name()
 
@@ -321,11 +315,15 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
             'add_button_value': self.core.model._ui_meta.add_button_verbose_name % {
                 'verbose_name': self.core.model._meta.verbose_name,
                 'verbose_name_plural': self.core.model._meta.verbose_name_plural},
-            'export_types': self._get_export_types(),
             'enable_bulk_change': self.is_bulk_change_enabled(),
             'bulk_change_snippet_name': self.get_bulk_change_snippet_name(),
             'bulk_change_form_url': self.get_bulk_change_form_url(),
         })
+        if self._get_export_types() and self._get_export_fields():
+            context_data.update({
+                'rest_export_fieldset': self._generate_rest_export_fieldset(),
+                'export_types': get_export_types_with_content_type(self._get_export_types()),
+            })
         return context_data
 
     def get_bulk_change_snippet_name(self):

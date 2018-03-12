@@ -1,5 +1,3 @@
-from distutils.version import StrictVersion
-
 from copy import deepcopy
 
 from django.core.exceptions import ImproperlyConfigured
@@ -17,7 +15,8 @@ from chamber.utils import transaction
 from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import (
-    flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets
+    flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets,
+    get_export_types_with_content_type
 )
 from is_core.utils.compatibility import get_model_name
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
@@ -26,6 +25,7 @@ from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms import SmartModelForm
+from is_core.rest.datastructures import ModelFlatRESTFields
 
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
@@ -489,6 +489,8 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     cancel_button_title = _('Do not save and go back to the list')
 
+    export_types = None
+
     def get_buttons_dict(self):
         buttons_dict = super(DefaultCoreModelFormView, self).get_buttons_dict()
         buttons_dict.update({
@@ -639,6 +641,27 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         if not obj:
             raise Http404
         return obj
+
+    def _get_export_types(self):
+        return self.core.get_ui_detail_export_types(self.request) if self.export_types is None else self.export_types
+
+    def _get_export_fields(self):
+        return list(self.core.get_ui_detail_export_fields(self.request, self.get_obj(True)))
+
+    def _generate_rest_detail_export_fieldset(self):
+        return ModelFlatRESTFields.create_from_flat_list(self._get_export_fields(), self.model)
+
+    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
+        context_data = super(EditModelFormView, self).get_context_data(
+            form=form, inline_form_views=inline_form_views, **kwargs
+        )
+        if self._get_export_types() and self._get_export_fields():
+            context_data.update({
+                'export_types': get_export_types_with_content_type(self._get_export_types()),
+                'rest_detail_export_fieldset': self._generate_rest_detail_export_fieldset(),
+                'api_url': self.core.get_api_detail_url(self.request, self.get_obj(True))
+            })
+        return context_data
 
     # Should return false if object does not exists and 404 should be resolved with different way
     def has_get_permission(self, obj=None, pk=None, **kwargs):

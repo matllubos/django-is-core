@@ -11,7 +11,7 @@ from .resources import NumberOfUserIssuesResource
 class UserIsCore(UIRESTModelISCore):
     model = User
     form_class = UserForm
-    list_display = ('id', '_obj_name')
+    ui_list_fields = ('id', '_obj_name')
 
     def has_read_permission(self, request, obj=None):
         return request.user.is_superuser or not obj or obj.pk == request.user.pk
@@ -40,7 +40,7 @@ class UserIsCore(UIRESTModelISCore):
 
 class IssueIsCore(UIRESTModelISCore):
     model = Issue
-    list_display = ('id', '_obj_name', 'watched_by_string', 'leader__email', 'leader__last_name')
+    ui_list_fields = ('id', '_obj_name', 'watched_by_string', 'leader__email', 'leader__last_name')
 
     def has_rest_create_permission(self, request, obj=None, via=None):
         return bool(via) and via[0].model == User
