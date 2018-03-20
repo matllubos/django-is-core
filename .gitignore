@@ -19,6 +19,7 @@ CACHE/
 #############
 .project
 .pydevproject
+.*.swp
 
 # Logs and databases #
 ######################
