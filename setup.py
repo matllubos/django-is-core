@@ -10,7 +10,7 @@ setup(
     author='Lubos Matl',
     author_email='matllubos@gmail.com',
     url='https://github.com/matllubos/django-is-core',
-    license='LGPL',
+    license='BSD',
     package_dir={'is_core': 'is_core'},
     include_package_data=True,
     packages=find_packages(),
