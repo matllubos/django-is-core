@@ -1,5 +1,23 @@
 {% load i18n forms utils %}
 
+{% if request.user.can_export and detail_export_types %}
+<ul class="inline-list">
+<li>
+    <div class="dropdown columns-dropdown">
+        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Export' %}<span class="caret"></span></button>
+        <ul class="dropdown-menu" role="menu">
+            {% for title, type, serialization_format, accept in detail_export_types %}
+            <li>
+                <a href="{{ api_url }}/api{{action}}?_accept={{accept}}&_serialization_format={{ serialization_format }}&_fields={{ rest_detail_export_fieldset|urlencode }}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
+            </li>
+            {% endfor %}
+            {% block export-menu-value-extra %}{% endblock %}
+        </ul>
+    </div>
+</li>
+</ul>
+{% endif %}
+
 <form{% if has_file_field %} enctype="multipart/form-data" {% endif %}{% if class_attr %} class="form-horizontal {{ class_attr|to_list|join:' ' }}"{% endif %}{% if id_attr %} id="{{ id_attr }}"{% endif %} method="{{ method }}" action="{% if action %}{{ action }}{% else %}{{ request.get_full_path }}{% endif %}">
 	{% block form-content %}
 		{% if use_csrf %}{% csrf_token %}{% endif %}

@@ -7,7 +7,6 @@
         {% if add_url %}{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value|capfirst }}"><span>{{ add_button_value|capfirst }}</span></a>{% endhas_permission %}{% endif %}
     {% endblock %}
 {% endblock %}
-
 {% block content %}
     <div class="clearfix page-view list-view">
         {% block above-table %}{% endblock %}

@@ -334,6 +334,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     list_per_page = None
     export_display = ()
     export_types = settings.EXPORT_TYPES
+    detail_export_types = settings.EXPORT_TYPES
     default_list_filter = {}
 
     # add/edit view params
@@ -439,6 +440,9 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     def get_ui_list_field_labels(self, request):
         return self.ui_list_field_labels if self.ui_list_field_labels is not None else self.get_field_labels(request)
+
+    def get_detail_export_types(self):
+        return self.detail_export_types
 
 
 class RESTModelISCore(RESTISCore, ModelISCore):

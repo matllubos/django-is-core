@@ -350,3 +350,6 @@ msgstr "Příliš mnoho požadavků"
 #, python-format
 msgid "Please fix errors for following objects: %%s"
 msgstr "Prosím opravte chyby následujících objektů: %%s"
+
+msgid "Export types improperly configured"
+msgstr "Exportní typy nejsou správně nakonfigurované"
