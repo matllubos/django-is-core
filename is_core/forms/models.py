@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import warnings
 import itertools
 
@@ -8,7 +6,6 @@ from django.db.utils import ProgrammingError, OperationalError
 from django.forms import models
 from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
-from django.utils import six
 
 from pyston.forms import RESTModelForm, RESTFormMetaclass
 
@@ -87,7 +84,7 @@ class ModelChoiceIterator(forms.models.ModelChoiceIterator):
             return None
 
 
-class ModelChoiceFieldMixin(object):
+class ModelChoiceFieldMixin:
 
     widget = widgets.FulltextSelect
 
@@ -186,7 +183,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     """
     opts = instance._meta
     data = {}
-    for f in itertools.chain(opts.concrete_fields, opts.virtual_fields, opts.many_to_many):
+    for f in itertools.chain(opts.concrete_fields, opts.private_fields, opts.many_to_many):
         if not getattr(f, 'editable', False):
             continue
         if fields and f.name not in fields:
@@ -201,7 +198,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     return data
 
 
-class SmartModelForm(six.with_metaclass(SmartModelFormMetaclass, SmartFormMixin, RESTModelForm)):
+class SmartModelForm(SmartFormMixin, RESTModelForm, metaclass=SmartModelFormMetaclass):
 
     def __init__(self, *args, **kwargs):
         # Set values must be omitted

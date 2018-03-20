@@ -2,18 +2,14 @@
 Core of django-is-core.
 Contains controller added between model and UI/REST.
 """
-from __future__ import unicode_literals
-
 import sys
 
 from collections import OrderedDict
 
-from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.http.response import Http404
 from django.core.exceptions import ValidationError
-from django.utils import six
 from django.forms.models import _get_foreign_key
 from django.utils.functional import cached_property
 
@@ -25,7 +21,7 @@ from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
-from is_core.utils.compatibility import urls_wrapper, get_model_name
+from is_core.utils.compatibility import urls_wrapper, get_model_name, reverse
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
@@ -49,7 +45,7 @@ class ISCoreBase(type):
         return new_class
 
 
-class ISCore(six.with_metaclass(ISCoreBase, PermissionsMixin)):
+class ISCore(PermissionsMixin, metaclass=ISCoreBase):
     """
     Parent of all IS cores. Contains common methods for all cores.
     This class is abstract.
@@ -220,7 +216,7 @@ class UIISCore(PermissionsUIMixin, ISCore):
                     pattern, view = view_vals
                     ViewPatternClass = self.default_ui_pattern_class
 
-                if isinstance(view, six.string_types):
+                if isinstance(view, str):
                     view = getattr(self, view)()
 
                 pattern_names = [name]
@@ -278,7 +274,7 @@ class RESTISCore(PermissionsRESTMixin, ISCore):
                     pattern, rest = rest_vals
                     RESTPatternClass = self.default_rest_pattern_class
 
-                if isinstance(rest, six.string_types):
+                if isinstance(rest, str):
                     rest = getattr(self, rest)()
 
                 pattern_names = [name]
@@ -292,7 +288,7 @@ class RESTISCore(PermissionsRESTMixin, ISCore):
         return self.get_urlpatterns(self.rest_patterns)
 
 
-class UIRESTISCoreMixin(object):
+class UIRESTISCoreMixin:
     """Helper that joins urls generated wit REST core and UI core."""
 
     def get_urls(self):

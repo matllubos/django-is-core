@@ -7,15 +7,6 @@ from germanium.test_cases.client import ClientTestCase
 from germanium.annotations import login
 from germanium.crawler import Crawler, LinkExtractor, HtmlLinkExtractor as OriginalHtmlLinkExtractor
 
-from six.moves import html_parser
-
-try:
-    HTMLParseError = html_parser.HTMLParseError
-except AttributeError:
-    # create a dummy class for Python 3.5+ where it's been removed
-    class HTMLParseError(Exception):
-        pass
-
 
 def flatt_list(iterable_value):
     flatten_list = []
@@ -121,8 +112,7 @@ class CrawlerTestCase(ClientTestCase):
 
         def post_response(url, referer, resp, exception):
             tested_urls.append(url)
-            assert_true(exception is None or isinstance(exception, HTMLParseError),
-                        msg='Received exception %s, url %s' % (force_text(exception), url))
+            assert_true(exception is None, msg='Received exception %s, url %s' % (force_text(exception), url))
             if resp.status_code != 200:
                 failed_urls.append(url)
                 self.logger.warning('Response code for url %s from referer %s should be 200 but code is %s, user %s' %

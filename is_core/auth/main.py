@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-
-
-class PermissionsMixin(object):
+class PermissionsMixin:
     """
     Mixin that validate user permissions inside ISCore
     """

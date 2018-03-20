@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.middleware.csrf import rotate_token
 from django.contrib.auth import load_backend
 from django.contrib.auth.signals import user_logged_in, user_logged_out
@@ -57,7 +55,7 @@ def logout(request):
     # Dispatch the signal before the user is logged out so the receivers have a
     # chance to find out *who* logged out.
     user = getattr(request, 'user', None)
-    if hasattr(user, 'is_authenticated') and not user.is_authenticated():
+    if hasattr(user, 'is_authenticated') and not user.is_authenticated:
         user = None
     user_logged_out.send(sender=user.__class__, request=request, user=user)
 

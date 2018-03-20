@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.template.base import Node, TemplateSyntaxError, NodeList
 from django.utils.functional import SimpleLazyObject
 
@@ -9,7 +7,7 @@ from is_core.utils.compatibility import Library
 register = Library()
 
 
-class Permissions(object):
+class Permissions:
     permissions_validators = {}
 
     def register_permission_validator(self, name, validator):

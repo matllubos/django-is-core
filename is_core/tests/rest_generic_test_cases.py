@@ -1,6 +1,5 @@
 import types
 
-from django.core.urlresolvers import reverse
 from django.db.models.fields.files import FieldFile
 from django.urls.resolvers import get_resolver
 
@@ -13,6 +12,7 @@ from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_c
 from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.tests.auth_test_cases import RESTAuthMixin
 from is_core.forms.boundfield import ReadonlyBoundField
+from is_core.utils.compatibility import reverse
 
 from pyston.utils import model_resources_to_dict
 

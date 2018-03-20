@@ -1,7 +1,7 @@
 from django.utils.encoding import force_text
-from django.utils import six
 
-from pyston.utils import RESTFieldset, RESTField, get_model_from_descriptor
+from pyston.utils import RESTFieldset, RESTField
+from pyston.utils.compatibility import get_model_from_relation_or_none
 
 
 def generate_subfield(submodel, subfield_name, field_class):
@@ -11,7 +11,7 @@ def generate_subfield(submodel, subfield_name, field_class):
         return field_class('_obj_name')
 
 
-class ModelRESTFieldMixin(object):
+class ModelRESTFieldMixin:
 
     @classmethod
     def create_from_string(cls, full_field_name, model):
@@ -19,7 +19,7 @@ class ModelRESTFieldMixin(object):
         if '__' in full_field_name:
             full_field_name, subfield_name = full_field_name.split('__', 1)
 
-        submodel = get_model_from_descriptor(model, full_field_name)
+        submodel = get_model_from_relation_or_none(model, full_field_name)
         return cls(full_field_name, generate_subfield(submodel, subfield_name, cls))
 
 
@@ -34,7 +34,7 @@ class ModelRESTField(ModelRESTFieldMixin, RESTField):
 class ModelRESTFlatField(ModelRESTFieldMixin):
 
     def __init__(self, name, subfield=None):
-        assert isinstance(name, six.string_types)
+        assert isinstance(name, str)
         assert subfield is None or isinstance(subfield, ModelRESTFlatField)
 
         self.name = name
@@ -46,7 +46,7 @@ class ModelRESTFlatField(ModelRESTFieldMixin):
         return '%s' % self.name
 
 
-class ModelFlatRESTFieldsMixin(object):
+class ModelFlatRESTFieldsMixin:
 
     @classmethod
     def create_from_flat_list(cls, fields_list, model):

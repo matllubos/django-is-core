@@ -4,7 +4,7 @@ from is_core.config import settings
 from is_core.utils import header_name_to_django
 
 
-class RESTAuthMixin(object):
+class RESTAuthMixin:
 
     def authorize(self, username, password):
         if settings.AUTH_USE_TOKENS:

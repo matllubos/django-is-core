@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-
 def add_class_name(attrs, class_name):
     class_names = attrs.get('class')
     if class_names:
@@ -12,7 +9,7 @@ def add_class_name(attrs, class_name):
     return attrs
 
 
-class ReadonlyValue(object):
+class ReadonlyValue:
 
     def __init__(self, value, humanized_value):
         self.value = value

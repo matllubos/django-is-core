@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-
 def merge(origin, *args):
     """
     Merges given dictionaries, `origin` will not be changed.

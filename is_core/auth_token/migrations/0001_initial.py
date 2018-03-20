@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
 from django.conf import settings
 
@@ -23,7 +20,8 @@ class Migration(migrations.Migration):
                 ('expiration', models.BooleanField(default=True)),
                 ('ip', models.GenericIPAddressField()),
                 ('auth_slug', models.SlugField(null=True, blank=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='auth_token')),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='auth_token',
+                                           on_delete=models.CASCADE)),
             ],
         ),
     ]

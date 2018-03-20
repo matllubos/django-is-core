@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import time
 
 from django.utils.encoding import force_text
@@ -9,6 +7,7 @@ from django.utils.http import cookie_date
 from is_core.auth_token import utils
 from is_core.config import settings
 from is_core.utils import header_name_to_django
+from is_core.utils.compatibility import MiddlewareMixin
 
 
 def get_user(request):
@@ -17,7 +16,7 @@ def get_user(request):
     return request._cached_user
 
 
-class TokenAuthenticationMiddlewares(object):
+class TokenAuthenticationMiddlewares(MiddlewareMixin):
 
     def process_request(self, request):
         """

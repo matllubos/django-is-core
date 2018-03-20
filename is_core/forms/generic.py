@@ -25,7 +25,7 @@ def smartgeneric_inlineformset_factory(model, request, form=ModelForm, formset=B
     opts = model._meta
     # if there is no field called `ct_field` let the exception propagate
     ct_field = opts.get_field(ct_field)
-    if not isinstance(ct_field, models.ForeignKey) or ct_field.rel.to != ContentType:
+    if not isinstance(ct_field, models.ForeignKey) or ct_field.related_model != ContentType:
         raise Exception("fk_name '%s' is not a ForeignKey to ContentType" % ct_field)
     fk_field = opts.get_field(fk_field)  # let the exception propagate
     if exclude is not None:

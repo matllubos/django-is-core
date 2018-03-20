@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import re
 import inspect
 
@@ -186,7 +184,7 @@ def get_cls_or_inst_readonly_data(field_name, cls_or_inst, fun_kwargs):
         if hasattr(cls_or_inst, current_field_name):
             return get_cls_or_inst_readonly_data(next_field_name, getattr(cls_or_inst, current_field_name), fun_kwargs)
         elif field and hasattr(field, 'rel'):
-            return get_cls_or_inst_readonly_data(next_field_name, field.rel.to, fun_kwargs)
+            return get_cls_or_inst_readonly_data(next_field_name, field.related_model, fun_kwargs)
         else:
             return None
     else:

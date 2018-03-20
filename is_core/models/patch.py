@@ -1,7 +1,3 @@
-from __future__ import unicode_literals
-
-import six
-
 import django.db.models.options as options
 
 from django.db import models
@@ -38,50 +34,30 @@ class UIOptions(Options):
 def fk_formfield(self, **kwargs):
     from is_core import forms as is_forms
 
-    db = kwargs.pop('using', None)
-    if isinstance(self.rel.to, six.string_types):
-        raise ValueError("Cannot create form field for %r yet, because "
-                         "its related model %r has not been loaded yet" %
-                         (self.name, self.rel.to))
-    defaults = {
-        'form_class': is_forms.ModelChoiceField,
-        'queryset': self.rel.to._default_manager.using(db).complex_filter(self.rel.limit_choices_to),
-        'to_field_name': self.rel.field_name,
-    }
-    defaults.update(kwargs)
-    return super(ForeignKey, self).formfield(**defaults)
+    kwargs.setdefault('form_class', is_forms.ModelChoiceField)
+    return self._is_core_formfield_tmp(**kwargs)
 
 
 def m2m_formfield(self, **kwargs):
     from is_core import forms as is_forms
 
-    db = kwargs.pop('using', None)
-    defaults = {
-        'form_class': is_forms.ModelMultipleChoiceField,
-        'queryset': self.rel.to._default_manager.using(db).complex_filter(self.rel.limit_choices_to)
-    }
-    defaults.update(kwargs)
-    # If initial is passed in, it's a list of related objects, but the
-    # MultipleChoiceField takes a list of IDs.
-    if defaults.get('initial') is not None:
-        initial = defaults['initial']
-        if callable(initial):
-            initial = initial()
-        defaults['initial'] = [i._get_pk_val() for i in initial]
-    return super(ManyToManyField, self).formfield(**defaults)
+    kwargs.setdefault('form_class', is_forms.ModelMultipleChoiceField,)
+    return self._is_core_formfield_tmp(**kwargs)
 
 
 def rel_field_init(self, *args, **kwargs):
     self.reverse_verbose_name = kwargs.pop('reverse_verbose_name', None)
-    self._rel_init_is_core_tmp(*args, **kwargs)
+    self._is_core_init_tmp(*args, **kwargs)
 
 
+ForeignKey._is_core_formfield_tmp = ForeignKey.formfield
 ForeignKey.formfield = fk_formfield
-ForeignKey._rel_init_is_core_tmp = ForeignKey.__init__
+ForeignKey._is_core_init_tmp = ForeignKey.__init__
 ForeignKey.__init__ = rel_field_init
 
+ManyToManyField._is_core_formfield_tmp = ManyToManyField.formfield
 ManyToManyField.formfield = m2m_formfield
-ManyToManyField._rel_init_is_core_tmp = ManyToManyField.__init__
+ManyToManyField._is_core_init_tmp = ManyToManyField.__init__
 ManyToManyField.__init__ = rel_field_init
 
 URLField.default_humanized = url_humanized

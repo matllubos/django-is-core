@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import re
 
 from django.views.generic.base import TemplateView, View
@@ -14,7 +12,7 @@ from is_core.generic_views.exceptions import GenericViewException
 from django.http.response import Http404
 
 
-class PermissionsViewMixin(object):
+class PermissionsViewMixin:
 
     def dispatch(self, request, *args, **kwargs):
         rm = request.method.lower()

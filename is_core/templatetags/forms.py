@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django import template
 from django.forms import CheckboxInput
 from django.template.base import TemplateSyntaxError, token_kwargs
@@ -51,7 +49,7 @@ def fieldset_renderer(context, form, fieldset):
     return render_to_string(template, context_dict, request=request)
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_field(context, form, field_name):
     search_instances = []
 
@@ -69,7 +67,7 @@ def get_field(context, form, field_name):
     return form[field_name]
 
 
-@register.assignment_tag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def get_visible_fields(context, form, fieldset):
     visible_fields = []
     for field_name in fieldset:

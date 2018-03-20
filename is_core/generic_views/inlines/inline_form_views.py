@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.utils.translation import ugettext_lazy as _
 
 from chamber.utils.forms import formset_has_file_field

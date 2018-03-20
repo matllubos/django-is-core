@@ -1,16 +1,14 @@
-from __future__ import unicode_literals
-
 import re
 import logging
 
 from collections import OrderedDict
 
-from django.core.urlresolvers import reverse, resolve
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
 
 from is_core.config import settings
 from is_core.utils import get_new_class_name
+from is_core.utils.compatibility import reverse, resolve
 
 
 logger = logging.getLogger('is-core')
@@ -32,7 +30,7 @@ def pattern_from_request(request):
     return reverse_pattern(resolve(request.path).url_name)
 
 
-class Pattern(object):
+class Pattern:
 
     send_in_rest = True
 
@@ -196,7 +194,7 @@ class RESTPattern(ViewPattern):
                                                    obj=obj)
 
 
-class HiddenPatternMixin(object):
+class HiddenPatternMixin:
     send_in_rest = False
 
 
@@ -208,7 +206,7 @@ class HiddenUIPattern(HiddenPatternMixin, UIPattern):
     pass
 
 
-class DoubleRESTPattern(object):
+class DoubleRESTPattern:
 
     def __init__(self, resource_class, pattern_class, core, methods=None):
         self.resource_class = resource_class
