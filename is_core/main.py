@@ -330,10 +330,8 @@ class UIModelISCore(ModelISCore, UIISCore):
     api_url_name = None
 
     # list view params
-    list_display = ('_obj_name',)
     list_per_page = None
-    export_display = ()
-    export_types = settings.EXPORT_TYPES
+    detail_export_types = settings.EXPORT_TYPES
     default_list_filter = {}
 
     # add/edit view params
@@ -345,7 +343,13 @@ class UIModelISCore(ModelISCore, UIISCore):
     ui_form_edit_class = None
     ui_form_field_labels = None
     ui_list_field_labels = None
-
+    ui_list_fields = ('_obj_name',)
+    ui_export_fields = ()
+    ui_list_export_fields = None
+    ui_detail_export_fields = None
+    ui_export_types = settings.EXPORT_TYPES
+    ui_list_export_types = None
+    ui_detail_export_types = None
     ui_add_view = AddModelFormView
     ui_edit_view = EditModelFormView
     ui_list_view = TableView
@@ -412,14 +416,38 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_default_list_filter(self, request):
         return self.default_list_filter.copy()
 
-    def get_list_display(self, request):
-        return list(self.list_display)
+    def get_ui_list_fields(self, request):
+        return list(self.ui_list_fields)
 
-    def get_export_display(self, request):
-        return list(self.export_display) or self.get_list_display(request)
+    def get_ui_export_fields(self, request):
+        return list(self.ui_export_fields)
 
-    def get_export_types(self, request):
-        return self.export_types
+    def get_ui_list_export_fields(self, request):
+        return (
+            list(self.ui_list_export_fields) if self.ui_list_export_fields is not None
+            else self.get_ui_export_fields(request)
+        )
+
+    def get_ui_detail_export_fields(self, request, obj=None):
+        return (
+            list(self.ui_detail_export_fields) if self.ui_detail_export_fields is not None
+            else self.get_ui_export_fields(request)
+        )
+
+    def get_ui_export_types(self, request):
+        return list(self.ui_export_types or ())
+
+    def get_ui_list_export_types(self, request):
+        return (
+            list(self.ui_list_export_types) if self.ui_list_export_types is not None
+            else self.get_ui_export_types(request)
+        )
+
+    def get_ui_detail_export_types(self, request):
+        return (
+            list(self.ui_detail_export_fields) if self.ui_detail_export_fields is not None
+            else self.get_ui_export_types(request)
+        )
 
     def get_list_per_page(self, request):
         return self.list_per_page
@@ -439,6 +467,9 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     def get_ui_list_field_labels(self, request):
         return self.ui_list_field_labels if self.ui_list_field_labels is not None else self.get_field_labels(request)
+
+    def get_detail_export_types(self):
+        return self.detail_export_types
 
 
 class RESTModelISCore(RESTISCore, ModelISCore):
@@ -582,13 +613,20 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     def get_rest_extra_fields(self, request, obj=None):
         return (
             super(UIRESTModelISCore, self).get_rest_extra_fields(request, obj) +
-            list(self.get_list_display(request)) +
-            list(self.get_export_display(request)) +
+            list(self.get_ui_list_fields(request)) +
+            list(self.get_ui_list_export_fields(request)) +
+            list(self.get_ui_detail_export_fields(request)) +
             list(self.ui_rest_extra_fields)
         )
 
     def get_api_url_name(self):
         return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
+
+    def get_api_detail_url_name(self):
+        return self.api_url_name or '%s:api-resource-%s' % (self.site_name, self.get_menu_group_pattern_name())
+
+    def get_api_detail_url(self, request, obj):
+        return reverse(self.get_api_detail_url_name(), kwargs={'pk': obj.pk})
 
     def get_rest_form_fields(self, request, obj=None):
         return flatten_fieldsets(self.get_form_fieldsets(request, obj) or ()) or self.get_form_fields(request, obj)

@@ -1,6 +1,7 @@
 import re
 import inspect
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Model
 from django.forms.forms import pretty_name
 from django.utils.encoding import force_text
@@ -8,6 +9,8 @@ from django.utils.translation import ugettext
 from django.utils.html import format_html
 
 from chamber.utils import get_class_method, call_method_with_unknown_input
+
+from pyston.converters import get_converter
 
 
 def is_callable(val):
@@ -280,3 +283,15 @@ def header_name_to_django(header_name):
 
 def pretty_class_name(class_name):
     return re.sub(r'(\w)([A-Z])', r'\1-\2', class_name).lower()
+
+
+def get_export_types_with_content_type(export_types):
+    generated_export_types = []
+    for title, type, serialization_format in export_types:
+        try:
+            generated_export_types.append(
+                (title, type, serialization_format, get_converter(type).media_type)
+            )
+        except KeyError:
+            raise ImproperlyConfigured('Missing converter for type {}'.format(type))
+    return generated_export_types

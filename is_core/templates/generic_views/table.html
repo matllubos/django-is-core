@@ -7,7 +7,6 @@
         {% if add_url %}{% has_permission 'create' %}<a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value|capfirst }}"><span>{{ add_button_value|capfirst }}</span></a>{% endhas_permission %}{% endif %}
     {% endblock %}
 {% endblock %}
-
 {% block content %}
     <div class="clearfix page-view list-view">
         {% block above-table %}{% endblock %}
@@ -37,18 +36,20 @@
             {% block table-buttons %}
             <ul class="inline-list">
                 {% block export-menu %}
+                {% if export_types %}
                 <li>
                     <div class="dropdown pull-right">
                         <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Exports' %}<span class="caret"></span></button>
                         <ul class="dropdown-menu" role="menu">
-                            {% for title, type, serialization_format in export_types %}
+                            {% for title, type, serialization_format, content_type in export_types %}
                             <li>
-                                <a href="{{ api_url }}?_serialization_format={{ serialization_format }}&_fields={{ rest_export_fieldset }}{% if query_string_filter %}&{{ query_string_filter }}{% endif %}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
+                                <a href="{{ api_url }}?_accept={{ content_type }}&_serialization_format={{ serialization_format }}&_fields={{ rest_export_fieldset }}{% if query_string_filter %}&{{ query_string_filter }}{% endif %}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
                             </li>
                             {% endfor %}
                         </ul>
                     </div>
                 </li>
+                {% endif %}
                 {% endblock %}
 
                 {% block columns-manager %}
@@ -86,7 +87,7 @@
             {% endblock %}
 
             {% block table %}
-            <table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ list_display|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}"{% if enable_columns_manager %} data-columns-manager="columns-manager-{{ table_slug }}"{% endif %}{% if enable_bulk_change %} data-bulk-change="bulk-change-{{ table_slug }}" data-row-selectable="true"{% endif %} id="table-{{ table_slug }}" {% block table-attributes %}{% endblock %}>
+            <table class="{% block table-classes %}grid js-grid table table-striped{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ fields|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}"{% if enable_columns_manager %} data-columns-manager="columns-manager-{{ table_slug }}"{% endif %}{% if enable_bulk_change %} data-bulk-change="bulk-change-{{ table_slug }}" data-row-selectable="true"{% endif %} id="table-{{ table_slug }}" {% block table-attributes %}{% endblock %}>
                 <thead>
                 {% block table-header %}
                     <tr>
