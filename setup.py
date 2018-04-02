@@ -25,19 +25,15 @@ setup(
     ],
     install_requires=[
         'django>=1.10',
-        'django-class-based-auth-views==0.5druids',
+        'django-class-auth-views==1.0.0',
         'django-pyston>=2.8.0',
-        'django-block-snippets==1.0.2',
+        'django-block-snippets==2.0.0',
         'django-chamber>=0.4.0',
         'python-dateutil>=2.2',
         'pytz',
         'Unidecode>=0.04.16',
         'python-mimeparse==0.1.4',
         'django-ipware>=1.0.0'
-    ],
-    dependency_links=[
-        'https://github.com/druids/django-block-snippets/tarball/1.0.2#egg=django-block-snippets-1.0.2',
-        'https://github.com/druids/django-class-based-auth-views/tarball/0.5#egg=django-class-based-auth-views-0.5druids',
     ],
     zip_safe=False
 )

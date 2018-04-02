@@ -1,6 +1,6 @@
 requests==2.10.0
-https://github.com/druids/django-block-snippets/tarball/1.0.2#egg=django-block-snippets-1.0.2
-https://github.com/druids/django-class-based-auth-views/tarball/0.5druids#egg=django-class-based-auth-views-0.5druids
+django-block-snippets==2.0.0
+django-class-auth-views==1.0.0
 https://github.com/matllubos/django-json-field/tarball/0.5.8#egg=django-json-field-0.5.8
 django-chamber==0.4.0
 python3-openid==3.0.10
