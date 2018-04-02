@@ -15,7 +15,7 @@ setup(
     include_package_data=True,
     packages=find_packages(),
     classifiers=[
-        'Development Status :: 2 - Alpha',
+        'Development Status :: 3 - Alpha',
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
