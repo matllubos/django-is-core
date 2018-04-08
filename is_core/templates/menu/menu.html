@@ -1,20 +1,22 @@
-{% load menu i18n %}
-<nav class="navbar navbar-default">
-  <ul class="nav navbar-nav">
-    {% for menu_item in menu_items %}
-      {% if menu_item.collapsible %}
-        <li {% if menu_item.active %} class="active"{% endif %}>
-          <a{% if menu_item.url%} href="{{ menu_item.url }}"{% endif %}">{{ menu_item.title|capfirst }}</a>
-          {% submenu menu_item.submenu_items %}
-        </li>
-      {% else %}
-        <li{% if menu_item.active %} class="active"{% endif %}><a href="{{ menu_item.url }}">{{ menu_item.title|capfirst }}</a>
-          {% if menu_item.active and menu_item.submenu_items %}{% submenu menu_item.submenu_items %}{% endif %}
-        </li>
-      {% endif %}
+{% load i18n %}
+
+<ul class="nav collapsable-menu {{ site_name|lower }}" id="side-menu">
+    {% for item in menu_items %}
+    <li class="{{ item.css_classes }}">
+        {% if item.collapsible and item.submenu_items %}
+            <button disabled>{{ item.title|capfirst }}</button>
+            <ul class="collapsible-content">
+                {% for submenu_item in item.submenu_items %}
+                    <li class="{{ submenu_item.css_classes }}">
+                        <a href="{{ submenu_item.url }}">
+                            {{ submenu_item.title|capfirst }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% elif item.url %}
+            <a href="{{ item.url }}">{{ item.title|capfirst }}</a>
+        {% endif %}
+    </li>
     {% endfor %}
-  </ul>
-  <ul class="nav navbar-nav navbar-right">
-    <li><a href="{% url 'IS:logout' %}">{% trans 'Logout' %}</a></li>
-  </ul>
-</nav>
+</ul>

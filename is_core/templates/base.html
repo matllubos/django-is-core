@@ -1,84 +1,123 @@
-{% load menu static i18n %}
+{% load menu static i18n snippets %}
 <!DOCTYPE HTML>
 <html lang="en">
-	<head>
-		<title>{% block title %}{{ page_title | capfirst }}{% endblock %}</title>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		{% block head %}{% endblock %}
-	</head>
-	<body>
-		{% block body %}
-			{% block sticky-flash %}
-				<div id="sticky-flash" class="flash">
-					{% block user-takeover %}
-						{% if request.user.is_authenticated and request.token and request.token.active_takeover.user.pk == request.user.pk %}
-							<div class="flash-msg alert alert-error"><span class="msg-text">{{ request.user }} {% trans 'is not your account. Be carefull!' %}</span></div>
-						{% endif %}
-					{% endblock %}
-					{% if messages %}
-						{% for message in messages %}
-							<div{% if message.tags %} class="flash-msg alert alert-{{ message.tags }}"{% endif %}><span class="msg-text">{{ message }}</span></div>
-						{% endfor %}
-					{% endif %}
-				</div>
-			{% endblock %}
-			{% block menu %}
-				{% if request.user.is_authenticated %}
-					{% block left-menu %}
-						{% menu 'IS' %}
-					{% endblock %}
-				{% endif %}
-			{% endblock %}
-			{% block middle %}
-              <div id="page-content-wrapper">
-                <div class="container-fluid">
-                  <div class="row">
-                    <div class="{% block col-classes %}col-lg-12{% endblock %} main-content">
-                      <div class="header">
-                        {% block header-content %}
-                          {% block bread-crumbs %}
-                            {% if request.user.is_authenticated %}
-                              {% bread_crumbs %}
-                            {% endif %}
-                          {% endblock %}
-                          {% block tabs-menu %}
-                            {% if tabs %}
-                              {% include 'menu/tabs_menu.html' with tabs=tabs %}
-                            {% endif %}
-                          {% endblock %}
-                        {% endblock %}
-                      </div>
-                      <div class="content clearfix">
-                        {% block content %}{% endblock %}
-                      </div>
+    <head>
+        <title>{% block title %}{{ page_title | capfirst }}{% endblock %}</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <link type="text/css" rel="stylesheet" href="{% static 'is_core/css/app.css' %}">
+        {% block head %}{% endblock %}
+    </head>
+    <body>
+        {% block body %}
+
+            <div id="wrapper" class="{% block wrapper-classes %}app-backend {% endblock %}{% if active_menu_groups %} app-{{ active_menu_groups|join:'-' }}{% endif %}{% if view_name %} view-{{ view_name }}{% endif %}"{% block wrapper-attrs %} data-initial="{{ initial_data }}"{% endblock %}>
+            {% block header %}
+                <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="sidebar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="/">{{ PROJECT_VERBOSE | upper }}</a>
                     </div>
-                  </div>
-                  {% block another-cols %}{% endblock %}
-                </div>
-              </div>
+                    {% block user-menu %}
+                        {% if request.user.is_authenticated %}
+                            <ul class="nav navbar-top-links navbar-right navbar-user">
+                                <li class="dropdown">
+                                    <span class="dropdown-toggle">
+                                        <i class="fa fa-user fa-fw"></i>
+                                        <span class="name">{{ request.user }}</span> <i class="fa fa-caret-down"></i>
+                                    </span>
+                                    <ul class="dropdown-menu dropdown-user">
+                                        <li class="divider"></li>
+                                        <li><a href="{% url 'IS:logout' %}"><i class="fa fa-sign-out fa-fw"></i>{% trans 'Logout' %}{% if request.token and request.token.active_takeover.user.pk == request.user.pk %} ({% trans 'back to' %} {{ request.token.user.subclass }}){% endif %}</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        {% endif %}
+                        <div id="js-session-expiration-modal"></div>
+                    {% endblock %}
+                </nav>
             {% endblock %}
-            {% block footer %}
-              <footer>
-                <div class="pull-right">
-                  <span>{{ PROJECT_VERBOSE }} &copy; {% now "Y" %} (v {{ PROJECT_VERSION }})</span>
+
+            {% block sidebar %}
+                <div class="navbar-default navbar-static-side" role="navigation">
+                    <div class="sidebar-collapse">
+                        {% block menu %}
+                            {% if request.user.is_authenticated %}
+                                {% block left-menu %}
+                                    {% menu 'IS' %}
+                                {% endblock %}
+                            {% endif %}
+                        {% endblock %}
+                    </div>
+                    {% block footer %}{{ block.super }}{% endblock %}
+                    <!-- /.sidebar-collapse -->
                 </div>
-              </footer>
             {% endblock %}
+            <!-- /.navbar-static-side -->
+
+            {% block sticky-flash %}
+                <div class="sticky-flash-wrapper">
+                    <div id="sticky-flash" class="flash common-flash">
+                        {% block user-takeover %}
+                            {% if request.user.is_authenticated and request.token and request.token.active_takeover.user.pk == request.user.pk %}
+                                <div class="flash-permanent alert alert-warning common-flash__msg common-flash__msg--warning"><span class="msg-text">{% blocktrans with real_user=request.token.user.subclass %}Attention! You are connected as {{ real_user }}.{% endblocktrans %}</span></div>
+                            {% endif %}
+                        {% endblock %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div {% if message.tags %} class="flash-msg alert alert-{{ message.tags }} common-flash__msg common-flash__msg--{{ message.tags }}"{% endif %}><span class="msg-text common-flash__text">{{ message }}</span></div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div id="sticky-flash-cljs"></div>
+                </div>
+            {% endblock %}
+
+            <div id="page-wrapper">
+                {% snippet view_name|add:'-content' 'replace' %}
+                    {% block middle %}
+                        <div id="page-content-wrapper">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="{% block col-classes %}col-lg-12{% endblock %} main-content">
+                                        <div class="header">
+                                            {% block header-content %}
+                                                {% block bread-crumbs %}
+                                                    {% if request.user.is_authenticated %}
+                                                        {% bread_crumbs %}
+                                                    {% endif %}
+                                                {% endblock %}
+                                                {% block tabs-menu %}
+                                                    {% if tabs %}
+                                                        {% include 'menu/tabs_menu.html' with tabs=tabs %}
+                                                    {% endif %}
+                                                {% endblock %}
+                                            {% endblock %}
+                                        </div>
+                                        <div class="content clearfix">
+                                            {% block content %}{% endblock %}
+                                        </div>
+                                    </div>
+                              </div>
+                              {% block another-cols %}{% endblock %}
+                            </div>
+                        </div>
+                    {% endblock %}
+                {% endsnippet %}
+            </div>
+        </div>
         {% endblock %}
         {% block foot-scripts %}
-            {% if JS_DEV %}
-              <script src="{% static 'js/goog/base.js' %}" type="text/javascript"></script>
-              <script src="{% static 'js/deps.js' %}" type="text/javascript"></script>
-              <script src="{% static 'js/start.js' %}" type="text/javascript"></script>
-              <script src="http://localhost:35729/livereload.js"></script>
-            {% else %}
-              <script src="{% static 'js/app.js' %}" type="text/javascript"></script>
-            {% endif %}
+            <script src="{% static 'is_core/js/app.js' %}" type="text/javascript"></script>
             <script type="text/javascript">
               {% block scripts %}
                 app.start(window, {error: '{% trans 'Internal error occurred. Service is unavailable, sorry.' %}', loading: '{% trans 'Loading...' %}'}, {% if JS_DEV %}true{% else %}false{% endif %});
               {% endblock %}
             </script>
         {% endblock %}
-	</body>
+    </body>
 </html>
