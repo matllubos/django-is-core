@@ -7,7 +7,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from pyston.utils import set_rest_context_to_request
 from pyston.utils.helpers import str_to_class
-from pyston.converters import get_converter, get_supported_mime_types, get_converter_name_from_request
+from pyston.converters import (
+    get_converter, get_supported_mime_types, get_converter_name_from_request, get_default_converters
+)
 from pyston.resource import BaseResource
 from pyston.conf import settings as pyston_settings
 
@@ -47,7 +49,7 @@ def rest_response_exception_factory(request, response_code, title, message, resp
 
 
 def ui_rest_response_exception_factory(request, response_code, title, message, response_class=HttpResponse):
-    rest_mime_types = list(get_supported_mime_types())
+    rest_mime_types = list(get_supported_mime_types(get_default_converters()))
     ui_mime_types = ['text/html', 'application/xhtml+xml']
 
     best_match = mimeparse.best_match(rest_mime_types + ui_mime_types, request.META.get('HTTP_ACCEPT', 'text/html'))
