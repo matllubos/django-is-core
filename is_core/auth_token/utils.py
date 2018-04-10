@@ -1,3 +1,5 @@
+import re
+
 from django.middleware.csrf import rotate_token
 from django.contrib.auth import load_backend
 from django.contrib.auth.signals import user_logged_in, user_logged_out
@@ -76,14 +78,30 @@ def logout(request):
                 request.user = AnonymousUser()
 
 
+def create_auth_header_value(token):
+    """
+    Returns a value for request "Authorization" header with the token.
+    """
+    return '{} {}'.format(settings.AUTH_HEADER_TOKEN_TYPE, token)
+
+
+def parse_auth_header_value(request):
+    """
+    Returns a token parsed from the "Authorization" header.
+    """
+    match = re.match(
+        '{} ([^ ]+)$'.format(settings.AUTH_HEADER_TOKEN_TYPE),
+        request.META.get(header_name_to_django(settings.AUTH_HEADER_NAME), '')
+    )
+    return match.group(1) if match else None
+
+
 def get_token(request):
     """
     Returns the token model instance associated with the given request token key.
     If no user is retrieved AnonymousToken is returned.
     """
-
-    auth_token = (request.META.get(header_name_to_django(settings.AUTH_HEADER_NAME)) or
-                  request.COOKIES.get(settings.AUTH_COOKIE_NAME))
+    auth_token = parse_auth_header_value(request) or request.COOKIES.get(settings.AUTH_COOKIE_NAME)
 
     try:
         token = Token.objects.get(key=auth_token, is_active=True)
@@ -97,8 +115,7 @@ def get_token(request):
 
 
 def dont_enforce_csrf_checks(request):
-    return (getattr(request, '_dont_enforce_csrf_checks', False) or
-                request.META.get(header_name_to_django(settings.AUTH_HEADER_NAME)))
+    return (getattr(request, '_dont_enforce_csrf_checks', False) or parse_auth_header_value(request))
 
 
 def get_user_from_token(token):

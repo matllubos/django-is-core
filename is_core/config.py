@@ -8,6 +8,7 @@ DEFAULTS = {
     'AUTH_COOKIE_SECURE': False,
     'AUTH_COOKIE_DOMAIN': None,
     'AUTH_HEADER_NAME': 'Authorization',
+    'AUTH_HEADER_TOKEN_TYPE': 'Bearer',
     'AUTH_DEFAULT_TOKEN_AGE': 60 * 60,  # Default token expiration time (default: 1 hour)
     'AUTH_MAX_TOKEN_AGE': 60 * 60 * 24 * 7 * 2,  # Max token expiration time (default: 2 weeks)
     'AUTH_COUNT_USER_PRESERVED_TOKENS': 20,

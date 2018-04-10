@@ -2,6 +2,7 @@ from germanium.tools.rest import assert_valid_JSON_response
 
 from is_core.config import settings
 from is_core.utils import header_name_to_django
+from is_core.auth_token.utils import create_auth_header_value
 
 
 class RESTAuthMixin:
@@ -12,7 +13,7 @@ class RESTAuthMixin:
                              data={settings.USERNAME: username, settings.PASSWORD: password})
             assert_valid_JSON_response(resp, 'REST authorization fail: %s' % resp)
             self.default_headers[header_name_to_django(settings.AUTH_HEADER_NAME)] = (
-                self.deserialize(resp).get('token')
+                create_auth_header_value(self.deserialize(resp).get('token'))
             )
         else:
             super(RESTAuthMixin, self).authorize(username, password)
