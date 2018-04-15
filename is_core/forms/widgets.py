@@ -450,9 +450,6 @@ class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
             self.choices.queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES
         )
 
-    def format_value(self, value):
-        return force_text(value)
-
     def render(self, name, value, attrs=None):
         if self.is_restricted:
             if value is None:
@@ -465,7 +462,7 @@ class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
         else:
             attrs = add_class_name(attrs, self.select_class_name)
             attrs['placeholder'] = self.select_class_placeholder
-            return super(RestrictedSelectWidgetMixin, self).render(name, value, attrs)
+            return super(RestrictedSelectWidgetMixin, self).render(name, value, attrs=attrs)
 
 
 class RestrictedSelectWidget(RestrictedSelectWidgetMixin, forms.Select):
