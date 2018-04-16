@@ -24,7 +24,7 @@ except ImportError:
     default = None
 
 from is_core.config import settings
-from is_core.utils.compatibility import CompatibilitySelectMixin, CompatibilityWidgetMixin
+from is_core.utils.compatibility import CompatibilityWidgetMixin
 
 from .utils import ReadonlyValue, add_class_name
 
@@ -64,49 +64,13 @@ class WrapperWidget(forms.Widget):
         return self.widget.render(name, value, attrs)
 
 
-class SelectMixin(CompatibilitySelectMixin):
-
-    def render_option(self, selected_choices, option_value, option_label, option_attrs):
-        if option_value is None:
-            option_value = ''
-        option_value = force_text(option_value)
-        if option_value in selected_choices:
-            selected_html = mark_safe(' selected="selected"')
-            if not self.allow_multiple_selected:
-                # Only allow for a single selection.
-                selected_choices.remove(option_value)
-        else:
-            selected_html = ''
-        return format_html('<option value="{0}"{1}{2}>{3}</option>',
-                           option_value,
-                           selected_html,
-                           flat_data_attrs(option_attrs) or '',
-                           force_text(option_label))
-
-    def render_options_compatible(self, choices, selected_choices):
-        # Normalize to strings.
-        selected_choices = set(force_text(v) for v in selected_choices)
-        output = []
-        for choice in chain(self.choices, choices):
-            option_value, option_label = choice
-            if isinstance(option_label, (list, tuple)):
-                output.append(format_html('<optgroup label="{0}">', force_text(option_value)))
-                for option in option_label:
-                    output.append(self.render_option(selected_choices, *option))
-                output.append('</optgroup>')
-            else:
-                output.append(self.render_option(selected_choices, option_value, option_label,
-                                                 getattr(choice, 'attrs', {})))
-        return '\n'.join(output)
-
-
-class FulltextSelect(SelectMixin, forms.Select):
+class FulltextSelect(forms.Select):
 
     class_name = 'fulltext-search'
     placeholder = _('Search...')
 
 
-class FulltextSelectMultiple(SelectMixin, forms.SelectMultiple):
+class FulltextSelectMultiple(forms.SelectMultiple):
 
     class_name = 'fulltext-search-multiple'
     placeholder = _('Search...')
@@ -457,7 +421,7 @@ class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
             final_attrs = self.build_attrs(self.attrs, attrs, type='text', name=name)
             if value != '':
                 # Only add the 'value' attribute if a value is non-empty.
-                final_attrs['value'] = self.format_value(value)
+                final_attrs['value'] = self.format_resticted_value(value)
             return format_html('<input{} />', flatatt(final_attrs))
         else:
             attrs = add_class_name(attrs, self.select_class_name)
@@ -470,6 +434,9 @@ class RestrictedSelectWidget(RestrictedSelectWidgetMixin, forms.Select):
     select_class_name = 'fulltext-search'
     select_class_placeholder = _('Search...')
 
+    def format_resticted_value(self, value):
+        return None if value is None else str(value)
+
 
 class RestrictedSelectMultipleWidget(RestrictedSelectWidgetMixin, forms.SelectMultiple):
 
@@ -480,16 +447,16 @@ class RestrictedSelectMultipleWidget(RestrictedSelectWidgetMixin, forms.SelectMu
         super(RestrictedSelectMultipleWidget, self).__init__(attrs)
         self.separator = separator
 
-    def format_value(self, value):
-        return (
-            self.separator.join([super(RestrictedSelectMultipleWidget, self).format_value(v) for v in value])
-            if isinstance(value, (list, tuple))
-            else super(RestrictedSelectMultipleWidget, self).format_value(value)
-        )
-
     def value_from_datadict(self, data, files, name):
         if self.is_restricted:
             value = data.get(name)
             return [v.strip() for v in value.split(self.separator)] if isinstance(value, str) else value
         else:
             return super(RestrictedSelectMultipleWidget, self).value_from_datadict(data, files, name)
+
+    def format_resticted_value(self, value):
+        if value is None:
+            value = []
+        if not isinstance(value, (tuple, list)):
+            value = [value]
+        return self.separator.join([str(v) if v is not None else '' for v in value])
