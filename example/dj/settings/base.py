@@ -99,7 +99,7 @@ MIDDLEWARE = MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'is_core.auth_token.middleware.TokenAuthenticationMiddlewares',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'is_core.middleware.RequestKwargsMiddleware',
     'is_core.middleware.HTTPExceptionsMiddleware',
@@ -140,7 +140,6 @@ INSTALLED_APPS = (
 
     # IS
     'is_core',
-    'is_core.auth_token',
     'block_snippets',
 )
 
