@@ -5,14 +5,12 @@ from germanium.tools.http import (assert_http_forbidden, assert_http_unauthorize
                                   assert_http_not_found)
 from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_created_response
 
-from is_core.tests.auth_test_cases import RESTAuthMixin
-
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 from issue_tracker.models import Issue
 
 
-class RESTPermissionsTestCase(AsSuperuserTestCase, RESTAuthMixin, HelperTestCase, RESTTestCase):
+class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
     USER_API_URL = '/api/user/'
     ISSUE_API_URL = '/api/issue/'
     USER_ISSUES_API_URL = '/api/user/%(user_pk)s/issue-number/'
