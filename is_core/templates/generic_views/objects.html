@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load i18n utils permissions %}
+
+{% block content %}
+    <div class="clearfix page-view list-view">
+        {% block above-table %}{% endblock %}
+        <table class="table table-striped">
+            {% for row in data_list %}
+                {% if forloop.first %}
+                    {% block inline-thead %}
+                        <thead>
+                            <tr>
+                                {% for field_name, field_value in header_list %}
+                                    <th class="field-{{ field_name }}">{{ field_value }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                    {% endblock %}
+                {% endif %}
+                <tr class="{% cycle 'odd' 'even' %}{% if row.class_names %} {{ row.class_names|join:' ' }}{% endif %}{% if form.class_names %} {{ form.class_names|join:' ' }}{% endif %}">
+                    {% for field_name, field_value in row %}
+                        <td class="field field-{{ field_name }}">
+                            {{ field_value }}
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% if forloop.last %}</tbody>{% endif %}
+            {% endfor %}
+        </table>
+        {% block below-table %}{% endblock %}
+    </div>
+{% endblock %}
