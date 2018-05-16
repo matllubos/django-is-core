@@ -171,9 +171,6 @@ class RESTResourceMixin:
             raise response_exception
         return super(RESTResourceMixin, self)._get_error_response(exception)
 
-    def _get_cors_allowed_headers(self):
-        return super(RESTResourceMixin, self)._get_cors_allowed_headers() + (settings.AUTH_HEADER_NAME,)
-
 
 class RESTModelCoreResourcePermissionsMixin(RESTObjectLoginMixin):
 
