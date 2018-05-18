@@ -8,7 +8,7 @@ from pyston.conf import settings as pyston_settings
 from pyston.forms import rest_modelform_factory
 from pyston.exception import (RESTException, MimerDataException, NotAllowedException, UnsupportedMediaTypeException,
                               ResourceNotFoundException, NotAllowedMethodException, DuplicateEntryException,
-                              ConflictException, DataInvalidException)
+                              ConflictException, DataInvalidException, UnauthorizedException)
 from pyston.resource import BaseResource, BaseModelResource, DefaultRESTModelResource
 from pyston.response import RESTErrorResponse, RESTErrorsResponse
 from pyston.utils import rfs
@@ -20,7 +20,7 @@ from chamber.utils import transaction
 from is_core.config import settings
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
-                                         HTTPForbiddenResponseException, HTTPUnauthorizedResponseException)
+                                         HTTPForbiddenResponseException)
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
 from is_core.utils.immutable import merge
@@ -83,12 +83,11 @@ class RESTLoginMixin:
         return ((not self.has_login_options_required() or self.request.user.is_authenticated) and
                 super(RESTLoginMixin, self).has_options_permission(**kwargs))
 
-    def dispatch(self, request, *args, **kwargs):
-        if ((not hasattr(request, 'user') or not request.user or not request.user.is_authenticated) and
-                getattr(self, 'has_login_{}_required'.format(request.method.lower()))()):
-            raise HTTPUnauthorizedResponseException
-        else:
-            return super(RESTLoginMixin, self).dispatch(request, *args, **kwargs)
+    def _check_permission(self, name, *args, **kwargs):
+        if ((not hasattr(self.request, 'user') or not self.request.user or not self.request.user.is_authenticated) and
+                getattr(self, 'has_login_{}_required'.format(name))()):
+            raise UnauthorizedException
+        super()._check_permission(name, *args, **kwargs)
 
 
 class RESTObjectLoginMixin(RESTLoginMixin):
