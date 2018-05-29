@@ -31,7 +31,8 @@ def ui_response_exception_factory(request, response_code, title, message, respon
     )
 
 
-def rest_response_exception_factory(request, response_code, title, message, response_class=HttpResponse):
+def rest_response_exception_factory(request, response_code, title, message, response_class=HttpResponse,
+                                    rest_error_response_class=None):
     message = (
         ', '.join([force_text(val) for val in message])
         if isinstance(message, (list, tuple))
@@ -42,9 +43,9 @@ def rest_response_exception_factory(request, response_code, title, message, resp
     converter = get_converter(converter_name)
     response = response_class(status=response_code, content_type=converter.content_type)
 
-    rest_error_response = str_to_class(pyston_settings.ERROR_RESPONSE_CLASS)
+    rest_error_response_class = rest_error_response_class or str_to_class(pyston_settings.ERROR_RESPONSE_CLASS)
 
-    converter.encode_to_stream(response, rest_error_response(msg=message, code=response_code).result)
+    converter.encode_to_stream(response, rest_error_response_class(msg=message, code=response_code).result)
     return response
 
 
