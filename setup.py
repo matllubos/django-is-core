@@ -25,7 +25,6 @@ setup(
     ],
     install_requires=[
         'django>=1.10',
-        'django-class-auth-views==1.0.0',
         'django-pyston>=2.9.2',
         'django-block-snippets==2.0.0',
         'django-chamber>=0.4.0',
