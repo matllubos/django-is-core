@@ -3,20 +3,21 @@ from django.conf import settings as django_settings
 
 DEFAULTS = {
     'AUTH_FORM_CLASS': (
-        'auth_token.contrib.is_core.forms.TokenAuthenticationForm' if 'auth_token' in django_settings.INSTALLED_APPS
+        'auth_token.contrib.is_core_auth.forms.TokenAuthenticationSmartForm'
+        if 'auth_token' in django_settings.INSTALLED_APPS
         else 'django.contrib.auth.forms.AuthenticationForm'
     ),
     'AUTH_RESOURCE_CLASS': (
-        'auth_token.contrib.is_core.resource.AuthResource' if 'auth_token' in django_settings.INSTALLED_APPS
+        'auth_token.contrib.is_core_auth.resource.AuthResource' if 'auth_token' in django_settings.INSTALLED_APPS
         else None
     ),
     'AUTH_LOGIN_VIEW': (
-        'auth_token.contrib.is_core.views.TokenLoginView' if 'auth_token' in django_settings.INSTALLED_APPS
-        else 'class_based_auth_views.views.LoginView'
+        'auth_token.contrib.is_core_auth.views.TokenLoginView' if 'auth_token' in django_settings.INSTALLED_APPS
+        else 'django.contrib.auth.views.LoginView'
     ),
     'AUTH_LOGOUT_VIEW': (
-        'auth_token.contrib.is_core.views.TokenLogoutView' if 'auth_token' in django_settings.INSTALLED_APPS
-        else 'is_core.generic_views.auth_views.LogoutView'
+        'auth_token.contrib.is_core_auth.views.TokenLogoutView' if 'auth_token' in django_settings.INSTALLED_APPS
+        else 'django.contrib.auth.views.LogoutView'
     ),
     'HOME_CORE': 'is_core.main.HomeUIISCore',
     'HOME_VIEW': 'is_core.generic_views.HomeView',
