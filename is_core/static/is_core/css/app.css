@@ -1978,7 +1978,7 @@ table td[class*=col-], table th[class*=col-] {
 
 .table-responsive {
     overflow-x: auto;
-    min-height: .01%
+    min-height: 600px
 }
 
 @media screen and (max-width: 767px) {
@@ -9941,6 +9941,10 @@ form .errorlist {
     background: 0 0;
     box-shadow: none;
     padding: 0
+}
+
+.table-responsive ul.inline-list{
+    list-style-type: none
 }
 
 .grid thead > tr > th {

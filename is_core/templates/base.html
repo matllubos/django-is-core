@@ -118,6 +118,7 @@
                 app.start(window, {error: '{% trans 'Internal error occurred. Service is unavailable, sorry.' %}', loading: '{% trans 'Loading...' %}'}, {% if JS_DEV %}true{% else %}false{% endif %});
               {% endblock %}
             </script>
+            <script type="text/javascript">backend.core.run();</script>
         {% endblock %}
     </body>
 </html>
