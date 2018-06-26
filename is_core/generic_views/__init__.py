@@ -167,7 +167,7 @@ class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
 
 
 class HomeView(DefaultCoreViewMixin, TemplateView):
-    template_name = 'home.html'
+    template_name = 'is_core/home.html'
     view_name = 'home'
 
     def get_title(self):

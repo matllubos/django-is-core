@@ -267,7 +267,7 @@ class TableViewMixin:
 
 class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
 
-    template_name = 'generic_views/table.html'
+    template_name = 'is_core/generic_views/table.html'
     view_type = 'list'
     export_types = None
     export_fields = None

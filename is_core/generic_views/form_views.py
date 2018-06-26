@@ -32,8 +32,8 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
     view_type = 'default'
     fieldsets = None
-    form_template = 'forms/default_form.html'
-    template_name = 'generic_views/default_form.html'
+    form_template = 'is_core/forms/default_form.html'
+    template_name = 'is_core/generic_views/default_form.html'
     messages = {
         'success': _('Object was saved successfully.'),
         'error': _('Please correct the error below.'),
@@ -583,8 +583,8 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
 class AddModelFormView(DefaultCoreModelFormView):
 
-    template_name = 'generic_views/add_form.html'
-    form_template = 'forms/model_add_form.html'
+    template_name = 'is_core/generic_views/add_form.html'
+    form_template = 'is_core/forms/model_add_form.html'
     view_type = 'add'
     messages = {'success': _('The %(name)s "%(obj)s" was added successfully.'),
                 'error': _('Please correct the error below.')}
@@ -600,8 +600,8 @@ class AddModelFormView(DefaultCoreModelFormView):
 
 class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
 
-    template_name = 'generic_views/edit_form.html'
-    form_template = 'forms/model_edit_form.html'
+    template_name = 'is_core/generic_views/edit_form.html'
+    form_template = 'is_core/forms/model_edit_form.html'
     view_type = 'edit'
     messages = {'success': _('The %(name)s "%(obj)s" was changed successfully.'),
                 'error': _('Please correct the error below.')}

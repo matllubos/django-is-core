@@ -13,9 +13,9 @@ class InlineObjectsView(ObjectsViewMixin, InlineView):
 
 class TabularInlineObjectsView(InlineObjectsView):
 
-    template_name = 'forms/tabular_inline_objects.html'
+    template_name = 'is_core/forms/tabular_inline_objects.html'
 
 
 class ResponsiveInlineObjectsView(InlineObjectsView):
 
-    template_name = 'forms/responsive_inline_objects.html'
+    template_name = 'is_core/forms/responsive_inline_objects.html'
