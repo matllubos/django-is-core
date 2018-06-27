@@ -5,7 +5,8 @@ from is_core.patterns import patterns, RESTPattern
 
 
 class RESTDocumentationView(DefaultViewMixin, TemplateView):
-    template_name = 'generic_views/rest_documentation.html'
+
+    template_name = 'is_core/generic_views/rest_documentation.html'
 
     def get_context_data(self, **kwargs):
         context_data = super(RESTDocumentationView, self).get_context_data(**kwargs)

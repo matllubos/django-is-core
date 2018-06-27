@@ -23,7 +23,7 @@ def ui_response_exception_factory(request, response_code, title, message, respon
 
     return response_class(
         render_to_string(
-            ('{}.html'.format(response_code), 'error.html'),
+            ('is_core/{}.html'.format(response_code), 'is_core/error.html'),
             {'response_code': response_code, 'title': title, 'message': message},
             request=request
         ),

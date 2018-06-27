@@ -240,12 +240,12 @@ class InlineFormView(InlineView):
 
 
 class TabularInlineFormView(InlineFormView):
-    template_name = 'forms/tabular_inline_formset.html'
+    template_name = 'is_core/forms/tabular_inline_formset.html'
 
 
 class StackedInlineFormView(InlineFormView):
-    template_name = 'forms/stacked_inline_formset.html'
+    template_name = 'is_core/forms/stacked_inline_formset.html'
 
 
 class ResponsiveInlineFormView(InlineFormView):
-    template_name = 'forms/responsive_inline_formset.html'
+    template_name = 'is_core/forms/responsive_inline_formset.html'

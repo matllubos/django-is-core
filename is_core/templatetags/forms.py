@@ -18,7 +18,7 @@ def do_form_renderer(parser, token):
         raise TemplateSyntaxError("%r tag takes at least one argument: the form that will be rendered" % bits[0])
     remaining_bits = bits[2:]
     options = token_kwargs(remaining_bits, parser, support_legacy=False)
-    template_name = options.get('template', parser.compile_filter("'forms/default_form.html'"))
+    template_name = options.get('template', parser.compile_filter("'is_core/forms/default_form.html'"))
     options['use_csrf'] = options.get('use_csrf', parser.compile_filter('True'))
     options['form'] = parser.compile_filter(bits[1])
     options['method'] = options.get('method', parser.compile_filter("'POST'"))

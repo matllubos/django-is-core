@@ -12,19 +12,19 @@ DEFAULTS = {
         else None
     ),
     'AUTH_LOGIN_VIEW': (
-        'auth_token.contrib.is_core_auth.views.TokenLoginView' if 'auth_token' in django_settings.INSTALLED_APPS
-        else 'django.contrib.auth.views.LoginView'
+        'auth_token.contrib.is_core_auth.views.LoginView' if 'auth_token' in django_settings.INSTALLED_APPS
+        else 'is_core.views.auth.LoginView'
     ),
     'AUTH_LOGOUT_VIEW': (
-        'auth_token.contrib.is_core_auth.views.TokenLogoutView' if 'auth_token' in django_settings.INSTALLED_APPS
-        else 'django.contrib.auth.views.LogoutView'
+        'auth_token.contrib.is_core_auth.views.LogoutView' if 'auth_token' in django_settings.INSTALLED_APPS
+        else 'is_core.views.auth.LogoutView'
     ),
     'HOME_CORE': 'is_core.main.HomeUIISCore',
     'HOME_VIEW': 'is_core.generic_views.HomeView',
     'MENU_GENERATOR': 'is_core.menu.MenuGenerator',
     'USERNAME': 'username',
     'PASSWORD': 'password',
-    'LOGIN_URL': django_settings.LOGIN_URL,
+    'LOGIN_URL': '/login/',
     'LOGOUT_URL': '/logout/',
     'LOGIN_API_URL': lambda s: '/api{}'.format(s.LOGIN_URL),
     'EXPORT_TYPES': '',

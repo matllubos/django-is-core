@@ -16,12 +16,12 @@ class MenuItemPattern():
         self.pattern_kwargs = pattern_kwargs
 
 
-@register.inclusion_tag('menu/sub_menu.html', takes_context=True)
+@register.inclusion_tag('is_core/menu/sub_menu.html', takes_context=True)
 def submenu(context, menu_items):
     return {'menu_items': menu_items}
 
 
-@register.inclusion_tag('menu/menu.html', takes_context=True)
+@register.inclusion_tag('is_core/menu/menu.html', takes_context=True)
 def menu(context, site_name):
     site = get_site_by_name(site_name)
     request = context.get('request')
@@ -34,7 +34,7 @@ def menu(context, site_name):
     return context
 
 
-@register.inclusion_tag('menu/bread_crumbs.html', takes_context=True)
+@register.inclusion_tag('is_core/menu/bread_crumbs.html', takes_context=True)
 def bread_crumbs(context):
     bread_crumbs_menu_items = context.get('bread_crumbs_menu_items')
 

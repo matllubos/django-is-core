@@ -11,10 +11,10 @@
 			{% if fieldsets %}
 				{% for fieldset in fieldsets %}
 					{% fieldset_renderer form fieldset %}
-				{% endfor %}	
+				{% endfor %}
 			{% else %}
 				{% for field in form %}
-					{% include 'forms/default_field.html' with field=field field_name=field.name %}
+					{% include 'is_core/forms/default_field.html' with field=field field_name=field.name %}
 				{% endfor %}
 			{% endif %}
 

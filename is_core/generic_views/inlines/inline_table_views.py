@@ -5,7 +5,8 @@ from is_core.generic_views.inlines import InlineView
 
 
 class InlineTableView(TableViewMixin, InlineView):
-    template_name = 'forms/inline_table.html'
+
+    template_name = 'is_core/forms/inline_table.html'
     fk_name = None
 
     def _get_api_url(self):
