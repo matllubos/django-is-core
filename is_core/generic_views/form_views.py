@@ -270,7 +270,7 @@ class DefaultModelFormView(DefaultFormView):
     exclude = None
     inline_views = None
     field_labels = None
-    form_template = 'forms/model_default_form.html'
+    form_template = 'is_core/forms/model_default_form.html'
 
     def _get_field_labels(self):
         return self.field_labels
