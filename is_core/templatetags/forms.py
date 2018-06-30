@@ -38,7 +38,7 @@ def fieldset_renderer(context, form, fieldset):
     })
     if inline_view:
         return inline_view.render(context, fieldset[0])
-    template = values.get('template') or 'forms/default_fieldset.html'
+    template = values.get('template') or 'is_core/forms/default_fieldset.html'
     context_dict.update({
         'fields': values.get('fields'),
         'form': form,

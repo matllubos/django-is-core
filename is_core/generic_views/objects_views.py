@@ -78,7 +78,7 @@ class ObjectsViewMixin:
 
 class ObjectsView(ObjectsViewMixin, DefaultCoreViewMixin, TemplateView):
 
-    template_name = 'generic_views/objects.html'
+    template_name = 'is_core/generic_views/objects.html'
 
     def has_get_permission(self, **kwargs):
         return self.core.has_ui_read_permission(self.request)
