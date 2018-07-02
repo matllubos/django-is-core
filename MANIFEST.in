@@ -1,4 +1,4 @@
 include README
 include LICENSE
 include MANIFEST.in
-recursive-include is_core *.py *.txt *.html *.po *.mo *.xml *.xslt *.xsl *.js *.sass *.css *.png *.jpg *.jpeg *.gif
+recursive-include is_core *.py *.txt *.html *.po *.mo *.xml *.xslt *.xsl *.js *.sass *.css *.png *.jpg *.jpeg *.gif *.otf *.eot *.svg *.ttf *.woff
