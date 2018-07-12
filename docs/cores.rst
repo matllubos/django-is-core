@@ -46,7 +46,7 @@ image 3
 
 REST
 ^^^^
-But there is created REST resource too. By default on URLs ``/api/user/`` and ``/api/user/{obj_id}`` that returns 
+But there is created REST resource too. By default on URLs ``/api/user/`` and ``/api/user/{obj_id}`` that returns
 object in asked format (HTTP header ``Content-type: application/json``).
 
 
@@ -92,7 +92,7 @@ You can specify URL manually::
 ISCore hiearchy
 ---------------
 
-Now we provide detailed description of all ISCore objects. Firstly for better understanding you can see UML class 
+Now we provide detailed description of all ISCore objects. Firstly for better understanding you can see UML class
 diagram of core hierarchy.
 
 # TODO add diagram
@@ -223,7 +223,7 @@ The opposite to get_form_fields.
 
 .. method:: ModelISCore.get_form_class(request, obj=None)
 
-Use this method to define form dynamically or if you want to define different form for **add**, **edit** view of REST 
+Use this method to define form dynamically or if you want to define different form for **add**, **edit** view of REST
 resources.
 
 .. method:: ModelISCore.pre_save_model(request, obj, form, change)
@@ -273,7 +273,7 @@ Use this method if you want to change ordering dynamically.
 
 .. method:: ModelISCore.get_queryset(request)
 
-Returns model queryset, ordered by defined ordering inside core. You can filter here objects according to user 
+Returns model queryset, ordered by defined ordering inside core. You can filter here objects according to user
 permissions.
 
 .. method:: ModelISCore.preload_queryset(request, qs)
@@ -301,7 +301,7 @@ Options
 
 .. attribute:: UIISCore.menu_url_name
 
-Every UI core has one place inside menu that addresses one of UI views of a core. This view is selected by option 
+Every UI core has one place inside menu that addresses one of UI views of a core. This view is selected by option
 ``menu_url_name``.
 
 .. attribute:: UIISCore.show_in_menu
@@ -311,7 +311,7 @@ Option `show_in_menu` is set to ``True`` by default. If you want to remove core 
 
 .. attribute:: UIISCore.view_classes
 
-Option contains view classes that are automatically added to Django urls. Use this option to add new views. Example 
+Option contains view classes that are automatically added to Django urls. Use this option to add new views. Example
 you can see in section generic views (this is a declarative way if you want to register views dynamically see
 ``UIISCore.get_view_classes``).::
 
@@ -333,7 +333,7 @@ you can see in section generic views (this is a declarative way if you want to r
 
 Every view must have assigned is-core pattern class. This pattern is not the same patter that is used with **django**
 `urls`. This pattern has higher usability. You can use it to generate the url string or checking permissions. Option
-default_ui_pattern_class contains pattern class that is used with defined view classes. More about patterns you can 
+default_ui_pattern_class contains pattern class that is used with defined view classes. More about patterns you can
 find in section patterns. #TODO add link
 
 Methods
@@ -356,7 +356,7 @@ and registering a custom view::
 
     from is_core.main import UIRESTModelISCore
 
-    from .views import UserEditView, MonthReportView
+    from .views import UserDetailView, MonthReportView
 
 
     class UserISCore(UIRESTModelISCore):
@@ -364,7 +364,7 @@ and registering a custom view::
 
         def get_view_classes(self):
             view_classes = super(UserISCore, self).get_view_classes()
-            view_classes['edit'] = (r'^/(?P<pk>\d+)/$', UserEditView)
+            view_classes['detail'] = (r'^/(?P<pk>\d+)/$', UserDetailView)
             view_classes['reports'] = (r'^/reports/$', MonthReportView)
             return view_classes
 
@@ -407,12 +407,12 @@ Options
 
 .. attribute:: RESTISCore.rest_classes
 
-Option contains REST classes that are automatically added to django urls. Use this option to add new REST resources. 
+Option contains REST classes that are automatically added to django urls. Use this option to add new REST resources.
 Example you can see in section REST. #TODO add link
 
 .. attribute:: RESTISCore.default_rest_pattern_class
 
-As UI views every resource must have assigned is-core pattern class. Default pattern for REST resources is 
+As UI views every resource must have assigned is-core pattern class. Default pattern for REST resources is
 `RESTPattern`. More about patterns you can find in section patterns. #TODO add link
 
 Methods
@@ -420,7 +420,7 @@ Methods
 
 .. method:: RESTISCore.init_rest_request(request)
 
-Every resource defined with option ``rest_classes`` calls this method before calling dispatch. The default implementation 
+Every resource defined with option ``rest_classes`` calls this method before calling dispatch. The default implementation
 of this method calls parent method ``init_request``.
 
 .. method:: RESTISCore.get_rest_classes()
@@ -448,7 +448,7 @@ You can change whole is core too by attribute ``HOME_IS_CORE``, default value::
 UIModelISCore
 -------------
 
-``UIModelISCore`` represents core that provides standard views for model creation, editation and listing. The 
+``UIModelISCore`` represents core that provides standard views for model creation, editation and listing. The
 ``UIModelISCore`` will not work correctly without REST resource. Therefore you must set ``api_url_name`` option.
 
 Options
@@ -460,7 +460,7 @@ For the ``UIModelISCore`` default views are **add**, **edit** and **list**::
 
     default_model_view_classes = (
         ('add', r'^/add/$', AddModelFormView),
-        ('edit', r'^/(?P<pk>[-\w]+)/$', EditModelFormView),
+        ('detail', r'^/(?P<pk>[-\w]+)/$', DetailModelFormView),
         ('list', r'^/?$', TableView),
     )
 
@@ -469,7 +469,7 @@ For the ``UIModelISCore`` default views are **add**, **edit** and **list**::
 The ``api_url_name`` is required attribute. The value is pattern name of REST resource.
 
 .. attribute:: UIModelISCore.list_display
- 
+
 Set ``list_display`` to control which fields are displayed on the list page.
 
 .. attribute:: UIModelISCore.export_display
@@ -539,7 +539,7 @@ Exclude and filter can be freely combined::
 
 .. attribute:: UIModelISCore.form_inline_views
 
-The **django-is-core** interface has the ability to edit models on the same page as a parent model. These are called 
+The **django-is-core** interface has the ability to edit models on the same page as a parent model. These are called
 inlines. We will use as example new model issue of issue tracker system::
 
 
@@ -566,11 +566,11 @@ Set ``form_fieldsets`` to control the layout of core **add** and **change** page
 too. If you set ``form_fieldsets`` the ``form_fields`` is rewritten with a set of all fields from fieldsets.
 Therefore you should use only one of these attributes.
 
-``form_fieldsets`` is a list of two-tuples, in which each two-tuple represents a <fieldset> on the core form page. 
+``form_fieldsets`` is a list of two-tuples, in which each two-tuple represents a <fieldset> on the core form page.
 (a <fieldset> is a **section** of the form.).
 
-The two-tuples are in the format (``name``, ``field_options``), where name is a string representing the title of the 
-``form_fieldset`` and ``field_options`` is a dictionary of information about the ``fieldset``, including a list of fields 
+The two-tuples are in the format (``name``, ``field_options``), where name is a string representing the title of the
+``form_fieldset`` and ``field_options`` is a dictionary of information about the ``fieldset``, including a list of fields
 to be displayed in it.
 
 As a example we will use ``User`` model again::

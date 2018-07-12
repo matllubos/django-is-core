@@ -34,7 +34,7 @@ class EditParentMixin(ListParentMixin):
     def edit_bread_crumbs_menu_item(self):
         from is_core.menu import LinkMenuItem
 
-        edit_pattern = self.core.ui_patterns.get('edit')
+        edit_pattern = self.core.ui_patterns.get('detail')
         edit_view = edit_pattern.get_view(self.request)
         parent_obj = self.get_parent_obj()
         if not isinstance(parent_obj, edit_view.model):
@@ -49,8 +49,8 @@ class EditParentMixin(ListParentMixin):
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = super(EditParentMixin, self).parent_bread_crumbs_menu_items()
-        if 'edit' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('edit').get_view(self.request).has_get_permission(obj=self.get_obj()):
+        if ('detail' in self.core.ui_patterns and
+              self.core.ui_patterns.get('detail').get_view(self.request).has_get_permission(obj=self.get_obj())):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 

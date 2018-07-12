@@ -564,10 +564,10 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
                 self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() and
                 'save' in self.request.POST):
             return self.core.ui_patterns.get('list').get_url_string(self.request)
-        elif ('edit' in self.core.ui_patterns and
-                self.core.ui_patterns.get('edit').get_view(self.request).has_get_permission(obj=obj) and
+        elif ('detail' in self.core.ui_patterns and
+                self.core.ui_patterns.get('detail').get_view(self.request).has_get_permission(obj=obj) and
                 'save-and-continue' in self.request.POST):
-            return self.core.ui_patterns.get('edit').get_url_string(self.request, kwargs={'pk': obj.pk})
+            return self.core.ui_patterns.get('detail').get_url_string(self.request, kwargs={'pk': obj.pk})
         else:
             return self.request.get_full_path()
 
@@ -598,11 +598,11 @@ class AddModelFormView(DefaultCoreModelFormView):
         return self.core.has_ui_create_permission(self.request)
 
 
-class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
+class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
 
     template_name = 'is_core/generic_views/edit_form.html'
     form_template = 'is_core/forms/model_edit_form.html'
-    view_type = 'edit'
+    view_type = 'detail'
     messages = {'success': _('The %(name)s "%(obj)s" was changed successfully.'),
                 'error': _('Please correct the error below.')}
     pk_name = 'pk'
@@ -618,7 +618,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
     def link(self, arguments=None, **kwargs):
         if arguments is None:
             arguments = (self.kwargs[self.pk_name],)
-        return super(EditModelFormView, self).link(arguments=arguments, **kwargs)
+        return super().link(arguments=arguments, **kwargs)
 
     # TODO: get_obj should not be inside core get_obj and _get_perm_obj_or_404 should have same implementation
     # this object shoul return None if object does not exists. Becouase has_get_permission and has_post_permission
@@ -652,7 +652,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         return ModelFlatRESTFields.create_from_flat_list(self._get_export_fields(), self.model)
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
-        context_data = super(EditModelFormView, self).get_context_data(
+        context_data = super().get_context_data(
             form=form, inline_form_views=inline_form_views, **kwargs
         )
         if self._get_export_types() and self._get_export_fields():
@@ -674,7 +674,7 @@ class EditModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         return self.core.has_ui_update_permission(self.request, obj=obj)
 
 
-class DetailModelFormView(EditModelFormView):
+class ReadonlyDetailModelFormView(DetailModelFormView):
 
     show_save_and_continue = False
 

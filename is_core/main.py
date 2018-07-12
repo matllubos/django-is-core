@@ -15,7 +15,7 @@ from django.utils.functional import cached_property
 
 from is_core.config import settings
 from is_core.actions import WebAction, ConfirmRESTAction
-from is_core.generic_views.form_views import AddModelFormView, EditModelFormView, BulkChangeFormView
+from is_core.generic_views.form_views import AddModelFormView, DetailModelFormView, BulkChangeFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
@@ -351,28 +351,34 @@ class UIModelISCore(ModelISCore, UIISCore):
     ui_list_export_types = None
     ui_detail_export_types = None
     ui_add_view = AddModelFormView
-    ui_edit_view = EditModelFormView
+    ui_detail_view = DetailModelFormView
     ui_list_view = TableView
-
-    default_model_view_classes = (
-        ('add', r'add/', 'get_ui_add_view'),
-        ('edit', r'(?P<pk>[-\w]+)/', 'get_ui_edit_view'),
-        ('list', r'', 'get_ui_list_view'),
-    )
 
     bulk_change_url_name = None
 
+    default_model_view_classes = ()
+
+    def get_default_model_view_classes(self):
+        default_model_view_classes = list(self.default_model_view_classes)
+        if self.can_create:
+            default_model_view_classes.append(('add', r'add/', self.get_ui_add_view()))
+        if self.can_read or self.can_update:
+            default_model_view_classes.append(('detail', r'(?P<pk>[-\w]+)/', self.get_ui_detail_view()))
+        if self.can_read:
+            default_model_view_classes.append(('list', r'', self.get_ui_list_view()))
+        return default_model_view_classes
+
     def get_view_classes(self):
-        view_classes = super(UIModelISCore, self).get_view_classes() + list(self.default_model_view_classes)
+        view_classes = super(UIModelISCore, self).get_view_classes() + list(self.get_default_model_view_classes())
         if self.is_bulk_change_enabled():
             view_classes.append((self.get_bulk_change_url_name(), r'bulk-change/?', BulkChangeFormView))
-        return view_classes + list(self.default_model_view_classes)
+        return view_classes
 
     def get_ui_add_view(self):
         return self.ui_add_view
 
-    def get_ui_edit_view(self):
-        return self.ui_edit_view
+    def get_ui_detail_view(self):
+        return self.ui_detail_view
 
     def get_ui_list_view(self):
         return self.ui_list_view
@@ -500,7 +506,17 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     rest_resource_class = RESTModelResource
     rest_form_field_labels = None
 
-    rest_allowed_methods = ('get', 'put', 'post', 'delete', 'head', 'options')
+    def get_rest_allowed_methods(self):
+        rest_allowed_methods = ['options']
+        if self.can_read:
+            rest_allowed_methods += ['get', 'head']
+        if self.can_update:
+            rest_allowed_methods += ['put', 'patch']
+        if self.can_create:
+            rest_allowed_methods.append('post')
+        if self.can_delete:
+            rest_allowed_methods.append('delete')
+        return rest_allowed_methods
 
     def get_rest_form_field_labels(self, request):
         return (
@@ -586,7 +602,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     def get_rest_patterns(self):
         rest_patterns = super(RESTModelISCore, self).get_rest_patterns()
         rest_patterns.update(DoubleRESTPattern(self.get_rest_class(), self.default_rest_pattern_class, self,
-                                               self.rest_allowed_methods).patterns)
+                                               self.get_rest_allowed_methods()).patterns)
         return rest_patterns
 
     def get_list_actions(self, request, obj):
@@ -636,14 +652,19 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
 
     def get_list_actions(self, request, obj):
         list_actions = super(UIRESTModelISCore, self).get_list_actions(request, obj)
-        edit_pattern = self.ui_patterns.get('edit')
-        if edit_pattern and edit_pattern.can_call_get(request, obj=obj):
-            return [WebAction('edit-%s' % self.get_menu_group_pattern_name(), _('Edit'), 'edit')] + list(list_actions)
+        detail_pattern = self.ui_patterns.get('detail')
+        if detail_pattern and detail_pattern.can_call_get(request, obj=obj):
+            return [
+                WebAction(
+                    'detail-{}'.format(self.get_menu_group_pattern_name()), _('Detail'),
+                    'edit' if self.has_ui_update_permission(request, obj=obj) else 'detail'
+                )
+            ] + list(list_actions)
         else:
             return list_actions
 
     def get_default_action(self, request, obj):
-        return 'edit-%s' % self.get_menu_group_pattern_name()
+        return 'detail-{}'.format(self.get_menu_group_pattern_name())
 
     def web_link_patterns(self, request):
         return self.ui_patterns.values()

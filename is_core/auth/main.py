@@ -3,22 +3,27 @@ class PermissionsMixin:
     Mixin that validate user permissions inside ISCore
     """
 
+    can_read = True
+    can_create = True
+    can_update = True
+    can_delete = True
+
     read_permission = True
     create_permission = True
     update_permission = True
     delete_permission = True
 
     def has_read_permission(self, request, obj=None):
-        return self.read_permission
+        return self.read_permission and self.can_read
 
     def has_create_permission(self, request, obj=None):
-        return self.create_permission
+        return self.create_permission and self.can_create
 
     def has_update_permission(self, request, obj=None):
-        return self.update_permission
+        return self.update_permission and self.can_update
 
     def has_delete_permission(self, request, obj=None):
-        return self.delete_permission
+        return self.delete_permission and self.can_delete
 
 
 class PermissionsUIMixin(PermissionsMixin):

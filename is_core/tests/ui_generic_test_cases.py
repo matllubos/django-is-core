@@ -77,7 +77,7 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
     @data_provider(get_ui_main_views)
     def test_should_return_right_edit_page_for_all_model_view(self, model_view, model):
 
-        if 'edit' in model_view.ui_patterns:
+        if 'detail' in model_view.ui_patterns:
             inst = self.new_instance(model)
 
             url = self.edit_url(model_view.site_name, model_view.get_menu_groups(), inst)

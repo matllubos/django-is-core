@@ -223,14 +223,16 @@ class DoubleRESTPattern:
             list_resource_methods &= self.methods
 
         result = OrderedDict()
-        result['api-resource'] = self.pattern_class(
-            'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^(?P<pk>[-\w]+)/$',
-            self.resource_class, self.core, detail_resource_methods, clone_view_class=False
-        )
-        result['api'] = self.pattern_class(
-            'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'$', self.resource_class,
-            self.core, list_resource_methods, clone_view_class=False
-        )
+        if detail_resource_methods:
+            result['api-resource'] = self.pattern_class(
+                'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^(?P<pk>[-\w]+)/$',
+                self.resource_class, self.core, detail_resource_methods, clone_view_class=False
+            )
+        if list_resource_methods:
+            result['api'] = self.pattern_class(
+                'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'$', self.resource_class,
+                self.core, list_resource_methods, clone_view_class=False
+            )
         return result
 
     def _get_list_allowed_methods(self):
