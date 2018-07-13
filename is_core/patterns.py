@@ -121,7 +121,8 @@ class ViewPattern(Pattern):
         return result
 
     def __getattr__(self, name):
-        for regex in (r'_check_(\w+)_permission', r'can_call_(\w+)'):
+        for regex, method_name in ((r'_check_(\w+)_permission', '_check_permission'),
+                                   (r'can_call_(\w+)', '_check_call')):
             m = re.match(regex, name)
             if m:
                 def _call(request, obj=None, view_kwargs=None, **kwargs):
@@ -130,7 +131,9 @@ class ViewPattern(Pattern):
                     method_kwargs = self._get_called_permission_kwargs(request, obj)
                     method_kwargs.update(kwargs)
 
-                    return self._call_view_method_with_request(name, request, request_kwargs=view_kwargs,
+                    return self._call_view_method_with_request(method_name, request,
+                                                               request_kwargs=view_kwargs,
+                                                               method_args=(m.group(1),),
                                                                method_kwargs=method_kwargs, obj=obj)
                 return _call
         raise AttributeError("%r object has no attribute %r" % (self.__class__, name))

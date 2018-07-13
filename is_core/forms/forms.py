@@ -75,7 +75,9 @@ class SmartFormMixin:
         pass
 
     def __getitem__(self, name):
-        "Returns a BoundField with the given name."
+        """"
+        Returns a BoundField with the given name.
+        """
         try:
             field = self.fields[name]
         except KeyError:
@@ -114,7 +116,8 @@ class SmartFormMixin:
     def _clean_fields(self):
         tmp_fields = self.fields
         self.fields = OrderedDict((
-            (name, field) for name, field in self._get_filtered_fields_to_clean() if name not in self.readonly_fields
+            (name, field) for name, field in self._get_filtered_fields_to_clean()
+            if name not in self.readonly_fields
         ))
         super(SmartFormMixin, self)._clean_fields()
         self.fields = tmp_fields
@@ -131,7 +134,8 @@ class SmartFormMixin:
     def changed_data(self):
         tmp_fields = self.fields
         self.fields = OrderedDict((
-            (name, field) for name, field in self.fields.items() if name not in self.readonly_fields
+            (name, field) for name, field in self.fields.items()
+            if name not in self.readonly_fields
         ))
         changed_data = super(SmartFormMixin, self).changed_data
         self.fields = tmp_fields

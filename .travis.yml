@@ -1,6 +1,5 @@
 language: python
 python:
-  - "3.4"
   - "3.5"
   - "3.6"
 
@@ -11,7 +10,7 @@ env:
 install:
   - cd example
   - pip install -q Django==$DJANGO_VERSION
-  - pip install -r requirements/dependency_base.txt 
+  - pip install -r requirements/dependency_base.txt
   - pip install -r requirements/base.txt
   - ln -sf $(pwd)/../is_core/ $(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
 
