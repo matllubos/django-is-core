@@ -94,7 +94,12 @@ class ISSite:
         self._set_items_urls(self._registry.values(), urlpatterns)
         return urlpatterns
 
+
 site = ISSite()
+
+
+def get_cores():
+    return site._registry.values()
 
 
 def get_core(name):

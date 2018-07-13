@@ -18,7 +18,6 @@ from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, DetailModelFormView, BulkChangeFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RESTModelResource, UIRESTModelResource
-from is_core.auth.main import PermissionsMixin, PermissionsUIMixin, PermissionsRESTMixin
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class
 from is_core.utils.compatibility import urls_wrapper, get_model_name, reverse
@@ -26,6 +25,8 @@ from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
 from is_core.forms.models import SmartModelForm
+
+from .auth.permissions import PermissionsSet, IsAdminUser
 
 
 class ISCoreBase(type):
@@ -45,7 +46,7 @@ class ISCoreBase(type):
         return new_class
 
 
-class ISCore(PermissionsMixin, metaclass=ISCoreBase):
+class ISCore(metaclass=ISCoreBase):
     """
     Parent of all IS cores. Contains common methods for all cores.
     This class is abstract.
@@ -58,9 +59,37 @@ class ISCore(PermissionsMixin, metaclass=ISCoreBase):
     verbose_name_plural = None
     menu_group = None
 
+    can_read = True
+    can_create = False
+    can_update = False
+    can_delete = False
+
+    default_permission_classes = (IsAdminUser,)
+    extra_permissions = {}
+
     def __init__(self, site_name, menu_parent_groups):
         self.site_name = site_name
         self.menu_parent_groups = menu_parent_groups
+
+    @cached_property
+    def permissions_classes(self):
+        permissions_classes = {}
+        if self.can_read:
+            permissions_classes['read'] = self.default_permission_classes
+        if self.can_create:
+            permissions_classes['create'] = self.default_permission_classes
+        if self.can_update:
+            permissions_classes['update'] = self.default_permission_classes
+        if self.can_delete:
+            permissions_classes['delete'] = self.default_permission_classes
+        return permissions_classes
+
+    @cached_property
+    def permissions(self):
+        return PermissionsSet(
+            **{k: [p() for p in permission_classes] for k, permission_classes in self.permissions_classes.items()},
+            **self.extra_permissions
+        )
 
     def init_request(self, request):
         pass
@@ -113,6 +142,11 @@ class ModelISCore(ISCore):
     default_ordering = None
 
     field_labels = {}
+
+    can_read = True
+    can_create = True
+    can_update = True
+    can_delete = True
 
     def get_form_class(self, request, obj=None):
         return self.form_class
@@ -185,7 +219,7 @@ class ModelISCore(ISCore):
         return None
 
 
-class UIISCore(PermissionsUIMixin, ISCore):
+class UIISCore(ISCore):
     """Main core for UI views."""
 
     abstract = True
@@ -231,8 +265,10 @@ class UIISCore(PermissionsUIMixin, ISCore):
         return self.get_urlpatterns(self.ui_patterns)
 
     def get_show_in_menu(self, request):
-        return (self.show_in_menu and self.menu_url_name and self.menu_url_name in self.ui_patterns and
-                self.ui_patterns.get(self.menu_url_name).can_call_get(request))
+        return (
+            self.show_in_menu and self.menu_url_name and self.menu_url_name in self.ui_patterns and
+            self.ui_patterns.get(self.menu_url_name).can_call_get(request)
+        )
 
     def is_active_menu_item(self, request, active_group):
         return active_group == self.menu_group
@@ -246,12 +282,14 @@ class UIISCore(PermissionsUIMixin, ISCore):
         return self.ui_patterns.get(self.menu_url_name).get_url_string(request)
 
 
-class RESTISCore(PermissionsRESTMixin, ISCore):
+class RESTISCore(ISCore):
     """Main core for REST views."""
 
     rest_classes = ()
     default_rest_pattern_class = RESTPattern
     abstract = True
+
+    api_url_name = None
 
     def init_rest_request(self, request):
         self.init_request(request)
@@ -286,6 +324,18 @@ class RESTISCore(PermissionsRESTMixin, ISCore):
 
     def get_urls(self):
         return self.get_urlpatterns(self.rest_patterns)
+
+    def get_api_url_name(self):
+        return self.api_url_name
+
+    def get_api_url(self, request):
+        return reverse(self.get_api_url_name())
+
+    def get_api_url_name(self):
+        return self.api_url_name or '{}:api-{}'.format(self.site_name, self.get_menu_group_pattern_name())
+
+    def get_api_detail_url_name(self):
+        return self.api_url_name or '{}:api-resource-{}'.format(self.site_name, self.get_menu_group_pattern_name())
 
 
 class UIRESTISCoreMixin:
@@ -326,8 +376,6 @@ class UIModelISCore(ModelISCore, UIISCore):
     abstract = True
 
     menu_url_name = 'list'
-
-    api_url_name = None
 
     # list view params
     list_per_page = None
@@ -413,7 +461,10 @@ class UIModelISCore(ModelISCore, UIISCore):
         return self.get_urlpatterns(self.ui_patterns)
 
     def get_show_in_menu(self, request):
-        return self.menu_url_name in self.ui_patterns and self.show_in_menu and self.has_ui_read_permission(request)
+        return (
+            self.menu_url_name in self.ui_patterns and self.show_in_menu and
+            self.ui_patterns.get(self.menu_url_name).can_call_get(request)
+        )
 
     def get_form_inline_views(self, request, obj=None):
         return self.form_inline_views
@@ -457,15 +508,9 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_list_per_page(self, request):
         return self.list_per_page
 
-    def get_api_url_name(self):
-        return self.api_url_name
-
     def get_add_url(self, request):
         if 'add' in self.ui_patterns:
             return self.ui_patterns.get('add').get_url_string(request)
-
-    def get_api_url(self, request):
-        return reverse(self.get_api_url_name())
 
     def get_ui_form_field_labels(self, request):
         return self.ui_form_field_labels if self.ui_form_field_labels is not None else self.get_field_labels(request)
@@ -606,9 +651,10 @@ class RESTModelISCore(RESTISCore, ModelISCore):
 
     def get_list_actions(self, request, obj):
         list_actions = super(RESTModelISCore, self).get_list_actions(request, obj)
-        if self.has_delete_permission(request, obj):
+        api_resource = self.rest_patterns.get('api-resource')
+        if self.can_delete and api_resource.can_call_delete(request, obj=obj):
             confirm_dialog = ConfirmRESTAction.ConfirmDialog(_('Do you really want to delete "%s"') % obj)
-            list_actions.append(ConfirmRESTAction('api-resource-%s' % self.get_menu_group_pattern_name(),
+            list_actions.append(ConfirmRESTAction('api-resource-{}'.format(self.get_menu_group_pattern_name()),
                                                   _('Delete'), 'DELETE', confirm_dialog=confirm_dialog,
                                                   class_name='delete', success_text=_('Record "%s" was deleted') % obj))
         return list_actions
@@ -634,12 +680,6 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
             list(self.ui_rest_extra_fields)
         )
 
-    def get_api_url_name(self):
-        return self.api_url_name or '%s:api-%s' % (self.site_name, self.get_menu_group_pattern_name())
-
-    def get_api_detail_url_name(self):
-        return self.api_url_name or '%s:api-resource-%s' % (self.site_name, self.get_menu_group_pattern_name())
-
     def get_api_detail_url(self, request, obj):
         return reverse(self.get_api_detail_url_name(), kwargs={'pk': obj.pk})
 
@@ -656,7 +696,7 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
             return [
                 WebAction(
                     'detail-{}'.format(self.get_menu_group_pattern_name()), _('Detail'),
-                    'edit' if self.has_ui_update_permission(request, obj=obj) else 'detail'
+                    'edit' if detail_pattern.can_call_post(request, obj=obj) else 'detail'
                 )
             ] + list(list_actions)
         else:
@@ -670,66 +710,3 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
 
     def get_rest_obj_class_names(self, request, obj):
         return list(self.rest_obj_class_names)
-
-
-class ViaRESTModelISCore(RESTModelISCore):
-    """
-    Special REST controller. All REST resources must be updated via another model object.
-    """
-
-    via_model = None
-    fk_name = None
-    abstract = True
-    default_rest_pattern_class = HiddenRESTPattern
-    rest_default_fields_extension = ()
-
-    def get_form_exclude(self, request, obj=None):
-        exclude = super(ViaRESTModelISCore, self).get_form_exclude(request, obj)
-        if obj:
-            fk = _get_foreign_key(self.via_model, self.model, fk_name=self.fk_name).name
-            exclude = list(exclude)
-            exclude.append(fk)
-        return exclude
-
-    def has_rest_via_permission(self, via):
-        return via and getattr(via[-1], 'model', None) == self.via_model
-
-    def has_rest_read_via_permission(self, via):
-        return self.has_rest_via_permission(via)
-
-    def has_rest_create_via_permission(self, via):
-        return self.has_rest_via_permission(via)
-
-    def has_rest_update_via_permission(self, via):
-        return self.has_rest_via_permission(via)
-
-    def has_rest_delete_via_permission(self, via):
-        return self.has_rest_via_permission(via)
-
-    def has_rest_read_permission(self, request, obj=None, via=None):
-        return (
-            self.has_rest_read_via_permission(via) and
-            super(ViaRESTModelISCore, self).has_rest_read_permission(request, obj, via)
-        )
-
-    def has_rest_create_permission(self, request, obj=None, via=None):
-        return (
-            self.has_rest_create_via_permission(via) and
-            super(ViaRESTModelISCore, self).has_rest_create_permission(request, obj, via)
-        )
-
-    def has_rest_update_permission(self, request, obj=None, via=None):
-        return (
-            self.has_rest_update_via_permission(via) and
-            super(ViaRESTModelISCore, self).has_rest_update_permission(request, obj, via)
-        )
-
-    def has_rest_delete_permission(self, request, obj=None, via=None):
-        return (
-            self.has_rest_delete_via_permission(via) and
-            super(ViaRESTModelISCore, self).has_rest_delete_permission(request, obj, via)
-        )
-
-    def get_urls(self):
-        self.rest_patterns
-        return None

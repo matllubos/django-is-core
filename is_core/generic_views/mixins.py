@@ -20,8 +20,7 @@ class ListParentMixin:
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
-        if ('list' in self.core.ui_patterns and
-                self.core.ui_patterns.get('list').get_view(self.request).has_get_permission()):
+        if 'list' in self.core.ui_patterns and self.core.ui_patterns.get('list').can_call_get(self.request):
             menu_items.append(self.list_bread_crumbs_menu_item())
         return menu_items
 
@@ -50,7 +49,7 @@ class DetailParentMixin(ListParentMixin):
     def parent_bread_crumbs_menu_items(self):
         menu_items = super().parent_bread_crumbs_menu_items()
         if ('detail' in self.core.ui_patterns and
-              self.core.ui_patterns.get('detail').get_view(self.request).has_get_permission(obj=self.get_obj())):
+              self.core.ui_patterns.get('detail').can_call_get(self.request, obj=self.get_obj())):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 
@@ -71,7 +70,9 @@ class TabItem:
 
     @cached_property
     def pattern(self):
-        return reverse_pattern(self._pattern_name)
+        pattern = reverse_pattern(self._pattern_name)
+        assert pattern is not None, 'Invalid pattern name {} in TabItem'.format(self._pattern_name)
+        return pattern
 
     def get_pattern_kwargs(self, view):
         pattern_kwargs = self._pattern_kwargs or {}
@@ -82,7 +83,7 @@ class TabItem:
         if can_show is not None:
             return can_show(view) if hasattr(can_show, '__call__') else can_show
         else:
-            return self.pattern.can_call_get(view.request, **self.get_pattern_kwargs(view))
+            return self.pattern.can_call_get(view.request, view_kwargs=self.get_pattern_kwargs(view))
 
     def get_url(self, view):
         return self.pattern.get_url_string(view.request, kwargs=self.get_pattern_kwargs(view))
