@@ -47,7 +47,7 @@ class InlineFormView(InlineView):
         return self.field_labels
 
     def _is_readonly(self):
-        return self.is_readonly or not self.parent_view.has_post_permission(obj=self.parent_view.get_obj())
+        return self.is_readonly or self.parent_view.is_readonly()
 
     def can_form_delete(self, form):
         return not self.is_form_readonly(form)

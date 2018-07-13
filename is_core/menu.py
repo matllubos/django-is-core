@@ -58,7 +58,7 @@ class MenuGenerator:
 
         for item in items:
             if isinstance(item, MenuItem):
-                menu_item =  deepcopy(item)
+                menu_item = deepcopy(item)
                 if menu_item.submenu_items:
                     menu_item.submenu_items = list(self.get_menu_items(item.submenu_items))
 

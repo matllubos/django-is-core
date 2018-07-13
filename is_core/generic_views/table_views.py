@@ -334,8 +334,5 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
             ''.join(('IS:', self.core.get_bulk_change_url_name(), '-', self.model._meta.object_name.lower())))
             if self.is_bulk_change_enabled() else None)
 
-    def has_get_permission(self, **kwargs):
-        return self.core.has_ui_read_permission(self.request)
-
     def _get_menu_group_pattern_name(self):
         return self.core.get_menu_group_pattern_name()

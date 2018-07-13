@@ -40,10 +40,10 @@ class HelperTestCase(object):
 
 class AsSuperuserTestCase(object):
 
-    def get_user(self, is_superuser):
+    def get_user(self, is_superuser, is_staff=True):
         username = 'user'
         password = 'super secret password'
         email = 'user@test.cz'
         return UserProxy(username, password,
-                         User.objects._create_user(username, email, password, is_staff=False,
+                         User.objects._create_user(username, email, password, is_staff=is_staff,
                                                    is_superuser=is_superuser))
