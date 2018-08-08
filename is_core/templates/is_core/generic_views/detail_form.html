@@ -1,7 +1,7 @@
 {% extends 'is_core/generic_views/default_form.html' %}
 {% load i18n %}
 
-{% block view-class %}edit-view{% endblock %}
+{% block view-class %}detail-view{% endblock %}
 
 {% block content %}
     {% if request.user.can_export and export_types %}

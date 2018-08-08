@@ -45,8 +45,8 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
     def add_url(self, site_name, menu_groups):
         return reverse('{}:add-{}'.format(site_name, '-'.join(menu_groups)))
 
-    def edit_url(self, site_name, menu_groups, obj):
-        return reverse('{}:edit-{}'.format(site_name, '-'.join(menu_groups)), args=(obj.pk,))
+    def detail_url(self, site_name, menu_groups, obj):
+        return reverse('{}:detail-{}'.format(site_name, '-'.join(menu_groups)), args=(obj.pk,))
 
     def view_name(self, model_view):
         return '{}-{}'.format(model_view.site_name, '-'.join(model_view.get_menu_groups()))
@@ -80,7 +80,7 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
         if 'detail' in model_view.ui_patterns:
             inst = self.new_instance(model)
 
-            url = self.edit_url(model_view.site_name, model_view.get_menu_groups(), inst)
+            url = self.detail_url(model_view.site_name, model_view.get_menu_groups(), inst)
             request = self.get_request_with_user(self.r_factory.get(url))
             if model_view.has_ui_read_permission(request, inst) or model_view.has_ui_update_permission(request, inst.pk):
                 assert_http_ok(self.get(url), '{} should return 200'.format(url))

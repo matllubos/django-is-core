@@ -356,10 +356,9 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     bulk_change_url_name = None
 
-    default_model_view_classes = ()
-
-    def get_default_model_view_classes(self):
-        default_model_view_classes = list(self.default_model_view_classes)
+    @cached_property
+    def default_model_view_classes(self):
+        default_model_view_classes = []
         if self.can_create:
             default_model_view_classes.append(('add', r'add/', self.get_ui_add_view()))
         if self.can_read or self.can_update:
@@ -369,7 +368,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return default_model_view_classes
 
     def get_view_classes(self):
-        view_classes = super(UIModelISCore, self).get_view_classes() + list(self.get_default_model_view_classes())
+        view_classes = super(UIModelISCore, self).get_view_classes() + list(self.default_model_view_classes)
         if self.is_bulk_change_enabled():
             view_classes.append((self.get_bulk_change_url_name(), r'bulk-change/?', BulkChangeFormView))
         return view_classes

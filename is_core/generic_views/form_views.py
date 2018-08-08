@@ -600,8 +600,8 @@ class AddModelFormView(DefaultCoreModelFormView):
 
 class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
 
-    template_name = 'is_core/generic_views/edit_form.html'
-    form_template = 'is_core/forms/model_edit_form.html'
+    template_name = 'is_core/generic_views/detail_form.html'
+    form_template = 'is_core/forms/model_detail_form.html'
     view_type = 'detail'
     messages = {'success': _('The %(name)s "%(obj)s" was changed successfully.'),
                 'error': _('Please correct the error below.')}
@@ -609,7 +609,7 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
 
     def get_title(self):
         return (self.title or
-                self.model._ui_meta.edit_verbose_name % {
+                self.model._ui_meta.detail_verbose_name % {
                     'verbose_name': self.model._meta.verbose_name,
                     'verbose_name_plural': self.model._meta.verbose_name_plural,
                     'obj': self.get_obj(True)
