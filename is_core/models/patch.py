@@ -24,7 +24,7 @@ class UIOptions(Options):
         'add_verbose_name': _('add %(verbose_name)s'),
         'add_button_verbose_name': _('add %(verbose_name)s'),
         'add_inline_button_verbose_name': _('add %(verbose_name)s'),
-        'edit_verbose_name': '%(obj)s',
+        'detail_verbose_name': '%(obj)s',
         'filter_placeholders': {},
         'placeholders': {},
         'default_ui_filter_by': None,

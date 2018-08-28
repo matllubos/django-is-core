@@ -42,7 +42,7 @@ class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase)
         assert_http_ok(resp)
 
         CHANGED_USERNAME = 'changed_nick'
-        self.post('%s%s/' % (self.USER_UI_URL, user.pk), data={'edit-is-user-username': CHANGED_USERNAME})
+        self.post('%s%s/' % (self.USER_UI_URL, user.pk), data={'detail-is-user-username': CHANGED_USERNAME})
         assert_http_ok(resp)
         assert_equal(User.objects.get(pk=user.pk).username, CHANGED_USERNAME)
 
@@ -53,7 +53,7 @@ class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase)
         assert_http_forbidden(resp)
 
         CHANGED_USERNAME = 'changed_nick'
-        self.post('%s%s/' % (self.USER_UI_URL, user.pk), data={'edit-is-user-username': CHANGED_USERNAME})
+        self.post('%s%s/' % (self.USER_UI_URL, user.pk), data={'detail-is-user-username': CHANGED_USERNAME})
         assert_http_forbidden(resp)
         assert_not_equal(User.objects.get(pk=user.pk).username, CHANGED_USERNAME)
 
@@ -64,7 +64,7 @@ class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase)
         assert_http_ok(resp)
 
         CHANGED_USERNAME = 'changed_nick'
-        self.post('%s%s/' % (self.USER_UI_URL, user.pk), data={'edit-is-user-username': CHANGED_USERNAME})
+        self.post('%s%s/' % (self.USER_UI_URL, user.pk), data={'detail-is-user-username': CHANGED_USERNAME})
         assert_http_ok(resp)
         assert_equal(User.objects.get(pk=user.pk).username, CHANGED_USERNAME)
 

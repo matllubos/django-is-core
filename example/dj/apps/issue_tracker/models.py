@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
@@ -22,7 +20,7 @@ class Issue(models.Model):
                                   related_name='leading_issue', on_delete=models.CASCADE)
 
     def watched_by_string(self):
-        return ', '.join(self.watched_by.all())
+        return ', '.join(str(user) for user in self.watched_by.all())
     watched_by_string.order_by = 'watched_by'
 
     def __unicode__(self):

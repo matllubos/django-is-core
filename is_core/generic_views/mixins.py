@@ -29,28 +29,28 @@ class ListParentMixin:
         return self.parent_bread_crumbs_menu_items() + super(ListParentMixin, self).bread_crumbs_menu_items()
 
 
-class EditParentMixin(ListParentMixin):
+class DetailParentMixin(ListParentMixin):
 
     def edit_bread_crumbs_menu_item(self):
         from is_core.menu import LinkMenuItem
 
-        edit_pattern = self.core.ui_patterns.get('edit')
-        edit_view = edit_pattern.get_view(self.request)
+        detail_pattern = self.core.ui_patterns.get('detail')
+        detail_view = detail_pattern.get_view(self.request)
         parent_obj = self.get_parent_obj()
-        if not isinstance(parent_obj, edit_view.model):
+        if not isinstance(parent_obj, detail_view.model):
             raise GenericViewException('Parent obj must be instance of edit view model')
 
-        return LinkMenuItem(self.model._ui_meta.edit_verbose_name %
-                            {'verbose_name': edit_view.model._meta.verbose_name,
-                             'verbose_name_plural': edit_view.model._meta.verbose_name_plural,
+        return LinkMenuItem(self.model._ui_meta.detail_verbose_name %
+                            {'verbose_name': detail_view.model._meta.verbose_name,
+                             'verbose_name_plural': detail_view.model._meta.verbose_name_plural,
                              'obj': parent_obj},
-                             edit_pattern.get_url_string(self.request, kwargs={'pk':parent_obj.pk}),
+                            detail_pattern.get_url_string(self.request, kwargs={'pk': parent_obj.pk}),
                              active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
-        menu_items = super(EditParentMixin, self).parent_bread_crumbs_menu_items()
-        if 'edit' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('edit').get_view(self.request).has_get_permission(obj=self.get_obj()):
+        menu_items = super().parent_bread_crumbs_menu_items()
+        if ('detail' in self.core.ui_patterns and
+              self.core.ui_patterns.get('detail').get_view(self.request).has_get_permission(obj=self.get_obj())):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 

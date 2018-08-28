@@ -250,7 +250,7 @@ def get_url_from_model_core(request, obj):
     model_core = get_model_core(obj.__class__)
 
     if model_core and hasattr(model_core, 'ui_patterns'):
-        edit_pattern = model_core.ui_patterns.get('edit')
+        edit_pattern = model_core.ui_patterns.get('detail')
         return (
             edit_pattern.get_url_string(request, obj=obj)
             if edit_pattern and edit_pattern.can_call_get(request, obj=obj) else None
