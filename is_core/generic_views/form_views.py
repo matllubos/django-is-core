@@ -42,9 +42,11 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
     save_button_label = _('Save')
     save_button_title = ''
+    save_button_disable_on_submit = True
 
     cancel_button_label = _('Back')
     cancel_button_title = ''
+    cancel_button_disable_on_submit = True
 
     atomic_save_form = True
 
@@ -178,7 +180,8 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         for key, value in self.get_buttons_dict().items():
             buttons[key] = {
                 'label': value.get('label'),
-                'title': value.get('title')
+                'title': value.get('title'),
+                'disable_on_submit': value.get('disable_on_submit'),
             }
         return buttons
 
@@ -186,11 +189,13 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         return {
             'save': {
                 'label': self.save_button_label,
-                'title': self.save_button_title
+                'title': self.save_button_title,
+                'disable_on_submit': self.save_button_disable_on_submit,
             },
             'cancel': {
                 'label': self.cancel_button_label,
-                'title': self.cancel_button_title
+                'title': self.cancel_button_title,
+                'disable_on_submit': self.cancel_button_disable_on_submit,
             }
         }
 
@@ -485,7 +490,8 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
     save_button_title = _('Save and navigate to the list')
 
     save_and_continue_button_title = _('Save and stay on the same page')
-    save_and_continue_button_label = _("Save and continue")
+    save_and_continue_button_label = _('Save and continue')
+    save_and_continue_button_disable_on_submit = True
 
     cancel_button_title = _('Do not save and go back to the list')
 
@@ -496,7 +502,8 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         buttons_dict.update({
             'save_and_continue': {
                 'label': self.save_and_continue_button_label,
-                'title': self.save_and_continue_button_title
+                'title': self.save_and_continue_button_title,
+                'disable_on_submit': self.save_and_continue_button_disable_on_submit,
             }
         })
         return buttons_dict
