@@ -4,8 +4,6 @@ import logging
 from collections import OrderedDict
 
 from django.conf.urls import url
-from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy
 
 from is_core.utils import get_new_class_name
 from is_core.utils.compatibility import reverse, resolve
@@ -157,10 +155,7 @@ class UIPattern(ViewPattern):
         return view
 
     def get_view_dispatch(self):
-        dispatch = self.view_class.as_view()
-        if self.view_class.login_required:
-            return login_required(dispatch, login_url=reverse_lazy('IS:login'))
-        return dispatch
+        return self.view_class.as_view()
 
 
 class RESTPattern(ViewPattern):

@@ -14,70 +14,68 @@ from pyston.response import RESTErrorResponse, RESTErrorsResponse
 from pyston.utils import rfs
 
 from chamber.shortcuts import get_object_or_none
-from chamber.utils.decorators import classproperty
 from chamber.utils import transaction
 
+from is_core.auth.permissions import (
+    PermissionsSet, IsAuthenticated, CoreReadAllowed, CoreUpdateAllowed, CoreDeleteAllowed, CoreCreateAllowed,
+    AllowAny
+)
 from is_core.config import settings
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
                                          HTTPForbiddenResponseException)
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
-from is_core.utils.immutable import merge
 from is_core.utils.compatibility import NoReverseMatch
 
-from ..auth.permissions import (
-    PermissionsSet, IsAuthenticated, CoreReadAllowed, CoreUpdateAllowed, CoreDeleteAllowed, CoreCreateAllowed
-)
 
+class RESTPermissionsMixin:
 
-class RESTLoginMixin:
-
-    permissions = PermissionsSet(IsAuthenticated())
+    permission = IsAuthenticated()
     csrf_exempt = False
 
     def has_get_permission(self, **kwargs):
         return (
-            self.permissions.has_permission('get', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('get', self.request, self, obj=kwargs.get('obj')) and
             super().has_get_permission(**kwargs)
         )
 
     def has_post_permission(self, **kwargs):
         return (
-            self.permissions.has_permission('post', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('post', self.request, self, obj=kwargs.get('obj')) and
             super().has_post_permission(**kwargs)
         )
 
     def has_put_permission(self, **kwargs):
         return (
-            self.permissions.has_permission('put', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('put', self.request, self, obj=kwargs.get('obj')) and
             super().has_put_permission(**kwargs)
         )
 
     def has_patch_permission(self, **kwargs):
         return (
-            self.permissions.has_permission('patch', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('patch', self.request, self, obj=kwargs.get('obj')) and
             super().has_patch_permission(**kwargs)
         )
 
     def has_delete_permission(self, **kwargs):
         return (
-            self.permissions.has_permission('delete', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('delete', self.request, self, obj=kwargs.get('obj')) and
             super().has_delete_permission(**kwargs)
         )
 
     def has_options_permission(self, **kwargs):
         return (
             self._is_cors_options_request() or (
-                self.permissions.has_permission('options', self.request, self, obj=kwargs.get('obj')) and
+                self.permission.has_permission('options', self.request, self, obj=kwargs.get('obj')) and
                 super().has_options_permission(**kwargs)
             )
         )
 
     def has_head_permission(self, **kwargs):
         return (
-            self.permissions.has_permission('head', self.request, self, **kwargs) and
-            super(RESTLoginMixin, self).has_head_permission(**kwargs)
+            self.permission.has_permission('head', self.request, self, obj=kwargs.get('obj')) and
+            super().has_head_permission(**kwargs)
         )
 
     def _check_permission(self, name, *args, **kwargs):
@@ -90,35 +88,35 @@ class RESTLoginMixin:
                 raise
 
 
-class RESTObjectLoginMixin(RESTLoginMixin):
+class RESTObjectPermissionsMixin(RESTPermissionsMixin):
 
-    read_obj_permission = True
-    create_obj_permission = True
-    update_obj_permission = True
-    delete_obj_permission = True
+    can_create_obj = True
+    can_read_obj = True
+    can_update_obj = True
+    can_delete_obj = True
 
     def has_create_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permissions.has_permission('create_obj', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('create_obj', self.request, self, obj=kwargs.get('obj')) and
             super().has_create_obj_permission(obj=obj, **kwargs)
+        )
+
+    def has_read_obj_permission(self, obj=None, **kwargs):
+        return (
+            self.permission.has_permission('read_obj', self.request, self, obj=kwargs.get('obj')) and
+            super().has_read_obj_permission(obj=obj, **kwargs)
         )
 
     def has_update_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permissions.has_permission('update_obj', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('update_obj', self.request, self, obj=kwargs.get('obj')) and
             super().has_update_obj_permission(obj=obj, **kwargs)
         )
 
     def has_delete_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permissions.has_permission('delete_obj', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('delete_obj', self.request, self, obj=kwargs.get('obj')) and
             super().has_delete_obj_permission(obj=obj, **kwargs)
-        )
-
-    def has_read_obj_permission(self, obj=None, **kwargs):
-        return (
-            self.permissions.has_permission('read_obj', self.request, self, obj=kwargs.get('obj')) and
-            super().has_read_obj_permission(obj=obj, **kwargs)
         )
 
 
@@ -157,11 +155,11 @@ class RESTResourceMixin:
         return super(RESTResourceMixin, self)._get_error_response(exception)
 
 
-class RESTModelCoreResourcePermissionsMixin(RESTObjectLoginMixin):
+class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
 
     pk_name = 'pk'
 
-    permissions = PermissionsSet(
+    permission = PermissionsSet(
         get=CoreReadAllowed(),
         head=CoreReadAllowed(),
         options=CoreReadAllowed(),
@@ -169,9 +167,10 @@ class RESTModelCoreResourcePermissionsMixin(RESTObjectLoginMixin):
         patch=CoreUpdateAllowed(),
         post=CoreCreateAllowed(),
         delete=CoreDeleteAllowed(),
+
+        create_obj=CoreCreateAllowed(),
         read_obj=CoreReadAllowed(),
         update_obj=CoreUpdateAllowed(),
-        create_obj=CoreCreateAllowed(),
         delete_obj=CoreDeleteAllowed()
     )
 
@@ -204,14 +203,14 @@ class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
          return obj
 
 
-class RESTResource(RESTLoginMixin, RESTResourceMixin, BaseResource):
+class RESTResource(RESTPermissionsMixin, RESTResourceMixin, BaseResource):
     pass
 
 
 class EntryPointResource(RESTResource):
 
-    login_required = False
     allowed_methods = ('get', 'head', 'options')
+    permission = AllowAny()
 
     def get(self):
         out = {}
@@ -404,7 +403,13 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
 
     def _update_obj(self, obj, data):
         try:
-            return (self._create_or_update(merge(data, {self.pk_field_name: obj.pk}), partial_update=True), None)
+            return (
+                self._create_or_update({
+                    self.pk_field_name: obj.pk,
+                    **data,
+                }, partial_update=True),
+                None
+            )
         except DataInvalidException as ex:
             return (None, self._format_message(obj, ex))
         except (ConflictException, NotAllowedException):

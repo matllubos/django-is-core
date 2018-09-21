@@ -7,7 +7,7 @@ class DataGeneratorTestCase:
 
     @classmethod
     def tearDownClass(cls):
-        super(DataGeneratorTestCase, cls).tearDownClass()
+        super().tearDownClass()
         delete_test_files()
 
     @classmethod
@@ -21,3 +21,8 @@ class DataGeneratorTestCase:
                 return self.factories.get(model_label).build()
             else:
                 return self.factories.get(model_label)()
+
+    def get_request_with_user(self, *args, **kwargs):
+        request = super().get_request_with_user(*args, **kwargs)
+        request.kwargs = {}
+        return request

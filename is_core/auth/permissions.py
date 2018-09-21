@@ -1,84 +1,185 @@
 class BasePermission:
+    """
+    Base IS core permission object which has only one method has_permission which must be implemented in descendant.
+    """
 
     def has_permission(self, name, request, view, obj=None):
+        """
+        Method check if request has permission to the given action.
+
+        Args:
+            name (str): name of the permission
+            request (django.http.request.HttpRequest): Django request object
+            view (object): Django view or REST view object
+            obj (object): Object that is related with the given request
+
+        Returns:
+            True/False
+        """
         raise NotImplementedError
+
+    def __and__(self, other):
+        return AndPermission(self, other)
+
+    def __or__(self, other):
+        return OrPermission(self, other)
+
+
+class OperatorPermission(BasePermission):
+
+    operator = None
+    operator_function = None
+
+    def __init__(self, *permissions):
+        self._permissions = list(permissions)
+
+    def has_permission(self, name, request, view, obj=None):
+        return self.operator_function(
+            permission.has_permission(name, request, view, obj=obj) for permission in self._permissions
+        )
+
+    def add(self, permission):
+        self._permissions.append(permission)
+
+    def __repr__(self):
+        return '({})'.format(' {} '.format(self.operator).join(str(permission) for permission in self._permissions))
+
+    def __iter__(self):
+        for permission in self._permissions:
+            yield permission
+
+
+class AndPermission(OperatorPermission):
+    """
+    Helper for joining permissions with AND operator.
+    """
+
+    operator = '&'
+    operator_function = all
+
+    def __and__(self, other):
+        self.add(other)
+        return self
+
+
+class OrPermission(OperatorPermission):
+    """
+    Helper for joining permissions with OR operator.
+    """
+
+    operator = '|'
+    operator_function = any
+
+    def __or__(self, other):
+        self.add(other)
+        return self
 
 
 class PermissionsSet(BasePermission):
+    """
+    ``PermissionSet`` contains a set of permissions identified by name. Permission is granted if permission with the
+    given name grants the access. Finally if no permission with the given name is found ``False`` is returned.
+    """
 
-    def __init__(self, default_permission=None, **permissions_set):
-        self._permissions = {}
-        if default_permission:
-            if not isinstance(default_permission, (list, tuple)):
-                default_permission = [default_permission]
-            self._permissions['__default__'] = default_permission
-        for permission_name, permissions in permissions_set.items():
-            if not isinstance(permissions, (list, tuple)):
-                permissions = [permissions]
-            self._permissions[permission_name] = list(permissions)
+    def __init__(self, **permissions_set):
+        """
+        Args:
+            **permissions_set (BasePermission): permissions data
+        """
+        super().__init__()
+        self._permissions = dict(permissions_set)
 
-    def get_permissions(self):
-        return self._permissions.values()
+    def set(self, key, permission):
+        self._permissions[key] = permission
 
     def has_permission(self, name, request, view, obj=None):
-        return any(
-            permission.has_permission(name, request, view, obj=obj)
-            for permission in self._permissions.get(name, self._permissions.get('__default__', ()))
-        )
+        permission = self._permissions.get(name, None)
+        return permission and permission.has_permission(name, request, view, obj=obj)
+
+    def __iter__(self):
+        for permission in self._permissions.values():
+            yield permission
 
 
 class IsAuthenticated(BasePermission):
+    """
+    Grant permission if user is authenticated and is active
+    """
 
     def has_permission(self, name, request, view, obj=None):
-        return request.user.is_authenticated
+        return request.user.is_authenticated and request.user.is_active
 
 
-class IsSuperuser(BasePermission):
-
-    def has_permission(self, name, request, view, obj=None):
-        return request.user.is_superuser
-
-
-class IsAdminUser(BasePermission):
+class IsSuperuser(IsAuthenticated):
+    """
+    Grant permission if user is superuser
+    """
 
     def has_permission(self, name, request, view, obj=None):
-        return request.user.is_staff
+        return super().has_permission(name, request, view, obj) and request.user.is_superuser
+
+
+class IsAdminUser(IsAuthenticated):
+    """
+    Grant permission if user is staff
+    """
+
+    def has_permission(self, name, request, view, obj=None):
+        return super().has_permission(name, request, view, obj) and request.user.is_staff
 
 
 class AllowAny(BasePermission):
+    """
+    Grant permission every time
+    """
 
     def has_permission(self, name, request, view, obj=None):
         return True
 
 
-class CoreAllowed:
+class CoreAllowed(BasePermission):
+    """
+    Grant permission if core permission with the name grants access
+    """
+
+    name = None
 
     def __init__(self, name=None):
-        self.name = name
+        super().__init__()
+        if name:
+            self.name = name
 
     def has_permission(self, name, request, view, obj=None):
-        return view.core.permissions.has_permission(self.name or name, request, view, obj)
+        return view.core.permission.has_permission(self.name or name, request, view, obj)
 
 
-class CoreReadAllowed:
+class CoreCreateAllowed(CoreAllowed):
+    """
+    Grant permission if core create permission grants access
+    """
 
-    def has_permission(self, name, request, view, obj=None):
-        return view.core.permissions.has_permission('read', request, view, obj)
-
-
-class CoreCreateAllowed:
-
-    def has_permission(self, name, request, view, obj=None):
-        return view.core.permissions.has_permission('create', request, view, obj)
+    name = 'create'
 
 
-class CoreUpdateAllowed:
+class CoreReadAllowed(CoreAllowed):
+    """
+    Grant permission if core read permission grants access
+    """
 
-    def has_permission(self, name, request, view, obj=None):
-        return view.core.permissions.has_permission('update', request, view, obj)
+    name = 'read'
 
 
-class CoreDeleteAllowed:
+class CoreUpdateAllowed(CoreAllowed):
+    """
+    Grant permission if core update permission grants access
+    """
 
-    def has_permission(self, name, request, view, obj=None):
-        return view.core.permissions.has_permission('delete', request, view, obj)
+    name = 'update'
+
+
+class CoreDeleteAllowed(CoreAllowed):
+    """
+    Grant permission if core delete permission grants access
+    """
+
+    name = 'delete'

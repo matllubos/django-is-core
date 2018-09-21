@@ -11,13 +11,13 @@ representations are stored in a file named ``cores.py`` in your application. We 
 you want to create three typical views for information system:
 
   * table view for printing objects
-  * view for creating new objects
-  * view for editing objects
+  * add view for creating new objects
+  * detail view for reading or editing objects
 
 As example project we use Issue tracker. Firstly for every application you need management of users. We use default
 **Django** user model.
 
-For creating **add**, **edit** and **table** views you must only create file ``cores.py`` inside specific application that
+For creating **add**, **detail** and **table** views you must only create file ``cores.py`` inside specific application that
 contains::
 
     from django.contrib.auth.models import User
@@ -166,7 +166,7 @@ you find inside ``UIRESTModelISCore options`` part.
 
 .. attribute:: ModelISCore.form_fields
 
-Use the ``form_fields`` option to make simple layout changes in the forms on the **add** and **edit** and REST resources
+Use the ``form_fields`` option to make simple layout changes in the forms on the **add** and **detail** and REST resources
 pages such as showing only a subset of available fields, modifying their order, or grouping them into rows. We will
 show it on ``UIRESTModelISCore``. If you want to restrict form fields to ``username``, ``first_name`` and ``last_name``
 the simpliest way is use::
@@ -194,7 +194,7 @@ This attribute, if given, should be a list of field names to exclude from the fo
 .. attribute:: ModelISCore.form_class
 
 If you want to change default form class which is ``SmartModelForm`` you can change it with this option. The form is
-changed for **add**, **edit** views and REST resources too.
+changed for **add**, **detail** views and REST resources too.
 
 .. attribute:: ModelISCore.ordering
 
@@ -213,7 +213,7 @@ Methods
 
 .. method:: ModelISCore.get_form_fields(request, obj=None)
 
-Use this method to define form fields dynamically or if you want to define different form fields for **add**, **edit**,
+Use this method to define form fields dynamically or if you want to define different form fields for **add**, **detail**,
 view of REST resources.
 
 
@@ -223,7 +223,7 @@ The opposite to get_form_fields.
 
 .. method:: ModelISCore.get_form_class(request, obj=None)
 
-Use this method to define form dynamically or if you want to define different form for **add**, **edit** view of REST
+Use this method to define form dynamically or if you want to define different form for **add**, **detail** view of REST
 resources.
 
 .. method:: ModelISCore.pre_save_model(request, obj, form, change)
@@ -289,7 +289,7 @@ Use this method if you want to change ``list_actions`` dynamically.
 .. method:: ModelISCore.get_default_action(request, obj)
 
 Chose default action for object used inside UI and REST. For example default action is action that is performed if you
-select row inside table of objects. For table view default action is open **edit** view. If you return ``None``
+select row inside table of objects. For table view default action is open **detail** view. If you return ``None``
 no action is performed by default.
 
 
@@ -349,7 +349,7 @@ this method calls parent method ``init_request``::
 
 .. method:: UIISCore.get_view_classes()
 
-Use this method if you want to change ``view_classes`` dynamically. A following example shows overriding **edit** view
+Use this method if you want to change ``view_classes`` dynamically. A following example shows overriding **detail** view
 and registering a custom view::
 
     from django.contrib.auth.models import User
@@ -456,7 +456,7 @@ Options
 
 .. attribute:: UIModelISCore.default_model_view_classes
 
-For the ``UIModelISCore`` default views are **add**, **edit** and **list**::
+For the ``UIModelISCore`` default views are **add**, **detail** and **list**::
 
     default_model_view_classes = (
         ('add', r'^/add/$', AddModelFormView),
@@ -548,7 +548,7 @@ inlines. We will use as example new model issue of issue tracker system::
         watched_by = models.ManyToManyField(AUTH_USER_MODEL)
         created_by = models.ForeignKey(AUTH_USER_MODEL)
 
-Now we want to add inline form view of all reported issues to user **add** and **edit** views::
+Now we want to add inline form view of all reported issues to user **add** and **detail** views::
 
     class ReportedIssuesInlineView(TabularInlineFormView):
         model = Issue
