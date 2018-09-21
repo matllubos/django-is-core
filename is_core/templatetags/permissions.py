@@ -35,9 +35,9 @@ class PermissionNode(Node):
         for val in self.vals:
             args.append(val.resolve(context))
 
-        core_permissions = context.get('core_permissions', {})
+        core_permission = context.get('core_permission', {})
         view = context.get('view')
-        if core_permissions.has_permission(perm_name, request, view, *args):
+        if core_permission.has_permission(perm_name, request, view, *args):
             return self.nodelist_true.render(context)
         else:
             return self.nodelist_false.render(context)

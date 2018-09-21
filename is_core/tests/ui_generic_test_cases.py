@@ -29,8 +29,8 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
         get_resolver().url_patterns
 
         ui_main_views = []
-        for main_view in [model_view for model_view in registered_model_cores.values() if isinstance(model_view,
-                                                                                                     UIRESTModelISCore)]:
+        for main_view in [model_view for model_view in registered_model_cores.values()
+                          if isinstance(model_view, UIRESTModelISCore)]:
             model = main_view.model
             if cls.get_model_label(model) in cls.factories:
                 ui_main_views.append((main_view, model))
@@ -63,7 +63,7 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
         if 'list' in model_view.ui_patterns:
             url = self.list_url(model_view.site_name, model_view.get_menu_groups())
-            if model_view.has_ui_read_permission(self.get_request_with_user(self.r_factory.get(url))):
+            if model_view.ui_patterns.get('list').can_call_get(self.get_request_with_user(self.r_factory.get(url))):
                 assert_http_ok(self.get(url), '{} should return 200'.format(url))
 
     @data_provider(get_ui_main_views)
@@ -71,7 +71,7 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
         if 'add' in model_view.ui_patterns:
             url = self.add_url(model_view.site_name, model_view.get_menu_groups())
-            if model_view.has_ui_create_permission(self.get_request_with_user(self.r_factory.get(url))):
+            if model_view.ui_patterns.get('add').can_call_get(self.get_request_with_user(self.r_factory.get(url))):
                 assert_http_ok(self.get(url), '{} should return 200'.format(url))
 
     @data_provider(get_ui_main_views)
@@ -82,5 +82,5 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
             url = self.detail_url(model_view.site_name, model_view.get_menu_groups(), inst)
             request = self.get_request_with_user(self.r_factory.get(url))
-            if model_view.has_ui_read_permission(request, inst) or model_view.has_ui_update_permission(request, inst.pk):
+            if model_view.ui_patterns.get('detail').can_call_get(request, obj=inst):
                 assert_http_ok(self.get(url), '{} should return 200'.format(url))

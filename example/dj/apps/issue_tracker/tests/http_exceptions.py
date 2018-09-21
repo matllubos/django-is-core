@@ -7,6 +7,7 @@ from .test_case import HelperTestCase, AsSuperuserTestCase
 
 
 class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
+
     ISSUE_API_URL = '/api/issue/'
     USER_API_URL = '/api/user/'
     ACCEPT_TYPES = ('application/json', 'text/xml', 'text/csv',
@@ -20,7 +21,7 @@ class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
 
     @login(is_superuser=False)
     def test_403_exception(self):
-        user = self.get_user_obj()
+        self.get_user_obj()
         for accept_type in self.ACCEPT_TYPES:
             resp = self.post(self.USER_API_URL, headers={'HTTP_ACCEPT': accept_type}, data={})
             assert_in(accept_type, resp['Content-Type'])

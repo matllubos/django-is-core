@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from germanium.test_cases.auth import UserProxy
 
 
-class HelperTestCase(object):
+class HelperTestCase:
 
     user_index = 1
     issue_index = 1
@@ -38,7 +38,7 @@ class HelperTestCase(object):
                                          user_data.get('password'), is_staff=False, is_superuser=False)
 
 
-class AsSuperuserTestCase(object):
+class AsSuperuserTestCase:
 
     def get_user(self, is_superuser, is_staff=True):
         username = 'user'

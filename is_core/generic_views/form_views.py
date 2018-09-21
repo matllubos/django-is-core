@@ -266,6 +266,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
 
 class DefaultModelFormView(DefaultFormView):
+
     model = None
     fields = None
     exclude = None
@@ -593,7 +594,7 @@ class AddModelFormView(DefaultCoreModelFormView):
     messages = {'success': _('The %(name)s "%(obj)s" was added successfully.'),
                 'error': _('Please correct the error below.')}
 
-    permissions = PermissionsSet(
+    permission = PermissionsSet(
         get=CoreCreateAllowed(),
         post=CoreCreateAllowed()
     )
@@ -613,8 +614,8 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
                 'error': _('Please correct the error below.')}
     pk_name = 'pk'
 
-    permissions = PermissionsSet(
-        get=(CoreReadAllowed(), CoreUpdateAllowed()),
+    permission = PermissionsSet(
+        get=CoreReadAllowed() | CoreUpdateAllowed(),
         post=CoreUpdateAllowed()
     )
 
@@ -625,6 +626,9 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
                     'verbose_name_plural': self.model._meta.verbose_name_plural,
                     'obj': self.get_obj(True)
                 })
+
+    def is_readonly(self):
+        return not self._check_call('post', obj=self.get_obj())
 
     def link(self, arguments=None, **kwargs):
         if arguments is None:
@@ -677,7 +681,7 @@ class ReadonlyDetailModelFormView(DetailModelFormView):
 
     show_save_and_continue = False
 
-    permissions = PermissionsSet(
+    permission = PermissionsSet(
         get=CoreReadAllowed()
     )
 

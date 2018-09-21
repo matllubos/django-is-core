@@ -59,37 +59,34 @@ class ISCore(metaclass=ISCoreBase):
     verbose_name_plural = None
     menu_group = None
 
-    can_read = True
     can_create = False
+    can_read = True
     can_update = False
     can_delete = False
 
-    default_permission_classes = (IsAdminUser,)
-    extra_permissions = {}
+    default_permission = IsAdminUser()
+
+    permission = None
 
     def __init__(self, site_name, menu_parent_groups):
         self.site_name = site_name
         self.menu_parent_groups = menu_parent_groups
+        self.permission = self._init_permission(self.permission)
 
-    @cached_property
-    def permissions_classes(self):
-        permissions_classes = {}
-        if self.can_read:
-            permissions_classes['read'] = self.default_permission_classes
-        if self.can_create:
-            permissions_classes['create'] = self.default_permission_classes
-        if self.can_update:
-            permissions_classes['update'] = self.default_permission_classes
-        if self.can_delete:
-            permissions_classes['delete'] = self.default_permission_classes
-        return permissions_classes
+    def _init_permission(self, permission):
+        return self._generate_permission_set() if permission is None else permission
 
-    @cached_property
-    def permissions(self):
-        return PermissionsSet(
-            **{k: [p() for p in permission_classes] for k, permission_classes in self.permissions_classes.items()},
-            **self.extra_permissions
-        )
+    def _get_default_permission(self, name):
+        return self.default_permission
+
+    def _generate_permission_set(self):
+        permission_dict = {}
+      
+        for permission_name in ('create', 'read', 'update', 'delete'):
+            if getattr(self, 'can_{}'.format(permission_name)):
+                permission_dict[permission_name] = self._get_default_permission(permission_name)
+
+        return PermissionsSet(**permission_dict)
 
     def init_request(self, request):
         pass
