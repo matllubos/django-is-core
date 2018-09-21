@@ -124,11 +124,16 @@ class TabsViewMixin:
 
 
 class GetCoreObjViewMixin:
+
     pk_name = 'pk'
 
     def get_obj_filters(self):
         filters = {'pk': self.kwargs.get(self.pk_name)}
         return filters
+
+    def _check_permission(self, name, obj=None, **kwargs):
+        obj = obj or self.get_obj()
+        super()._check_permission(name, obj=obj, **kwargs)
 
     # TODO: should contains own implementation (not use get_obj from main)
     _obj = None

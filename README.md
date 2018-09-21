@@ -9,10 +9,10 @@ created.
 Features
 --------
 
-* same edit/add/table views as Django admin, but it uses REST and AJAX call to achieve it (it adds easier usage and
+* same detail/add/table views as Django admin, but it uses REST and AJAX call to achieve it (it adds easier usage and
 broaden usability)
 * it can be used for creation only REST resources without UI
-* models UI (add/edit) is more linked together, links between foreign keys are automatically added
+* models UI (add/detail) is more linked together, links between foreign keys are automatically added
 * it provides more posibilities for read-only fields (e.g. the fields defined only inside form can be readonly too)
 * add new custom view is for Django admin is nightmare, with IS Core is very easy
 * it uses class based views, it is cleaner and changes are simplier

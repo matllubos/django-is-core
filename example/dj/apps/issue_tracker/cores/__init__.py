@@ -24,10 +24,10 @@ class UserISCore(UIRESTModelISCore):
     model = User
     form_class = UserForm
     ui_list_fields = ('id', '_obj_name')
-    permissions = PermissionsSet(
+    permission = PermissionsSet(
         create=IsSuperuser(),
-        update=IsLoggedUserOrSuperuser(),
         read=IsLoggedUserOrSuperuser(),
+        update=IsLoggedUserOrSuperuser(),
         delete=IsSuperuser()
     )
 

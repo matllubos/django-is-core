@@ -1,7 +1,7 @@
 import re
 import inspect
 
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db.models import Model
 from django.forms.forms import pretty_name
 from django.utils.encoding import force_text
@@ -184,9 +184,9 @@ def get_cls_or_inst_readonly_data(field_name, cls_or_inst, fun_kwargs):
     if '__' in field_name:
         current_field_name, next_field_name = field_name.split('__', 1)
         field = get_field_from_cls_or_inst_or_none(cls_or_inst, current_field_name)
-        if hasattr(cls_or_inst, current_field_name):
+        if hasattr(cls_or_inst, current_field_name) and getattr(cls_or_inst, current_field_name):
             return get_cls_or_inst_readonly_data(next_field_name, getattr(cls_or_inst, current_field_name), fun_kwargs)
-        elif field and hasattr(field, 'rel'):
+        elif cls_or_inst and field and hasattr(field, 'related_model'):
             return get_cls_or_inst_readonly_data(next_field_name, field.related_model, fun_kwargs)
         else:
             return None
@@ -295,3 +295,27 @@ def get_export_types_with_content_type(export_types):
         except KeyError:
             raise ImproperlyConfigured('Missing converter for type {}'.format(type))
     return generated_export_types
+
+
+def get_link_or_none(pattern_name, request, kwargs):
+    """
+    Helper that generate URL prom pattern name and kwargs and check if current request has permission to open the URL.
+    If not None is returned.
+
+    Args:
+        pattern_name (str): slug which is used for view registratin to pattern
+        request (django.http.request.HttpRequest): Django request object
+        kwargs (dict): list of kwargs necessary for URL generator
+
+    Returns:
+
+    """
+    from is_core.patterns import reverse_pattern
+
+    pattern = reverse_pattern(pattern_name)
+    assert pattern is not None, 'Invalid pattern name {}'.format(pattern_name)
+
+    if pattern.can_call_get(request, view_kwargs=kwargs):
+        return pattern.get_url_string(request, kwargs=kwargs)
+    else:
+        return None

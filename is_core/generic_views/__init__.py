@@ -4,11 +4,14 @@ from django.http.response import Http404
 from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+from django.urls import reverse_lazy
 
 from block_snippets.views import JSONSnippetTemplateResponseMixin
 
 from is_core.menu import LinkMenuItem
-from is_core.exceptions import HTTPForbiddenResponseException
+from is_core.exceptions import (
+    HTTPForbiddenResponseException, HTTPUnauthorizedResponseException, HTTPRedirectResponseException
+)
 from is_core.generic_views.exceptions import GenericViewException
 
 from ..auth.permissions import PermissionsSet, CoreReadAllowed
@@ -16,11 +19,13 @@ from ..auth.permissions import PermissionsSet, CoreReadAllowed
 
 class PermissionsViewMixin:
 
-    permissions = None
+    permission = None
+
+    auto_login_redirect = True
 
     def __init__(self):
         super().__init__()
-        assert self.permissions, 'Permissions must be set'
+        assert self.permission, 'Permissions must be set'
 
     def dispatch(self, request, *args, **kwargs):
         rm = request.method.lower()
@@ -39,15 +44,20 @@ class PermissionsViewMixin:
             return False
 
     def _check_permission(self, name, **kwargs):
-        if not self.permissions.has_permission(name, self.request, self, **kwargs):
-            raise HTTPForbiddenResponseException
+        if not self.permission.has_permission(name, self.request, self, **kwargs):
+            if not self.request.user or not self.request.user.is_authenticated:
+                if self.auto_login_redirect:
+                    raise HTTPRedirectResponseException(reverse_lazy('IS:login'))
+                else:
+                    raise HTTPUnauthorizedResponseException
+            else:
+                raise HTTPForbiddenResponseException
 
 
 class DefaultViewMixin(PermissionsViewMixin, JSONSnippetTemplateResponseMixin):
 
     site_name = None
     menu_groups = None
-    login_required = True
     allowed_snippets = ('content',)
     view_name = None
     add_current_to_breadcrumbs = True
@@ -89,7 +99,7 @@ class DefaultCoreViewMixin(DefaultViewMixin):
     core = None
     view_name = None
     title = None
-    permissions = PermissionsSet(
+    permission = PermissionsSet(
         get=CoreReadAllowed()
     )
 
@@ -117,8 +127,8 @@ class DefaultCoreViewMixin(DefaultViewMixin):
     def get_context_data(self, **kwargs):
         context_data = super(DefaultCoreViewMixin, self).get_context_data(**kwargs)
         extra_context_data = {
-            'core_permissions': self.core.permissions,
-            'permissions': self.permissions,
+            'core_permission': self.core.permission,
+            'permission': self.permission,
             'view': self
         }
         extra_context_data.update(context_data)
