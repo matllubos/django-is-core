@@ -30,7 +30,7 @@
 
 		<div class="form-btns">
 			{% block submit-button %}
-				<button type="submit" name="save" data-title='{{ buttons.save.title }}' class="{% block submit-button-class %}btn-save btn btn-primary{% endblock %}">{% block submit-button-caption %}{{ buttons.save.label }}{% endblock %}</button>
+				<button type="submit" name="save" data-title='{{ buttons.save.title }}' class="{% block submit-button-class %}btn-save btn btn-primary{% if buttons.save.disable_on_submit %} disable-on-submit{% endif %}{% endblock %}">{% block submit-button-caption %}{{ buttons.save.label }}{% endblock %}</button>
 			{% endblock %}
 		</div>
 	{% endblock %}
