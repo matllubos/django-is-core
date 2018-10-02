@@ -63,7 +63,8 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
         if 'list' in model_view.ui_patterns:
             url = self.list_url(model_view.site_name, model_view.get_menu_groups())
-            if model_view.ui_patterns.get('list').can_call_get(self.get_request_with_user(self.r_factory.get(url))):
+            if model_view.ui_patterns.get('list').has_permission('get',
+                                                                 self.get_request_with_user(self.r_factory.get(url))):
                 assert_http_ok(self.get(url), '{} should return 200'.format(url))
 
     @data_provider(get_ui_main_views)
@@ -71,7 +72,8 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
         if 'add' in model_view.ui_patterns:
             url = self.add_url(model_view.site_name, model_view.get_menu_groups())
-            if model_view.ui_patterns.get('add').can_call_get(self.get_request_with_user(self.r_factory.get(url))):
+            if model_view.ui_patterns.get('add').has_permission('get',
+                                                                self.get_request_with_user(self.r_factory.get(url))):
                 assert_http_ok(self.get(url), '{} should return 200'.format(url))
 
     @data_provider(get_ui_main_views)
@@ -82,5 +84,5 @@ class TestSiteAvailability(ModelUITestCaseMiddleware, ClientTestCase):
 
             url = self.detail_url(model_view.site_name, model_view.get_menu_groups(), inst)
             request = self.get_request_with_user(self.r_factory.get(url))
-            if model_view.ui_patterns.get('detail').can_call_get(request, obj=inst):
+            if model_view.ui_patterns.get('detail').has_permission('get', request, obj=inst):
                 assert_http_ok(self.get(url), '{} should return 200'.format(url))

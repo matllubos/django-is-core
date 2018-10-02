@@ -160,14 +160,16 @@ class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
     pk_name = 'pk'
 
     permission = PermissionsSet(
-        get=CoreReadAllowed(),
+        # HTTP permissions
         head=CoreReadAllowed(),
         options=CoreReadAllowed(),
+        post=CoreCreateAllowed(),
+        get=CoreReadAllowed(),
         put=CoreUpdateAllowed(),
         patch=CoreUpdateAllowed(),
-        post=CoreCreateAllowed(),
         delete=CoreDeleteAllowed(),
 
+        # Serializer permissions
         create_obj=CoreCreateAllowed(),
         read_obj=CoreReadAllowed(),
         update_obj=CoreUpdateAllowed(),
@@ -435,7 +437,7 @@ class UIRESTModelResource(RESTModelResource):
         for pattern in self.core.web_link_patterns(self.request):
             if pattern.send_in_rest:
                 url = pattern.get_url_string(self.request, obj=obj)
-                if url and pattern.can_call_get(self.request, obj=obj):
+                if url and pattern.has_permission('get', self.request, obj=obj):
                     web_links[pattern.name] = url
         return web_links
 

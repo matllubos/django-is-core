@@ -36,15 +36,11 @@ class PermissionsViewMixin:
             handler = self.http_method_not_allowed
         return handler(request, *args, **kwargs)
 
-    def _check_call(self, name, **kwargs):
-        try:
-            self._check_permission(name, **kwargs)
-            return True
-        except (Http404, HTTPForbiddenResponseException):
-            return False
+    def has_permission(self, name, obj=None):
+        return self.permission.has_permission(name, self.request, self, obj)
 
-    def _check_permission(self, name, **kwargs):
-        if not self.permission.has_permission(name, self.request, self, **kwargs):
+    def _check_permission(self, name, obj=None):
+        if not self.has_permission(name, obj):
             if not self.request.user or not self.request.user.is_authenticated:
                 if self.auto_login_redirect:
                     raise HTTPRedirectResponseException(reverse_lazy('IS:login'))

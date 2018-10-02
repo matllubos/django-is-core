@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 
 from is_core.main import UIRESTModelISCore
-from is_core.auth.permissions import IsSuperuser, PermissionsSet
+from is_core.auth.permissions import BasePermission, IsSuperuser, IsAdminUser, PermissionsSet
 
 from issue_tracker.models import Issue
 from issue_tracker.forms import UserForm
@@ -9,14 +9,16 @@ from issue_tracker.forms import UserForm
 from .resources import NumberOfUserIssuesResource
 
 
-class IsLoggedUserOrSuperuser(IsSuperuser):
+class IsNoObject(BasePermission):
 
     def has_permission(self, name, request, view, obj=None):
-        return (
-            super().has_permission(name, request, view, obj) or (
-                request.user.is_staff and obj is None or obj == request.user
-            )
-        )
+        return obj is None
+
+
+class IsLoggedUser(BasePermission):
+
+    def has_permission(self, name, request, view, obj=None):
+        return obj and obj == request.user
 
 
 class UserISCore(UIRESTModelISCore):
@@ -26,8 +28,8 @@ class UserISCore(UIRESTModelISCore):
     ui_list_fields = ('id', '_obj_name')
     permission = PermissionsSet(
         create=IsSuperuser(),
-        read=IsLoggedUserOrSuperuser(),
-        update=IsLoggedUserOrSuperuser(),
+        read=IsSuperuser() | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
+        update=IsSuperuser() | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
         delete=IsSuperuser()
     )
 

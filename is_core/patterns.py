@@ -43,7 +43,7 @@ class Pattern:
         else:
             patterns[self.name] = self
 
-    def get_url_string(self, request, obj=None, kwargs=None):
+    def get_url_string(self, request, obj=None, view_kwargs=None):
         raise NotImplemented
 
     def get_url(self):
@@ -72,10 +72,10 @@ class ViewPattern(Pattern):
             return {'pk': obj.pk}
         return {}
 
-    def get_url_string(self, request, obj=None, kwargs=None):
-        kwargs = kwargs or {}
+    def get_url_string(self, request, obj=None, view_kwargs=None):
+        view_kwargs = {} if view_kwargs is None else view_kwargs
         try_kwargs = self._get_try_kwargs(request, obj)
-        try_kwargs.update(kwargs)
+        try_kwargs.update(view_kwargs)
         return reverse(self.pattern, kwargs=try_kwargs)
 
     def get_view_dispatch(self):
@@ -118,23 +118,13 @@ class ViewPattern(Pattern):
             request.kwargs = bckp_request_kwargs
         return result
 
-    def __getattr__(self, name):
-        for regex, method_name in ((r'_check_(\w+)_permission', '_check_permission'),
-                                   (r'can_call_(\w+)', '_check_call')):
-            m = re.match(regex, name)
-            if m:
-                def _call(request, obj=None, view_kwargs=None, **kwargs):
-                    view_kwargs = (view_kwargs or {}).copy()
+    def has_permission(self, name, request, obj=None, view_kwargs=None):
+        method_kwargs = self._get_called_permission_kwargs(request, obj)
 
-                    method_kwargs = self._get_called_permission_kwargs(request, obj)
-                    method_kwargs.update(kwargs)
-
-                    return self._call_view_method_with_request(method_name, request,
-                                                               request_kwargs=view_kwargs,
-                                                               method_args=(m.group(1),),
-                                                               method_kwargs=method_kwargs, obj=obj)
-                return _call
-        raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
+        return self._call_view_method_with_request(
+            'has_permission', request, request_kwargs=view_kwargs,
+            method_args=(name,), method_kwargs=method_kwargs, obj=obj
+        )
 
 
 class UIPattern(ViewPattern):

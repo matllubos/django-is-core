@@ -253,7 +253,7 @@ def get_url_from_model_core(request, obj):
         edit_pattern = model_core.ui_patterns.get('detail')
         return (
             edit_pattern.get_url_string(request, obj=obj)
-            if edit_pattern and edit_pattern.can_call_get(request, obj=obj) else None
+            if edit_pattern and edit_pattern.has_permission('get', request, obj=obj) else None
         )
     else:
         return None
@@ -297,7 +297,7 @@ def get_export_types_with_content_type(export_types):
     return generated_export_types
 
 
-def get_link_or_none(pattern_name, request, kwargs):
+def get_link_or_none(pattern_name, request, view_kwargs=None):
     """
     Helper that generate URL prom pattern name and kwargs and check if current request has permission to open the URL.
     If not None is returned.
@@ -305,7 +305,7 @@ def get_link_or_none(pattern_name, request, kwargs):
     Args:
         pattern_name (str): slug which is used for view registratin to pattern
         request (django.http.request.HttpRequest): Django request object
-        kwargs (dict): list of kwargs necessary for URL generator
+        view_kwargs (dict): list of kwargs necessary for URL generator
 
     Returns:
 
@@ -315,7 +315,7 @@ def get_link_or_none(pattern_name, request, kwargs):
     pattern = reverse_pattern(pattern_name)
     assert pattern is not None, 'Invalid pattern name {}'.format(pattern_name)
 
-    if pattern.can_call_get(request, view_kwargs=kwargs):
-        return pattern.get_url_string(request, kwargs=kwargs)
+    if pattern.has_permission('get', request, view_kwargs=view_kwargs):
+        return pattern.get_url_string(request, view_kwargs=view_kwargs)
     else:
         return None

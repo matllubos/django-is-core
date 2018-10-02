@@ -5,7 +5,7 @@ class BasePermission:
 
     def has_permission(self, name, request, view, obj=None):
         """
-        Method check if request has permission to the given action.
+        Checks if request has permission to the given action.
 
         Args:
             name (str): name of the permission
@@ -19,9 +19,13 @@ class BasePermission:
         raise NotImplementedError
 
     def __and__(self, other):
+        assert isinstance(other, BasePermission), 'Only permission instances can be joined'
+
         return AndPermission(self, other)
 
     def __or__(self, other):
+        assert isinstance(other, BasePermission), 'Only permission instances can be joined'
+
         return OrPermission(self, other)
 
 
@@ -39,6 +43,8 @@ class OperatorPermission(BasePermission):
         )
 
     def add(self, permission):
+        assert isinstance(permission, BasePermission), 'Only permission instance can be added to the operator'
+
         self._permissions.append(permission)
 
     def __repr__(self):
@@ -58,6 +64,8 @@ class AndPermission(OperatorPermission):
     operator_function = all
 
     def __and__(self, other):
+        assert isinstance(other, BasePermission), 'Only permission instances can be joined'
+
         self.add(other)
         return self
 
@@ -71,6 +79,8 @@ class OrPermission(OperatorPermission):
     operator_function = any
 
     def __or__(self, other):
+        assert isinstance(other, BasePermission), 'Only permission instances can be joined'
+
         self.add(other)
         return self
 
@@ -87,14 +97,22 @@ class PermissionsSet(BasePermission):
             **permissions_set (BasePermission): permissions data
         """
         super().__init__()
-        self._permissions = dict(permissions_set)
+        self._permissions = permissions_set
 
-    def set(self, key, permission):
-        self._permissions[key] = permission
+    def set(self, name, permission):
+        """
+        Adds permission with the given name to the set. Permission with the same name will be overridden.
+        Args:
+            name: name of the permission
+            permission: permission instance
+        """
+        assert isinstance(permission, BasePermission), 'Only permission instances can be added to the set'
+
+        self._permissions[name] = permission
 
     def has_permission(self, name, request, view, obj=None):
         permission = self._permissions.get(name, None)
-        return permission and permission.has_permission(name, request, view, obj=obj)
+        return permission is not None and permission.has_permission(name, request, view, obj=obj)
 
     def __iter__(self):
         for permission in self._permissions.values():
@@ -110,22 +128,22 @@ class IsAuthenticated(BasePermission):
         return request.user.is_authenticated and request.user.is_active
 
 
-class IsSuperuser(IsAuthenticated):
+class IsSuperuser(BasePermission):
     """
     Grant permission if user is superuser
     """
 
     def has_permission(self, name, request, view, obj=None):
-        return super().has_permission(name, request, view, obj) and request.user.is_superuser
+        return request.user.is_superuser
 
 
-class IsAdminUser(IsAuthenticated):
+class IsAdminUser(BasePermission):
     """
     Grant permission if user is staff
     """
 
     def has_permission(self, name, request, view, obj=None):
-        return super().has_permission(name, request, view, obj) and request.user.is_staff
+        return request.user.is_staff
 
 
 class AllowAny(BasePermission):

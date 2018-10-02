@@ -85,7 +85,6 @@ class ISCore(metaclass=ISCoreBase):
         for permission_name in ('create', 'read', 'update', 'delete'):
             if getattr(self, 'can_{}'.format(permission_name)):
                 permission_dict[permission_name] = self._get_default_permission(permission_name)
-
         return PermissionsSet(**permission_dict)
 
     def init_request(self, request):
@@ -264,7 +263,7 @@ class UIISCore(ISCore):
     def get_show_in_menu(self, request):
         return (
             self.show_in_menu and self.menu_url_name and self.menu_url_name in self.ui_patterns and
-            self.ui_patterns.get(self.menu_url_name).can_call_get(request)
+            self.ui_patterns.get(self.menu_url_name).has_permission('get', request)
         )
 
     def is_active_menu_item(self, request, active_group):
@@ -321,9 +320,6 @@ class RESTISCore(ISCore):
 
     def get_urls(self):
         return self.get_urlpatterns(self.rest_patterns)
-
-    def get_api_url_name(self):
-        return self.api_url_name
 
     def get_api_url(self, request):
         return reverse(self.get_api_url_name())
@@ -460,7 +456,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_show_in_menu(self, request):
         return (
             self.menu_url_name in self.ui_patterns and self.show_in_menu and
-            self.ui_patterns.get(self.menu_url_name).can_call_get(request)
+            self.ui_patterns.get(self.menu_url_name).has_permission('get', request)
         )
 
     def get_form_inline_views(self, request, obj=None):
@@ -649,7 +645,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     def get_list_actions(self, request, obj):
         list_actions = super(RESTModelISCore, self).get_list_actions(request, obj)
         api_resource = self.rest_patterns.get('api-resource')
-        if self.can_delete and api_resource.can_call_delete(request, obj=obj):
+        if self.can_delete and api_resource.has_permission('delete', request, obj=obj):
             confirm_dialog = ConfirmRESTAction.ConfirmDialog(_('Do you really want to delete "%s"') % obj)
             list_actions.append(ConfirmRESTAction('api-resource-{}'.format(self.get_menu_group_pattern_name()),
                                                   _('Delete'), 'DELETE', confirm_dialog=confirm_dialog,
@@ -689,11 +685,11 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     def get_list_actions(self, request, obj):
         list_actions = super(UIRESTModelISCore, self).get_list_actions(request, obj)
         detail_pattern = self.ui_patterns.get('detail')
-        if detail_pattern and detail_pattern.can_call_get(request, obj=obj):
+        if detail_pattern and detail_pattern.has_permission('get', request, obj=obj):
             return [
                 WebAction(
                     'detail-{}'.format(self.get_menu_group_pattern_name()), _('Detail'),
-                    'edit' if detail_pattern.can_call_post(request, obj=obj) else 'detail'
+                    'edit' if detail_pattern.has_permission('post', request, obj=obj) else 'detail'
                 )
             ] + list(list_actions)
         else:
