@@ -63,7 +63,7 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         return formset_has_file_field(form)
 
     def is_readonly(self):
-        return not self._check_call('post')
+        return not self.has_permission('post')
 
     def get_form(self, form_class=None):
         if form_class is None:
@@ -549,15 +549,15 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         )
 
     def get_cancel_url(self):
-        if ('list' in self.core.ui_patterns and self.core.ui_patterns.get('list').can_call_get(self.request) and not
-                self.has_snippet()):
+        if ('list' in self.core.ui_patterns and
+                self.core.ui_patterns.get('list').has_permission('get', self.request) and not self.has_snippet()):
             return self.core.ui_patterns.get('list').get_url_string(self.request)
         return None
 
     def has_save_and_continue_button(self):
         return (
             'list' in self.core.ui_patterns and not self.has_snippet() and
-            self.core.ui_patterns.get('list').can_call_get(self.request) and
+            self.core.ui_patterns.get('list').has_permission('get', self.request) and
             self.show_save_and_continue
         )
 
@@ -566,13 +566,13 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     def get_success_url(self, obj):
         if ('list' in self.core.ui_patterns and
-                self.core.ui_patterns.get('list').can_call_get(self.request) and
+                self.core.ui_patterns.get('list').has_permission('get', self.request) and
                 'save' in self.request.POST):
             return self.core.ui_patterns.get('list').get_url_string(self.request)
         elif ('detail' in self.core.ui_patterns and
-                self.core.ui_patterns.get('detail').can_call_get(self.request, obj=obj) and
+                self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=obj) and
                 'save-and-continue' in self.request.POST):
-            return self.core.ui_patterns.get('detail').get_url_string(self.request, kwargs={'pk': obj.pk})
+            return self.core.ui_patterns.get('detail').get_url_string(self.request, view_kwargs={'pk': obj.pk})
         else:
             return self.request.get_full_path()
 
@@ -628,7 +628,7 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
                 })
 
     def is_readonly(self):
-        return not self._check_call('post', obj=self.get_obj())
+        return not self.has_permission('post')
 
     def link(self, arguments=None, **kwargs):
         if arguments is None:

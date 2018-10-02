@@ -10,7 +10,7 @@ Main permissions goal is to often check if client has access to read/update/dele
 
   .. method:: has_permission(name, request, view, obj=None)
 
-    Method must be implemented for every permission object and should return True if all requirements was fulfilled to grand access to the client.
+    Method must be implemented for every permission object and should return True if all requirements was fulfilled to grant access to the client.
     First parameter name defines name of the wanted access, request is Django request object, view is Django view or REST resource and optional parameter obj is obj related with the given request.
 
 Predefined permissions
@@ -22,39 +22,39 @@ Predefined permissions
 
 .. class:: is_core.auth.permissions.IsAuthenticated
 
-  Grant permission if user is authenticated and is active.
+  Grants permission if user is authenticated and is active.
 
 .. class:: is_core.auth.permissions.IsSuperuser
 
-  Grant permission if user is authenticated, is active and is superuser.
+  Grants permission if user is authenticated, is active and is superuser.
 
 .. class:: is_core.auth.permissions.IsAdminUser
 
-  Grant permission if user is authenticated, is active and is staff.
+  Grants permission if user is authenticated, is active and is staff.
 
 .. class:: is_core.auth.permissions.AllowAny
 
-  Grant permission every time.
+  Grants permission every time.
 
 .. class:: is_core.auth.permissions.CoreAllowed
 
-  Grant permission if core (related with the view) permission selected according to the name grants the access.
+  Grants permission if core (related with the view) permission selected according to the name grants the access.
 
 .. class:: is_core.auth.permissions.CoreReadAllowed
 
-  Grant permission if core read permission grant access.
+  Grants permission if core read permission grant access.
 
 .. class:: is_core.auth.permissions.CoreCreateAllowed
 
-  Grant permission if core create permission grant access.
+  Grants permission if core create permission grant access.
 
 .. class:: is_core.auth.permissions.CoreUpdateAllowed
 
-  Grant permission if core update permission grant access.
+  Grants permission if core update permission grant access.
 
 .. class:: is_core.auth.permissions.CoreDeleteAllowed
 
-  Grant permission if core delete permission grant access.
+  Grants permission if core delete permission grant access.
 
 .. class:: is_core.auth.permissions.AndPermission
 
@@ -106,14 +106,14 @@ Now only a superuser has access to the User core. But this solution is a little 
     class UserISCore(UIRESTModelISCore):
 
         model = User
-        permissions = PermissionsSet(
+        permission = PermissionsSet(
             add=IsSuperuser(),
             read=IsSuperuser(),
             update=IsSuperuser(),
             delete=IsSuperuser(),
         )
 
-Because writing to much code can lead to typos you can use ``default_permission`` attribute from which is automatically generated ``permission`` the result will be same as in previous example::
+Because writing too much code can lead to typos you can use ``default_permission`` attribute from which is automatically generated ``permission`` the result will be same as in previous example::
 
     from django.contrib.auth.models import User
 
@@ -125,7 +125,7 @@ Because writing to much code can lead to typos you can use ``default_permission`
         model = User
         default_permission = IsSuperuser()
 
-But if you want to disable for example deleting model instances the delete permission will not be generate added to the permission set::
+But if you want to disable for example deleting model instances the delete permission will not be added to the permission set::
 
     from django.contrib.auth.models import User
 
@@ -140,7 +140,7 @@ But if you want to disable for example deleting model instances the delete permi
 
 the attribute permission will be now::
 
-   permissions = PermissionsSet(
+   permission = PermissionsSet(
        add=IsSuperuser(),
        read=IsSuperuser(),
        update=IsSuperuser(),
@@ -176,7 +176,7 @@ For some cases is necessary update permissions in a class mixin for this purpose
     class UserISCore(UIRESTModelISCore):
 
         model = User
-        permissions = PermissionsSet(
+        permission = PermissionsSet(
             add=IsAdminUser(),
             read=IsAdminUser(),
             update=IsAdminUser(),
@@ -237,21 +237,20 @@ If you want to have edit view accessible only if user is allowed to modify an ob
 REST permissions
 ----------------
 
-For the REST classes permissions you can use the same rules. The only difference is that there is more types of permissions because REST resource fulfills two functions serializer and view::
-
+For the REST classes permissions you can use the same rules. The only difference is that there are more types of permissions because REST resource fulfills two functions - serializer and view (HTTP requests)::
 
     from is_core.rest.resource import RESTObjectPermissionsMixin
 
     class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
 
         permission = PermissionsSet(
-            # View permissions
-            get=CoreReadAllowed(),
+            # HTTP permissions
             head=CoreReadAllowed(),
             options=CoreReadAllowed(),
+            post=CoreCreateAllowed(),
+            get=CoreReadAllowed(),
             put=CoreUpdateAllowed(),
             patch=CoreUpdateAllowed(),
-            post=CoreCreateAllowed(),
             delete=CoreDeleteAllowed(),
 
             # Serializer permissions
@@ -260,3 +259,47 @@ For the REST classes permissions you can use the same rules. The only difference
             update_obj=CoreUpdateAllowed(),
             delete_obj=CoreDeleteAllowed()
         )
+
+
+Check permissions
+-----------------
+
+View/resource
+^^^^^^^^^^^^^
+
+If you want to check your custom permission in view or REST resource you can use method ``has_permission(name, obj=None)`` as an example we can use method ``is_readonly`` in th form view (form is readonly only if post permission returns ``False``)::
+
+
+    def is_readonly(self):
+        return not self.has_permission('post')
+
+
+Because some permissions require obj parameter all views that inherit from ``is_core.generic_views.mixins.GetCoreObjViewMixin`` has automatically added objects to the permission check.
+
+
+Core
+^^^^
+
+Sometimes you need to check permission in the core. But there is no view instance and you will have to create it. For better usability you can check permissions via view patterns, as an example we can use method ``get_list_actions`` which return edit action only if user has permission to update an object::
+
+    def get_list_actions(self, request, obj):
+        list_actions = super(UIRESTModelISCore, self).get_list_actions(request, obj)
+        detail_pattern = self.ui_patterns.get('detail')
+        if detail_pattern and detail_pattern.has_permission('get', request, obj=obj):
+            return [
+                WebAction(
+                    'detail-{}'.format(self.get_menu_group_pattern_name()), _('Detail'),
+                    'edit' if detail_pattern.has_permission('post', request, obj=obj) else 'detail'
+                )
+            ] + list(list_actions)
+        else:
+            return list_actions
+
+
+Pattern method ``has_permission(name, request, obj=None, **view_kwargs)`` can be used with more ways. By default is ``view_kwargs`` get from request kwargs. If you can change it you can use method kwargs parameters. Parameter ``obj`` can be used for save system performance because object needn't be loaded from database again::
+
+    detail_pattern = self.ui_patterns.get('detail')
+    detail_pattern.has_permission('get', request)  # object id is get from request.kwargs
+    detail_pattern.has_permission('get', request, id=obj.pk)  # request.kwargs "id" is overridden with obj.pk
+    detail_pattern.has_permission('get', request, obj=obj)  # saves db queryes because object needn't be loaded from database
+
