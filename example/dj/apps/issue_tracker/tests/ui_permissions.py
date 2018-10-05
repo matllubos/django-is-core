@@ -9,8 +9,15 @@ from germanium.tools.http import assert_http_redirect, assert_http_ok, assert_ht
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 
+__all__ =(
+    'UIPermissionsTestCase',
+)
+
+
 class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase):
+
     USER_UI_URL = '/user/'
+    ISSUE_UI_URL = '/issue/'
 
     def authorize(self, username, password):
         resp = self.post(config.LOGIN_URL, {config.USERNAME: username, config.PASSWORD: password})
@@ -85,3 +92,8 @@ class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase)
                                                             'add-is-user-password': 'password'})
         assert_http_forbidden(resp)
         assert_false(User.objects.filter(username=USERNAME).exists())
+
+    @login(is_superuser=True)
+    def test_issue_should_return_not_found_because_can_add_is_disabled(self):
+        assert_http_not_found(self.get('%sadd/' % self.ISSUE_UI_URL))
+        assert_http_not_found(self.post('%sadd/' % self.ISSUE_UI_URL, data={}))
