@@ -5,6 +5,11 @@ from germanium.tools import assert_contains
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 
+__all__ =(
+    'UIOrderingTestCase',
+)
+
+
 class UIOrderingTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase):
     ISSUE_UI_URL = '/issue/'
 

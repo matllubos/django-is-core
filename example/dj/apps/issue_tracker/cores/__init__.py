@@ -50,3 +50,7 @@ class IssueISCore(UIRESTModelISCore):
 
     model = Issue
     ui_list_fields = ('id', '_obj_name', 'watched_by_string', 'leader__email', 'leader__last_name')
+
+    can_create = False
+    can_delete = False
+    can_update = False

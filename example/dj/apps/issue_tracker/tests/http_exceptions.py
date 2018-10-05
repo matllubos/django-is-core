@@ -6,6 +6,11 @@ from germanium.tools.http import assert_http_unauthorized, assert_http_forbidden
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 
+__all__ =(
+    'HttpExceptionsTestCase',
+)
+
+
 class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
 
     ISSUE_API_URL = '/api/issue/'

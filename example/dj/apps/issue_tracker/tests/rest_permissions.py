@@ -2,15 +2,22 @@ from germanium.annotations import login
 from germanium.test_cases.rest import RESTTestCase
 from germanium.tools import assert_equal
 from germanium.tools.http import (assert_http_forbidden, assert_http_unauthorized, assert_http_accepted,
-                                  assert_http_not_found)
+                                  assert_http_not_found, assert_http_method_not_allowed)
 from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_created_response
 
+from .factories import IssueFactory, UserFactory
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 from issue_tracker.models import Issue
 
 
+__all__ =(
+    'RESTPermissionsTestCase',
+)
+
+
 class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
+
     USER_API_URL = '/api/user/'
     ISSUE_API_URL = '/api/issue/'
     USER_ISSUES_API_URL = '/api/user/%(user_pk)s/issue-number/'
@@ -114,3 +121,25 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase)
         output = self.deserialize(resp)
         assert_equal(output['created'], 0)
         assert_equal(output['watching'], 0)
+
+    @login(is_superuser=True)
+    def test_issue_delete_should_not_be_supported_because_can_delete_is_disabled(self):
+        assert_http_method_not_allowed(self.delete(self.ISSUE_API_URL + '1/'))
+
+    @login(is_superuser=True)
+    def test_issue_post_should_not_be_supported_because_can_create_is_disabled(self):
+        assert_http_method_not_allowed(self.post(self.ISSUE_API_URL, data={}))
+
+    @login(is_superuser=True)
+    def test_issue_actions_should_not_contains_edit_because_update_is_disabled(self):
+        IssueFactory()
+        resp = self.get(self.ISSUE_API_URL+'?_fields=_actions')
+        assert_equal(len(resp.json()[0]['_actions']), 1)
+        assert_equal(resp.json()[0]['_actions'][0]['class_name'], 'detail')
+
+    @login(is_superuser=True)
+    def test_user_actions_should_contains_edit_and_delete_because_update_is_disabled(self):
+        UserFactory()
+        resp = self.get(self.USER_API_URL+'?_fields=_actions')
+        assert_equal(len(resp.json()[0]['_actions']), 2)
+        assert_equal({action['class_name'] for action in resp.json()[0]['_actions']}, {'edit', 'delete'})
