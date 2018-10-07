@@ -14,132 +14,116 @@ from pyston.response import RESTErrorResponse, RESTErrorsResponse
 from pyston.utils import rfs
 
 from chamber.shortcuts import get_object_or_none
-from chamber.utils.decorators import classproperty
 from chamber.utils import transaction
 
+from is_core.auth.permissions import (
+    PermissionsSet, IsAuthenticated, CoreReadAllowed, CoreUpdateAllowed, CoreDeleteAllowed, CoreCreateAllowed,
+    AllowAny
+)
 from is_core.config import settings
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
                                          HTTPForbiddenResponseException)
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
-from is_core.utils.immutable import merge
 from is_core.utils.compatibility import NoReverseMatch
 
 
-class RESTLoginMixin:
+class RESTPermissionsMixin:
 
-    login_required = True
-    login_post_required = True
-    login_patch_required = True
-    login_put_required = True
-    login_get_required = True
-    login_delete_required = True
-    login_head_required = True
-    login_options_required = True
-
-    def has_login_post_required(self):
-        return self.login_required and self.login_post_required
-
-    def has_login_put_required(self):
-        return self.login_required and self.login_put_required
-
-    def has_login_patch_required(self):
-        return self.login_required and self.login_patch_required
-
-    def has_login_get_required(self):
-        return self.login_required and self.login_get_required
-
-    def has_login_delete_required(self):
-        return self.login_required and self.login_delete_required
-
-    def has_login_head_required(self):
-        return self.login_required and self.login_head_required and self.has_login_get_required()
-
-    def has_login_options_required(self):
-        return self.login_required and self.login_options_required and not self._is_cors_options_request()
+    permission = IsAuthenticated()
+    csrf_exempt = False
 
     def has_get_permission(self, **kwargs):
-        return ((not self.has_login_get_required() or self.request.user.is_authenticated) and
-                super(RESTLoginMixin, self).has_get_permission(**kwargs))
+        return (
+            self.permission.has_permission('get', self.request, self, obj=kwargs.get('obj')) and
+            super().has_get_permission(**kwargs)
+        )
 
     def has_post_permission(self, **kwargs):
-        return ((not self.has_login_post_required() or self.request.user.is_authenticated) and
-                super(RESTLoginMixin, self).has_post_permission(**kwargs))
+        return (
+            self.permission.has_permission('post', self.request, self, obj=kwargs.get('obj')) and
+            super().has_post_permission(**kwargs)
+        )
 
     def has_put_permission(self, **kwargs):
-        return ((not self.has_login_put_required() or self.request.user.is_authenticated) and
-                super(RESTLoginMixin, self).has_put_permission(**kwargs))
+        return (
+            self.permission.has_permission('put', self.request, self, obj=kwargs.get('obj')) and
+            super().has_put_permission(**kwargs)
+        )
 
     def has_patch_permission(self, **kwargs):
-        return ((not self.has_login_patch_required() or self.request.user.is_authenticated) and
-                super(RESTLoginMixin, self).has_patch_permission(**kwargs))
+        return (
+            self.permission.has_permission('patch', self.request, self, obj=kwargs.get('obj')) and
+            super().has_patch_permission(**kwargs)
+        )
 
     def has_delete_permission(self, **kwargs):
-        return ((not self.has_login_delete_required() or self.request.user.is_authenticated) and
-                super(RESTLoginMixin, self).has_delete_permission(**kwargs))
+        return (
+            self.permission.has_permission('delete', self.request, self, obj=kwargs.get('obj')) and
+            super().has_delete_permission(**kwargs)
+        )
 
     def has_options_permission(self, **kwargs):
-        return ((not self.has_login_options_required() or self.request.user.is_authenticated) and
-                super(RESTLoginMixin, self).has_options_permission(**kwargs))
+        return (
+            self._is_cors_options_request() or (
+                self.permission.has_permission('options', self.request, self, obj=kwargs.get('obj')) and
+                super().has_options_permission(**kwargs)
+            )
+        )
+
+    def has_head_permission(self, **kwargs):
+        return (
+            self.permission.has_permission('head', self.request, self, obj=kwargs.get('obj')) and
+            super().has_head_permission(**kwargs)
+        )
 
     def _check_permission(self, name, *args, **kwargs):
-        if ((not hasattr(self.request, 'user') or not self.request.user or not self.request.user.is_authenticated) and
-                getattr(self, 'has_login_{}_required'.format(name))()):
-            raise UnauthorizedException
-        super()._check_permission(name, *args, **kwargs)
+        try:
+            super()._check_permission(name, *args, **kwargs)
+        except NotAllowedException:
+            if not hasattr(self.request, 'user') or not self.request.user or not self.request.user.is_authenticated:
+                raise UnauthorizedException
+            else:
+                raise
 
 
-class RESTObjectLoginMixin(RESTLoginMixin):
+class RESTObjectPermissionsMixin(RESTPermissionsMixin):
 
-    login_create_obj_required = True
-    login_update_obj_required = True
-    login_delete_obj_required = True
-    login_read_obj_required = True
-
-    read_obj_permission = True
-    create_obj_permission = True
-    update_obj_permission = True
-    delete_obj_permission = True
-
-    def has_login_read_obj_required(self):
-        return self.login_required and self.login_read_obj_required
-
-    def has_login_create_obj_required(self):
-        return self.login_required and self.login_create_obj_required
-
-    def has_login_update_obj_required(self):
-        return self.login_required and self.login_update_obj_required
-
-    def has_login_delete_obj_required(self):
-        return self.login_required and self.login_delete_obj_required
+    can_create_obj = True
+    can_read_obj = True
+    can_update_obj = True
+    can_delete_obj = True
 
     def has_create_obj_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_create_obj_required() or self.request.user.is_authenticated) and
-                super(RESTObjectLoginMixin, self).has_create_obj_permission(obj=obj, **kwargs))
-
-    def has_update_obj_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_update_obj_required() or self.request.user.is_authenticated) and
-                super(RESTObjectLoginMixin, self).has_update_obj_permission(obj=obj, **kwargs))
-
-    def has_delete_obj_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_delete_obj_required() or self.request.user.is_authenticated) and
-                super(RESTObjectLoginMixin, self).has_delete_obj_permission(obj=obj, **kwargs))
+        return (
+            self.permission.has_permission('create_obj', self.request, self, obj=kwargs.get('obj')) and
+            super().has_create_obj_permission(obj=obj, **kwargs)
+        )
 
     def has_read_obj_permission(self, obj=None, **kwargs):
-        return ((not self.has_login_read_obj_required() or self.request.user.is_authenticated) and
-                super(RESTObjectLoginMixin, self).has_read_obj_permission(obj=obj, **kwargs))
+        return (
+            self.permission.has_permission('read_obj', self.request, self, obj=kwargs.get('obj')) and
+            super().has_read_obj_permission(obj=obj, **kwargs)
+        )
+
+    def has_update_obj_permission(self, obj=None, **kwargs):
+        return (
+            self.permission.has_permission('update_obj', self.request, self, obj=kwargs.get('obj')) and
+            super().has_update_obj_permission(obj=obj, **kwargs)
+        )
+
+    def has_delete_obj_permission(self, obj=None, **kwargs):
+        return (
+            self.permission.has_permission('delete_obj', self.request, self, obj=kwargs.get('obj')) and
+            super().has_delete_obj_permission(obj=obj, **kwargs)
+        )
 
 
 class RESTResourceMixin:
 
     register = False
     abstract = True
-
-    @classproperty
-    @classmethod
-    def csrf_exempt(cls):
-        return not cls.login_required
 
     def dispatch(self, request, *args, **kwargs):
         if hasattr(self, 'core'):
@@ -171,28 +155,26 @@ class RESTResourceMixin:
         return super(RESTResourceMixin, self)._get_error_response(exception)
 
 
-class RESTModelCoreResourcePermissionsMixin(RESTObjectLoginMixin):
+class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
 
     pk_name = 'pk'
 
-    def has_create_obj_permission(self, obj=None, **kwargs):
-        return (super(RESTModelCoreResourcePermissionsMixin, self).has_create_obj_permission(obj=obj, **kwargs) and
-                self.core.has_rest_create_permission(self.request, obj=obj, **kwargs))
+    permission = PermissionsSet(
+        # HTTP permissions
+        head=CoreReadAllowed(),
+        options=CoreReadAllowed(),
+        post=CoreCreateAllowed(),
+        get=CoreReadAllowed(),
+        put=CoreUpdateAllowed(),
+        patch=CoreUpdateAllowed(),
+        delete=CoreDeleteAllowed(),
 
-    def has_update_obj_permission(self, obj=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_none()
-        return (super(RESTModelCoreResourcePermissionsMixin, self).has_update_obj_permission(obj=obj, **kwargs) and
-                self.core.has_rest_update_permission(self.request, obj=obj, **kwargs))
-
-    def has_delete_obj_permission(self, obj=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_none()
-        return (super(RESTModelCoreResourcePermissionsMixin, self).has_delete_obj_permission(obj=obj, **kwargs) and
-                self.core.has_rest_delete_permission(self.request, obj=obj, **kwargs))
-
-    def has_read_obj_permission(self, obj=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_none()
-        return (super(RESTModelCoreResourcePermissionsMixin, self).has_read_obj_permission(obj=obj, **kwargs) and
-                self.core.has_rest_read_permission(self.request, obj=obj, **kwargs))
+        # Serializer permissions
+        create_obj=CoreCreateAllowed(),
+        read_obj=CoreReadAllowed(),
+        update_obj=CoreUpdateAllowed(),
+        delete_obj=CoreDeleteAllowed()
+    )
 
     def _get_perm_obj_or_none(self, pk=None):
         pk = pk or self.kwargs.get(self.pk_name)
@@ -223,14 +205,14 @@ class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
          return obj
 
 
-class RESTResource(RESTLoginMixin, RESTResourceMixin, BaseResource):
+class RESTResource(RESTPermissionsMixin, RESTResourceMixin, BaseResource):
     pass
 
 
 class EntryPointResource(RESTResource):
 
-    login_required = False
     allowed_methods = ('get', 'head', 'options')
+    permission = AllowAny()
 
     def get(self):
         out = {}
@@ -423,7 +405,13 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
 
     def _update_obj(self, obj, data):
         try:
-            return (self._create_or_update(merge(data, {self.pk_field_name: obj.pk}), partial_update=True), None)
+            return (
+                self._create_or_update({
+                    self.pk_field_name: obj.pk,
+                    **data,
+                }, partial_update=True),
+                None
+            )
         except DataInvalidException as ex:
             return (None, self._format_message(obj, ex))
         except (ConflictException, NotAllowedException):
@@ -449,7 +437,7 @@ class UIRESTModelResource(RESTModelResource):
         for pattern in self.core.web_link_patterns(self.request):
             if pattern.send_in_rest:
                 url = pattern.get_url_string(self.request, obj=obj)
-                if url and pattern.can_call_get(self.request, obj=obj):
+                if url and pattern.has_permission('get', self.request, obj=obj):
                     web_links[pattern.name] = url
         return web_links
 

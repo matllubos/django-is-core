@@ -1,8 +1,13 @@
 from germanium.annotations import login
 from germanium.test_cases.client import ClientTestCase
-from germanium.tools import assert_contains
+from germanium.tools import assert_in
 
 from .test_case import HelperTestCase, AsSuperuserTestCase
+
+
+__all__ =(
+    'UIOrderingTestCase',
+)
 
 
 class UIOrderingTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase):
@@ -11,4 +16,4 @@ class UIOrderingTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase):
     @login(is_superuser=True)
     def test_superuser_may_read_users_grid(self):
         resp = self.get(self.ISSUE_UI_URL)
-        assert_contains(resp, 'data-col="watched_by_string"')
+        assert_in(b'data-col="watched_by_string"', resp.content)

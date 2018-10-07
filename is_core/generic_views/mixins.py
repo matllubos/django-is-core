@@ -1,4 +1,5 @@
 from django.utils.functional import cached_property
+from django.http import Http404
 
 from is_core.patterns import reverse_pattern
 
@@ -20,8 +21,7 @@ class ListParentMixin:
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
-        if ('list' in self.core.ui_patterns and
-                self.core.ui_patterns.get('list').get_view(self.request).has_get_permission()):
+        if 'list' in self.core.ui_patterns and self.core.ui_patterns.get('list').has_permission('get', self.request):
             menu_items.append(self.list_bread_crumbs_menu_item())
         return menu_items
 
@@ -44,13 +44,13 @@ class DetailParentMixin(ListParentMixin):
                             {'verbose_name': detail_view.model._meta.verbose_name,
                              'verbose_name_plural': detail_view.model._meta.verbose_name_plural,
                              'obj': parent_obj},
-                            detail_pattern.get_url_string(self.request, kwargs={'pk': parent_obj.pk}),
+                            detail_pattern.get_url_string(self.request, view_kwargs={'pk': parent_obj.pk}),
                              active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = super().parent_bread_crumbs_menu_items()
         if ('detail' in self.core.ui_patterns and
-              self.core.ui_patterns.get('detail').get_view(self.request).has_get_permission(obj=self.get_obj())):
+              self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=self.get_obj())):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 
@@ -71,7 +71,9 @@ class TabItem:
 
     @cached_property
     def pattern(self):
-        return reverse_pattern(self._pattern_name)
+        pattern = reverse_pattern(self._pattern_name)
+        assert pattern is not None, 'Invalid pattern name {} in TabItem'.format(self._pattern_name)
+        return pattern
 
     def get_pattern_kwargs(self, view):
         pattern_kwargs = self._pattern_kwargs or {}
@@ -82,10 +84,10 @@ class TabItem:
         if can_show is not None:
             return can_show(view) if hasattr(can_show, '__call__') else can_show
         else:
-            return self.pattern.can_call_get(view.request, **self.get_pattern_kwargs(view))
+            return self.pattern.has_permission('get', view.request, view_kwargs=self.get_pattern_kwargs(view))
 
     def get_url(self, view):
-        return self.pattern.get_url_string(view.request, kwargs=self.get_pattern_kwargs(view))
+        return self.pattern.get_url_string(view.request, view_kwargs=self.get_pattern_kwargs(view))
 
     def is_active(self, view):
         is_active = self._is_active
@@ -123,11 +125,23 @@ class TabsViewMixin:
 
 
 class GetCoreObjViewMixin:
+
     pk_name = 'pk'
 
     def get_obj_filters(self):
         filters = {'pk': self.kwargs.get(self.pk_name)}
         return filters
+
+    def _check_permission(self, name, obj=None):
+        # Check permission is called only from view.
+        # Therefore current request should return Http404 if object was not found.
+        obj = obj or self.get_obj()
+        super()._check_permission(name, obj)
+
+    def has_permission(self, name, obj=None):
+        # For core obj view mixin is object required to check permissions. If no object is found False is returned.
+        obj = obj or self.get_obj_or_none()
+        return obj is not None and super().has_permission(name, obj=obj)
 
     # TODO: should contains own implementation (not use get_obj from main)
     _obj = None
@@ -138,3 +152,9 @@ class GetCoreObjViewMixin:
         if cached and not self._obj:
             self._obj = obj
         return obj
+
+    def get_obj_or_none(self, cached=True):
+        try:
+            return self.get_obj()
+        except Http404:
+            return None

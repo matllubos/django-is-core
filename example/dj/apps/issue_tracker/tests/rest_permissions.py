@@ -2,15 +2,22 @@ from germanium.annotations import login
 from germanium.test_cases.rest import RESTTestCase
 from germanium.tools import assert_equal
 from germanium.tools.http import (assert_http_forbidden, assert_http_unauthorized, assert_http_accepted,
-                                  assert_http_not_found)
+                                  assert_http_not_found, assert_http_method_not_allowed)
 from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_created_response
 
+from .factories import IssueFactory, UserFactory
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 from issue_tracker.models import Issue
 
 
+__all__ =(
+    'RESTPermissionsTestCase',
+)
+
+
 class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
+
     USER_API_URL = '/api/user/'
     ISSUE_API_URL = '/api/issue/'
     USER_ISSUES_API_URL = '/api/user/%(user_pk)s/issue-number/'
@@ -45,7 +52,7 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase)
 
         user = self.get_user_obj()
         resp = self.get(('%s%s/') % (self.USER_API_URL, user.pk))
-        assert_http_forbidden(resp)
+        assert_http_not_found(resp)
 
     @login(is_superuser=True)
     def test_superuser_can_add_new_user(self):
@@ -67,7 +74,7 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase)
     def test_user_can_update_only_itself(self):
         user = self.get_user_obj()
         resp = self.put('%s%s/' % (self.USER_API_URL, user.pk), data={})
-        assert_http_forbidden(resp)
+        assert_http_not_found(resp)
 
         user = self.logged_user.user
         resp = self.put('%s%s/' % (self.USER_API_URL, user.pk), data={})
@@ -116,17 +123,23 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase)
         assert_equal(output['watching'], 0)
 
     @login(is_superuser=True)
-    def test_issue_can_be_created_only_via_user(self):
-        before_issue_count = Issue.objects.count()
+    def test_issue_delete_should_not_be_supported_because_can_delete_is_disabled(self):
+        assert_http_method_not_allowed(self.delete(self.ISSUE_API_URL + '1/'))
 
-        user_data = self.get_user_data()
-        issue_data = self.get_issue_data(exclude=['leader'])
-        user_data['leading_issue'] = issue_data
+    @login(is_superuser=True)
+    def test_issue_post_should_not_be_supported_because_can_create_is_disabled(self):
+        assert_http_method_not_allowed(self.post(self.ISSUE_API_URL, data={}))
 
-        resp = self.post(self.USER_API_URL, data=user_data)
-        assert_valid_JSON_created_response(resp)
-        assert_equal(Issue.objects.count(), before_issue_count + 1)
+    @login(is_superuser=True)
+    def test_issue_actions_should_not_contains_edit_because_update_is_disabled(self):
+        IssueFactory()
+        resp = self.get(self.ISSUE_API_URL+'?_fields=_actions')
+        assert_equal(len(resp.json()[0]['_actions']), 1)
+        assert_equal(resp.json()[0]['_actions'][0]['class_name'], 'detail')
 
-        resp = self.post(self.ISSUE_API_URL, data=self.get_issue_data())
-        assert_http_forbidden(resp)
-        assert_equal(Issue.objects.count(), before_issue_count + 1)
+    @login(is_superuser=True)
+    def test_user_actions_should_contains_edit_and_delete_because_update_is_disabled(self):
+        UserFactory()
+        resp = self.get(self.USER_API_URL+'?_fields=_actions')
+        assert_equal(len(resp.json()[0]['_actions']), 2)
+        assert_equal({action['class_name'] for action in resp.json()[0]['_actions']}, {'edit', 'delete'})

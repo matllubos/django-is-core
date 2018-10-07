@@ -1,18 +1,31 @@
 import re
 
+from django.http.response import Http404
 from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+from django.urls import reverse_lazy
 
 from block_snippets.views import JSONSnippetTemplateResponseMixin
 
 from is_core.menu import LinkMenuItem
-from is_core.exceptions import HTTPForbiddenResponseException
+from is_core.exceptions import (
+    HTTPForbiddenResponseException, HTTPUnauthorizedResponseException, HTTPRedirectResponseException
+)
 from is_core.generic_views.exceptions import GenericViewException
-from django.http.response import Http404
+
+from ..auth.permissions import PermissionsSet, CoreReadAllowed
 
 
 class PermissionsViewMixin:
+
+    permission = None
+
+    auto_login_redirect = True
+
+    def __init__(self):
+        super().__init__()
+        assert self.permission, 'Permissions must be set'
 
     def dispatch(self, request, *args, **kwargs):
         rm = request.method.lower()
@@ -23,48 +36,24 @@ class PermissionsViewMixin:
             handler = self.http_method_not_allowed
         return handler(request, *args, **kwargs)
 
-    def __getattr__(self, name):
-        for regex, method in (
-                (r'_check_(\w+)_permission', self._check_permission),
-                (r'can_call_(\w+)', self._check_call)):
-            m = re.match(regex, name)
-            if m:
-                def _call(*args, **kwargs):
-                    return method(m.group(1), *args, **kwargs)
-                return _call
-        raise AttributeError("%r object has no attribute %r" % (self.__class__, name))
+    def has_permission(self, name, obj=None):
+        return self.permission.has_permission(name, self.request, self, obj)
 
-    def _check_call(self, name, *args, **kwargs):
-        if not hasattr(self, 'has_%s_permission' % name):
-            if settings.DEBUG:
-                raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
-            else:
-                return False
-
-        try:
-            return getattr(self, 'has_%s_permission' % name)(*args, **kwargs)
-        except Http404:
-            return False
-
-    def _check_permission(self, name, *args, **kwargs):
-        if not hasattr(self, 'has_%s_permission' % name):
-            if settings.DEBUG:
-                raise NotImplementedError('Please implement method has_%s_permission to %s' % (name, self.__class__))
+    def _check_permission(self, name, obj=None):
+        if not self.has_permission(name, obj):
+            if not self.request.user or not self.request.user.is_authenticated:
+                if self.auto_login_redirect:
+                    raise HTTPRedirectResponseException(reverse_lazy('IS:login'))
+                else:
+                    raise HTTPUnauthorizedResponseException
             else:
                 raise HTTPForbiddenResponseException
-
-        if not getattr(self, 'has_%s_permission' % name)(*args, **kwargs):
-            raise HTTPForbiddenResponseException
-
-    def has_options_permission(self, **kwargs):
-        return True
 
 
 class DefaultViewMixin(PermissionsViewMixin, JSONSnippetTemplateResponseMixin):
 
     site_name = None
     menu_groups = None
-    login_required = True
     allowed_snippets = ('content',)
     view_name = None
     add_current_to_breadcrumbs = True
@@ -106,6 +95,9 @@ class DefaultCoreViewMixin(DefaultViewMixin):
     core = None
     view_name = None
     title = None
+    permission = PermissionsSet(
+        get=CoreReadAllowed()
+    )
 
     def __init__(self):
         super(DefaultCoreViewMixin, self).__init__()
@@ -128,18 +120,12 @@ class DefaultCoreViewMixin(DefaultViewMixin):
     def view_name(self):
         return '%s-%s' % (self.view_type, '-'.join(self.menu_groups))
 
-    def get_permissions(self):
-        return {
-            'read': self.core.has_ui_read_permission,
-            'create': self.core.has_ui_create_permission,
-            'update': self.core.has_ui_update_permission,
-            'delete': self.core.has_ui_delete_permission,
-        }
-
     def get_context_data(self, **kwargs):
         context_data = super(DefaultCoreViewMixin, self).get_context_data(**kwargs)
         extra_context_data = {
-            'permissions': self.get_permissions(),
+            'core_permission': self.core.permission,
+            'permission': self.permission,
+            'view': self
         }
         extra_context_data.update(context_data)
         return extra_context_data
@@ -167,11 +153,9 @@ class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
 
 
 class HomeView(DefaultCoreViewMixin, TemplateView):
+
     template_name = 'is_core/home.html'
     view_name = 'home'
 
     def get_title(self):
         return _('Home')
-
-    def has_get_permission(self, **kwargs):
-        return True

@@ -12,9 +12,9 @@ Django-is-core is application/framework for simple development of a Information 
 Features
 ========
 
-- Django-is-core has same edit/add/table views as admin, but it uses REST and AJAX call to achieve it. It adds easier usage and broaden usability.
+- Django-is-core has same detail/add/table views as admin, but it uses REST and AJAX call to achieve it. It adds easier usage and broaden usability.
 - Django-is-core can be used for creation only REST resources without UI.
-- Models UI (add/edit) is more linked together. Links between foreign keys are automatically added.
+- Models UI (add/detail) is more linked together. Links between foreign keys are automatically added.
 - Django-is-core provides more posibilities for readonly fields. For example the fields defined only inside form can be readonly too.
 - Exports to xlsx, pdf, csv can be very simply add to table view.
 - Better permissions, for example link between objects is not added to UI if user does not have permission to see the object.

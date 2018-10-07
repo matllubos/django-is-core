@@ -27,6 +27,8 @@ from is_core.forms.fields import SmartReadonlyField
 from is_core.forms import SmartModelForm
 from is_core.rest.datastructures import ModelFlatRESTFields
 
+from ..auth.permissions import PermissionsSet, CoreReadAllowed, CoreUpdateAllowed, CoreCreateAllowed
+
 
 class DefaultFormView(DefaultModelCoreViewMixin, FormView):
 
@@ -60,11 +62,14 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
     def get_has_file_field(self, form, **kwargs):
         return formset_has_file_field(form)
 
+    def is_readonly(self):
+        return not self.has_permission('post')
+
     def get_form(self, form_class=None):
         if form_class is None:
             form_class = self.get_form_class()
         form = form_class(**self.get_form_kwargs())
-        form.readonly = not self.has_post_permission()
+        form.readonly = self.is_readonly()
 
         for field_name, field in form.fields.items():
             self.form_field(form, field_name, field)
@@ -259,17 +264,9 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 extra_content['messages'] = extra_content_messages
         return super(DefaultFormView, self).render_to_response(context, **response_kwargs)
 
-    def has_permission(self, **kwargs):
-        return True
-
-    def has_get_permission(self, **kwargs):
-        return self.has_permission(**kwargs)
-
-    def has_post_permission(self, **kwargs):
-        return self.has_permission(**kwargs)
-
 
 class DefaultModelFormView(DefaultFormView):
+
     model = None
     fields = None
     exclude = None
@@ -368,7 +365,7 @@ class DefaultModelFormView(DefaultFormView):
                                       formfield_callback=self.formfield_for_dbfield,
                                       readonly_fields=readonly_fields,
                                       formreadonlyfield_callback=self.formfield_for_readonlyfield,
-                                      readonly=not self.has_post_permission(),
+                                      readonly=self.is_readonly(),
                                       labels=self._get_field_labels(), is_bulk=self.get_is_bulk())
 
     def update_form_initial(self, form):
@@ -404,7 +401,7 @@ class DefaultModelFormView(DefaultFormView):
         return None
 
     def has_save_button(self):
-        return self.has_post_permission()
+        return not self.is_readonly()
 
     def is_changed(self, form, inline_form_views, **kwargs):
         for inline_form_view_instance in inline_form_views:
@@ -552,29 +549,30 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         )
 
     def get_cancel_url(self):
-        if 'list' in self.core.ui_patterns \
-                and self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() \
-                and not self.has_snippet():
+        if ('list' in self.core.ui_patterns and
+                self.core.ui_patterns.get('list').has_permission('get', self.request) and not self.has_snippet()):
             return self.core.ui_patterns.get('list').get_url_string(self.request)
         return None
 
     def has_save_and_continue_button(self):
-        return ('list' in self.core.ui_patterns and not self.has_snippet() and
-                self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() and
-                self.show_save_and_continue)
+        return (
+            'list' in self.core.ui_patterns and not self.has_snippet() and
+            self.core.ui_patterns.get('list').has_permission('get', self.request) and
+            self.show_save_and_continue
+        )
 
     def has_save_button(self):
-        return self.view_type in self.core.ui_patterns and self.has_post_permission()
+        return self.view_type in self.core.ui_patterns and not self.is_readonly()
 
     def get_success_url(self, obj):
         if ('list' in self.core.ui_patterns and
-                self.core.ui_patterns.get('list').get_view(self.request).has_get_permission() and
+                self.core.ui_patterns.get('list').has_permission('get', self.request) and
                 'save' in self.request.POST):
             return self.core.ui_patterns.get('list').get_url_string(self.request)
         elif ('detail' in self.core.ui_patterns and
-                self.core.ui_patterns.get('detail').get_view(self.request).has_get_permission(obj=obj) and
+                self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=obj) and
                 'save-and-continue' in self.request.POST):
-            return self.core.ui_patterns.get('detail').get_url_string(self.request, kwargs={'pk': obj.pk})
+            return self.core.ui_patterns.get('detail').get_url_string(self.request, view_kwargs={'pk': obj.pk})
         else:
             return self.request.get_full_path()
 
@@ -596,13 +594,15 @@ class AddModelFormView(DefaultCoreModelFormView):
     messages = {'success': _('The %(name)s "%(obj)s" was added successfully.'),
                 'error': _('Please correct the error below.')}
 
+    permission = PermissionsSet(
+        get=CoreCreateAllowed(),
+        post=CoreCreateAllowed()
+    )
+
     def get_title(self):
         return (self.title or
                 self.model._ui_meta.add_verbose_name % {'verbose_name': self.model._meta.verbose_name,
                                                         'verbose_name_plural': self.model._meta.verbose_name_plural})
-
-    def has_permission(self, **kwargs):
-        return self.core.has_ui_create_permission(self.request)
 
 
 class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
@@ -614,6 +614,11 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
                 'error': _('Please correct the error below.')}
     pk_name = 'pk'
 
+    permission = PermissionsSet(
+        get=CoreReadAllowed() | CoreUpdateAllowed(),
+        post=CoreUpdateAllowed()
+    )
+
     def get_title(self):
         return (self.title or
                 self.model._ui_meta.detail_verbose_name % {
@@ -622,14 +627,15 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
                     'obj': self.get_obj(True)
                 })
 
+    def is_readonly(self):
+        return not self.has_permission('post')
+
     def link(self, arguments=None, **kwargs):
         if arguments is None:
             arguments = (self.kwargs[self.pk_name],)
         return super().link(arguments=arguments, **kwargs)
 
     # TODO: get_obj should not be inside core get_obj and _get_perm_obj_or_404 should have same implementation
-    # this object shoul return None if object does not exists. Becouase has_get_permission and has_post_permission
-    # should be called outside
     def _get_perm_obj_or_404(self, pk=None):
         """
         If is send parameter pk is returned object according this pk,
@@ -670,26 +676,14 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
             })
         return context_data
 
-    # Should return false if object does not exists and 404 should be resolved with different way
-    def has_get_permission(self, obj=None, pk=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_404(pk)
-        return (self.core.has_ui_read_permission(self.request, obj=obj) or
-                self.core.has_ui_update_permission(self.request, obj=obj))
-
-    def has_post_permission(self, obj=None, pk=None, **kwargs):
-        obj = obj or self._get_perm_obj_or_404(pk)
-        return self.core.has_ui_update_permission(self.request, obj=obj)
-
 
 class ReadonlyDetailModelFormView(DetailModelFormView):
 
     show_save_and_continue = False
 
-    def has_post_permission(self, **kwargs):
-        return False
-
-    def has_save_button(self):
-        return False
+    permission = PermissionsSet(
+        get=CoreReadAllowed()
+    )
 
 
 class BulkChangeFormView(DefaultModelFormView):

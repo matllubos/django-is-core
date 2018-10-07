@@ -6,7 +6,13 @@ from germanium.tools.http import assert_http_unauthorized, assert_http_forbidden
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 
+__all__ =(
+    'HttpExceptionsTestCase',
+)
+
+
 class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
+
     ISSUE_API_URL = '/api/issue/'
     USER_API_URL = '/api/user/'
     ACCEPT_TYPES = ('application/json', 'text/xml', 'text/csv',
@@ -20,9 +26,9 @@ class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
 
     @login(is_superuser=False)
     def test_403_exception(self):
-        user = self.get_user_obj()
+        self.get_user_obj()
         for accept_type in self.ACCEPT_TYPES:
-            resp = self.get('%s%s/' % (self.USER_API_URL, user.pk), headers={'HTTP_ACCEPT': accept_type})
+            resp = self.post(self.USER_API_URL, headers={'HTTP_ACCEPT': accept_type}, data={})
             assert_in(accept_type, resp['Content-Type'])
             assert_http_forbidden(resp)
 
@@ -35,9 +41,11 @@ class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
 
     @login(is_superuser=True)
     def test_403_csrf_exception(self):
+        cookies = self.c.cookies
         self.c = self.client_class(enforce_csrf_checks=True)
+        self.c.cookies = cookies
         for accept_type in self.ACCEPT_TYPES:
             resp = self.post(self.ISSUE_API_URL, {}, headers={'HTTP_ACCEPT': accept_type,
-                                                                              'CONTENT_TYPE': 'application/json'})
+                                                              'CONTENT_TYPE': 'application/json'})
             assert_in(accept_type, resp['Content-Type'])
             assert_http_forbidden(resp)

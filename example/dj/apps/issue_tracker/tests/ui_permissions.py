@@ -4,13 +4,20 @@ from germanium import config
 from germanium.annotations import login
 from germanium.test_cases.client import ClientTestCase
 from germanium.tools import assert_true, assert_false, assert_equal, assert_not_equal
-from germanium.tools.http import assert_http_redirect, assert_http_ok, assert_http_forbidden
+from germanium.tools.http import assert_http_redirect, assert_http_ok, assert_http_forbidden, assert_http_not_found
 
 from .test_case import HelperTestCase, AsSuperuserTestCase
 
 
+__all__ =(
+    'UIPermissionsTestCase',
+)
+
+
 class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase):
+
     USER_UI_URL = '/user/'
+    ISSUE_UI_URL = '/issue/'
 
     def authorize(self, username, password):
         resp = self.post(config.LOGIN_URL, {config.USERNAME: username, config.PASSWORD: password})
@@ -50,11 +57,11 @@ class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase)
     def test_only_superuser_may_edit_user(self):
         user = self.get_user_obj()
         resp = self.get('%s%s/' % (self.USER_UI_URL, user.pk))
-        assert_http_forbidden(resp)
+        assert_http_not_found(resp)
 
         CHANGED_USERNAME = 'changed_nick'
         self.post('%s%s/' % (self.USER_UI_URL, user.pk), data={'detail-is-user-username': CHANGED_USERNAME})
-        assert_http_forbidden(resp)
+        assert_http_not_found(resp)
         assert_not_equal(User.objects.get(pk=user.pk).username, CHANGED_USERNAME)
 
     @login(is_superuser=False)
@@ -85,3 +92,8 @@ class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase)
                                                             'add-is-user-password': 'password'})
         assert_http_forbidden(resp)
         assert_false(User.objects.filter(username=USERNAME).exists())
+
+    @login(is_superuser=True)
+    def test_issue_should_return_not_found_because_can_add_is_disabled(self):
+        assert_http_not_found(self.get('%sadd/' % self.ISSUE_UI_URL))
+        assert_http_not_found(self.post('%sadd/' % self.ISSUE_UI_URL, data={}))

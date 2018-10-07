@@ -1,7 +1,5 @@
 from copy import deepcopy
 
-from django.utils.encoding import python_2_unicode_compatible
-
 
 class MenuItem:
 
@@ -13,7 +11,6 @@ class MenuItem:
         self.active = active
 
 
-@python_2_unicode_compatible
 class LinkMenuItem(MenuItem):
 
     def __init__(self, title, url, group=None, active=False, submenu_items=[]):
@@ -58,7 +55,7 @@ class MenuGenerator:
 
         for item in items:
             if isinstance(item, MenuItem):
-                menu_item =  deepcopy(item)
+                menu_item = deepcopy(item)
                 if menu_item.submenu_items:
                     menu_item.submenu_items = list(self.get_menu_items(item.submenu_items))
 
