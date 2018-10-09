@@ -305,7 +305,10 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
         )
 
     def is_bulk_change_enabled(self):
-        return hasattr(self.core, 'get_bulk_change_url_name') and self.core.get_bulk_change_url_name()
+        return (
+            hasattr(self.core, 'get_bulk_change_url_name') and self.core.get_bulk_change_url_name() and
+            self.core.ui_patterns.get(self.core.get_bulk_change_url_name()).has_permission('get', self.request)
+        )
 
     def get_context_data(self, **kwargs):
         context_data = super(TableView, self).get_context_data(**kwargs)
