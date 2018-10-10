@@ -688,8 +688,13 @@ class ReadonlyDetailModelFormView(DetailModelFormView):
 
 class BulkChangeFormView(DefaultModelFormView):
 
-    form_template = 'views/bulk-change-view.html'
+    form_template = 'is_core/views/bulk-change-view.html'
     is_ajax_form = False
+
+    permission = PermissionsSet(
+        get=CoreUpdateAllowed(),
+        post=CoreUpdateAllowed()
+    )
 
     def get_form_class_base(self):
         return self.form_class or self.core.get_rest_form_edit_class(self.request)
