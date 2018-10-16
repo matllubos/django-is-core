@@ -1,20 +1,38 @@
 import re
 
+from urllib.parse import urlunparse, urlparse
+
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.http import QueryDict
 from django.http.response import Http404
 from django.views.generic.base import TemplateView, View
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from django.urls import reverse_lazy
+from django.urls import reverse
 
 from block_snippets.views import JSONSnippetTemplateResponseMixin
 
+from is_core.auth.permissions import PermissionsSet, CoreReadAllowed
 from is_core.menu import LinkMenuItem
 from is_core.exceptions import (
     HTTPForbiddenResponseException, HTTPUnauthorizedResponseException, HTTPRedirectResponseException
 )
 from is_core.generic_views.exceptions import GenericViewException
 
-from ..auth.permissions import PermissionsSet, CoreReadAllowed
+
+def redirect_to_login(next, redirect_field_name=REDIRECT_FIELD_NAME):
+    """
+    Redirects the user to the login page, passing the given 'next' page
+    """
+    resolved_url = reverse('IS:login')
+
+    login_url_parts = list(urlparse(resolved_url))
+    if redirect_field_name:
+        querystring = QueryDict(login_url_parts[4], mutable=True)
+        querystring[redirect_field_name] = next
+        login_url_parts[4] = querystring.urlencode(safe='/')
+
+    raise HTTPRedirectResponseException(urlunparse(login_url_parts))
 
 
 class PermissionsViewMixin:
@@ -43,7 +61,7 @@ class PermissionsViewMixin:
         if not self.has_permission(name, obj):
             if not self.request.user or not self.request.user.is_authenticated:
                 if self.auto_login_redirect:
-                    raise HTTPRedirectResponseException(reverse_lazy('IS:login'))
+                    redirect_to_login(self.request.get_full_path())
                 else:
                     raise HTTPUnauthorizedResponseException
             else:
