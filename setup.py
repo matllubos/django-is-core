@@ -25,14 +25,14 @@ setup(
     ],
     install_requires=[
         'django>=1.10',
-        'django-pyston>=2.9.5',
+        'django-pyston~=2.9.5',
         'django-block-snippets==2.0.0',
-        'django-chamber>=0.4.5',
-        'python-dateutil>=2.2',
+        'django-chamber~=0.4.5',
+        'python-dateutil~=2.2',
         'pytz',
         'Unidecode>=0.04.16',
         'python-mimeparse==0.1.4',
-        'django-ipware>=1.0.0'
+        'django-ipware~=1.0.0'
     ],
     zip_safe=False
 )

@@ -2,7 +2,7 @@
 
 <ul class="nav collapsable-menu {{ site_name|lower }}" id="side-menu">
     {% for item in menu_items %}
-    <li class="{{ item.css_classes }}">
+    <li class="menu-item {{ item.css_classes }}{% if item.active %} active{% endif %}">
         {% if item.collapsible and item.submenu_items %}
             <button disabled>{{ item.title|capfirst }}</button>
             <ul class="collapsible-content">
@@ -15,7 +15,7 @@
                 {% endfor %}
             </ul>
         {% elif item.url %}
-            <a href="{{ item.url }}">{{ item.title|capfirst }}</a>
+            <a href="{{ item.url }}" >{{ item.title|capfirst }}</a>
         {% endif %}
     </li>
     {% endfor %}
