@@ -8,18 +8,17 @@ from django.views.generic.edit import FormView
 from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
 
-from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
 from chamber.utils import transaction
 
+from is_core.auth.permissions import PermissionsSet, CoreReadAllowed, CoreUpdateAllowed, CoreCreateAllowed
 from is_core.exceptions import PersistenceException
-from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import (
     flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets,
     get_export_types_with_content_type
 )
 from is_core.utils.compatibility import get_model_name
-from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
+from is_core.generic_views.mixins import ListParentMixin, CoreGetObjViewMixin, DefaultModelCoreViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
@@ -27,11 +26,8 @@ from is_core.forms.fields import SmartReadonlyField
 from is_core.forms import SmartModelForm
 from is_core.rest.datastructures import ModelFlatRESTFields
 
-from ..auth.permissions import PermissionsSet, CoreReadAllowed, CoreUpdateAllowed, CoreCreateAllowed
 
-
-class DefaultFormView(DefaultModelCoreViewMixin, FormView):
-
+class DefaultFormView(FormView):
     view_type = 'default'
     fieldsets = None
     form_template = 'is_core/forms/default_form.html'
@@ -155,14 +151,13 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         return '%s-%s' % (self.view_name, 'form')
 
     def get_form_class_names(self):
-        class_names = ['-'.join((self.view_type, self.site_name,
-                                 self.core.get_menu_group_pattern_name(), 'form',)).lower()]
+        class_names = [self.view_type]
         if self.is_ajax_form:
             class_names.append('ajax')
         return class_names
 
     def get_prefix(self):
-        return '-'.join((self.view_type, self.site_name, self.core.get_menu_group_pattern_name())).lower()
+        return self.view_type.lower()
 
     def get_context_data(self, **kwargs):
         context_data = super(DefaultFormView, self).get_context_data(**kwargs)
@@ -265,8 +260,20 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
         return super(DefaultFormView, self).render_to_response(context, **response_kwargs)
 
 
-class DefaultModelFormView(DefaultFormView):
+class CoreDefaultFormView(DefaultModelCoreViewMixin, DefaultFormView):
 
+    def get_form_class_names(self):
+        class_names = ['-'.join((self.view_type, self.site_name,
+                                 self.core.get_menu_group_pattern_name(), 'form',)).lower()]
+        if self.is_ajax_form:
+            class_names.append('ajax')
+        return class_names
+
+    def get_prefix(self):
+        return '-'.join((self.view_type, self.site_name, self.core.get_menu_group_pattern_name())).lower()
+
+
+class DefaultModelFormView(DefaultFormView):
     model = None
     fields = None
     exclude = None
@@ -276,6 +283,9 @@ class DefaultModelFormView(DefaultFormView):
 
     def _get_field_labels(self):
         return self.field_labels
+
+    def save_obj(self, obj, form, change):
+        obj.save()
 
     def pre_save_obj(self, obj, form, change):
         pass
@@ -327,17 +337,18 @@ class DefaultModelFormView(DefaultFormView):
             return fieldsets
         else:
             return [
-                (None, {'fields': self.generate_fields() or
-                list(self.generate_form_class().base_fields.keys())})
-            ] + [
-                (
-                    inline_view.model._meta.verbose_name_plural if (
-                        isinstance(inline_view, InlineFormView) and (not inline_view.max_num or inline_view.max_num > 1)
-                    ) else inline_view.model._meta.verbose_name,
-                    {'inline_view': inline_view}
-                )
-                for inline_view in inline_views
-            ]
+                       (None, {'fields': self.generate_fields() or
+                                         list(self.generate_form_class().base_fields.keys())})
+                   ] + [
+                       (
+                           inline_view.model._meta.verbose_name_plural if (
+                               isinstance(inline_view, InlineFormView) and (
+                                   not inline_view.max_num or inline_view.max_num > 1)
+                           ) else inline_view.model._meta.verbose_name,
+                           {'inline_view': inline_view}
+                       )
+                       for inline_view in inline_views
+                   ]
 
     def get_fields(self):
         return self.fields
@@ -383,8 +394,9 @@ class DefaultModelFormView(DefaultFormView):
 
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
-            return get_readonly_field_data(name, (self, self.core, instance),
+            return get_readonly_field_data(name, (self, instance),
                                            {'request': self.request, 'obj': instance})
+
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_has_file_field(self, form, inline_form_views=None, **kwargs):
@@ -480,8 +492,7 @@ class DefaultModelFormView(DefaultFormView):
         return {'_obj_name': force_text(obj), 'pk': obj.pk, '_model': '%s.%s' % (app_label, model_name)}
 
 
-class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
-
+class CoreDefaultModelFormView(ListParentMixin, DefaultModelFormView):
     show_save_and_continue = True
 
     save_button_title = _('Save and navigate to the list')
@@ -494,8 +505,15 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     export_types = None
 
+    def formfield_for_readonlyfield(self, name, **kwargs):
+        def _get_readonly_field_data(instance):
+            return get_readonly_field_data(name, (self, self.core, instance),
+                                           {'request': self.request, 'obj': instance})
+
+        return SmartReadonlyField(_get_readonly_field_data)
+
     def get_buttons_dict(self):
-        buttons_dict = super(DefaultCoreModelFormView, self).get_buttons_dict()
+        buttons_dict = super().get_buttons_dict()
         buttons_dict.update({
             'save_and_continue': {
                 'label': self.save_and_continue_button_label,
@@ -550,7 +568,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     def get_cancel_url(self):
         if ('list' in self.core.ui_patterns and
-                self.core.ui_patterns.get('list').has_permission('get', self.request) and not self.has_snippet()):
+            self.core.ui_patterns.get('list').has_permission('get', self.request) and not self.has_snippet()):
             return self.core.ui_patterns.get('list').get_url_string(self.request)
         return None
 
@@ -566,28 +584,25 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
 
     def get_success_url(self, obj):
         if ('list' in self.core.ui_patterns and
-                self.core.ui_patterns.get('list').has_permission('get', self.request) and
-                'save' in self.request.POST):
+            self.core.ui_patterns.get('list').has_permission('get', self.request) and
+            'save' in self.request.POST):
             return self.core.ui_patterns.get('list').get_url_string(self.request)
         elif ('detail' in self.core.ui_patterns and
-                self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=obj) and
-                'save-and-continue' in self.request.POST):
+              self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=obj) and
+              'save-and-continue' in self.request.POST):
             return self.core.ui_patterns.get('detail').get_url_string(self.request, view_kwargs={'pk': obj.pk})
         else:
             return self.request.get_full_path()
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
-        context_data = super(DefaultCoreModelFormView, self).get_context_data(form=form,
-                                                                              inline_form_views=inline_form_views,
-                                                                              **kwargs)
+        context_data = super().get_context_data(form=form, inline_form_views=inline_form_views, **kwargs)
         context_data.update({
             'show_save_and_continue': self.has_save_and_continue_button()
         })
         return context_data
 
 
-class AddModelFormView(DefaultCoreModelFormView):
-
+class AddModelFormView(CoreDefaultModelFormView):
     template_name = 'is_core/generic_views/add_form.html'
     form_template = 'is_core/forms/model_add_form.html'
     view_type = 'add'
@@ -605,8 +620,7 @@ class AddModelFormView(DefaultCoreModelFormView):
                                                         'verbose_name_plural': self.model._meta.verbose_name_plural})
 
 
-class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
-
+class DetailModelFormView(CoreGetObjViewMixin, CoreDefaultModelFormView):
     template_name = 'is_core/generic_views/detail_form.html'
     form_template = 'is_core/forms/model_detail_form.html'
     view_type = 'detail'
@@ -634,26 +648,6 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         if arguments is None:
             arguments = (self.kwargs[self.pk_name],)
         return super().link(arguments=arguments, **kwargs)
-
-    # TODO: get_obj should not be inside core get_obj and _get_perm_obj_or_404 should have same implementation
-    def _get_perm_obj_or_404(self, pk=None):
-        """
-        If is send parameter pk is returned object according this pk,
-        else is returned object from get_obj method, but it search only inside filtered values for current user,
-        finally if object is still None is returned according the input key from all objects.
-
-        If object does not exist is raised Http404
-        """
-        if pk:
-            obj = get_object_or_none(self.core.model, pk=pk)
-        else:
-            try:
-                obj = self.get_obj(False)
-            except Http404:
-                obj = get_object_or_none(self.core.model, **self.get_obj_filters())
-        if not obj:
-            raise Http404
-        return obj
 
     def _get_export_types(self):
         return self.core.get_ui_detail_export_types(self.request) if self.export_types is None else self.export_types
@@ -686,7 +680,7 @@ class ReadonlyDetailModelFormView(DetailModelFormView):
     )
 
 
-class BulkChangeFormView(DefaultModelFormView):
+class BulkChangeFormView(CoreDefaultModelFormView):
 
     form_template = 'views/bulk-change-view.html'
     is_ajax_form = False

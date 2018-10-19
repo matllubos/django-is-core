@@ -1,9 +1,176 @@
+from functools import wraps
+
+from django.views.generic.base import TemplateView, View
+from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import cached_property
+from django.urls import reverse_lazy
 from django.http import Http404
 
+from block_snippets.views import JSONSnippetTemplateResponseMixin
+
+from chamber.shortcuts import get_object_or_404
+
+from is_core.auth.permissions import PermissionsSet, CoreReadAllowed
+from is_core.menu import LinkMenuItem
+from is_core.exceptions import (
+    HTTPForbiddenResponseException, HTTPUnauthorizedResponseException, HTTPRedirectResponseException
+)
 from is_core.patterns import reverse_pattern
 
 from .exceptions import GenericViewException
+
+
+def cached_method(func):
+    @wraps(func)
+    def wrapper(self, cached=True):
+        cached_name = '_cached_{}'.format(func.__name__)
+        cached_value = getattr(self, cached_name, None)
+        if cached and cached_value is not None:
+            return cached_value
+        value = func(self)
+        if value and cached_value is None:
+            setattr(self, cached_name, value)
+        return value
+    return wrapper
+
+
+class PermissionsViewMixin:
+
+    permission = None
+
+    auto_login_redirect = True
+
+    def __init__(self):
+        super().__init__()
+        assert self.permission, 'Permissions must be set'
+
+    def dispatch(self, request, *args, **kwargs):
+        rm = request.method.lower()
+        if rm in self.http_method_names and hasattr(self, rm):
+            self._check_permission(rm)
+            handler = getattr(self, rm)
+        else:
+            handler = self.http_method_not_allowed
+        return handler(request, *args, **kwargs)
+
+    def has_permission(self, name, obj=None):
+        return self.permission.has_permission(name, self.request, self, obj)
+
+    def _check_permission(self, name, obj=None):
+        if not self.has_permission(name, obj):
+            if not self.request.user or not self.request.user.is_authenticated:
+                if self.auto_login_redirect:
+                    raise HTTPRedirectResponseException(reverse_lazy('IS:login'))
+                else:
+                    raise HTTPUnauthorizedResponseException
+            else:
+                raise HTTPForbiddenResponseException
+
+
+class DefaultViewMixin(PermissionsViewMixin, JSONSnippetTemplateResponseMixin):
+
+    site_name = None
+    menu_groups = None
+    allowed_snippets = ('content',)
+    view_name = None
+    add_current_to_breadcrumbs = True
+    kwargs = {}
+    args = {}
+    title = None
+    page_title = None
+
+    def get_title(self):
+        return self.title
+
+    def get_page_title(self):
+        return self.page_title or self.get_title()
+
+    def get_context_data(self, **kwargs):
+        context_data = super(DefaultViewMixin, self).get_context_data(**kwargs)
+        extra_context_data = {
+            'site_name': self.site_name,
+            'active_menu_groups': self.menu_groups,
+            'title': self.get_title(),
+            'page_title': self.get_page_title(),
+            'view_name': self.view_name,
+            'bread_crumbs_menu_items': self.bread_crumbs_menu_items(),
+        }
+        extra_context_data.update(context_data)
+        return extra_context_data
+
+    def bread_crumbs_menu_items(self):
+        if self.add_current_to_breadcrumbs:
+            return [LinkMenuItem(self.get_title(), self.request.path, active=True)]
+        return []
+
+
+class DefaultCoreViewMixin(DefaultViewMixin):
+
+    core = None
+    view_name = None
+    title = None
+    permission = PermissionsSet(
+        get=CoreReadAllowed()
+    )
+
+    def __init__(self):
+        super().__init__()
+        self.site_name = self.core.site_name
+        self.menu_groups = self.core.get_menu_groups()
+
+    @classmethod
+    def __init_core__(cls, core, pattern):
+        cls.core = core
+        cls.pattern = pattern
+
+    def dispatch(self, request, *args, **kwargs):
+        self.core.init_ui_request(request)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_title(self):
+        return self.title or self.model._meta.verbose_name
+
+    @property
+    def view_name(self):
+        return '%s-%s' % (self.view_type, '-'.join(self.menu_groups))
+
+    def get_context_data(self, **kwargs):
+        context_data = super(DefaultCoreViewMixin, self).get_context_data(**kwargs)
+        extra_context_data = {
+            'core_permission': self.core.permission,
+            'permission': self.permission,
+            'view': self
+        }
+        extra_context_data.update(context_data)
+        return extra_context_data
+
+
+class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
+    model = None
+
+    def __init__(self):
+        super(DefaultModelCoreViewMixin, self).__init__()
+
+    @classmethod
+    def __init_core__(cls, core, pattern):
+        super().__init_core__(core, pattern)
+        cls.model = cls.model or core.model
+
+    def get_context_data(self, **kwargs):
+        context_data = super(DefaultModelCoreViewMixin, self).get_context_data(**kwargs)
+        extra_context_data = {
+            'core': self.core
+        }
+        extra_context_data.update(context_data)
+        return extra_context_data
+
+
+class HomeView(DefaultCoreViewMixin, TemplateView):
+    template_name = 'is_core/home.html'
+    view_name = 'home'
+
+    def get_title(self):
+        return _('Home')
 
 
 class ListParentMixin:
@@ -16,8 +183,8 @@ class ListParentMixin:
         return LinkMenuItem(self.model._ui_meta.list_verbose_name %
                             {'verbose_name': list_view.model._meta.verbose_name,
                              'verbose_name_plural': list_view.model._meta.verbose_name_plural},
-                             list_pattern.get_url_string(self.request),
-                             active=not self.add_current_to_breadcrumbs)
+                            list_pattern.get_url_string(self.request),
+                            active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
@@ -45,12 +212,12 @@ class DetailParentMixin(ListParentMixin):
                              'verbose_name_plural': detail_view.model._meta.verbose_name_plural,
                              'obj': parent_obj},
                             detail_pattern.get_url_string(self.request, view_kwargs={'pk': parent_obj.pk}),
-                             active=not self.add_current_to_breadcrumbs)
+                            active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = super().parent_bread_crumbs_menu_items()
         if ('detail' in self.core.ui_patterns and
-              self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=self.get_obj())):
+            self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=self.get_obj())):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 
@@ -124,9 +291,10 @@ class TabsViewMixin:
         return context_data
 
 
-class GetCoreObjViewMixin:
+class GetObjViewMixin:
 
     pk_name = 'pk'
+    model = None
 
     def get_obj_filters(self):
         filters = {'pk': self.kwargs.get(self.pk_name)}
@@ -143,18 +311,19 @@ class GetCoreObjViewMixin:
         obj = obj or self.get_obj_or_none()
         return obj is not None and super().has_permission(name, obj=obj)
 
-    # TODO: should contains own implementation (not use get_obj from main)
-    _obj = None
-    def get_obj(self, cached=True):
-        if cached and self._obj:
-            return self._obj
-        obj = self.core.get_obj(self.request, **self.get_obj_filters())
-        if cached and not self._obj:
-            self._obj = obj
-        return obj
+    @cached_method
+    def get_obj(self):
+        return get_object_or_404(self.model, self.get_obj_filters())
 
     def get_obj_or_none(self, cached=True):
         try:
             return self.get_obj()
         except Http404:
             return None
+
+
+class CoreGetObjViewMixin(GetObjViewMixin):
+
+    @cached_method
+    def get_obj(self):
+        return self.core.get_obj(self.request, **self.get_obj_filters())

@@ -8,7 +8,7 @@ from pyston.filters.default_filters import OPERATORS
 
 from is_core.config import settings
 from is_core.filters import UIFilterMixin, FilterChoiceIterator
-from is_core.generic_views import DefaultModelCoreViewMixin
+from is_core.generic_views.mixins import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
 from is_core.utils import pretty_class_name, get_export_types_with_content_type
 from is_core.utils.compatibility import reverse
