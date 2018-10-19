@@ -1,5 +1,5 @@
 #
-# Run install_packages as root. 
+# Run install_packages as root.
 # Then run local_install from current directory (for local install + app build).
 #
 
@@ -28,7 +28,7 @@ test_modules = issue_tracker.tests
 clean:
 	find . -name "*.pyc" -delete;
 	find . -type d -empty -delete;
-	
+
 cleanvirtualenv:
 	rm -rf $(VIRTUAL_ENV)
 
@@ -95,17 +95,11 @@ runserver:
 	$(PYTHON_BIN)/python manage.py runserver --insecure $(DJANGO_POSTFIX)
 
 schemamigration:
-ifeq ($(force), 1)
-	-rm -rf "dj/apps/$(app)/migrations"
-	$(PYTHON_BIN)/python manage.py schemamigration $(app) --initial $(DJANGO_POSTFIX)	
-else ifneq ($(wildcard dj/apps/$(app)/migrations/0001_*),)
-	$(PYTHON_BIN)/python manage.py schemamigration $(app) --auto $(DJANGO_POSTFIX)
+ifdef name
+	$(PYTHON_BIN)/python manage.py makemigrations $(app) --name $(name) $(DJANGO_POSTFIX)
 else
-	$(PYTHON_BIN)/python manage.py schemamigration $(app) --initial $(DJANGO_POSTFIX)
+	$(PYTHON_BIN)/python manage.py makemigrations $(app) $(DJANGO_POSTFIX)
 endif
-
-datamigration:
-	$(PYTHON_BIN)/python manage.py datamigration $(app) $(name) $(DJANGO_POSTFIX)
 
 install: cleanvar bootstrap linklibrary initlog initdb syncdb initdata initenv
 

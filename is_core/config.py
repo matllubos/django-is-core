@@ -20,7 +20,7 @@ DEFAULTS = {
         else 'is_core.views.auth.LogoutView'
     ),
     'HOME_CORE': 'is_core.main.HomeUIISCore',
-    'HOME_VIEW': 'is_core.generic_views.HomeView',
+    'HOME_VIEW': 'is_core.generic_views.home.HomeView',
     'MENU_GENERATOR': 'is_core.menu.MenuGenerator',
     'USERNAME': 'username',
     'PASSWORD': 'password',

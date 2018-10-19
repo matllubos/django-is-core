@@ -128,7 +128,7 @@ class RESTResourceMixin:
     def dispatch(self, request, *args, **kwargs):
         if hasattr(self, 'core'):
             self.core.init_rest_request(request)
-        return super(RESTResourceMixin, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     @classmethod
     def __init_core__(cls, core, pattern):
@@ -137,7 +137,7 @@ class RESTResourceMixin:
 
     def _get_error_response(self, exception):
         """
-        Trasform pyston exceptions to Is-core exceptions and raise it
+        Transform pyston exceptions to IS-core exceptions and raise it
         """
         response_exceptions = {
             MimerDataException: HTTPBadRequestResponseException,
@@ -152,7 +152,7 @@ class RESTResourceMixin:
         response_exception = response_exceptions.get(type(exception))
         if response_exception:
             raise response_exception
-        return super(RESTResourceMixin, self)._get_error_response(exception)
+        return super()._get_error_response(exception)
 
 
 class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
@@ -184,27 +184,6 @@ class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
             return None
 
 
-class RESTModelCoreMixin(RESTModelCoreResourcePermissionsMixin):
-
-    def _get_queryset(self):
-        return self.core.get_queryset(self.request)
-
-    def _get_pk(self):
-        return self.kwargs.get(self.pk_name)
-
-    def _get_obj_or_none(self, pk=None):
-        if pk or self._get_pk():
-            return get_object_or_none(self._get_queryset(), pk=(pk or self._get_pk()))
-        else:
-            return None
-
-    def _get_obj_or_404(self, pk=None):
-         obj = self._get_obj_or_none(pk)
-         if not obj:
-             raise Http404
-         return obj
-
-
 class RESTResource(RESTPermissionsMixin, RESTResourceMixin, BaseResource):
     pass
 
@@ -229,13 +208,40 @@ class EntryPointResource(RESTResource):
         return out
 
 
-class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource):
+class RESTModelResource(RESTResourceMixin, BaseModelResource):
 
     form_class = None
     field_labels = None
     abstract = True
     filters = {}
     default_fields_extension = None
+
+    def get_default_fields_rfs(self, obj=None):
+        return super().get_default_fields_rfs(obj=obj).join(rfs(self.get_default_fields_extension(obj)))
+
+    def get_default_fields_extension(self, obj=None):
+        return self.default_fields_extension
+
+    def _preload_queryset(self, qs):
+        pass
+
+    def _get_form_initial(self, obj):
+        return {'_request': self.request, '_user': self.request.user}
+
+    def _generate_form_class(self, inst, exclude=[]):
+        form_class = self._get_form_class(inst)
+        exclude = list(self._get_exclude(inst)) + exclude
+        fields = self._get_form_fields(inst)
+        if hasattr(form_class, '_meta') and form_class._meta.exclude:
+            exclude.extend(form_class._meta.exclude)
+        return rest_modelform_factory(self.model, form=form_class, form_factory=smartmodelform_factory,
+                                      auto_related_direct_fields=pyston_settings.AUTO_RELATED_DIRECT_FIELDS,
+                                      auto_related_reverse_fields=pyston_settings.AUTO_RELATED_REVERSE_FIELDS,
+                                      request=self.request, exclude=exclude, fields=fields,
+                                      labels=self._get_field_labels())
+
+
+class CoreRESTModelResource(RESTModelCoreResourcePermissionsMixin, RESTModelResource):
 
     def _get_field_labels(self):
         return (
@@ -268,7 +274,9 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
 
     def get_extra_filter_fields(self):
         extra_filter_fields = super(DefaultRESTModelResource, self).get_extra_filter_fields()
-        return self.core.get_rest_extra_filter_fields(self.request) if extra_filter_fields is None else extra_filter_fields
+        return (
+            self.core.get_rest_extra_filter_fields(self.request) if extra_filter_fields is None else extra_filter_fields
+        )
 
     def get_filter_fields(self):
         filter_fields = super(DefaultRESTModelResource, self).get_filter_fields()
@@ -283,7 +291,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
         return self.core.get_rest_order_fields(self.request) if order_fields is None else order_fields
 
     def get_default_fields_rfs(self, obj=None):
-        return super(RESTModelResource, self).get_default_fields_rfs(obj=obj).join(
+        return super().get_default_fields_rfs(obj=obj).join(
             rfs(self.get_default_fields_extension(obj))
         )
 
@@ -319,14 +327,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
     def get_queryset(self):
         return self.core.get_queryset(self.request)
 
-    def _get_headers_queryset_context_mapping(self):
-        mapping = super(RESTModelResource, self)._get_headers_queryset_context_mapping()
-        mapping.update({
-            'direction': ('HTTP_X_DIRECTION', '_direction'),
-            'order': ('HTTP_X_ORDER', '_order')
-        })
-        return mapping
-
     def _preload_queryset(self, qs):
         return self.core.preload_queryset(self.request, qs)
 
@@ -346,9 +346,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
             )
         )
 
-    def _get_form_initial(self, obj):
-        return {'_request': self.request, '_user': self.request.user}
-
     def _pre_save_obj(self, obj, form, change):
         self.core.pre_save_model(self.request, obj, form, change)
 
@@ -367,24 +364,12 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
     def _post_delete_obj(self, obj):
         self.core.post_delete_model(self.request, obj)
 
-    def _generate_form_class(self, inst, exclude=[]):
-        form_class = self._get_form_class(inst)
-        exclude = list(self._get_exclude(inst)) + exclude
-        fields = self._get_form_fields(inst)
-        if hasattr(form_class, '_meta') and form_class._meta.exclude:
-            exclude.extend(form_class._meta.exclude)
-        return rest_modelform_factory(self.model, form=form_class, form_factory=smartmodelform_factory,
-                                      auto_related_direct_fields=pyston_settings.AUTO_RELATED_DIRECT_FIELDS,
-                                      auto_related_reverse_fields=pyston_settings.AUTO_RELATED_REVERSE_FIELDS,
-                                      request=self.request, exclude=exclude, fields=fields,
-                                      labels=self._get_field_labels())
-
     def put(self):
         # TODO: backward compatibility for bulk update should be used only patch
-        return super(RESTModelResource, self).put() if self.kwargs.get(self.pk_name) else self.update_bulk()
+        return super().put() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
     def patch(self):
-        return super(RESTModelResource, self).patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
+        return super().patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
     def _get_queryset(self):
         return self.core.get_queryset(self.request)
@@ -419,9 +404,6 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
         except RESTException as ex:
             return (None, self._format_message(obj, ex))
 
-    def _extract_message(self, ex):
-        return '\n'.join([force_text(v) for v in ex.errors.values()]) if hasattr(ex, 'errors') else ex.message
-
     def _format_message(self, obj, ex):
         return {
             'id': obj.pk,
@@ -430,7 +412,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
         }
 
 
-class UIRESTModelResource(RESTModelResource):
+class UIRESTModelResource(CoreRESTModelResource):
 
     def _web_links(self, obj):
         web_links = {}

@@ -2,7 +2,7 @@ from django.db.models import Model
 from django.views.generic.base import TemplateView
 
 from is_core.utils import display_object_data, display_for_value
-from is_core.generic_views import DefaultCoreViewMixin
+from is_core.generic_views.mixins import DefaultCoreViewMixin
 
 
 class DataRow(list):
