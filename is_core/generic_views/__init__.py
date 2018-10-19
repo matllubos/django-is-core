@@ -55,17 +55,37 @@ class PermissionsViewMixin:
         return handler(request, *args, **kwargs)
 
     def has_permission(self, name, obj=None):
+        # For core obj view mixin is object required to check permissions. If no object is found False is returned.
+        try:
+            return self._has_permission(name, obj)
+        except Http404:
+            return False
+
+    def _has_permission(self, name, obj=None):
         return self.permission.has_permission(name, self.request, self, obj)
 
     def _check_permission(self, name, obj=None):
-        if not self.has_permission(name, obj):
+        """
+        If customer is not authorized he should not get information that object is exists.
+        Therefore 403 is returned if object was not found or is redirected to the login page.
+        If custmer is authorized and object was not found is returned 404.
+        If object was found and user is not authorized is returned 403 or redirect to login page.
+        If object was found and user is authorized is returned 403 or 200 according of result of _has_permission method.
+        """
+        def redirect_or_exception(ex):
             if not self.request.user or not self.request.user.is_authenticated:
                 if self.auto_login_redirect:
                     redirect_to_login(self.request.get_full_path())
                 else:
                     raise HTTPUnauthorizedResponseException
             else:
-                raise HTTPForbiddenResponseException
+                raise ex
+
+        try:
+            if not self._has_permission(name, obj):
+                redirect_or_exception(HTTPForbiddenResponseException)
+        except Http404 as ex:
+            redirect_or_exception(ex)
 
 
 class DefaultViewMixin(PermissionsViewMixin, JSONSnippetTemplateResponseMixin):

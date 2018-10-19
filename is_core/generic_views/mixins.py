@@ -132,16 +132,10 @@ class GetCoreObjViewMixin:
         filters = {'pk': self.kwargs.get(self.pk_name)}
         return filters
 
-    def _check_permission(self, name, obj=None):
-        # Check permission is called only from view.
-        # Therefore current request should return Http404 if object was not found.
+    def _has_permission(self, name, obj=None):
         obj = obj or self.get_obj()
-        super()._check_permission(name, obj)
 
-    def has_permission(self, name, obj=None):
-        # For core obj view mixin is object required to check permissions. If no object is found False is returned.
-        obj = obj or self.get_obj_or_none()
-        return obj is not None and super().has_permission(name, obj=obj)
+        return super()._has_permission(name, obj=obj)
 
     # TODO: should contains own implementation (not use get_obj from main)
     _obj = None
