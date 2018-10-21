@@ -55,26 +55,26 @@ def flatten_fieldsets(fieldsets):
     return field_names
 
 
-def get_inline_views_from_fieldsets(fieldsets):
+def get_inner_views_from_fieldsets(fieldsets):
     """Returns a list of field names from an admin fieldsets structure."""
-    inline_views = []
+    inner_views = []
     for _, opts in fieldsets or ():
         if 'fieldsets' in opts:
-            inline_views += get_inline_views_from_fieldsets(opts.get('fieldsets'))
-        elif 'inline_view' in opts:
-            inline_views.append(opts.get('inline_view'))
-    return inline_views
+            inner_views += get_inner_views_from_fieldsets(opts.get('fieldsets'))
+        elif 'inner_view' in opts:
+            inner_views.append(opts.get('inner_view'))
+    return inner_views
 
 
-def get_inline_views_opts_from_fieldsets(fieldsets):
+def get_inner_views_opts_from_fieldsets(fieldsets):
     """Returns a list of field names from an admin fieldsets structure."""
-    inline_views = []
+    inner_views = []
     for _, opts in fieldsets or ():
         if 'fieldsets' in opts:
-            inline_views += get_inline_views_opts_from_fieldsets(opts.get('fieldsets'))
-        elif 'inline_view' in opts:
-            inline_views.append(opts)
-    return inline_views
+            inner_views += get_inner_views_opts_from_fieldsets(opts.get('fieldsets'))
+        elif 'inner_view' in opts:
+            inner_views.append(opts)
+    return inner_views
 
 
 def get_field_from_cls_or_inst_or_none(cls_or_inst, field_name):

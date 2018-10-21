@@ -16,7 +16,7 @@ from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
 from is_core.forms.forms import SmartFormMixin
 
 
-class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
+class BaseModelFormSetMixin(BaseFormSetMixin):
 
     def _pre_save(self, obj):
         pass
@@ -38,15 +38,24 @@ class BaseInlineFormSet(BaseFormSetMixin, models.BaseInlineFormSet):
                 for form in self.saved_forms:
                     self._post_save_form(form)
                 self._post_save(obj)
+
             self.save_m2m = post_save_m2m
 
     def save(self, commit=True):
-        obj = super(BaseInlineFormSet, self).save(commit=False)
+        obj = super().save(commit=False)
         self._pre_save(obj)
         if commit:
             obj.save()
         self._set_post_save(commit, obj)
         return obj
+
+
+class BaseModelFormSet(BaseModelFormSetMixin, models.BaseModelFormSet):
+    pass
+
+
+class BaseInlineFormSet(BaseModelFormSetMixin, models.BaseInlineFormSet):
+    pass
 
 
 class ModelChoice(list):

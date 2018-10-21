@@ -13,14 +13,14 @@ from chamber.utils import transaction
 
 from is_core.exceptions import PersistenceException
 from is_core.utils import (
-    flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets,
+    flatten_fieldsets, get_readonly_field_data, get_inner_views_from_fieldsets, get_inner_views_opts_from_fieldsets,
     get_export_types_with_content_type
 )
 from is_core.utils.compatibility import get_model_name
 from is_core.generic_views.mixins import (
     DefaultCoreViewMixin, DefaultModelCoreViewMixin, ListParentMixin, CoreGetObjViewMixin
 )
-from is_core.generic_views.inlines.inline_form_views import InlineFormView
+from is_core.generic_views.inner.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
@@ -269,7 +269,7 @@ class DefaultModelFormView(DefaultFormView):
     model = None
     fields = None
     exclude = None
-    inline_views = None
+    inner_views = None
     field_labels = None
     form_template = 'is_core/forms/model_default_form.html'
 
@@ -301,43 +301,41 @@ class DefaultModelFormView(DefaultFormView):
     def generate_readonly_fields(self):
         return self.get_readonly_fields()
 
-    def get_inline_views(self):
-        return self.inline_views
+    def get_inner_views(self):
+        return self.inner_views
 
-    def generate_inline_views(self):
-        inline_views = self.get_inline_views()
+    def generate_inner_views(self):
+        inner_views = self.get_inner_views()
         fieldsets = self.get_fieldsets()
 
-        if inline_views is not None and fieldsets:
-            raise ImproperlyConfigured('You can define either inline views or fieldsets.')
-        return inline_views or get_inline_views_from_fieldsets(fieldsets)
+        if inner_views is not None and fieldsets:
+            raise ImproperlyConfigured('You can define either inner views or fieldsets.')
+        return inner_views or get_inner_views_from_fieldsets(fieldsets)
 
-    def init_inline_views(self, instance):
-        return [inline_view(self.request, self, instance) if isinstance(inline_view, type) else inline_view
-                for inline_view in self.generate_inline_views()]
+    def init_inner_views(self, instance):
+        return [inner_view(self.request, self, instance) if isinstance(inner_view, type) else inner_view
+                for inner_view in self.generate_inner_views()]
 
-    def _filter_inline_form_views(self, inline_views):
-        return [view for view in inline_views if isinstance(view, InlineFormView)]
-
-    def generate_fieldsets(self, inline_views=None, **kwargs):
+    def generate_fieldsets(self, inner_views=None, **kwargs):
         fieldsets = deepcopy(self.get_fieldsets())
 
         if fieldsets is not None:
-            inline_view_opts = get_inline_views_opts_from_fieldsets(fieldsets)
-            for inline_view_inst, inline_view_opt in zip(inline_views, inline_view_opts):
-                inline_view_opt['inline_view'] = inline_view_inst
+            inner_view_opts = get_inner_views_opts_from_fieldsets(fieldsets)
+            for inner_view_inst, inner_view_opt in zip(inner_views, inner_view_opts):
+                inner_view_opt['inner_view'] = inner_view_inst
             return fieldsets
         else:
             return [
                 (None, {'fields': self.generate_fields() or list(self.generate_form_class().base_fields.keys())})
             ] + [
                 (
-                    inline_view.model._meta.verbose_name_plural if (
-                        isinstance(inline_view, InlineFormView) and (not inline_view.max_num or inline_view.max_num > 1)
-                    ) else inline_view.model._meta.verbose_name,
-                    {'inline_view': inline_view}
+                    # TODO: add to the for view
+                    inner_view.model._meta.verbose_name_plural if (
+                        isinstance(inner_view, InlineFormView) and (not inner_view.max_num or inner_view.max_num > 1)
+                    ) else inner_view.model._meta.verbose_name,
+                    {'inner_view': inner_view}
                 )
-                for inline_view in inline_views
+                for inner_view in inner_views
             ]
 
     def get_fields(self):
@@ -388,12 +386,12 @@ class DefaultModelFormView(DefaultFormView):
                                            {'request': self.request, 'obj': instance})
         return SmartReadonlyField(_get_readonly_field_data)
 
-    def get_has_file_field(self, form, inline_form_views=None, **kwargs):
+    def get_has_file_field(self, form, inner_views=None, **kwargs):
         if super(DefaultModelFormView, self).get_has_file_field(form, **kwargs):
             return True
 
-        for inline_form_view in () if inline_form_views is None else inline_form_views:
-            if inline_form_view.get_has_file_field():
+        for inner_view in () if inner_views is None else inner_views:
+            if inner_view.get_has_file_field():
                 return True
 
         return False
@@ -404,70 +402,66 @@ class DefaultModelFormView(DefaultFormView):
     def has_save_button(self):
         return not self.is_readonly()
 
-    def is_changed(self, form, inline_form_views, **kwargs):
-        for inline_form_view_instance in inline_form_views:
-            if inline_form_view_instance.formset.has_changed():
+    def is_changed(self, form, inner_views, **kwargs):
+        for inner_view in inner_views:
+            if inner_view.is_changed():
                 return True
         return form.has_changed()
 
     def get(self, request, *args, **kwargs):
         form = self.get_form()
-        inline_views = self.init_inline_views(form.instance)
-        inline_form_views = self._filter_inline_form_views(inline_views)
-        return self.render_to_response(self.get_context_data(form=form, inline_views=inline_views,
-                                                             inline_form_views=inline_form_views))
+        inner_views = self.init_inner_views(form.instance)
+        return self.render_to_response(self.get_context_data(form=form, inner_views=inner_views))
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        inline_forms_is_valid = True
+        inner_views_is_valid = True
 
-        inline_views = self.init_inline_views(form.instance)
-        inline_form_views = self._filter_inline_form_views(inline_views)
+        inner_views = self.init_inner_views(form.instance)
 
-        for inline_form_view in inline_form_views:
-            inline_forms_is_valid = inline_form_view.is_valid() and inline_forms_is_valid
+        for inner_view in inner_views:
+            inner_views_is_valid = inner_view.is_valid() and inner_views_is_valid
 
         is_valid = form.is_valid()
-        is_changed = self.is_changed(form, inline_form_views=inline_form_views)
+        is_changed = self.is_changed(form, inner_views=inner_views)
 
-        if is_valid and inline_forms_is_valid and is_changed:
-            return self.form_valid(form, inline_form_views=inline_form_views,
-                                   inline_views=inline_views)
+        if is_valid and inner_views_is_valid and is_changed:
+            return self.form_valid(form, inner_views=inner_views)
         else:
             if is_valid and not is_changed:
-                return self.form_invalid(form, inline_form_views=inline_form_views,
-                                         inline_views=inline_views,
+                return self.form_invalid(form, inner_views=inner_views,
                                          msg=_('No changes have been submitted.'),
                                          msg_level=constants.INFO)
-            return self.form_invalid(form, inline_form_views=inline_form_views, inline_views=inline_views)
+            return self.form_invalid(form, inner_views=inner_views)
 
     def get_obj(self, cached=True):
         return None
 
     def get_form_kwargs(self):
-        kwargs = super(DefaultModelFormView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['instance'] = self.get_obj(False)
         return kwargs
 
-    def save_form(self, form, inline_form_views=None, **kwargs):
+    def save_form(self, form, inner_views=None, **kwargs):
         obj = form.save(commit=False)
         change = obj.pk is not None
+
+        for inner_view in () if inner_views is None else inner_views:
+            inner_view.pre_save_parent(obj)
 
         self.pre_save_obj(obj, form, change)
         self.save_obj(obj, form, change)
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
 
-        for inline_form_view in {} if inline_form_views is None else inline_form_views:
-            inline_form_view.form_valid(self.request)
+        for inner_view in () if inner_views is None else inner_views:
+            inner_view.post_save_parent(obj)
 
         self.post_save_obj(obj, form, change)
         return obj
 
-    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
-        context_data = super(DefaultModelFormView, self).get_context_data(form=form,
-                                                                          inline_form_views=inline_form_views,
-                                                                          **kwargs)
+    def get_context_data(self, form=None, inner_views=None, **kwargs):
+        context_data = super().get_context_data(form=form, inner_views=inner_views, **kwargs)
         context_data.update({
             'module_name': get_model_name(self.model),
             'cancel_url': self.get_cancel_url(),
@@ -540,9 +534,9 @@ class CoreDefaultModelFormView(ListParentMixin, DefaultModelCoreViewMixin, Defau
         return (self.readonly_fields is not None and self.readonly_fields or
                 self.core.get_form_readonly_fields(self.request, self.get_obj(True)))
 
-    def get_inline_views(self):
-        return (self.inline_views is not None and self.inline_views or
-                self.core.get_form_inline_views(self.request, self.get_obj(True)))
+    def get_inner_views(self):
+        return (self.inner_views is not None and self.inner_views or
+                self.core.get_ui_inner_views(self.request, self.get_obj(True)))
 
     def get_fieldsets(self):
         return (self.fieldsets is not None and self.fieldsets or
@@ -594,8 +588,8 @@ class CoreDefaultModelFormView(ListParentMixin, DefaultModelCoreViewMixin, Defau
         else:
             return self.request.get_full_path()
 
-    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
-        context_data = super().get_context_data(form=form, inline_form_views=inline_form_views, **kwargs)
+    def get_context_data(self, form=None, inner_views=None, **kwargs):
+        context_data = super().get_context_data(form=form, inner_views=inner_views, **kwargs)
         context_data.update({
             'show_save_and_continue': self.has_save_and_continue_button()
         })
@@ -660,9 +654,9 @@ class DetailModelFormView(CoreGetObjViewMixin, CoreDefaultModelFormView):
     def _generate_rest_detail_export_fieldset(self):
         return ModelFlatRESTFields.create_from_flat_list(self._get_export_fields(), self.model)
 
-    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
+    def get_context_data(self, form=None, inner_views=None, **kwargs):
         context_data = super().get_context_data(
-            form=form, inline_form_views=inline_form_views, **kwargs
+            form=form, inner_views=inner_views, **kwargs
         )
         if self._get_export_types() and self._get_export_fields():
             context_data.update({

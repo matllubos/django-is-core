@@ -81,7 +81,7 @@ class ISCore(metaclass=ISCoreBase):
 
     def _generate_permission_set(self):
         permission_dict = {}
-      
+
         for permission_name in ('create', 'read', 'update', 'delete'):
             if getattr(self, 'can_{}'.format(permission_name)):
                 permission_dict[permission_name] = self._get_default_permission(permission_name)
@@ -378,8 +378,8 @@ class UIModelISCore(ModelISCore, UIISCore):
     # add/edit view params
     form_fieldsets = None
     form_readonly_fields = ()
-    form_inline_views = None
 
+    ui_inner_views = None
     ui_form_add_class = None
     ui_form_edit_class = None
     ui_form_field_labels = None
@@ -459,8 +459,8 @@ class UIModelISCore(ModelISCore, UIISCore):
             self.ui_patterns.get(self.menu_url_name).has_permission('get', request)
         )
 
-    def get_form_inline_views(self, request, obj=None):
-        return self.form_inline_views
+    def get_ui_inner_views(self, request, obj=None):
+        return self.ui_inner_views
 
     def get_default_list_filter(self, request):
         return self.default_list_filter.copy()

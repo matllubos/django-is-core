@@ -2,20 +2,20 @@ from django.utils.translation import ugettext_lazy as _
 
 from chamber.utils.forms import formset_has_file_field
 
-from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
-from is_core.generic_views.inlines import InlineView
+from is_core.forms.models import BaseModelFormSet, smartmodelformset_factory, SmartModelForm
+from is_core.generic_views.inner import InnerView
 from is_core.forms.fields import SmartReadonlyField, EmptyReadonlyField
 from is_core.utils import get_readonly_field_data
 
 
-class InlineFormView(InlineView):
+class RelatedFormView(InnerView):
+
     form_class = SmartModelForm
-    base_inline_formset_class = BaseInlineFormSet
+    base_formset_class = BaseModelFormSet
 
     model = None
     fields = None
     exclude = ()
-    inline_views = None
     field_labels = None
 
     template_name = None
@@ -33,7 +33,7 @@ class InlineFormView(InlineView):
     class_names = ['inline-js']
 
     def __init__(self, request, parent_view, parent_instance):
-        super(InlineFormView, self).__init__(request, parent_view, parent_instance)
+        super().__init__(request, parent_view, parent_instance)
         self.parent_model = parent_view.model
         self.core = parent_view.core
         self.parent_instance = parent_instance
@@ -129,9 +129,9 @@ class InlineFormView(InlineView):
         return self.min_num
 
     def get_formset_factory(self, fields=None, readonly_fields=()):
-        return smartinlineformset_factory(
-            self.parent_model, self.model, self.request, form=self.get_form_class(), fk_name=self.fk_name,
-            extra=self.get_extra(), formset=self.base_inline_formset_class, can_delete=self.get_can_delete(),
+        return smartmodelformset_factory(
+            self.model, self.request, form=self.get_form_class(), extra=self.get_extra(),
+            formset=self.base_formset_class, can_delete=self.get_can_delete(),
             exclude=self.get_exclude(), fields=fields, min_num=self.get_min_num(), max_num=self.get_max_num(),
             readonly_fields=readonly_fields, readonly=self.readonly,
             formreadonlyfield_callback=self.formfield_for_readonlyfield, formfield_callback=self.formfield_for_dbfield,
@@ -201,7 +201,7 @@ class InlineFormView(InlineView):
             'verbose_name_plural': self.model._meta.verbose_name_plural
         })
 
-    def form_valid(self, request):
+    def form_valid(self, parent_obj):
         instances = self.formset.save(commit=False)
         for obj in instances:
             change = obj.pk is not None
@@ -235,17 +235,23 @@ class InlineFormView(InlineView):
         obj.delete()
         self.post_delete_obj(obj)
 
+    def post_save_parent(self, parent_obj):
+        self.form_valid(parent_obj)
+
     def is_valid(self):
         return self.formset.is_valid()
 
+    def is_changed(self):
+        return self.formset.has_changed()
 
-class TabularInlineFormView(InlineFormView):
+
+class TabularRelatedFormView(RelatedFormView):
     template_name = 'is_core/forms/tabular_inline_formset.html'
 
 
-class StackedInlineFormView(InlineFormView):
+class StackedRelatedFormView(RelatedFormView):
     template_name = 'is_core/forms/stacked_inline_formset.html'
 
 
-class ResponsiveInlineFormView(InlineFormView):
+class ResponsiveRelatedFormView(RelatedFormView):
     template_name = 'is_core/forms/responsive_inline_formset.html'

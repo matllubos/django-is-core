@@ -69,19 +69,6 @@ class Fieldset(AbstractFieldset):
         return bool(self.get_fields(request, obj))
 
 
-class InlineFieldset(AbstractFieldset):
-
-    def __init__(self, title, inline_view):
-        super(Fieldset, self).__init__(title)
-        self.inline_view = inline_view
-
-    def get_inline_view(self, request, obj):
-        return self.inline_view
-
-    def show(self, request, obj):
-        return True
-
-
 class Field:
 
     def __init__(self, name, readonly=None):

@@ -1,10 +1,10 @@
 from django.forms.models import _get_foreign_key
 
 from is_core.generic_views.table_views import TableViewMixin
-from is_core.generic_views.inlines import InlineView
+from is_core.generic_views.inner import InnerView
 
 
-class InlineTableView(TableViewMixin, InlineView):
+class InnerTableView(TableViewMixin, InnerView):
 
     template_name = 'is_core/forms/inline_table.html'
     fk_name = None
