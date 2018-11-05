@@ -1,31 +1,37 @@
 {% load forms %}
 
 {% if not field.is_hidden %}
-	{% if field.is_readonly %}
-		<label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}>
-			{{ field.label|capfirst }}
-		</label>
-		<div{% if field.auto_id %} id="{{ field.auto_id }}"{% endif %} class="field-value {{ field_name }}">{{ field }}</div>
-	{% elif field|is_checkbox %}
-		<div class="checkbox">
-			<label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}{% if field.help_text %} data-title="{{ field.help_text }}"{% endif %}>
-				{{ field }}{{ field.label|capfirst }}
-				{% if field.field.required %}
-					<span class="required">*</span>
-				{% endif %}
-			</label>
-			{{ field.errors }}
-		</div>
-	{% else %}
-		<label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}{% if field.help_text %} data-title="{{ field.help_text }}"{% endif %}>
-			{{ field.label|capfirst }}
-			{% if field.field.required %}
-				<span class="required">*</span>
-			{% endif %}
-		</label>
-		<div class="field-value {{ field_name }}">{{ field }}</div>
-	{{ field.errors }}
-	{% endif %}
+  {% if field.is_readonly %}
+    <label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}>
+      {{ field.label|capfirst }}
+    </label>
+    <div{% if field.auto_id %} id="{{ field.auto_id }}"{% endif %} class="field-value {{ field_name }}">{{ field }}</div>
+  {% elif field|is_checkbox %}
+    <div class="checkbox">
+      <label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}{% if field.help_text %} data-title="{{ field.help_text }}"{% endif %}>
+        {{ field }}{{ field.label|capfirst }}
+        {% if field.field.required %}
+          <span class="required">*</span>
+        {% endif %}
+      </label>
+      {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+      {% endif %}
+      {{ field.errors }}
+    </div>
+  {% else %}
+    <label{% if field.auto_id %} for="{{ field.auto_id }}"{% endif %}{% if field.help_text %} data-title="{{ field.help_text }}"{% endif %}>
+      {{ field.label|capfirst }}
+      {% if field.field.required %}
+        <span class="required">*</span>
+      {% endif %}
+    </label>
+    <div class="field-value {{ field_name }}">{{ field }}</div>
+    {% if field.help_text %}
+      <p class="help">{{ field.help_text|safe }}</p>
+    {% endif %}
+    {{ field.errors }}
+  {% endif %}
 {% else %}
-	<div class="hidden-field">{{ field }}</div>
+  <div class="hidden-field">{{ field }}</div>
 {% endif %}

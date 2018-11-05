@@ -27,7 +27,7 @@ setup(
         'django>=1.10',
         'django-pyston~=2.9.5',
         'django-block-snippets==2.0.0',
-        'django-chamber~=0.4.5',
+        'django-chamber~=0.4.6',
         'python-dateutil~=2.2',
         'pytz',
         'Unidecode>=0.04.16',

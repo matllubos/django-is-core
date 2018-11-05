@@ -2,6 +2,6 @@ requests==2.10.0
 django-block-snippets==2.0.0
 django-class-auth-views==1.0.2
 https://github.com/matllubos/django-json-field/tarball/0.5.8#egg=django-json-field-0.5.8
-django-chamber==0.4.5
+django-chamber==0.4.6
 python3-openid==3.0.10
 html5lib==0.9999999
