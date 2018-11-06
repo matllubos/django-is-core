@@ -51,8 +51,10 @@ class TableViewMixin:
     field_labels = None
 
     def get_title(self):
-        return self.model._ui_meta.list_verbose_name % {'verbose_name': self.model._meta.verbose_name,
-                                                        'verbose_name_plural': self.model._meta.verbose_name_plural}
+        return self.model._ui_meta.list_verbose_name % {
+            'verbose_name': self.model._meta.verbose_name,
+            'verbose_name_plural': self.model._meta.verbose_name_plural
+        }
 
     def _get_field_filter_widget(self, filter_obj, full_field_name, field):
         if filter_obj.choices:
@@ -135,31 +137,35 @@ class TableViewMixin:
     def _get_field_labels(self):
         return self.field_labels
 
-    def _get_header_label(self, model, full_field_name, field_name):
+    def _get_field_or_method_label(self, model, field_name):
+        try:
+            field = model._meta.get_field(field_name)
+            if field.auto_created and (field.one_to_many or field.many_to_many):
+                return (
+                    getattr(field.field, 'reverse_verbose_name', None) or
+                    field.related_model._meta.verbose_name_plural
+                )
+            elif field.auto_created and field.one_to_one:
+                return (
+                    getattr(field.field, 'reverse_verbose_name', None) or
+                    field.related_model._meta.verbose_name
+                )
+            else:
+                return field.verbose_name
+        except FieldDoesNotExist:
+            method = get_class_method(model, field_name)
+            return getattr(method, 'short_description', pretty_name(field_name))
+
+    def _get_header_label(self, model, full_field_name, field_name, current_label=None):
         field_labels = self._get_field_labels()
 
         if field_labels and full_field_name in field_labels:
             return field_labels.get(full_field_name)
         else:
-            try:
-                field = model._meta.get_field(field_name)
-                if field.auto_created and (field.one_to_many or field.many_to_many):
-                    return (
-                        getattr(field.field, 'reverse_verbose_name', None) or
-                        field.related_model._meta.verbose_name_plural
-                    )
-                elif field.auto_created and field.one_to_one:
-                    return (
-                        getattr(field.field, 'reverse_verbose_name', None) or
-                        field.related_model._meta.verbose_name
-                    )
-                else:
-                    return field.verbose_name
-            except FieldDoesNotExist:
-                method = get_class_method(model, field_name)
-                return getattr(method, 'short_description', pretty_name(field_name))
+            field_or_method_label = self._get_field_or_method_label(model, field_name)
+            return '{} - {}'.format(current_label, field_or_method_label) if current_label else field_or_method_label
 
-    def _get_header(self, full_field_name, field_name=None, model=None):
+    def _get_header(self, full_field_name, field_name=None, model=None, current_label=None):
         if not model:
             model = self.model
 
@@ -171,12 +177,17 @@ class TableViewMixin:
 
         if '__' in field_name:
             current_field_name, next_field_name = field_name.split('__', 1)
+            related_model = model._meta.get_field(current_field_name).related_model
+            label = self._get_header_label(
+                related_model, full_field_name[:-(len(next_field_name) + 2)], current_field_name, current_label
+            )
             return self._get_header(
-                full_field_name, next_field_name, model._meta.get_field(current_field_name).related_model
+                full_field_name, next_field_name, model._meta.get_field(current_field_name).related_model,
+                label
             )
 
         return Header(
-            full_field_name, self._get_header_label(model, full_field_name, field_name),
+            full_field_name, self._get_header_label(model, full_field_name, field_name, current_label),
             self._get_header_order_by(model, full_field_name), self._get_filter(full_field_name)
         )
 
