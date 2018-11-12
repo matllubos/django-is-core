@@ -29,6 +29,6 @@ def filename(value):
     return os.path.basename(value.file.name)
 
 
-@register.filter
-def display_object_data(obj, field_name):
-    return utils_display_object_data(obj, field_name)
+@register.simple_tag(takes_context=True)
+def display_object_data(context, obj, field_name):
+    return utils_display_object_data(obj, field_name, context.get('request'))
