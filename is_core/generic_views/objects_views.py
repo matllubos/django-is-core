@@ -1,5 +1,6 @@
 from django.db.models import Model
 from django.views.generic.base import TemplateView
+from django.utils.translation import ugettext_lazy as _
 
 from is_core.utils import display_object_data, display_for_value
 from is_core.generic_views import DefaultCoreViewMixin
@@ -22,6 +23,7 @@ class ObjectsViewMixin:
     # For eg: (('company_name', _('Company name')), ('zip', _('ZIP code')), ('...', '...'))
     fields = ()
     obj_class_names = ()
+    no_items_text = _('There are no items')
 
     def get_fields(self):
         return list(self.fields)
@@ -72,6 +74,7 @@ class ObjectsViewMixin:
             'data_list': self.get_data_list(self.get_fields(), self.get_objects()),
             'header_list': self.get_header_list(self.get_fields()),
             'class_names': self.get_class_names(),
+            'no_items_text': self.no_items_text
         })
         return context_data
 
