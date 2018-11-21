@@ -2,14 +2,12 @@ import warnings
 import itertools
 
 from django import forms
-from django.db.utils import ProgrammingError, OperationalError
 from django.forms import models
 from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
 
 from pyston.forms import RESTModelForm, RESTFormMetaclass
 
-from is_core.config import settings
 from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
 from is_core.forms.formsets import BaseFormSetMixin, smartformset_factory
