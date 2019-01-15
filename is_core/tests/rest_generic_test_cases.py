@@ -4,7 +4,7 @@ from django.db.models.fields.files import FieldFile
 from django.urls.resolvers import get_resolver
 
 from germanium.test_cases.rest import RESTTestCase
-from germanium.annotations import login_all, data_provider
+from germanium.decorators import login_all, data_provider
 from germanium.tools.trivials import assert_equal
 from germanium.tools.http import assert_http_not_found, assert_http_accepted
 from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_created_response
