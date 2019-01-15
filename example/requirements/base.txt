@@ -4,7 +4,7 @@ python-mimeparse==0.1.4
 pep8==1.6.2
 six==1.10.0
 https://github.com/druids/germanium/tarball/2.0.0#egg=germanium-2.0.0
-django-germanium==2.0.5
+django-germanium==2.1.0
 coverage==4.0.2
 python-dateutil>=2.2
 pytz
