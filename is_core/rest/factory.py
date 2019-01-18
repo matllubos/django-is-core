@@ -5,7 +5,7 @@ def modelrest_factory(model, resource_class=RESTModelResource, register=True, re
     resource_kwargs = resource_kwargs or {}
     resource_kwargs.update({
         'model': model,
-        'register': register
+        'register': register,
     })
     class_name = model.__name__ + str('Resource')
     return type(resource_class)(class_name, (resource_class,), resource_kwargs)
