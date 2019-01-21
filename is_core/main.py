@@ -542,6 +542,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
 
     rest_resource_class = RESTModelResource
     rest_form_field_labels = None
+    rest_paginator = None
 
     def get_rest_allowed_methods(self):
         rest_allowed_methods = ['options']
@@ -634,7 +635,10 @@ class RESTModelISCore(RESTISCore, ModelISCore):
         )
 
     def get_rest_class(self):
-        return modelrest_factory(self.model, self.rest_resource_class)
+        resource_kwargs = {}
+        if self.rest_paginator:
+            resource_kwargs['paginator'] = self.rest_paginator
+        return modelrest_factory(self.model, self.rest_resource_class, resource_kwargs=resource_kwargs)
 
     def get_rest_patterns(self):
         rest_patterns = super(RESTModelISCore, self).get_rest_patterns()
