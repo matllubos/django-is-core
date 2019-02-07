@@ -450,7 +450,7 @@ class RestrictedSelectMultipleWidget(RestrictedSelectWidgetMixin, forms.SelectMu
     def value_from_datadict(self, data, files, name):
         if self.is_restricted:
             value = data.get(name)
-            return [v.strip() for v in value.split(self.separator)] if isinstance(value, str) else value
+            return [v.strip() for v in value.split(self.separator) if v.strip()] if isinstance(value, str) else value
         else:
             return super(RestrictedSelectMultipleWidget, self).value_from_datadict(data, files, name)
 
