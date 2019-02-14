@@ -46,6 +46,9 @@ class PermissionsTestCase(GermaniumTestCase):
         assert_true(((obj_is_none | obj_is_string) & obj_is_not_none).has_permission('test', None, None, ''))
         assert_true(((obj_is_none & obj_is_string) | obj_is_not_none).has_permission('test', None, None, ''))
         assert_false((obj_is_not_none | (obj_is_none & obj_is_string)).has_permission('test', None, None, None))
+        assert_true((~obj_is_none).has_permission('test', None, None, ''))
+        assert_false((~obj_is_not_none).has_permission('test', None, None, ''))
+        assert_true((obj_is_none & ~obj_is_not_none).has_permission('test', None, None, None))
 
     def test_permissions_set_should_return_permissions_according_to_name(self):
         permission = PermissionsSet(

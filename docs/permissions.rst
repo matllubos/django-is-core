@@ -73,7 +73,13 @@ Predefined permissions
     OrPermission(IsAdminUser(), IsSuperuser(), IsAuthenticated())
     IsAdminUser() | IsSuperuser() | IsAuthenticated()
 
-  Whole three permissions
+.. class:: is_core.auth.permissions.NotPermission
+
+  ``NotPermission`` can be used for permission negation. You can use operator ``~`` for the same purpose::
+
+    NotPermission(IsAdminUser())
+    ~IsAdminUser()
+
 
 Custom permission
 -----------------

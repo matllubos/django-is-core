@@ -21,6 +21,12 @@ class IsLoggedUser(BasePermission):
         return obj and obj == request.user
 
 
+class IsObjectSuperuser(BasePermission):
+    
+    def has_permission(self, name, request, view, obj=None):
+        return obj and obj.is_superuser
+
+
 class UserISCore(UIRESTModelISCore):
 
     model = User
@@ -30,7 +36,7 @@ class UserISCore(UIRESTModelISCore):
         create=IsSuperuser(),
         read=IsSuperuser() | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
         update=IsSuperuser() | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
-        delete=IsSuperuser()
+        delete=IsSuperuser() & ~IsObjectSuperuser()
     )
 
     def get_queryset(self, request):

@@ -97,25 +97,25 @@ class RESTObjectPermissionsMixin(RESTPermissionsMixin):
 
     def has_create_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permission.has_permission('create_obj', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('create_obj', self.request, self, obj=obj) and
             super().has_create_obj_permission(obj=obj, **kwargs)
         )
 
     def has_read_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permission.has_permission('read_obj', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('read_obj', self.request, self, obj=obj) and
             super().has_read_obj_permission(obj=obj, **kwargs)
         )
 
     def has_update_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permission.has_permission('update_obj', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('update_obj', self.request, self, obj=obj) and
             super().has_update_obj_permission(obj=obj, **kwargs)
         )
 
     def has_delete_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permission.has_permission('delete_obj', self.request, self, obj=kwargs.get('obj')) and
+            self.permission.has_permission('delete_obj', self.request, self, obj=obj) and
             super().has_delete_obj_permission(obj=obj, **kwargs)
         )
 
