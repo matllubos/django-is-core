@@ -92,6 +92,12 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase)
         resp = self.delete('%s%s/' % (self.USER_API_URL, user.pk))
         assert_http_forbidden(resp)
 
+    @login(is_superuser=False)
+    def test_superuser_should_not_delete_another_superuser(self):
+        user = self.get_user_obj(is_superuser=True)
+        resp = self.delete('%s%s/' % (self.USER_API_URL, user.pk))
+        assert_http_forbidden(resp)
+
     def test_not_logged_user_can_not_get_number_of_user_issues(self):
         user = self.get_user_obj()
         resp = self.get(self.USER_ISSUES_API_URL % {'user_pk': user.pk})
@@ -138,8 +144,14 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase)
         assert_equal(resp.json()[0]['_actions'][0]['class_name'], 'detail')
 
     @login(is_superuser=True)
-    def test_user_actions_should_contains_edit_and_delete_because_update_is_disabled(self):
+    def test_new_user_actions_should_contains_edit_and_delete_because_update_is_disabled(self):
         UserFactory()
         resp = self.get(self.USER_API_URL+'?_fields=_actions')
-        assert_equal(len(resp.json()[0]['_actions']), 2)
-        assert_equal({action['class_name'] for action in resp.json()[0]['_actions']}, {'edit', 'delete'})
+        assert_equal(len(resp.json()[1]['_actions']), 2)
+        assert_equal({action['class_name'] for action in resp.json()[1]['_actions']}, {'edit', 'delete'})
+
+    @login(is_superuser=True)
+    def test_logged_user_actions_should_contains_only_edit_action(self):
+        resp = self.get(self.USER_API_URL+'?_fields=_actions')
+        assert_equal(len(resp.json()[0]['_actions']), 1)
+        assert_equal({action['class_name'] for action in resp.json()[0]['_actions']}, {'edit'})

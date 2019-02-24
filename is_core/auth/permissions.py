@@ -28,6 +28,9 @@ class BasePermission:
 
         return OrPermission(self, other)
 
+    def __invert__(self):
+        return NotPermission(self)
+
 
 class OperatorPermission(BasePermission):
 
@@ -83,6 +86,15 @@ class OrPermission(OperatorPermission):
 
         self.add(other)
         return self
+
+
+class NotPermission(BasePermission):
+
+    def __init__(self, permission):
+        self._permission = permission
+
+    def has_permission(self, name, request, view, obj=None):
+        return not self._permission.has_permission(name, request, view, obj=obj)
 
 
 class PermissionsSet(BasePermission):

@@ -32,10 +32,10 @@ class HelperTestCase:
             del result[field]
         return result
 
-    def get_user_obj(self):
+    def get_user_obj(self, is_superuser=False):
         user_data = self.get_user_data()
         return User.objects._create_user(user_data.get('username'), user_data.get('email'),
-                                         user_data.get('password'), is_staff=False, is_superuser=False)
+                                         user_data.get('password'), is_staff=False, is_superuser=is_superuser)
 
 
 class AsSuperuserTestCase:
