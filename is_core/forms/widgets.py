@@ -165,7 +165,12 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
 
     def _get_value(self, value):
         widget = self._get_widget()
-        return dict(self.widget.choices).get(value, value) if widget and hasattr(widget, 'choices') else value
+        if widget and hasattr(widget, 'choices'):
+            choices_dict = dict(widget.choices)
+            text_choices_dict = {str(k): v for k, v in widget.choices}
+            return choices_dict.get(value, text_choices_dict.get(value, value))
+        else:
+            return value
 
     def _get_value_display(self, value):
         from is_core.utils import display_for_value
