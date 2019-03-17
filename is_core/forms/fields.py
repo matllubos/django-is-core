@@ -17,8 +17,8 @@ class ReadonlyField(forms.Field):
 
     def __init__(self, required=True, widget=None, label=None, initial=None,
                  help_text='', error_messages=None, show_hidden_initial=False,
-                 validators=[], localize=False):
-        super(ReadonlyField, self).__init__(required=False, widget=widget, label=label, initial=initial,
+                 validators=None, localize=False):
+        super().__init__(required=False, widget=widget, label=label, initial=initial,
                                             help_text=help_text)
 
     def _has_changed(self, initial, data):
@@ -47,14 +47,14 @@ class ButtonField(ReadonlyField):
     def __init__(self, label, attrs=None, widget=None):
         attrs = attrs or {}
         widget = widget or self.widget
-        super(ButtonField, self).__init__(required=False, label='', initial=label, widget=widget(attrs=attrs))
+        super().__init__(required=False, label='', initial=label, widget=widget(attrs=attrs))
 
 
 class SmartReadonlyField(ReadonlyField):
 
     def __init__(self, get_val_label_and_widget_fun, required=True, widget=None, label=None, initial=None,
                  help_text='', error_messages=None, show_hidden_initial=False,
-                 validators=[], localize=False):
+                 validators=None, localize=False):
         self._get_val_label_and_widget_fun = get_val_label_and_widget_fun
         super(ReadonlyField, self).__init__(required=False, widget=widget, help_text=help_text)
 
