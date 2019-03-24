@@ -5,10 +5,10 @@ from chamber.utils.forms import formset_has_file_field
 from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
 from is_core.generic_views.inlines import InlineView
 from is_core.forms.fields import SmartReadonlyField, EmptyReadonlyField
-from is_core.utils import get_readonly_field_data
+from is_core.utils import get_readonly_field_data, GetMethodFieldMixin
 
 
-class InlineFormView(InlineView):
+class InlineFormView(GetMethodFieldMixin, InlineView):
 
     form_class = SmartModelForm
     base_inline_formset_class = BaseInlineFormSet
@@ -117,8 +117,12 @@ class InlineFormView(InlineView):
 
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
-            return get_readonly_field_data(name, (self, self.core, instance), {'request': self.request,
-                                                                               'obj': instance})
+            return get_readonly_field_data(
+                name,
+                instance,
+                view=self,
+                fun_kwargs={'request': self.request, 'obj': instance}
+            )
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_form_class(self):

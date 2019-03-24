@@ -154,6 +154,15 @@ class RESTResourceMixin:
             raise response_exception
         return super(RESTResourceMixin, self)._get_error_response(exception)
 
+    def get_method_returning_field_value(self, field_name):
+        """
+        Field values can be obtained from resource or core.
+        """
+        return (
+            super().get_method_returning_field_value(field_name)
+            or self.core.get_method_returning_field_value(field_name)
+        )
+
 
 class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
 

@@ -16,7 +16,7 @@ from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import (
     flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets,
-    get_export_types_with_content_type
+    get_export_types_with_content_type, GetMethodFieldMixin
 )
 from is_core.utils.compatibility import get_model_name
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
@@ -30,7 +30,7 @@ from is_core.rest.datastructures import ModelFlatRESTFields
 from ..auth.permissions import PermissionsSet, CoreReadAllowed, CoreUpdateAllowed, CoreCreateAllowed
 
 
-class DefaultFormView(DefaultModelCoreViewMixin, FormView):
+class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
 
     view_type = 'default'
     fieldsets = None
@@ -264,6 +264,15 @@ class DefaultFormView(DefaultModelCoreViewMixin, FormView):
                 extra_content['messages'] = extra_content_messages
         return super(DefaultFormView, self).render_to_response(context, **response_kwargs)
 
+    def get_method_returning_field_value(self, field_name):
+        """
+        Field values can be obtained from view or core.
+        """
+        return (
+            super().get_method_returning_field_value(field_name)
+            or self.core.get_method_returning_field_value(field_name)
+        )
+
 
 class DefaultModelFormView(DefaultFormView):
 
@@ -383,8 +392,12 @@ class DefaultModelFormView(DefaultFormView):
 
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
-            return get_readonly_field_data(name, (self, self.core, instance),
-                                           {'request': self.request, 'obj': instance})
+            return get_readonly_field_data(
+                name,
+                instance,
+                view=self,
+                fun_kwargs={'request': self.request, 'obj': instance}
+            )
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_has_file_field(self, form, inline_form_views=None, **kwargs):

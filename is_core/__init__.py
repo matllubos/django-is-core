@@ -11,5 +11,5 @@ try:
         from .forms.patch import *
     except ImproperlyConfigured:
         pass
-except ImportError as ex:
+except ImportError:
     pass
