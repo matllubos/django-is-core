@@ -19,7 +19,7 @@ from is_core.generic_views.form_views import AddModelFormView, DetailModelFormVi
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
-from is_core.utils import flatten_fieldsets, str_to_class
+from is_core.utils import flatten_fieldsets, str_to_class, GetMethodFieldMixin
 from is_core.utils.compatibility import urls_wrapper, get_model_name, reverse
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
@@ -118,7 +118,7 @@ class ISCore(metaclass=ISCoreBase):
         return '-'.join(self.get_menu_groups())
 
 
-class ModelISCore(ISCore):
+class ModelISCore(GetMethodFieldMixin, ISCore):
     """
     Parent of REST and UI cores that works as controller to specific model.
     This class is abstract.

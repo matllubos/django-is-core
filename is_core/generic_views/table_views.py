@@ -137,24 +137,36 @@ class TableViewMixin:
     def _get_field_labels(self):
         return self.field_labels
 
+    def _get_resource_label(self, model, field_name):
+        resource = self.get_resource(model)
+        if resource:
+            method_field = resource.get_method_returning_field_value(field_name)
+            return getattr(method_field, 'short_description', pretty_name(field_name)) if method_field else None
+        else:
+            return None
+
     def _get_field_or_method_label(self, model, field_name):
-        try:
-            field = model._meta.get_field(field_name)
-            if field.auto_created and (field.one_to_many or field.many_to_many):
-                return (
-                    getattr(field.field, 'reverse_verbose_name', None) or
-                    field.related_model._meta.verbose_name_plural
-                )
-            elif field.auto_created and field.one_to_one:
-                return (
-                    getattr(field.field, 'reverse_verbose_name', None) or
-                    field.related_model._meta.verbose_name
-                )
-            else:
-                return field.verbose_name
-        except FieldDoesNotExist:
-            method = get_class_method(model, field_name)
-            return getattr(method, 'short_description', pretty_name(field_name))
+        resource_label = self._get_resource_label(model, field_name)
+        if resource_label is not None:
+            return resource_label
+        else:
+            try:
+                field = model._meta.get_field(field_name)
+                if field.auto_created and (field.one_to_many or field.many_to_many):
+                    return (
+                        getattr(field.field, 'reverse_verbose_name', None) or
+                        field.related_model._meta.verbose_name_plural
+                    )
+                elif field.auto_created and field.one_to_one:
+                    return (
+                        getattr(field.field, 'reverse_verbose_name', None) or
+                        field.related_model._meta.verbose_name
+                    )
+                else:
+                    return field.verbose_name
+            except FieldDoesNotExist:
+                method = get_class_method(model, field_name)
+                return getattr(method, 'short_description', pretty_name(field_name))
 
     def _get_header_label(self, model, full_field_name, field_name, current_label=None):
         field_labels = self._get_field_labels()
@@ -272,8 +284,8 @@ class TableViewMixin:
     def get_table_slug(self):
         return pretty_class_name(self.__class__.__name__)
 
-    def get_resource(self):
-        return get_resource_or_none(self.request, self.model)
+    def get_resource(self, model=None):
+        return get_resource_or_none(self.request, model or self.model)
 
 
 class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):

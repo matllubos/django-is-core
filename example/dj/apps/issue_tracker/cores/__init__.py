@@ -31,7 +31,7 @@ class UserISCore(UIRESTModelISCore):
 
     model = User
     form_class = UserForm
-    ui_list_fields = ('id', '_obj_name')
+    ui_list_fields = ('id', 'created_issues_count', '_obj_name')
     permission = PermissionsSet(
         create=IsSuperuser(),
         read=IsSuperuser() | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
@@ -48,8 +48,12 @@ class UserISCore(UIRESTModelISCore):
     def get_rest_patterns(self):
         rest_patterns = super().get_rest_patterns()
         rest_patterns['api-user-issue'] = self.default_rest_pattern_class(
-            'api-number-issues', self.site_name, r'(?P<pk>[-\w]+)/issue-number/', NumberOfUserIssuesResource, self)
+            'api-number-issues', self.site_name, r'(?P<pk>[-\w]+)/issue-number/', NumberOfUserIssuesResource, self
+        )
         return rest_patterns
+
+    def created_issues_count(self, obj):
+        return obj.created_issues.count()
 
 
 class IssueISCore(UIRESTModelISCore):
