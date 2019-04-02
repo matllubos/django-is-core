@@ -88,7 +88,7 @@ def get_field_from_model_or_none(model, field_name):
 def _get_verbose_value(raw, field_or_method, obj, **kwargs):
     if hasattr(field_or_method, 'humanized') and field_or_method.humanized:
         return field_or_method.humanized(raw, obj, **kwargs)
-    elif hasattr(obj, 'get_{}_display'):
+    elif hasattr(field_or_method, 'attname') and hasattr(obj, 'get_{}_display'.format(field_or_method.attname)):
         return getattr(obj, 'get_{}_display'.format(field_or_method.attname))()
     else:
         return raw
@@ -96,7 +96,6 @@ def _get_verbose_value(raw, field_or_method, obj, **kwargs):
 
 def _val_to_readonly_value(value, field_or_method, obj, **kwargs):
     from is_core.forms.utils import ReadonlyValue
-
     verbose_value = _get_verbose_value(value, field_or_method, obj, **kwargs)
     return ReadonlyValue(value, verbose_value) if value != verbose_value else value
 
