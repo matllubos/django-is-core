@@ -35,9 +35,9 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
 
     def __init__(self, request, parent_view, parent_instance):
         super().__init__(request, parent_view, parent_instance)
-        self.parent_model = parent_view.model
         self.core = parent_view.core
         self.parent_instance = parent_instance
+        self.parent_model = self.parent_instance.__class__
         self.readonly = self._is_readonly()
         self.formset = self.get_formset(parent_instance, self.request.POST, self.request.FILES)
 
@@ -152,7 +152,9 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
         readonly_fields = self.get_readonly_fields()
 
         if data:
-            formset = self.get_formset_factory(fields, readonly_fields)(data=data, files=files, instance=instance,
+            formset = self.get_formset_factory(fields, readonly_fields)(data=data,
+                                                                        files=files,
+                                                                        instance=instance,
                                                                         queryset=self.get_queryset(),
                                                                         prefix=self.get_prefix())
         else:
