@@ -6,6 +6,6 @@ class LoginView(_LoginView):
     template_name = 'is_core/login.html'
 
 
-class LogoutView(_LoginView):
+class LogoutView(_LogoutView):
 
     template_name = 'is_core/logged_out.html'
