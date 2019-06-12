@@ -88,6 +88,12 @@ class ISSite:
                                   auth_resource_class)
             urlpatterns += urls_wrapper(pattern.get_url())
 
+        if settings.AUTH_LOGIN_CODE_VERIFICATION_VIEW:
+            urlpatterns += urls_wrapper(
+                url(r'^{}$'.format(settings.CODE_VERIFICATION_URL[1:]),
+                    str_to_class(settings.AUTH_LOGIN_CODE_VERIFICATION_VIEW).as_view(), name='code-verification-login'),
+            )
+
         pattern = RESTPattern('api', self.name, r'api/', EntryPointResource)
         urlpatterns += urls_wrapper(pattern.get_url())
 

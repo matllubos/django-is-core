@@ -1,7 +1,21 @@
 from django.conf import settings as django_settings
 
 
+def _get_auth_login_view():
+    if 'auth_token' in django_settings.INSTALLED_APPS and django_settings.AUTH_TOKEN_TWO_FACTOR_ENABLED:
+        return 'auth_token.contrib.is_core_auth.views.TwoFactorLoginView'
+    elif 'auth_token' in django_settings.INSTALLED_APPS:
+        return 'auth_token.contrib.is_core_auth.views.LoginView'
+    else:
+        return 'is_core.views.auth.LoginView'
+
+
 DEFAULTS = {
+    'AUTH_LOGIN_CODE_VERIFICATION_VIEW': (
+        'auth_token.contrib.is_core_auth.views.LoginCodeVerificationView'
+        if 'auth_token' in django_settings.INSTALLED_APPS and django_settings.AUTH_TOKEN_TWO_FACTOR_ENABLED
+        else None
+    ),
     'AUTH_FORM_CLASS': (
         'auth_token.contrib.is_core_auth.forms.TokenAuthenticationSmartForm'
         if 'auth_token' in django_settings.INSTALLED_APPS
@@ -11,14 +25,12 @@ DEFAULTS = {
         'auth_token.contrib.is_core_auth.resource.AuthResource' if 'auth_token' in django_settings.INSTALLED_APPS
         else None
     ),
-    'AUTH_LOGIN_VIEW': (
-        'auth_token.contrib.is_core_auth.views.LoginView' if 'auth_token' in django_settings.INSTALLED_APPS
-        else 'is_core.views.auth.LoginView'
-    ),
+    'AUTH_LOGIN_VIEW': _get_auth_login_view(),
     'AUTH_LOGOUT_VIEW': (
         'auth_token.contrib.is_core_auth.views.LogoutView' if 'auth_token' in django_settings.INSTALLED_APPS
         else 'is_core.views.auth.LogoutView'
     ),
+    'CODE_VERIFICATION_URL': '/login/login-code-verification/',
     'HOME_CORE': 'is_core.main.HomeUIISCore',
     'HOME_VIEW': 'is_core.generic_views.HomeView',
     'MENU_GENERATOR': 'is_core.menu.MenuGenerator',
