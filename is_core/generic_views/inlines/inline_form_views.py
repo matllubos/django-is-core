@@ -32,6 +32,7 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
     initial = []
     no_items_text = _('There are no items')
     class_names = ['inline-js']
+    add_inline_button_verbose_name = None
 
     def __init__(self, request, parent_view, parent_instance):
         super().__init__(request, parent_view, parent_instance)
@@ -204,10 +205,10 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
         return self.model.__name__
 
     def get_button_value(self):
-        return (self.model._ui_meta.add_inline_button_verbose_name % {
+        return self.add_inline_button_verbose_name or self.model._ui_meta.add_inline_button_verbose_name % {
             'verbose_name': self.model._meta.verbose_name,
             'verbose_name_plural': self.model._meta.verbose_name_plural
-        })
+        }
 
     def form_valid(self, request):
         instances = self.formset.save(commit=False)

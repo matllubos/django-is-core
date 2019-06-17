@@ -294,6 +294,13 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
     view_type = 'list'
     export_types = None
     export_fields = None
+    add_button_verbose_name = None
+
+    def _get_add_button_verbose_name(self):
+        return self.add_button_verbose_name or self.core.model._ui_meta.add_button_verbose_name % {
+            'verbose_name': self.core.model._meta.verbose_name,
+            'verbose_name_plural': self.core.model._meta.verbose_name_plural
+        }
 
     def _get_field_labels(self):
         return self.field_labels if self.field_labels is not None else self.core.get_ui_list_field_labels(self.request)
@@ -338,9 +345,7 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
         context_data.update({
             'add_url': self._get_add_url(),
             'view_type': self.view_type,
-            'add_button_value': self.core.model._ui_meta.add_button_verbose_name % {
-                'verbose_name': self.core.model._meta.verbose_name,
-                'verbose_name_plural': self.core.model._meta.verbose_name_plural},
+            'add_button_value': self._get_add_button_verbose_name(),
             'enable_bulk_change': self.is_bulk_change_enabled(),
             'bulk_change_snippet_name': self.get_bulk_change_snippet_name(),
             'bulk_change_form_url': self.get_bulk_change_form_url(),
