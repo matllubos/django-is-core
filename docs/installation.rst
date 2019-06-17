@@ -31,7 +31,6 @@ Libraries
  * **django-apptemplates** - Django template loader that allows you to load a template from a specific application
  * **django-project-info** - small library getting project version to django context data
  * **pillow** - Python imaging library (optional)
- * **sorl-thumbnail** - thumbnails for django (optional)
  * **germanium** - framework for testing purposes (optional)
  * **factory-boy** - testing helper for creating model data for tests (optional)
 

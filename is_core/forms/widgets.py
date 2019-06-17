@@ -1,33 +1,24 @@
 import os
-
 from distutils.version import StrictVersion
-
 from itertools import chain
 
 import django
 from django import forms
-from django.utils.encoding import force_text
-from django.utils.functional import cached_property
-from django.utils.safestring import mark_safe
-from django.utils.html import format_html, format_html_join, conditional_escape
-from django.utils.translation import ugettext_lazy as _
-from django.db.models.fields.files import FieldFile
 from django.core.exceptions import ImproperlyConfigured
-from django.forms.widgets import Widget, MultiWidget, TextInput
-from django.forms.utils import flatatt
 from django.core.validators import EMPTY_VALUES
 from django.db.models.base import Model
-
-try:
-    from sorl.thumbnail import default
-except ImportError:
-    default = None
-
+from django.db.models.fields.files import FieldFile
+from django.forms.utils import flatatt
+from django.forms.widgets import MultiWidget, TextInput, Widget
+from django.utils.encoding import force_text
+from django.utils.functional import cached_property
+from django.utils.html import conditional_escape, format_html, format_html_join
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 from is_core.config import settings
 from is_core.utils.compatibility import CompatibilityWidgetMixin
 
 from .utils import ReadonlyValue, add_class_name
-
 
 EMPTY_VALUE = '---'
 
@@ -135,14 +126,8 @@ class DragAndDropFileInput(ClearableFileInput):
 
 class DragAndDropImageInput(DragAndDropFileInput):
 
-    def _get_thumbnail(self, value):
-        if not default:
-            raise ImproperlyConfigured('Please install sorl.thumbnail before using drag-and-drop file input')
-        return default.backend.get_thumbnail(value, '64x64', crop='center')
-
     def _render_value(self, value):
-        thumbnail = self._get_thumbnail(value)
-        return '<img src="%s" alt="%s">' % (thumbnail.url, thumbnail.name)
+        return ''
 
 
 class SmartWidgetMixin:

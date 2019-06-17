@@ -2,7 +2,7 @@ from distutils.version import StrictVersion
 
 import django
 
-from django.forms.widgets import DateInput , DateTimeInput, TimeInput, Widget
+from django.forms.widgets import DateInput, DateTimeInput, TimeInput, Widget
 from django.forms.fields import (ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField,
                                  NullBooleanField)
 
@@ -47,12 +47,6 @@ DateTimeInput.class_name = 'datetime'
 FileField.widget = DragAndDropFileInput
 ImageField.widget = DragAndDropImageInput
 MultipleChoiceField.widget = FulltextSelectMultiple
-
-try:
-    from sorl.thumbnail.fields import ImageFormField
-    ImageFormField.widget = DragAndDropImageInput
-except ImportError:
-    pass
 
 Field.is_readonly = False
 Field.readonly_widget = ReadonlyWidget
