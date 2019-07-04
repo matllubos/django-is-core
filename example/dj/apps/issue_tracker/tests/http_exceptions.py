@@ -1,5 +1,5 @@
+from germanium.decorators import login
 from germanium.test_cases.rest import RESTTestCase
-from germanium.annotations import login
 from germanium.tools import assert_in
 from germanium.tools.http import assert_http_unauthorized, assert_http_forbidden, assert_http_not_found
 

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 
 from germanium import config
-from germanium.annotations import login
+from germanium.decorators import login
 from germanium.test_cases.client import ClientTestCase
 from germanium.tools import assert_true, assert_false, assert_equal, assert_not_equal
 from germanium.tools.http import assert_http_redirect, assert_http_ok, assert_http_forbidden, assert_http_not_found

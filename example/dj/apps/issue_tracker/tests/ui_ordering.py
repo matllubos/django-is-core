@@ -1,4 +1,4 @@
-from germanium.annotations import login
+from germanium.decorators import login
 from germanium.test_cases.client import ClientTestCase
 from germanium.tools import assert_in
 
