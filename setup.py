@@ -25,9 +25,9 @@ setup(
     ],
     install_requires=[
         'django>=1.10',
-        'django-pyston~=2.9.5',
+        'django-pyston~=2.9.16',
         'django-block-snippets==2.0.1',
-        'django-chamber~=0.4.6',
+        'django-chamber~=0.5.2',
         'python-dateutil~=2.2',
         'pytz',
         'Unidecode>=0.04.16',

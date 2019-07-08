@@ -246,9 +246,9 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
     filters = {}
     default_fields_extension = None
 
-    def _get_field_labels(self):
+    def get_field_labels(self):
         return (
-            self.field_labels if self.field_labels is not None else self.core.get_rest_form_field_labels(self.request)
+            self.field_labels if self.field_labels is not None else self.core.get_rest_field_labels(self.request)
         )
 
     def get_fields(self, obj=None):
@@ -386,7 +386,7 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
                                       auto_related_direct_fields=pyston_settings.AUTO_RELATED_DIRECT_FIELDS,
                                       auto_related_reverse_fields=pyston_settings.AUTO_RELATED_REVERSE_FIELDS,
                                       request=self.request, exclude=exclude, fields=fields,
-                                      labels=self._get_field_labels())
+                                      labels=self.get_field_labels())
 
     def put(self):
         # TODO: backward compatibility for bulk update should be used only patch

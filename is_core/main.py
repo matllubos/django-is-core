@@ -541,7 +541,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     rest_form_add_class = None
 
     rest_resource_class = RESTModelResource
-    rest_form_field_labels = None
+    rest_field_labels = None
     rest_paginator = None
 
     def get_rest_allowed_methods(self):
@@ -556,9 +556,9 @@ class RESTModelISCore(RESTISCore, ModelISCore):
             rest_allowed_methods.append('delete')
         return rest_allowed_methods
 
-    def get_rest_form_field_labels(self, request):
+    def get_rest_field_labels(self, request):
         return (
-            self.rest_form_field_labels if self.rest_form_field_labels is not None
+            self.rest_field_labels if self.rest_field_labels is not None
             else self.get_field_labels(request)
         )
 

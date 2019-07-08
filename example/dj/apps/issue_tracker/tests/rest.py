@@ -1,4 +1,4 @@
-from germanium.annotations import login
+from germanium.decorators import login
 from germanium.test_cases.rest import RESTTestCase
 from germanium.tools import assert_equal
 from germanium.tools.rest import assert_valid_JSON_response
