@@ -4,6 +4,8 @@ Contains controller added between model and UI/REST.
 """
 import sys
 
+from copy import deepcopy
+
 from collections import OrderedDict
 
 from django.shortcuts import get_object_or_404
@@ -13,6 +15,7 @@ from django.core.exceptions import ValidationError
 from django.forms.models import _get_foreign_key
 from django.utils.functional import cached_property
 
+from is_core.auth.permissions import FieldsSetPermission
 from is_core.config import settings
 from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, DetailModelFormView, BulkChangeFormView
@@ -67,6 +70,7 @@ class ISCore(metaclass=ISCoreBase):
     default_permission = IsAdminUser()
 
     permission = None
+    field_permissions = FieldsSetPermission()
 
     def __init__(self, site_name, menu_parent_groups):
         self.site_name = site_name
@@ -74,7 +78,7 @@ class ISCore(metaclass=ISCoreBase):
         self.permission = self._init_permission(self.permission)
 
     def _init_permission(self, permission):
-        return self._generate_permission_set() if permission is None else permission
+        return self._generate_permission_set() if permission is None else deepcopy(permission)
 
     def _get_default_permission(self, name):
         return self.default_permission
@@ -400,12 +404,17 @@ class UIModelISCore(ModelISCore, UIISCore):
     @cached_property
     def default_model_view_classes(self):
         default_model_view_classes = []
-        if self.can_create:
-            default_model_view_classes.append(('add', r'add/', self.get_ui_add_view()))
-        if self.can_read or self.can_update:
-            default_model_view_classes.append(('detail', r'(?P<pk>[-\w]+)/', self.get_ui_detail_view()))
-        if self.can_read:
-            default_model_view_classes.append(('list', r'', self.get_ui_list_view()))
+
+        add_view = self.get_ui_add_view()
+        detail_view = self.get_ui_detail_view()
+        list_view = self.get_ui_list_view()
+
+        if self.can_create and add_view:
+            default_model_view_classes.append(('add', r'add/', add_view))
+        if (self.can_read or self.can_update) and detail_view:
+            default_model_view_classes.append(('detail', r'(?P<pk>[-\w]+)/', detail_view))
+        if self.can_read and list_view:
+            default_model_view_classes.append(('list', r'', list_view))
         return default_model_view_classes
 
     def get_view_classes(self):
@@ -502,8 +511,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         return self.list_per_page
 
     def get_add_url(self, request):
-        if 'add' in self.ui_patterns:
-            return self.ui_patterns.get('add').get_url_string(request)
+        return self.ui_patterns.get('add').get_url_string(request) if 'add' in self.ui_patterns else None
 
     def get_ui_form_field_labels(self, request):
         return self.ui_form_field_labels if self.ui_form_field_labels is not None else self.get_field_labels(request)

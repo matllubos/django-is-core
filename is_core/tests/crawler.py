@@ -5,7 +5,8 @@ from django.utils.encoding import force_text
 from germanium.tools import assert_true, assert_not_equal
 from germanium.test_cases.client import ClientTestCase
 from germanium.decorators import login
-from germanium.crawler import Crawler, LinkExtractor, HtmlLinkExtractor as OriginalHtmlLinkExtractor
+from germanium.crawler import Crawler, LinkExtractor
+from germanium.crawler import HTMLLinkExtractor as OriginalHTMLLinkExtractor
 
 
 def flatt_list(iterable_value):
@@ -62,7 +63,7 @@ class JSONLinkExtractor(LinkExtractor):
         return links
 
 
-class HTMLLinkExtractor(OriginalHtmlLinkExtractor):
+class HTMLLinkExtractor(OriginalHTMLLinkExtractor):
     link_attr_names = ('href', 'src', 'data-resource')
 
 
@@ -120,9 +121,9 @@ class CrawlerTestCase(ClientTestCase):
             assert_not_equal(resp.status_code, 500, msg='Response code for url %s from referer %s is 500, user %s' %
                              (url, referer, self.logged_user.user))
         Crawler(self.c, ('/',), self.get_exlude_urls(), pre_request, post_response,
-                extra_link_extractors={'application/json; charset=utf-8': JSONLinkExtractor(),
+                extra_link_extractors={'application/json': JSONLinkExtractor(),
                                        'text/plain': TextPlainSnippetsExtractor(),
-                                       'default': HTMLLinkExtractor()}).run()
+                                       'text/html': HTMLLinkExtractor()}).run()
 
         self.logger.info('Completed with tested %s urls (warnings %s)' % (len(tested_urls), len(failed_urls)))
         self.logger.info('---------------------------')

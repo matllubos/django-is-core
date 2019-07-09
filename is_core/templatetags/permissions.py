@@ -15,6 +15,7 @@ class Permissions:
     def register_permission_validator(self, name, validator):
         self.permissions_validators[name] = validator
 
+
 permissions = Permissions()
 
 

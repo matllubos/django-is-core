@@ -1,7 +1,6 @@
 {% load i18n forms %}
 
 <fieldset class="inline responsive-inline {{ class_names|join:' ' }}">
-	{% block inline-title %}{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}{% endblock %}
 	<div class="form">
 		{% for row in data_list %}
 			{% if forloop.first %}

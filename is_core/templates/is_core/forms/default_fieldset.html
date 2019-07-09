@@ -3,11 +3,7 @@
 <fieldset class="{% if title %}with-title{% else %}without-title{% endif %}{% if class %} {{ class }}{% endif %}">
     {% if title %}<legend>{{ title }}</legend>{% endif %}
     {% block above-form %}{% endblock %}
-    {% if fieldsets %}
-        {% for fieldset in fieldsets %}
-            {% fieldset_renderer form fieldset %}
-        {% endfor %}
-    {% else %}
+    {% if fields %}
         <div class="container-fluid">
             {% for field_name_or_names in fields %}
                 {% with field_names=field_name_or_names|to_list %}
@@ -26,5 +22,16 @@
             {% endfor %}
         </div>
     {% endif %}
+
+    {% if rendered_fieldsets %}
+        {% for rendered_fieldset in rendered_fieldsets %}
+            {{ rendered_fieldset }}
+        {% endfor %}
+    {% endif %}
+
+    {% if rendered_inline_view %}
+        {{ rendered_inline_view }}
+    {% endif %}
+
     {% block below-form %}{% endblock %}
 </fieldset>

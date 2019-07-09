@@ -1,6 +1,6 @@
 from germanium.decorators import login
 from germanium.test_cases.rest import RESTTestCase
-from germanium.tools import assert_equal
+from germanium.tools import assert_equal, assert_false
 from germanium.tools.http import (assert_http_forbidden, assert_http_unauthorized, assert_http_accepted,
                                   assert_http_not_found, assert_http_method_not_allowed)
 from germanium.tools.rest import assert_valid_JSON_response, assert_valid_JSON_created_response
@@ -155,3 +155,29 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase)
         resp = self.get(self.USER_API_URL+'?_fields=_actions')
         assert_equal(len(resp.json()[0]['_actions']), 1)
         assert_equal({action['class_name'] for action in resp.json()[0]['_actions']}, {'edit'})
+
+    @login(is_superuser=True)
+    def test_superuser_should_read_username_and_is_superuser_fields(self):
+        resp = self.get(self.USER_API_URL+'?_fields=username,is_superuser')
+        assert_equal(set(resp.json()[0].keys()), {'username', 'is_superuser'})
+
+    @login(is_superuser=False)
+    def test_user_should_not_read_read_is_superuser_fields(self):
+        resp = self.get(self.USER_API_URL+'?_fields=username,is_superuser')
+        assert_equal(set(resp.json()[0].keys()), {'username'})
+
+    @login(is_superuser=False)
+    def test_user_should_not_update_is_superuser(self):
+        user = self.logged_user.user
+        resp = self.put('%s%s/' % (self.USER_API_URL, user.pk), data={'is_superuser': True})
+        assert_valid_JSON_response(resp)
+        user.refresh_from_db()
+        assert_false(user.is_superuser)
+
+    @login(is_superuser=True)
+    def test_superuser_should_update_is_superuser(self):
+        user = self.logged_user.user
+        resp = self.put('%s%s/' % (self.USER_API_URL, user.pk), data={'is_superuser': False})
+        assert_valid_JSON_response(resp)
+        user.refresh_from_db()
+        assert_false(user.is_superuser)

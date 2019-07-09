@@ -17,9 +17,10 @@ from chamber.shortcuts import get_object_or_none
 from chamber.utils import transaction
 
 from is_core.auth.permissions import (
-    PermissionsSet, IsAuthenticated, CoreReadAllowed, CoreUpdateAllowed, CoreDeleteAllowed, CoreCreateAllowed,
-    AllowAny
+    PermissionsSet, IsAuthenticated, CoreAllowed, CoreReadAllowed, CoreUpdateAllowed, CoreDeleteAllowed,
+    CoreCreateAllowed, AllowAny, DEFAULT_PERMISSION
 )
+from is_core.auth.views import FieldPermissionViewMixin
 from is_core.config import settings
 from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUnsupportedMediaTypeResponseException,
                                          HTTPMethodNotAllowedResponseException, HTTPDuplicateResponseException,
@@ -182,7 +183,12 @@ class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
         create_obj=CoreCreateAllowed(),
         read_obj=CoreReadAllowed(),
         update_obj=CoreUpdateAllowed(),
-        delete_obj=CoreDeleteAllowed()
+        delete_obj=CoreDeleteAllowed(),
+
+        # Other permissions
+        **{
+            DEFAULT_PERMISSION: CoreAllowed(),
+        }
     )
 
     def _get_perm_obj_or_none(self, pk=None):
@@ -238,13 +244,16 @@ class EntryPointResource(RESTResource):
         return out
 
 
-class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource):
+class RESTModelResource(FieldPermissionViewMixin, RESTModelCoreMixin, RESTResourceMixin, BaseModelResource):
 
     form_class = None
     field_labels = None
     abstract = True
     filters = {}
     default_fields_extension = None
+
+    def get_allowed_fields_rfs(self, obj=None):
+        return super().get_allowed_fields_rfs().subtract(self._get_disallowed_fields_from_permissions(obj=obj))
 
     def get_field_labels(self):
         return (
@@ -340,7 +349,10 @@ class RESTModelResource(RESTModelCoreMixin, RESTResourceMixin, BaseModelResource
         return self.core.preload_queryset(self.request, qs)
 
     def _get_exclude(self, obj=None):
-        return self.core.get_rest_form_exclude(self.request, obj)
+        return (
+            list(self.core.get_rest_form_exclude(self.request, obj))
+            + list(self._get_readonly_fields_from_permissions(obj))
+        )
 
     def _get_form_fields(self, obj=None):
         return self.core.get_rest_form_fields(self.request, obj)

@@ -4,6 +4,7 @@ from django.template.base import TemplateSyntaxError, token_kwargs
 from django.template.loader import render_to_string
 from django.template.loader_tags import IncludeNode
 
+from is_core.config import settings
 from is_core.utils import pretty_class_name
 from is_core.forms.widgets import WrapperWidget
 
@@ -32,21 +33,37 @@ def fieldset_renderer(context, form, fieldset):
         context_dict.update(data)
     request = context_dict.pop('request', None)
     values = fieldset[1]
-    inline_view = values.get('inline_view')
+    inline_view = values.get('inline_view_inst')
     context_dict.update({
         'class': values.get('class'),
     })
-    if inline_view:
-        return inline_view.render(context, fieldset[0])
-    template = values.get('template') or 'is_core/forms/default_fieldset.html'
-    context_dict.update({
-        'fields': values.get('fields'),
-        'form': form,
-        'title': fieldset[0],
-        'class': values.get('class'),
-        'fieldsets': values.get('fieldsets')
-    })
-    return render_to_string(template, context_dict, request=request)
+
+    rendered_inline_view = (
+        inline_view.render(context.new(context_dict), fieldset[0]) if inline_view else ''
+    )
+
+    rendered_fieldsets = []
+    for sub_fieldset in values.get('fieldsets', ()):
+        rendered_fieldset = fieldset_renderer(context, form, sub_fieldset)
+        if rendered_fieldset:
+            rendered_fieldsets.append(rendered_fieldset)
+
+    fields = values.get('fields')
+
+    if fields or rendered_fieldsets or rendered_inline_view:
+        template = values.get('template') or settings.DEFAULT_FIELDSET_TEMPLATE
+        context_dict.update({
+            'fields': fields,
+            'form': form,
+            'title': fieldset[0],
+            'class': values.get('class'),
+            'fieldsets': values.get('fieldsets'),
+            'rendered_fieldsets': rendered_fieldsets,
+            'rendered_inline_view': rendered_inline_view,
+        })
+        return render_to_string(template, context_dict, request=request)
+    else:
+        return ''
 
 
 @register.simple_tag(takes_context=True)
