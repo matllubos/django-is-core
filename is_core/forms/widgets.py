@@ -124,12 +124,6 @@ class DragAndDropFileInput(ClearableFileInput):
         return mark_safe('\n'.join(output))
 
 
-class DragAndDropImageInput(DragAndDropFileInput):
-
-    def _render_value(self, value):
-        return ''
-
-
 class SmartWidgetMixin:
 
     def smart_render(self, request, name, value, initial_value, form, *args, **kwargs):

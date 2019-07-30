@@ -7,7 +7,7 @@ from django.forms.fields import (ImageField, FileField, Field, URLField, Multipl
                                  NullBooleanField)
 
 from is_core.forms.utils import add_class_name
-from is_core.forms.widgets import (DragAndDropFileInput, DragAndDropImageInput, ReadonlyWidget, URLReadonlyWidget,
+from is_core.forms.widgets import (DragAndDropFileInput, ReadonlyWidget, URLReadonlyWidget,
                                    FileReadonlyWidget, FulltextSelectMultiple, NullBooleanReadonlyWidget)
 
 
@@ -45,7 +45,7 @@ TimeInput.class_name = 'time'
 DateTimeInput.class_name = 'datetime'
 
 FileField.widget = DragAndDropFileInput
-ImageField.widget = DragAndDropImageInput
+ImageField.widget = DragAndDropFileInput
 MultipleChoiceField.widget = FulltextSelectMultiple
 
 Field.is_readonly = False
