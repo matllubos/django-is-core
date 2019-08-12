@@ -134,7 +134,6 @@ class GetCoreObjViewMixin:
 
     def _has_permission(self, name, obj=None):
         obj = obj or self.get_obj()
-
         return super()._has_permission(name, obj=obj)
 
     # TODO: should contains own implementation (not use get_obj from main)
@@ -149,6 +148,12 @@ class GetCoreObjViewMixin:
 
     def get_obj_or_none(self, cached=True):
         try:
-            return self.get_obj()
+            return self.get_obj(cached=cached)
         except Http404:
             return None
+
+    def _get_disallowed_fields_from_permissions(self, obj=None):
+        return super()._get_disallowed_fields_from_permissions(obj=obj or self.get_obj())
+
+    def _get_readonly_fields_from_permissions(self, obj=None):
+        return super()._get_readonly_fields_from_permissions(obj=obj or self.get_obj())

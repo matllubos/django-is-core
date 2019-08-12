@@ -1,7 +1,6 @@
 {% load i18n forms %}
 
 <fieldset class="inline responsive-inline {{ class_names|join:' ' }}">
-	{% block inline-title %}{% if title %}<legend>{{ title }}</legend>{% endif %}{% endblock %}
 	{{ formset.management_form }}
 	<div class="form">
 		{% if formset.all_forms %}
@@ -9,7 +8,7 @@
 				{% if forloop.first %}
 					{% block inline-thead %}
 						<div class="inline-header form-inline">
-							{% for field_name in fieldset %}
+							{% for field_name in fields %}
 								{% get_field form field_name as field %}
 								{% if not field.is_hidden %}
 									<div class="form-group col-{{ forloop.counter }} {{ field_name }}">
@@ -24,7 +23,7 @@
 					{% endblock %}
 				{% endif %}
 				<div class="inline-line form-inline {% cycle 'odd' 'even' %} {{ form.class_names|join:' ' }}">
-					{% get_visible_fields form fieldset as visible_fields %}
+					{% get_visible_fields form fields as visible_fields %}
 					{% for field in visible_fields %}
 						<div class="col-{{ forloop.counter }} form-group field {{ field.name }}{% if field.errors %} error{% endif %}">
 							{# Include the hidden fields in the form #}

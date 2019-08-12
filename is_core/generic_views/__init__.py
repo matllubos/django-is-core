@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from block_snippets.views import JSONSnippetTemplateResponseMixin
 
-from is_core.auth.permissions import PermissionsSet, CoreReadAllowed
+from is_core.auth.permissions import PermissionsSet, CoreReadAllowed, CoreAllowed, DEFAULT_PERMISSION
 from is_core.menu import LinkMenuItem
 from is_core.exceptions import (
     HTTPForbiddenResponseException, HTTPUnauthorizedResponseException, HTTPRedirectResponseException
@@ -134,7 +134,10 @@ class DefaultCoreViewMixin(DefaultViewMixin):
     view_name = None
     title = None
     permission = PermissionsSet(
-        get=CoreReadAllowed()
+        get=CoreReadAllowed(),
+        **{
+            DEFAULT_PERMISSION: CoreAllowed(),
+        }
     )
 
     def __init__(self):

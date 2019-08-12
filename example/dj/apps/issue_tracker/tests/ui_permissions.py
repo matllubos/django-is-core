@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from germanium import config
 from germanium.decorators import login
 from germanium.test_cases.client import ClientTestCase
-from germanium.tools import assert_true, assert_false, assert_equal, assert_not_equal
+from germanium.tools import assert_true, assert_false, assert_equal, assert_not_equal, assert_in, assert_not_in
 from germanium.tools.http import assert_http_redirect, assert_http_ok, assert_http_forbidden, assert_http_not_found
 
 from .test_case import HelperTestCase, AsSuperuserTestCase
@@ -97,3 +97,15 @@ class UIPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, ClientTestCase)
     def test_issue_should_return_not_found_because_can_add_is_disabled(self):
         assert_http_not_found(self.get('%sadd/' % self.ISSUE_UI_URL))
         assert_http_not_found(self.post('%sadd/' % self.ISSUE_UI_URL, data={}))
+
+    @login(is_superuser=True)
+    def test_superuser_should_read_is_superuser_field(self):
+        user = self.logged_user.user
+        resp = self.get('%s%s/' % (self.USER_UI_URL, user.pk))
+        assert_in(b'is_superuser', resp.content)
+
+    @login(is_superuser=False)
+    def test_not_superuser_should_not_read_is_superuser_field(self):
+        user = self.logged_user.user
+        resp = self.get('%s%s/' % (self.USER_UI_URL, user.pk))
+        assert_not_in(b'is_superuser', resp.content)

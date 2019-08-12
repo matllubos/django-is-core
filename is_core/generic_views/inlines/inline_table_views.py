@@ -1,21 +1,31 @@
 from django.forms.models import _get_foreign_key
 
 from is_core.generic_views.table_views import TableViewMixin
-from is_core.generic_views.inlines import InlineView
+from is_core.generic_views.inlines import RelatedInlineView
 
 
-class InlineTableView(TableViewMixin, InlineView):
+class InlineTableView(TableViewMixin, RelatedInlineView):
 
     template_name = 'is_core/forms/inline_table.html'
     fk_name = None
 
+    def _get_field_labels(self):
+        return (
+            self.field_labels if self.field_labels is not None or not self.related_core
+            else self.related_core.get_ui_list_field_labels(self.request)
+        )
+
+    def _get_fields(self):
+        return (
+            self.related_core.get_ui_list_fields(self.request) if self.related_core and self.fields is None
+            else self.fields
+        )
+
     def _get_api_url(self):
-        from is_core.site import get_model_core
-        return get_model_core(self.model).get_api_url(self.request)
+        return self.related_core.get_api_url(self.request)
 
     def _get_menu_group_pattern_name(self):
-        from is_core.site import get_model_core
-        return get_model_core(self.model).get_menu_group_pattern_name()
+        return self.related_core.get_menu_group_pattern_name()
 
     def _get_list_filter(self):
         list_filter = super(InlineTableView, self)._get_list_filter()

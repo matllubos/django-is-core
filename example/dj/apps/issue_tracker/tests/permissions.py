@@ -1,12 +1,7 @@
-from django.contrib.auth.models import User
-
 from germanium.test_cases.default import GermaniumTestCase
 from germanium.tools import assert_true, assert_false, assert_equal, assert_not_equal
-from germanium.tools.http import assert_http_redirect, assert_http_ok, assert_http_forbidden, assert_http_not_found
 
-from is_core.auth.permissions import BasePermission, PermissionsSet
-
-from .test_case import HelperTestCase, AsSuperuserTestCase
+from is_core.auth.permissions import BasePermission, PermissionsSet, SelfPermission
 
 
 __all__ =(
@@ -55,6 +50,7 @@ class PermissionsTestCase(GermaniumTestCase):
             none=ObjIsNonePermission(),
             not_none=ObjIsNotNonePermission(),
             string=ObjIsStringPermission(),
+            self_note=SelfPermission('none'),
         )
 
         assert_true(permission.has_permission('none', None, None, None))
@@ -62,3 +58,5 @@ class PermissionsTestCase(GermaniumTestCase):
         assert_false(permission.has_permission('invalid', None, None, None))
         assert_false(permission.has_permission('not_none', None, None, None))
         assert_true(permission.has_permission('string', None, None, ''))
+        assert_true(permission.has_permission('self_note', None, None, None))
+        assert_false(permission.has_permission('self_note', None, None, ''))

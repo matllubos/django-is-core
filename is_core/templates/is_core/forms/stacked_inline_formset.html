@@ -2,7 +2,6 @@
 
 {% block fieldset %}
 <fieldset class="inline stacked-inline {{ class_names|join:' ' }}{% if class %} {{ class }}{% endif %}">
-	{% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}
 	{% block fieldset-forms %}
 		{{ formset.management_form }}
 		{% if formset.all_forms %}
@@ -10,7 +9,7 @@
 				<div class="{{ form | model_name }} {{ form.class_names|join:' ' }}" id="{{ form.prefix }}">
 					{{ form.non_field_errors }}
 					{% block fieldset-field %}
-						{% for field_name in fieldset %}
+						{% for field_name in fields %}
 							{% get_field form field_name as field %}
 							<div class="form-group">
 								{% if not field.is_hidden %}

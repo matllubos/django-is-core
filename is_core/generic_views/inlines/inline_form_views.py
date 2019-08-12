@@ -1,19 +1,20 @@
+from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.translation import ugettext_lazy as _
+from django.utils.functional import cached_property
 
 from chamber.utils.forms import formset_has_file_field
 
 from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
-from is_core.generic_views.inlines import InlineView
+from is_core.generic_views.inlines import RelatedInlineView
 from is_core.forms.fields import SmartReadonlyField, EmptyReadonlyField
 from is_core.utils import get_readonly_field_data, GetMethodFieldMixin
 
 
-class InlineFormView(GetMethodFieldMixin, InlineView):
+class InlineFormView(GetMethodFieldMixin, RelatedInlineView):
 
     form_class = SmartModelForm
     base_inline_formset_class = BaseInlineFormSet
 
-    model = None
     fields = None
     exclude = ()
     inline_views = None
@@ -40,10 +41,10 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
         self.parent_instance = parent_instance
         self.parent_model = self.parent_instance.__class__
         self.readonly = self._is_readonly()
-        self.formset = self.get_formset(parent_instance, self.request.POST, self.request.FILES)
 
-        for i in range(self.get_min_num()):
-            self.formset.forms[i].empty_permitted = False
+    @cached_property
+    def formset(self):
+        return self.get_formset()
 
     def _get_field_labels(self):
         return self.field_labels
@@ -52,28 +53,32 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
         return self.is_readonly or self.parent_view.is_readonly()
 
     def can_form_delete(self, form):
-        return not self.is_form_readonly(form)
+        return (
+            not self.is_form_readonly(form)
+            and self.permission.has_permission('delete', self.request, self, obj=form.instance)
+        )
 
     def is_form_readonly(self, form):
-        return self.readonly
+        return self.readonly and self.permission.has_permission('update', self.request, self, obj=form.instance)
 
     def get_context_data(self, **kwargs):
-        context_data = super(InlineFormView, self).get_context_data(**kwargs)
+        formset = self.formset
+        context_data = super().get_context_data(**kwargs)
         context_data.update({
-            'formset': self.formset,
-            'fieldset': self.get_fieldset(self.formset),
+            'formset': formset,
+            'fields': self.get_fromset_fields(formset),
             'name': self.get_name(),
             'button_value': self.get_button_value(),
-            'class_names': self.get_class_names(**kwargs),
+            'class_names': self.get_class_names(formset, **kwargs),
             'no_items_text': self.no_items_text
         })
         return context_data
 
-    def get_class_names(self, **kwargs):
+    def get_class_names(self, formset, **kwargs):
         class_names = self.class_names + [self.get_name().lower()]
-        if self.formset.can_add:
+        if formset.can_add:
             class_names.append('can-add')
-        if self.formset.can_delete:
+        if formset.can_delete:
             class_names.append('can-delete')
 
         if kwargs.get('title'):
@@ -86,6 +91,15 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
     def get_exclude(self):
         return self.exclude
 
+    def generate_fields(self):
+        fields = self.get_fields()
+        if fields is None:
+            fields = (
+                list(self.get_form_class().base_fields.keys())
+                + list(self.get_formset_factory().form.base_fields.keys())
+            )
+        return [field for field in fields if field not in self._get_disallowed_fields_from_permissions()]
+
     def get_fields(self):
         return self.fields
 
@@ -96,21 +110,27 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
         return self.initial[:]
 
     def get_can_delete(self):
-        return self.can_delete and not self.readonly
+        return (
+            (self.get_can_add() or (self.can_delete and self.permission.has_permission('delete', self.request, self)))
+            and not self.readonly
+        )
 
     def get_can_add(self):
-        return self.can_add and not self.readonly
+        return self.can_add and not self.readonly and self.permission.has_permission('create', self.request, self)
 
     def get_readonly_fields(self):
         return self.readonly_fields
 
+    def generate_readonly_fields(self):
+        return list(self.get_readonly_fields()) + list(self._get_readonly_fields_from_permissions())
+
     def get_prefix(self):
         return '-'.join((self.parent_view.get_prefix(), 'inline', self.__class__.__name__)).lower()
 
-    def get_fieldset(self, formset):
-        fields = list(self.get_fields() or formset.form.base_fields.keys())
-        if self.get_can_delete():
-            fields.append('DELETE')
+    def get_fromset_fields(self, formset):
+        fields = list(self.generate_fields() or formset.form.base_fields.keys())
+        if formset.can_delete:
+            fields.append(DELETION_FIELD_NAME)
         return fields
 
     def formfield_for_dbfield(self, db_field, **kwargs):
@@ -138,49 +158,53 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
     def get_formset_factory(self, fields=None, readonly_fields=()):
         return smartinlineformset_factory(
             self.parent_model, self.model, self.request, form=self.get_form_class(), fk_name=self.fk_name,
-            extra=self.get_extra(), formset=self.base_inline_formset_class, can_delete=self.get_can_delete(),
-            exclude=self.get_exclude(), fields=fields, min_num=self.get_min_num(), max_num=self.get_max_num(),
-            readonly_fields=readonly_fields, readonly=self.readonly,
-            formreadonlyfield_callback=self.formfield_for_readonlyfield, formfield_callback=self.formfield_for_dbfield,
-            labels=self._get_field_labels()
+            extra=self.get_extra(), formset=self.base_inline_formset_class, exclude=self.get_exclude(),
+            fields=fields, min_num=self.get_min_num(), max_num=self.get_max_num(), readonly_fields=readonly_fields,
+            readonly=self._is_readonly(), formreadonlyfield_callback=self.formfield_for_readonlyfield,
+            formfield_callback=self.formfield_for_dbfield, labels=self._get_field_labels(),
+            can_delete=self.get_can_delete()
         )
 
     def get_queryset(self):
         return self.model.objects.all()
 
-    def get_formset(self, instance, data, files):
-        fields = self.get_fields()
-        readonly_fields = self.get_readonly_fields()
+    def get_formset(self):
+        fields = self.generate_fields()
+        readonly_fields = self.generate_readonly_fields()
 
-        if data:
-            formset = self.get_formset_factory(fields, readonly_fields)(data=data,
-                                                                        files=files,
-                                                                        instance=instance,
+        if self.request.POST:
+            formset = self.get_formset_factory(fields, readonly_fields)(data=self.request.POST,
+                                                                        files=self.request.FILES,
+                                                                        instance=self.parent_instance,
                                                                         queryset=self.get_queryset(),
                                                                         prefix=self.get_prefix())
         else:
-            formset = self.get_formset_factory(fields, readonly_fields)(instance=instance,
+            formset = self.get_formset_factory(fields, readonly_fields)(instance=self.parent_instance,
                                                                         queryset=self.get_queryset(),
                                                                         initial=self.get_initial(),
                                                                         prefix=self.get_prefix())
-        formset.can_add = self.get_can_add()
-        formset.can_delete = self.get_can_delete()
 
+        formset.can_add = self.get_can_add()
         for form in formset.all_forms():
             form.class_names = self.form_class_names(form)
             form._is_readonly = self.is_form_readonly(form)
-            if form._is_readonly and not self.readonly:
-                if not formset.can_delete:
-                    form.readonly_fields = set(form.fields.keys()) - {'id'}
-                elif not self.can_form_delete(form):
-                    form.readonly_fields = set(form.fields.keys()) - {'id'}
-                    form.fields['DELETE'] = EmptyReadonlyField()
+            if not self.readonly and form._is_readonly:
+                if formset.can_delete:
+                    form.readonly_fields = set(form.fields.keys()) - {'id', DELETION_FIELD_NAME}
                 else:
-                    form.readonly_fields = set(form.fields.keys()) - {'id', 'DELETE'}
-            elif not self.can_form_delete(form):
-                form.fields['DELETE'] = EmptyReadonlyField()
-                form.readonly_fields |= {'DELETE'}
+                    form.readonly_fields = set(form.fields.keys()) - {'id'}
+
+            if formset.can_delete and form.instance.pk and not self.can_form_delete(form):
+                form.fields[DELETION_FIELD_NAME] = EmptyReadonlyField(
+                    required=form.fields[DELETION_FIELD_NAME].required,
+                    label=form.fields[DELETION_FIELD_NAME].label
+                )
+                form.readonly_fields |= {DELETION_FIELD_NAME}
+
             self.init_form(form)
+
+        for i in range(self.get_min_num()):
+            formset.forms[i].empty_permitted = False
         return formset
 
     def form_class_names(self, form):
@@ -193,7 +217,7 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
 
     def form_fields(self, form):
         for field_name, field in form.fields.items():
-            field = self.form_field(form, field_name, field)
+            self.form_field(form, field_name, field)
 
     def form_field(self, form, field_name, form_field):
         placeholder = self.model._ui_meta.placeholders.get('field_name', None)
@@ -211,13 +235,14 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
         }
 
     def form_valid(self, request):
-        instances = self.formset.save(commit=False)
+        formset = self.formset
+        instances = formset.save(commit=False)
         for obj in instances:
             change = obj.pk is not None
             self.save_obj(obj, change)
-        for obj in self.formset.deleted_objects:
+        for obj in formset.deleted_objects:
             self.delete_obj(obj)
-        self.formset.save_m2m()
+        formset.save_m2m()
 
     def get_has_file_field(self):
         return formset_has_file_field(self.formset.form)
@@ -246,6 +271,9 @@ class InlineFormView(GetMethodFieldMixin, InlineView):
 
     def is_valid(self):
         return self.formset.is_valid()
+
+    def has_changed(self):
+        return self.formset.has_changed()
 
 
 class TabularInlineFormView(InlineFormView):

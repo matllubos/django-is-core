@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class UserForm(RESTModelForm):
+
     password = forms.CharField(label=_('Password'), widget=forms.PasswordInput)
 
     def __init__(self, instance=None, *args, **kwargs):
@@ -21,4 +22,6 @@ class UserForm(RESTModelForm):
         return user
 
     class Meta:
-        exclude = ('last_login', 'password', 'is_staff', 'is_active', 'date_joined', 'groups', 'user_permissions')
+        exclude = (
+            'last_login', 'password', 'is_staff', 'is_active', 'date_joined', 'groups', 'user_permissions',
+        )

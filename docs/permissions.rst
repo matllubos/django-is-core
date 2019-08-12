@@ -81,6 +81,16 @@ Predefined permissions
     ~IsAdminUser()
 
 
+.. class:: is_core.auth.permissions.SelfPermission
+
+  If you are using ``PermissionSet`` you can use ``SelfPermission`` to remove duplicates::
+
+    PermissionSet(
+        admin=IsAdminUser(),
+        superuser=IsSuperuser(),
+        admin_and_superuser=SelfPermission('admin') & SelfPermission('superuser')
+    )
+
 Custom permission
 -----------------
 
@@ -309,3 +319,34 @@ Pattern method ``has_permission(name, request, obj=None, **view_kwargs)`` can be
     detail_pattern.has_permission('get', request, id=obj.pk)  # request.kwargs "id" is overridden with obj.pk
     detail_pattern.has_permission('get', request, obj=obj)  # saves db queryes because object needn't be loaded from database
 
+
+Field permissions
+-----------------
+
+Fields can be restricted with permissions too. You can define readonly or editable fields according to defined permissions. For example::
+
+    class UserISCore(UIRESTModelISCore):
+
+        model = User
+        field_permissions = FieldsSetPermission(
+            FieldsListPermission(
+                permission=PermissionsSet(
+                    read=IsAdminUser(),
+                    edit=IsSuperuser()
+                ),
+                fields=(
+                    'username',
+                )
+            ),
+            FieldsListPermission(
+                permission=PermissionsSet(
+                    read=IsSuperuser(),
+                    edit=IsSuperuser()
+                ),
+                fields=(
+                    'is_superuser',
+                )
+            )
+        )
+
+Generated views and REST resources will have restricted fields according to defined permissions. For the example only superuser can read and edit field ``is_superuser`` and only superuser can edit field ``username``.  The permissions restrict defined fields in export, REST views, UI views or bulk change view.

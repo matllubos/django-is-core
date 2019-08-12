@@ -58,7 +58,6 @@ def smart_generic_inlineformset_factory(model, request, form=ModelForm, formset=
         'help_texts': help_texts,
         'error_messages': error_messages,
     }
-
     FormSet = smartmodelformset_factory(model, request, **kwargs)
     FormSet.ct_field = ct_field
     FormSet.ct_fk_field = fk_field

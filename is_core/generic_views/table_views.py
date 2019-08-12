@@ -6,6 +6,7 @@ from django.views.generic.base import TemplateView
 
 from pyston.filters.default_filters import OPERATORS
 
+from is_core.auth.views import FieldPermissionViewMixin
 from is_core.config import settings
 from is_core.filters import UIFilterMixin, FilterChoiceIterator
 from is_core.generic_views import DefaultModelCoreViewMixin
@@ -37,7 +38,7 @@ class Header:
         return self.text
 
 
-class TableViewMixin:
+class TableViewMixin(FieldPermissionViewMixin):
 
     fields = None
     extra_fields = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
@@ -49,6 +50,21 @@ class TableViewMixin:
     render_actions = True
     enable_columns_manager = False
     field_labels = None
+
+    def _get_allowed_fields(self):
+        return [
+            field for field in self._get_fields() if field not in self._get_disallowed_fields_from_permissions()
+        ]
+
+    def _get_allowed_extra_fields(self):
+        return [
+            field for field in self._get_extra_fields() if field not in self._get_disallowed_fields_from_permissions()
+        ]
+
+    def _get_allowed_export_fields(self):
+        return [
+            field for field in self._get_export_fields() if field not in self._get_disallowed_fields_from_permissions()
+        ]
 
     def get_title(self):
         return self.model._ui_meta.list_verbose_name % {
@@ -214,13 +230,13 @@ class TableViewMixin:
 
     def _generate_rest_fieldset(self):
         return ModelRESTFieldset.create_from_flat_list(
-            list(self._get_extra_fields()) + list(self._get_fields()),
+            list(self._get_allowed_extra_fields()) + list(self._get_allowed_fields()),
             self.model
         )
 
     def _get_headers(self):
         headers = []
-        for field in self._get_fields():
+        for field in self._get_allowed_fields():
             if isinstance(field, (tuple, list)):
                 headers.append(self._get_header(field[0]))
             else:
@@ -258,16 +274,13 @@ class TableViewMixin:
     def get_context_data(self, **kwargs):
         context_data = super(TableViewMixin, self).get_context_data(**kwargs)
 
-        if django.VERSION < (1, 7):
-            module_name = str(self.model._meta.module_name)
-        else:
-            module_name = str(self.model._meta.model_name)
+        module_name = str(self.model._meta.model_name)
 
         context_data.update({
             'headers': self._get_headers(),
             'api_url': self._get_api_url(),
             'module_name': module_name,
-            'fields': self._get_fields(),
+            'fields': self._get_allowed_fields(),
             'rest_fieldset': self._generate_rest_fieldset(),
             'query_string_filter': self._get_query_string_filter(),
             'menu_group_pattern_name': self._get_menu_group_pattern_name(),
@@ -331,7 +344,7 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
 
     def _generate_rest_export_fieldset(self):
         return ModelFlatRESTFields.create_from_flat_list(
-            list(self._get_export_fields()), self.model
+            list(self._get_allowed_export_fields()), self.model
         )
 
     def is_bulk_change_enabled(self):
@@ -350,7 +363,7 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
             'bulk_change_snippet_name': self.get_bulk_change_snippet_name(),
             'bulk_change_form_url': self.get_bulk_change_form_url(),
         })
-        if self._get_export_types() and self._get_export_fields():
+        if self._get_export_types() and self._get_allowed_export_fields():
             context_data.update({
                 'rest_export_fieldset': self._generate_rest_export_fieldset(),
                 'export_types': get_export_types_with_content_type(self._get_export_types()),

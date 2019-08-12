@@ -4,3 +4,4 @@ from .ui_ordering import *
 from .ui_permissions import *
 from .permissions import *
 from .rest import *
+from .field_permissions import *

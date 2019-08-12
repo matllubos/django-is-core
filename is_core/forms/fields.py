@@ -32,11 +32,12 @@ class ReadonlyField(forms.Field):
 
 
 class EmptyReadonlyField(ReadonlyField):
+
     widget = EmptyWidget
     readonly_widget = EmptyWidget
 
-    def __init__(self):
-        super(ReadonlyField, self).__init__()
+    def __init__(self, required, label):
+        super(ReadonlyField, self).__init__(required=required, label=label)
 
 
 class ButtonField(ReadonlyField):

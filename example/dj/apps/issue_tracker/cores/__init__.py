@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
 
 from is_core.main import UIRESTModelISCore
-from is_core.auth.permissions import BasePermission, IsSuperuser, IsAdminUser, PermissionsSet
+from is_core.auth.permissions import (
+    BasePermission, IsSuperuser, IsAdminUser, PermissionsSet, SelfPermission, FieldsListPermission, FieldsSetPermission
+)
 
 from issue_tracker.models import Issue
 from issue_tracker.forms import UserForm
@@ -31,12 +33,33 @@ class UserISCore(UIRESTModelISCore):
 
     model = User
     form_class = UserForm
-    ui_list_fields = ('id', 'created_issues_count', '_obj_name')
+    ui_list_fields = ('id', 'created_issues_count', '_obj_name', 'username', 'is_superuser')
     permission = PermissionsSet(
-        create=IsSuperuser(),
-        read=IsSuperuser() | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
-        update=IsSuperuser() | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
-        delete=IsSuperuser() & ~IsObjectSuperuser()
+        is_superuser=IsSuperuser(),
+        create=SelfPermission('is_superuser'),
+        read=SelfPermission('is_superuser') | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
+        update=SelfPermission('is_superuser') | (IsAdminUser() & (IsNoObject() | IsLoggedUser())),
+        delete=SelfPermission('is_superuser') & ~IsObjectSuperuser()
+    )
+    field_permissions = FieldsSetPermission(
+        FieldsListPermission(
+            permission=PermissionsSet(
+                read=IsAdminUser(),
+                edit=IsSuperuser()
+            ),
+            fields=(
+                'username',
+            )
+        ),
+        FieldsListPermission(
+            permission=PermissionsSet(
+                read=IsSuperuser(),
+                edit=IsSuperuser()
+            ),
+            fields=(
+                'is_superuser',
+            )
+        )
     )
 
     def get_queryset(self, request):
