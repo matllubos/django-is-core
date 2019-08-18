@@ -1,0 +1,25 @@
+{% extends 'is_core:is_core/generic_views/table.html' %}
+
+{% load i18n permissions %}
+
+{% block table-classes %}{{ block.super }} extended-filters{% endblock %}
+
+{% block export-menu %}
+    {% has_permission 'export' %}
+    <li>
+        {% if export_types %}
+        <div class="dropdown columns-dropdown">
+            <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Export' %}<span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu">
+                {% for title, type, serialization_format, content_type in export_types %}
+                <li>
+                    <a href="{{ api_url }}?_accept={{ content_type }}&_serialization_format={{ serialization_format }}&_fields={{ rest_export_fieldset }}{% if query_string_filter %}&{{ query_string_filter }}{% endif %}&_background_serialization=1" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
+                </li>
+                {% endfor %}
+                {% block export-menu-value-extra %}{% endblock %}
+            </ul>
+        </div>
+        {% endif %}
+    </li>
+    {% endhas_permission %}
+{% endblock %}
