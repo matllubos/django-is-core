@@ -166,7 +166,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
             out = ', '.join([self._get_value_display(val) for val in value])
         else:
             out = self._get_value_display(value)
-        return mark_safe('<p>{}</p>'.format(conditional_escape(out)))
+        return format_html('<p>{}</p>', out)
 
     def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
         return self._render(name, value, attrs, choices)
@@ -200,10 +200,9 @@ class ModelObjectReadonlyWidget(ReadonlyWidget):
 
     def _smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
         if value and isinstance(value, Model):
-            return mark_safe('<p>%s</p>' % self._render_object(request, value))
+            return format_html('<p>{}</p>', self._render_object(request, value))
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, value, initial_value, form,
-                                                                        *args, **kwargs)
+            return super()._smart_render(request, name, value, initial_value, form, *args, **kwargs)
 
 
 class NullBooleanReadonlyWidget(ReadonlyWidget):
@@ -223,7 +222,7 @@ class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
 
     def _smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
         if value and isinstance(value, (list, tuple)):
-            return mark_safe(', '.join((self._render_object(request, obj) for obj in value)))
+            return format_html_join(', ', '{}', (self._render_object(request, obj) for obj in value))
         else:
             return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, value, initial_value, form,
                                                                         *args, **kwargs)
@@ -248,7 +247,7 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
                 value = EMPTY_VALUE
 
         out.append(value)
-        return mark_safe('<p>%s</p>' % '\n'.join(out))
+        return format_html('<p>{}</p>', '\n'.join(out))
 
 
 class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
@@ -264,7 +263,7 @@ class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
                         rendered_values.append(self._render_object(request, choice.obj, value))
                     else:
                         rendered_values.append(value)
-            return mark_safe('<p>%s</p>' % rendered_values and ', '.join(rendered_values) or EMPTY_VALUE)
+            return format_html('<p>{}</p>', rendered_values and ', '.join(rendered_values) or EMPTY_VALUE)
         else:
             return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, values, initial_values, form,
                                                                         *args, **kwargs)
@@ -274,7 +273,7 @@ class URLReadonlyWidget(ReadonlyWidget):
 
     def _render(self, name, value, *args, **kwargs):
         if value:
-            return mark_safe('<a href="%s">%s</a>' % (value, value))
+            return format_html('<a href="{}">{}</a>', value, value)
         else:
             return super(URLReadonlyWidget, self)._render(name, value, *args, **kwargs)
 
@@ -283,9 +282,9 @@ class FileReadonlyWidget(ReadonlyWidget):
 
     def _render(self, name, value, *args, **kwargs):
         if value and isinstance(value, FieldFile):
-            return mark_safe('<a href="%s">%s</a>' % (value.url, os.path.basename(value.name)))
+            return format_html('<a href="{}">{}</a>', value.url, os.path.basename(value.name))
         else:
-            return super(FileReadonlyWidget, self)._render(name, value, *args, **kwargs)
+            return super()._render(name, value, *args, **kwargs)
 
 
 class EmptyWidget(ReadonlyWidget):
