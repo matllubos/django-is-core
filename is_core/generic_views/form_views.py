@@ -772,18 +772,22 @@ class BulkChangeFormView(DefaultModelFormView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_fields(self):
-        return self.core.get_bulk_change_fields(self.request) if self.fields is None else self.fields
+        return self.core.get_ui_bulk_change_fields(self.request) if self.fields is None else self.fields
 
     def get_fieldsets(self):
         return (
-            (None, {'fields': self.get_fields()})
+            (None, {'fields': self.get_fields()}),
         )
 
     def generate_fieldsets(self, **kwargs):
         return get_fieldsets_without_disallowed_fields(
             self.request,
             self.get_fieldsets(),
-            self._get_disallowed_fields_from_permissions() | self.generate_readonly_fields() | set(self.get_exclude())
+            (
+                self._get_disallowed_fields_from_permissions()
+                | set(self.generate_readonly_fields())
+                | set(self.get_exclude())
+            )
         )
 
     def get_readonly_fields(self):

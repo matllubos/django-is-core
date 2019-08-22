@@ -399,7 +399,8 @@ class UIModelISCore(ModelISCore, UIISCore):
     ui_detail_view = DetailModelFormView
     ui_list_view = TableView
 
-    bulk_change_url_name = None
+    ui_bulk_change_url_name = None
+    ui_bulk_change_fields = ()
 
     @cached_property
     def default_model_view_classes(self):
@@ -420,7 +421,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_view_classes(self):
         view_classes = super(UIModelISCore, self).get_view_classes() + list(self.default_model_view_classes)
         if self.is_bulk_change_enabled():
-            view_classes.append((self.get_bulk_change_url_name(), r'bulk-change/?', BulkChangeFormView))
+            view_classes.append((self.get_ui_bulk_change_url_name(), r'bulk-change/?', BulkChangeFormView))
         return view_classes
 
     def get_ui_add_view(self):
@@ -451,13 +452,13 @@ class UIModelISCore(ModelISCore, UIISCore):
         return self.get_form_exclude(request, obj)
 
     def is_bulk_change_enabled(self):
-        return self.get_bulk_change_url_name() is not None
+        return self.get_ui_bulk_change_url_name() is not None
 
-    def get_bulk_change_url_name(self):
-        return self.bulk_change_url_name
+    def get_ui_bulk_change_url_name(self):
+        return self.ui_bulk_change_url_name
 
-    def get_bulk_change_fields(self, request):
-        return getattr(self, 'bulk_change_fields', ())
+    def get_ui_bulk_change_fields(self, request):
+        return self.ui_bulk_change_fields
 
     def get_urls(self):
         return self.get_urlpatterns(self.ui_patterns)

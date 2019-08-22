@@ -349,8 +349,8 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
 
     def is_bulk_change_enabled(self):
         return (
-            hasattr(self.core, 'get_bulk_change_url_name') and self.core.get_bulk_change_url_name() and
-            self.core.ui_patterns.get(self.core.get_bulk_change_url_name()).has_permission('get', self.request)
+            hasattr(self.core, 'get_ui_bulk_change_url_name') and self.core.get_ui_bulk_change_url_name() and
+            self.core.ui_patterns.get(self.core.get_ui_bulk_change_url_name()).has_permission('get', self.request)
         )
 
     def get_context_data(self, **kwargs):
@@ -375,7 +375,7 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
 
     def get_bulk_change_form_url(self):
         return (reverse(
-            ''.join(('IS:', self.core.get_bulk_change_url_name(), '-', self.model._meta.object_name.lower())))
+            ''.join(('IS:', self.core.get_ui_bulk_change_url_name(), '-', self.model._meta.object_name.lower())))
             if self.is_bulk_change_enabled() else None)
 
     def _get_menu_group_pattern_name(self):
