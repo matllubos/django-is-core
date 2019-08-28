@@ -222,7 +222,7 @@ class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
 
     def _smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
         if value and isinstance(value, (list, tuple)):
-            return format_html_join(', ', '{}', (self._render_object(request, obj) for obj in value))
+            return format_html_join(', ', '{}', ((self._render_object(request, obj),) for obj in value))
         else:
             return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, value, initial_value, form,
                                                                         *args, **kwargs)
@@ -238,16 +238,12 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
     def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
         choice = self._choice(value)
 
-        out = []
         if choice:
             value = self._render_object(request, choice.obj, force_text(choice[1]))
+        elif value in EMPTY_VALUES:
+            value = EMPTY_VALUE
 
-        else:
-            if value in EMPTY_VALUES:
-                value = EMPTY_VALUE
-
-        out.append(value)
-        return format_html('<p>{}</p>', '\n'.join(out))
+        return format_html('<p>{}</p>', value)
 
 
 class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
@@ -263,7 +259,10 @@ class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
                         rendered_values.append(self._render_object(request, choice.obj, value))
                     else:
                         rendered_values.append(value)
-            return format_html('<p>{}</p>', rendered_values and ', '.join(rendered_values) or EMPTY_VALUE)
+            return format_html(
+                '<p>{}</p>',
+                format_html_join(', ', '{}', ((v,) for v in rendered_values)) if rendered_values else EMPTY_VALUE
+            )
         else:
             return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, values, initial_values, form,
                                                                         *args, **kwargs)
