@@ -24,15 +24,15 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     install_requires=[
-        'django>=1.10',
-        'django-pyston~=2.9.16',
+        'django>=1.11',
+        'django-pyston~=2.9.17',
         'django-block-snippets==2.0.1',
-        'django-chamber~=0.5.2',
-        'python-dateutil~=2.2',
-        'pytz',
-        'Unidecode>=0.04.16',
-        'python-mimeparse==0.1.4',
-        'django-ipware~=1.0.0'
+        'django-chamber~=0.5.5',
+        'python-dateutil~=2.8.0',
+        'pytz~=2019.2',
+        'Unidecode~=1.1.1',
+        'python-mimeparse~=1.6.0',
+        'django-ipware~=2.1.0'
     ],
     zip_safe=False
 )

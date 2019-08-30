@@ -43,3 +43,13 @@ def bread_crumbs(context):
     for menu_item in bread_crumbs_menu_items or []:
         menu_items.append(menu_item)
     return {'menu_items': menu_items}
+
+
+@register.simple_tag
+def header_image():
+    return settings.HEADER_IMAGE
+
+
+@register.simple_tag
+def environment():
+    return settings.ENVIRONMENT
