@@ -62,7 +62,7 @@ class ExportedFile(SmartModel):
         max_upload_size=100
     )
     created_by = models.ForeignKey(
-        'users.User',
+        settings.AUTH_USER_MODEL,
         verbose_name=_l('created by'),
         null=False,
         blank=False,
@@ -70,7 +70,7 @@ class ExportedFile(SmartModel):
         on_delete=models.PROTECT,
     )
     downloaded_by = models.ManyToManyField(
-        'users.User',
+        settings.AUTH_USER_MODEL,
         verbose_name=_l('downloaded by'),
         blank=True,
         related_name='downloaded_exported_files'

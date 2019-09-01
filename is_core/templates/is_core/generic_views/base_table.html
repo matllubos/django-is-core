@@ -1,0 +1,118 @@
+{% extends 'is_core/base.html' %}
+{% load i18n utils permissions %}
+
+{% block header-content %}
+    {{ block.super }}
+{% endblock %}
+{% block content %}
+    <div class="clearfix page-view list-view">
+        {% block above-table %}{% endblock %}
+        <div class="table-responsive">
+            {% block tabs-menu-wrapper %}{% endblock %}
+            {% block table-paginator %}
+            <div class="row paginator" style="visibility: hidden" data-base="{% block table-base %}{{ list_per_page }}{% endblock %}" data-paging="{% block table-paging %}simple{% endblock %}">
+                    <div class="col-sm-4">
+                        {% block paginator-result %}
+                            <span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span>
+                            <span class="result-total"><span class="result-caption">{% trans 'of' %}</span><span class="result-number">%d</span></span>
+                        {% endblock %}
+                    </div>
+                    <div class="col-sm-8">
+                        {% block paginator-paging %}
+                        <div class="paging">
+                            <ul class="pagination">
+                                <li class="previous" title="{% trans 'Previous' %}"><span><i class="fa fa-angle-left"></i><span class="caption">{% trans 'Previous' %}</span></span></li>
+                                <li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><i class="fa fa-angle-right"></i></span></li>
+                            </ul>
+                        </div>
+                        {% endblock %}
+                    </div>
+                </div>
+            {% endblock %}
+
+            {% block table-buttons %}
+            <ul class="inline-list table-buttons">
+                {% if add_url %}{% has_permission 'create' %}<li><a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value|capfirst }}"><span>{{ add_button_value|capfirst }}</span></a></li>{% endhas_permission %}{% endif %}
+                {% block export-menu %}
+                {% if export_types %}
+                <li>
+                    <div class="dropdown pull-right">
+                        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Exports' %}<span class="caret"></span></button>
+                        <ul class="dropdown-menu" role="menu">
+                            {% for title, type, serialization_format, content_type in export_types %}
+                            <li>
+                                <a href="{{ api_url }}?_accept={{ content_type }}&_serialization_format={{ serialization_format }}&_fields={{ rest_export_fieldset }}{% if query_string_filter %}&{{ query_string_filter }}{% endif %}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </li>
+                {% endif %}
+                {% endblock %}
+
+                {% block columns-manager %}
+                    {% if enable_columns_manager %}
+                    <li>
+                        <div class="dropdown columns-dropdown">
+                            <span class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                                {% trans "Columns" %}<span class="caret"></span>
+                            </span>
+                            <div class="dropdown-menu columns-manager" id="columns-manager-{{ table_slug }}"></div>
+                        </div>
+                    </li>
+                    {% endif %}
+                {% endblock %}
+
+                {% block rest-table-buttons %}{% endblock %}
+            </ul>
+                {% if enable_columns_manager %}
+                <div class="alert alert-info columns-filtering-text" id="columns-filtering-text-table-{{ table_slug }}" style="display: none">
+                    {% blocktrans with '%(columns)s' as columns %}There are some filters on hidden fields: <span class="columns">{{ columns }}</span>. Do you want to <span class="delete-filtering">delete filtering</span>?{% endblocktrans%}
+                </div>
+                {% endif %}
+            {% endblock %}
+
+            {% block bulk-change %}
+                {% if enable_bulk_change %}
+                <span class="btn btn-primary"
+                      id="bulk-change-{{ table_slug }}"
+                      data-form-snippet="{{ bulk_change_snippet_name }}"
+                      data-form-url="{{ bulk_change_form_url }}"
+                      data-api-url="{{ api_url }}"
+                      data-bulk-error-message="{% trans 'Please fix errors for following objects: %s' %}"
+                      >{% trans 'Bulk change' %}</span>
+                {% endif %}
+            {% endblock %}
+
+            {% block table %}
+            <table class="{% block table-classes %}grid js-grid table table-striped extended-filters{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ fields|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}"{% if enable_columns_manager %} data-columns-manager="columns-manager-{{ table_slug }}"{% endif %}{% if enable_bulk_change %} data-bulk-change="bulk-change-{{ table_slug }}" data-row-selectable="true"{% endif %} id="table-{{ table_slug }}" {% block table-attributes %}{% endblock %}>
+                <thead>
+                {% block table-header %}
+                    <tr>
+                        {% if enable_bulk_change %}
+                        <th class="select-all"><input id="select-all-{{ table_slug }}" class="select-all" type="checkbox"></th>
+                        {% endif %}
+                        {% for header in headers %}
+                        <th class="{{ header.field_name }}">
+                            <span{% if header.order_by %} class="sortable" data-col="{{ header.order_by }}"{% endif %}>{{ header.text|capfirst }}</span><div class="sort-direction"><div class="triangle"></div></div>{{ header.filter }}
+                        </th>
+                        {% endfor %}
+                        {% if render_actions %}<th class="actions">{% trans 'Actions' %}</th>{% endif %}
+                    </tr>
+                    {% endblock %}
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            {% endblock %}
+
+            {% block table-empty %}
+                <div class="table-empty" style="display: none">
+                    <div class="alert alert-info"><span class="msg-text">{% trans 'There are no items.' %}</span></div>
+                </div>
+            {% endblock %}
+
+        </div>
+        {% block below-table %}{% endblock %}
+    </div>
+{% endblock %}

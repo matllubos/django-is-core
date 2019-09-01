@@ -1976,6 +1976,16 @@ table td[class*=col-], table th[class*=col-] {
     background-color: #ebcccc
 }
 
+.table-buttons {
+    margin: 0 5px;
+    padding: 0
+}
+
+.table-buttons li {
+    float: left;
+    margin: 5px
+}
+
 .table-responsive {
     overflow-x: auto;
     min-height: 600px
