@@ -10,7 +10,6 @@ import is_core.contrib.background_export.models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -26,11 +25,19 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='created at')),
                 ('changed_at', models.DateTimeField(auto_now=True, db_index=True, verbose_name='changed at')),
                 ('slug', models.SlugField(max_length=32, primary_key=True, serialize=False, verbose_name='slug')),
-                ('file', chamber.models.fields.FileField(blank=True, null=True, upload_to=is_core.contrib.background_export.models.generate_filename, verbose_name='file')),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.ContentType')),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='created_exported_files', to=settings.AUTH_USER_MODEL, verbose_name='created by')),
-                ('downloaded_by', models.ManyToManyField(blank=True, related_name='downloaded_exported_files', to=settings.AUTH_USER_MODEL, verbose_name='downloaded by')),
-                ('task', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='security.CeleryTaskLog', verbose_name='state')),
+                ('file', chamber.models.fields.FileField(
+                    blank=True, null=True, upload_to=is_core.contrib.background_export.models.generate_filename,
+                    verbose_name='file'
+                )),
+                ('content_type',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.ContentType')),
+                ('created_by',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='created_exported_files',
+                                   to=settings.AUTH_USER_MODEL, verbose_name='created by')),
+                ('downloaded_by', models.ManyToManyField(blank=True, related_name='downloaded_exported_files',
+                                                         to=settings.AUTH_USER_MODEL, verbose_name='downloaded by')),
+                ('task', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                              to='security.CeleryTaskLog', verbose_name='state')),
             ],
             options={
                 'verbose_name': 'exported file',

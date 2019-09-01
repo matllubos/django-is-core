@@ -10,7 +10,8 @@ from pyston.utils import RFS
 from pyston.utils.helpers import QuerysetIteratorHelper
 
 from security.tasks import LoggedTask, string_to_obj
-from common.celery import app as celery_app
+
+from celery import shared_task
 
 from .models import ExportedFile
 from .signals import export_success
@@ -70,10 +71,10 @@ class BackgroundSerializationTask(LoggedTask):
         export_success.send(sender=self.__class__, exported_file=exported_file)
 
 
-@celery_app.task(base=BackgroundSerializationTask,
-                 name='pyston_extension.serializer.serialization',
-                 time_limit=settings.PYSTON_SERIALIZATION_TASK_TIME_LIMIT_MINUTES * 60,
-                 soft_time_limit=settings.PYSTON_SERIALIZATION_TASK_SOFT_TIME_LIMIT_MINUTES * 60, bind=True)
+@shared_task(base=BackgroundSerializationTask,
+             name='pyston_extension.serializer.serialization',
+             time_limit=settings.PYSTON_SERIALIZATION_TASK_TIME_LIMIT_MINUTES * 60,
+             soft_time_limit=settings.PYSTON_SERIALIZATION_TASK_SOFT_TIME_LIMIT_MINUTES * 60, bind=True)
 def background_serialization(self, task_id, user_pk, rest_context, language, requested_fieldset, serialization_format,
                              filename, query):
     # Must be here, because handlers is not registered
@@ -84,7 +85,7 @@ def background_serialization(self, task_id, user_pk, rest_context, language, req
     try:
         exported_file = self.get_exported_file(task_id)
         exported_file.file.save(filename, ContentFile(''))
-        request = get_rest_request(exported_file.created_by.subclass, rest_context)
+        request = get_rest_request(exported_file.created_by, rest_context)
         query = string_to_obj(query)
         queryset = query.model.objects.all()
         queryset.query = query
