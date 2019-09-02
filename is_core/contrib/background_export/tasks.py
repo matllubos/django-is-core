@@ -1,4 +1,6 @@
-from django.conf import settings
+import import_string
+
+from django.conf import settings as django_settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.http.request import HttpRequest
@@ -9,11 +11,14 @@ from pyston.serializer import get_serializer, get_resource_or_none
 from pyston.utils import RFS
 from pyston.utils.helpers import QuerysetIteratorHelper
 
+from is_core.config import settings
+
 from security.tasks import LoggedTask, string_to_obj
 
 from celery import shared_task
 
 from .models import ExportedFile
+
 from .signals import export_success
 
 
@@ -31,6 +36,8 @@ class FileBackgroundExportGenerator:
         self.model = model
 
     def generate(self, exported_file, request, queryset, requested_fieldset, serialization_format):
+        print('resource', get_resource_or_none(request, queryset.model))
+
         converter = get_converter_from_request(request)
         converted_dict = get_serializer(queryset, request=request).serialize(
             QuerysetIteratorHelper(queryset), serialization_format, requested_fieldset=requested_fieldset,
@@ -73,12 +80,14 @@ class BackgroundSerializationTask(LoggedTask):
 
 @shared_task(base=BackgroundSerializationTask,
              name='pyston_extension.serializer.serialization',
-             time_limit=settings.PYSTON_SERIALIZATION_TASK_TIME_LIMIT_MINUTES * 60,
-             soft_time_limit=settings.PYSTON_SERIALIZATION_TASK_SOFT_TIME_LIMIT_MINUTES * 60, bind=True)
+             time_limit=settings.BACKGROUND_EXPORT_TASK_TIME_LIMIT_MINUTES * 60,
+             soft_time_limit=settings.BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT_MINUTES * 60,
+             queue=settings.BACKGROUND_EXPORT_TASK_QUEUE,
+             bind=True)
 def background_serialization(self, task_id, user_pk, rest_context, language, requested_fieldset, serialization_format,
                              filename, query):
     # Must be here, because handlers is not registered
-    import common.urls
+    import_string(django_settings.ROOT_URLCONF)
 
     prev_language = translation.get_language()
     translation.activate(language)
@@ -86,6 +95,8 @@ def background_serialization(self, task_id, user_pk, rest_context, language, req
         exported_file = self.get_exported_file(task_id)
         exported_file.file.save(filename, ContentFile(''))
         request = get_rest_request(exported_file.created_by, rest_context)
+        if settings.BACKGROUND_EXPORT_TASK_UPDATE_REQUEST_FUNCTION:
+            request = import_string(settings.BACKGROUND_EXPORT_TASK_UPDATE_REQUEST_FUNCTION)(request)
         query = string_to_obj(query)
         queryset = query.model.objects.all()
         queryset.query = query
