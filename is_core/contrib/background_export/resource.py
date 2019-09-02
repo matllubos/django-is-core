@@ -55,7 +55,6 @@ class CeleryResourceMixin:
         )
 
     def _get_background_serialization_response_data(self, result, http_headers):
-        print('teeed')
         if not self.permission.has_permission('export', self.request, self):
             return self._get_no_background_permissions_response_data(http_headers)
         else:

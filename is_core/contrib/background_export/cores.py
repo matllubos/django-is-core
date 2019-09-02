@@ -44,7 +44,7 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
     )
     form_fields = (
         'changed_at', 'created_at', 'created_by', 'downloaded_by', 'content_type', 'download_link', 'expiration',
-        'task__state', 'task__start', 'task__stop'
+        'task', 'task__state', 'task__start', 'task__stop'
     )
 
     def _init_permission(self, permission):
