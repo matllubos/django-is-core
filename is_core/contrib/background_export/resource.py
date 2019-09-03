@@ -3,6 +3,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import render
 from django.utils import translation
 from django.utils.encoding import force_text
+from django.utils.translation import ugettext
 
 from is_core.rest.resource import RESTResource, UIRESTModelResource
 
@@ -27,12 +28,12 @@ class CeleryResourceMixin:
 
     def _get_too_large_response_data(self, http_headers):
         return ErrorResponseData(
-            _('Too much data, please use filter or pagination to reduce its amount.')
+            ugettext('Too much data, please use filter or pagination to reduce its amount.')
         ), http_headers, 430, False
 
     def _get_no_background_permissions_response_data(self, http_headers):
         return ErrorResponseData(
-            _('User doesn\'t have permissions to export')
+            ugettext('User doesn\'t have permissions to export')
         ), http_headers, 403, False
 
     def _serialize_data_in_background(self, result):
