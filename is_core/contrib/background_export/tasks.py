@@ -79,10 +79,9 @@ class BackgroundSerializationTask(LoggedTask):
 
 
 @shared_task(base=BackgroundSerializationTask,
-             name='pyston_extension.serializer.serialization',
+             name='background_export.serializer.serialization',
              time_limit=settings.BACKGROUND_EXPORT_TASK_TIME_LIMIT_MINUTES * 60,
              soft_time_limit=settings.BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT_MINUTES * 60,
-             queue=settings.BACKGROUND_EXPORT_TASK_QUEUE,
              bind=True)
 def background_serialization(self, task_id, user_pk, rest_context, language, requested_fieldset, serialization_format,
                              filename, query):
