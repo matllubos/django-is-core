@@ -1,10 +1,10 @@
-from django.conf import settings
 from django.db.models.query import QuerySet
 from django.shortcuts import render
 from django.utils import translation
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 
+from is_core.config import settings
 from is_core.rest.resource import RESTResource, UIRESTModelResource
 
 from security.tasks import obj_to_string
@@ -46,7 +46,8 @@ class CeleryResourceMixin:
                 self._get_serialization_format(),
                 self._get_filename(),
                 obj_to_string(result.query),
-            )
+            ),
+            queue=settings.BACKGROUND_EXPORT_TASK_QUEUE
         )
 
     def _get_filename(self):
@@ -67,7 +68,7 @@ class CeleryResourceMixin:
         return (
             'background_serialization' not in self.request._rest_context and
             isinstance(result, QuerySet) and
-            result.count() > getattr(settings, 'PYSTON_CELERY_SERIALIZATION_LIMIT', 2000)
+            result.count() > settings.BACKGROUND_EXPORT_SERIALIZATION_LIMIT
         )
 
     def _get_response_data(self):
