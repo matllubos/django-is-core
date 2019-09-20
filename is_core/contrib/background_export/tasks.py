@@ -83,7 +83,7 @@ class BackgroundSerializationTask(LoggedTask):
              time_limit=settings.BACKGROUND_EXPORT_TASK_TIME_LIMIT_MINUTES * 60,
              soft_time_limit=settings.BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT_MINUTES * 60,
              bind=True)
-def background_serialization(self, task_id, user_pk, rest_context, language, requested_fieldset, serialization_format,
+def background_serialization(self, user_pk, rest_context, language, requested_fieldset, serialization_format,
                              filename, query):
     # Must be here, because handlers is not registered
     import_string(django_settings.ROOT_URLCONF)
@@ -91,7 +91,7 @@ def background_serialization(self, task_id, user_pk, rest_context, language, req
     prev_language = translation.get_language()
     translation.activate(language)
     try:
-        exported_file = self.get_exported_file(task_id)
+        exported_file = self.get_exported_file(self.request.id)
         exported_file.file.save(filename, ContentFile(''))
         request = get_rest_request(exported_file.created_by, rest_context)
         if settings.BACKGROUND_EXPORT_TASK_UPDATE_REQUEST_FUNCTION:
