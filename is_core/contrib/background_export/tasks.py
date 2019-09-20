@@ -66,7 +66,7 @@ class BackgroundSerializationTask(LoggedTask):
         super().on_apply(task_id, args, kwargs)
         exported_file = ExportedFile(
             task_id=task_id,
-            created_by_id=args[1],
+            created_by_id=args[0],
             content_type=ContentType.objects.get_for_model(string_to_obj(args[-1]).model)
         )
         exported_file.generate_slug()
