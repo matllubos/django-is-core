@@ -2,20 +2,20 @@ import os
 from datetime import timedelta
 from uuid import uuid4 as uuid
 
+from chamber.models import SmartModel
+from chamber.models.fields import FileField
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _l
 
+from is_core.config import settings as is_core_settings
 from is_core.utils.decorators import short_description
-
-from chamber.models import SmartModel
-from chamber.models.fields import FileField
-
 
 if 'security' not in settings.INSTALLED_APPS:
     raise ImproperlyConfigured('Missing library security, please install it.')
@@ -59,7 +59,8 @@ class ExportedFile(SmartModel):
         null=True,
         blank=True,
         upload_to=generate_filename,
-        max_upload_size=100
+        max_upload_size=100,
+        storage=import_string(is_core_settings.BACKGROUND_EXPORT_EXPORTED_FILE_STORAGE)(),
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
