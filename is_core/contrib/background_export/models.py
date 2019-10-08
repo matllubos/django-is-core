@@ -2,8 +2,6 @@ import os
 from datetime import timedelta
 from uuid import uuid4 as uuid
 
-from chamber.models import SmartModel
-from chamber.models.fields import FileField
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
@@ -16,6 +14,9 @@ from django.utils.translation import ugettext_lazy as _l
 
 from is_core.config import settings as is_core_settings
 from is_core.utils.decorators import short_description
+
+from chamber.models import SmartModel
+from chamber.models.fields import FileField
 
 if 'security' not in settings.INSTALLED_APPS:
     raise ImproperlyConfigured('Missing library security, please install it.')

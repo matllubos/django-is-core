@@ -43,8 +43,7 @@ class FileBackgroundExportGenerator:
             QuerysetIteratorHelper(queryset), serialization_format, requested_fieldset=requested_fieldset,
             lazy=True, allow_tags=converter.allow_tags
         )
-        django_file = exported_file.file.file
-        django_file.close()
+        django_file = exported_file.file
         try:
             django_file.open('wb')
             converter.encode_to_stream(
