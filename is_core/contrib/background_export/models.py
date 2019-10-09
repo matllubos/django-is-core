@@ -2,6 +2,8 @@ import os
 from datetime import timedelta
 from uuid import uuid4 as uuid
 
+import import_string
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.contenttypes.models import ContentType
@@ -11,6 +13,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _l
 
+from is_core.config import settings as is_core_settings
 from is_core.utils.decorators import short_description
 
 from chamber.models import SmartModel
@@ -29,11 +32,14 @@ class ExportedFileManager(models.QuerySet):
 
     def filter_expired(self):
         return self.filter_active(
-            created_at__lt=timezone.now() - timedelta(days=getattr(settings, 'PYSTON_EXPORT_EXPIRATION_DAYS', 30))
+            created_at__lt=timezone.now() - timedelta(days=is_core_settings.BACKGROUND_EXPORT_EXPIRATION_DAYS)
         )
 
     def filter_active(self, *args, **kwargs):
         return self.exclude(file='').filter(*args, **kwargs)
+
+
+storage = import_string(is_core_settings.BACKGROUND_EXPORT_STORAGE_CLASS)()
 
 
 class ExportedFile(SmartModel):
@@ -59,7 +65,8 @@ class ExportedFile(SmartModel):
         null=True,
         blank=True,
         upload_to=generate_filename,
-        max_upload_size=100
+        max_upload_size=100,
+        storage=storage
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -118,7 +125,7 @@ class ExportedFile(SmartModel):
     @short_description(_l('expiration'))
     def expiration(self):
         return (
-            self.created_at + timedelta(days=getattr(settings, 'PYSTON_EXPORT_EXPIRATION_DAYS', 30))
+            self.created_at + timedelta(days=is_core_settings.BACKGROUND_EXPORT_EXPIRATION_DAYS)
             if self.created_at else None
         )
 
