@@ -1,10 +1,11 @@
 {% extends 'is_core/generic_views/default_form.html' %}
-{% load i18n %}
+{% load i18n permissions %}
 
 {% block view-class %}detail-view{% endblock %}
 
 {% block content %}
-    {% if request.user.can_export and export_types %}
+    {% has_permission 'export' %}
+    {% if export_types %}
     <ul class="inline-list">
     <li>
         <div class="dropdown columns-dropdown">
@@ -21,5 +22,6 @@
     </li>
     </ul>
     {% endif %}
+    {% endhas_permission %}
     {{ block.super }}
 {% endblock %}

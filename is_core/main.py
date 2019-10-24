@@ -504,7 +504,7 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     def get_ui_detail_export_types(self, request):
         return (
-            list(self.ui_detail_export_fields) if self.ui_detail_export_fields is not None
+            list(self.ui_detail_export_types) if self.ui_detail_export_types is not None
             else self.get_ui_export_types(request)
         )
 
