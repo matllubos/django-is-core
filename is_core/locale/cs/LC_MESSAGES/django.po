@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-09 13:38+0200\n"
+"POT-Creation-Date: 2019-10-25 20:59+0200\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -33,6 +33,42 @@ msgstr "Ne"
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
 
+#: contrib/background_export/models.py:51
+msgid "state"
+msgstr "stav"
+
+#: contrib/background_export/models.py:57
+msgid "slug"
+msgstr "slug"
+
+#: contrib/background_export/models.py:64
+msgid "file"
+msgstr "soubor"
+
+#: contrib/background_export/models.py:73
+msgid "created by"
+msgstr "vytvořil"
+
+#: contrib/background_export/models.py:81
+msgid "downloaded by"
+msgstr "staženo"
+
+#: contrib/background_export/models.py:102
+msgid "download"
+msgstr "stáhnout"
+
+#: contrib/background_export/models.py:125
+msgid "expiration"
+msgstr "expirace"
+
+#: contrib/background_export/models.py:136
+msgid "exported file"
+msgstr "exportovaný soubor"
+
+#: contrib/background_export/models.py:137
+msgid "exported files"
+msgstr "exportované soubory"
+
 #: contrib/background_export/resource.py:31
 msgid "Too much data, please use filter or pagination to reduce its amount."
 msgstr "Příliš mnoho dat, prosím použijte filtrování nebo stránkování."
@@ -50,7 +86,7 @@ msgid "You will be notified after export completion"
 msgstr "Po dokončení exportu budete notifikován"
 
 #: contrib/background_export/templates/is_core/generic_views/table.html:12
-#: templates/is_core/generic_views/detail_form.html:11
+#: templates/is_core/generic_views/detail_form.html:12
 msgid "Export"
 msgstr "Export"
 
@@ -194,12 +230,12 @@ msgstr "Odhlásit"
 
 #: templates/is_core/base.html:36
 msgid "back to"
-msgstr ""
+msgstr "zpět"
 
 #: templates/is_core/base.html:73
 #, python-format
 msgid "Attention! You are connected as %(real_user)s."
-msgstr ""
+msgstr "Pozor! Jste přihlášeni jako uživatel %(real_user)s."
 
 #: templates/is_core/base.html:124
 msgid "Internal error occurred. Service is unavailable, sorry."
