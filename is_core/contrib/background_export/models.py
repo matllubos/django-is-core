@@ -11,7 +11,7 @@ from django.db import models
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.html import format_html
-from django.utils.translation import ugettext_lazy as _l
+from django.utils.translation import ugettext_lazy as _
 
 from is_core.config import settings as is_core_settings
 from is_core.utils.decorators import short_description
@@ -48,20 +48,20 @@ class ExportedFile(SmartModel):
 
     task = models.OneToOneField(
         'security.CeleryTaskLog',
-        verbose_name=_l('state'),
+        verbose_name=_('state'),
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
     )
     slug = models.SlugField(
-        verbose_name=_l('slug'),
+        verbose_name=_('slug'),
         null=False,
         blank=False,
         primary_key=True,
         max_length=32
     )
     file = FileField(
-        verbose_name=_l('file'),
+        verbose_name=_('file'),
         null=True,
         blank=True,
         upload_to=generate_filename,
@@ -70,7 +70,7 @@ class ExportedFile(SmartModel):
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        verbose_name=_l('created by'),
+        verbose_name=_('created by'),
         null=False,
         blank=False,
         related_name='created_exported_files',
@@ -78,7 +78,7 @@ class ExportedFile(SmartModel):
     )
     downloaded_by = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        verbose_name=_l('downloaded by'),
+        verbose_name=_('downloaded by'),
         blank=True,
         related_name='downloaded_exported_files'
     )
@@ -99,7 +99,7 @@ class ExportedFile(SmartModel):
             else ''
         )
 
-    @short_description(_l('download'))
+    @short_description(_('download'))
     def download_link(self):
         return (
             format_html('<a href="{}">{}</a>', self.download_url, os.path.basename(self.file.name))
@@ -122,7 +122,7 @@ class ExportedFile(SmartModel):
             self.file = None
             self.save()
 
-    @short_description(_l('expiration'))
+    @short_description(_('expiration'))
     def expiration(self):
         return (
             self.created_at + timedelta(days=is_core_settings.BACKGROUND_EXPORT_EXPIRATION_DAYS)
@@ -133,6 +133,6 @@ class ExportedFile(SmartModel):
         return os.path.basename(self.file.name)
 
     class Meta:
-        verbose_name = _l('exported file')
-        verbose_name_plural = _l('exported files')
+        verbose_name = _('exported file')
+        verbose_name_plural = _('exported files')
         ordering = ('-created_at',)
