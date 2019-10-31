@@ -36,8 +36,6 @@ class FileBackgroundExportGenerator:
         self.model = model
 
     def generate(self, exported_file, request, queryset, requested_fieldset, serialization_format):
-        print('resource', get_resource_or_none(request, queryset.model))
-
         converter = get_converter_from_request(request)
         converted_dict = get_serializer(queryset, request=request).serialize(
             QuerysetIteratorHelper(queryset), serialization_format, requested_fieldset=requested_fieldset,
