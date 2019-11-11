@@ -56,22 +56,22 @@ class BackgroundSerializationTask(LoggedTask):
 
     abstract = True
 
-    def get_exported_file(self, task_id):
-        return ExportedFile.objects.get(task_id=task_id)
+    def get_exported_file(self):
+        return ExportedFile.objects.get(task=self.task_log)
 
-    def on_apply(self, task_id, args, kwargs):
-        super().on_apply(task_id, args, kwargs)
+    def on_apply_task(self, task_log, args, kwargs, options):
+        super().on_apply_task(task_log, args, kwargs, options)
         exported_file = ExportedFile(
-            task_id=task_id,
+            task=task_log,
             created_by_id=args[0],
             content_type=ContentType.objects.get_for_model(string_to_obj(args[-1]).model)
         )
         exported_file.generate_slug()
         exported_file.save()
 
-    def on_success(self, retval, task_id, args, kwargs):
-        super().on_success(retval, task_id, args, kwargs)
-        exported_file = self.get_exported_file(task_id)
+    def on_success_task(self, task_log, args, kwargs, retval):
+        super().on_success_task(task_log, args, kwargs, retval)
+        exported_file = self.get_exported_file()
         export_success.send(sender=self.__class__, exported_file=exported_file)
 
 
@@ -88,7 +88,7 @@ def background_serialization(self, user_pk, rest_context, language, requested_fi
     prev_language = translation.get_language()
     translation.activate(language)
     try:
-        exported_file = self.get_exported_file(self.request.id)
+        exported_file = self.get_exported_file()
         exported_file.file.save(filename, ContentFile(''))
         request = get_rest_request(exported_file.created_by, rest_context)
         if settings.BACKGROUND_EXPORT_TASK_UPDATE_REQUEST_FUNCTION:
