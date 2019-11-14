@@ -12,5 +12,5 @@ class Command(BaseCommand):
         if not count_expired_exported_files:
             self.stdout.write('No expired exported files were found.')
         else:
-            [exported_file.remove_file() for exported_file in ExportedFile.objects.filter_expired()]
+            [exported_file.file.delete() for exported_file in ExportedFile.objects.filter_expired()]
             self.stdout.write('{} expired exported files was removed.'.format(count_expired_exported_files))
