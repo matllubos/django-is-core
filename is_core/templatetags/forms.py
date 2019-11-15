@@ -1,8 +1,7 @@
 from django import template
 from django.forms import CheckboxInput
-from django.template.base import TemplateSyntaxError, token_kwargs
+from django.template.base import TemplateSyntaxError, token_kwargs, Node
 from django.template.loader import render_to_string
-from django.template.loader_tags import IncludeNode
 
 from is_core.config import settings
 from is_core.utils import pretty_class_name
@@ -10,6 +9,35 @@ from is_core.forms.widgets import WrapperWidget
 
 
 register = template.Library()
+
+
+class FormNode(Node):
+
+    def __init__(self, template, *args, **kwargs):
+        self.template = template
+        self.extra_context = kwargs.pop('extra_context', {})
+        super().__init__(*args, **kwargs)
+
+    def render(self, context):
+        template = self.template.resolve(context)
+        # Does this quack like a Template?
+        if not callable(getattr(template, 'render', None)):
+            # If not, we'll try our cache, and get_template()
+            template_name = template
+            cache = context.render_context.dicts[0].setdefault(self, {})
+            template = cache.get(template_name)
+            if template is None:
+                template = context.template.engine.get_template(template_name)
+                cache[template_name] = template
+        # Use the base.Template of a backends.django.Template.
+        elif hasattr(template, 'template'):
+            template = template.template
+        values = {
+            name: var.resolve(context)
+            for name, var in self.extra_context.items()
+        }
+        with context.push(**values):
+            return template.render(context)
 
 
 @register.tag('form_renderer')
@@ -23,7 +51,7 @@ def do_form_renderer(parser, token):
     options['use_csrf'] = options.get('use_csrf', parser.compile_filter('True'))
     options['form'] = parser.compile_filter(bits[1])
     options['method'] = options.get('method', parser.compile_filter("'POST'"))
-    return IncludeNode(template_name, extra_context=options)
+    return FormNode(template_name, extra_context=options)
 
 
 @register.simple_tag(takes_context=True)
