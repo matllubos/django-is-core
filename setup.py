@@ -25,7 +25,7 @@ setup(
     ],
     install_requires=[
         'django>=1.11',
-        'django-pyston~=2.9.18',
+        'django-pyston~=2.10.0',
         'django-block-snippets==2.0.1',
         'django-chamber~=0.5.12',
         'python-dateutil~=2.8.0',
