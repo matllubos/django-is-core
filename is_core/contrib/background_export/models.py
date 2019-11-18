@@ -113,15 +113,6 @@ class ExportedFile(SmartModel):
         if not self.slug:
             self.generate_slug()
 
-    def remove_file(self, *args, **kwargs):
-        if self.file:
-            directory_path = self.file.storage.path(os.path.join(self.file.path, '..'))
-            if os.path.exists(directory_path):
-                self.file.storage.delete(self.file.path)
-                os.rmdir(directory_path)
-            self.file = None
-            self.save()
-
     @short_description(_('expiration'))
     def expiration(self):
         return (
@@ -130,7 +121,7 @@ class ExportedFile(SmartModel):
         )
 
     def __str__(self):
-        return os.path.basename(self.file.name)
+        return os.path.basename(self.file.name) if self.file else None
 
     class Meta:
         verbose_name = _('exported file')
