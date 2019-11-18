@@ -121,7 +121,7 @@ class ExportedFile(SmartModel):
         )
 
     def __str__(self):
-        return os.path.basename(self.file.name) if self.file else None
+        return '#{}'.format(self.pk)
 
     class Meta:
         verbose_name = _('exported file')
