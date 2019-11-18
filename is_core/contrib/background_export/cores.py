@@ -36,11 +36,10 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
 
     all_ui_list_fields = (
         'changed_at', 'created_at', 'created_by', 'downloaded_by', 'expiration', 'download_link', 'task__state',
-        'task__started_at', 'task__stopped_at'
+        'task__start', 'task__stop'
     )
     own_ui_list_fields = (
-        'changed_at', 'created_at', 'expiration', 'download_link', 'task__state', 'task__started_at',
-        'task__stopped_at'
+        'changed_at', 'created_at', 'expiration', 'download_link', 'task__state', 'task__start', 'task__stop'
     )
     form_fields = (
         'changed_at', 'created_at', 'created_by', 'downloaded_by', 'content_type', 'download_link', 'expiration',
