@@ -1,4 +1,3 @@
-import django
 from django import forms
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name

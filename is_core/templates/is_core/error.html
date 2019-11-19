@@ -2,6 +2,6 @@
 {% load i18n %}
 
 {% block content %}
-	<h2 class="error-403">{{ title }} ({{ response_code }})</h2>
+	<h2 class="error-403">{{ title|capfirst }} ({{ response_code }})</h2>
 	{% if message %}<p>{{ message }}</p>{% endif %}
 {% endblock %}

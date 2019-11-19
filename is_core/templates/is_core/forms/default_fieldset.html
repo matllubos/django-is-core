@@ -1,7 +1,7 @@
 {% load forms utils %}
 
 <fieldset class="{% if title %}with-title{% else %}without-title{% endif %}{% if class %} {{ class }}{% endif %}">
-    {% if title %}<legend>{{ title }}</legend>{% endif %}
+    {% if title %}<legend>{{ title|capfirst }}</legend>{% endif %}
     {% block above-form %}{% endblock %}
     {% if fields %}
         <div class="container-fluid">
