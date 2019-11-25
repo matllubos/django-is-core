@@ -317,18 +317,18 @@ class DivButtonWidget(CompatibilityWidgetMixin, ReadonlyWidget):
 class MultipleTextInput(forms.TextInput):
 
     def __init__(self, attrs=None, separator=','):
-        super(MultipleTextInput, self).__init__(attrs)
+        super().__init__(attrs)
         self.separator = separator
 
     def render(self, name, value, attrs=None):
         if isinstance(value, str):
             value = [value]
-        return super(MultipleTextInput, self).render(
+        return super().render(
             name, '{} '.format(self.separator).join(map(force_text, value)) if value else value, attrs
         )
 
     def value_from_datadict(self, data, files, name):
-        value = super(MultipleTextInput, self).value_from_datadict(data, files, name)
+        value = super().value_from_datadict(data, files, name)
         return [v.strip() for v in value.split(self.separator)] if isinstance(value, str) else value
 
 
@@ -369,7 +369,7 @@ class FilterDateRangeWidgetMixin:
             filter_term = attrs.pop('data-filter')
             for widget, operator in zip(self.widgets, ('gte', 'lt')):
                 widget.attrs['data-filter'] = '{}__{}'.format(filter_term.rsplit('__', 1)[0], operator)
-        return super(FilterDateRangeWidgetMixin, self).render(name, value, attrs)
+        return super().render(name, value, attrs)
 
 
 class DateRangeFilterWidget(FilterDateRangeWidgetMixin, DateRangeWidget):
@@ -383,7 +383,8 @@ class DateTimeRangeFilterWidget(FilterDateRangeWidgetMixin, DateTimeRangeWidget)
 class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
 
     select_class_name = None
-    select_class_placeholder = None
+    select_placeholder = None
+    input_placeholder = None
 
     @cached_property
     def is_restricted(self):
@@ -404,17 +405,19 @@ class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
             if value != '':
                 # Only add the 'value' attribute if a value is non-empty.
                 final_attrs['value'] = self.format_resticted_value(value)
+            final_attrs['placeholder'] = self.input_placeholder
             return format_html('<input{} />', flatatt(final_attrs))
         else:
             attrs = add_class_name(attrs, self.select_class_name)
-            attrs['placeholder'] = self.select_class_placeholder
-            return super(RestrictedSelectWidgetMixin, self).render(name, value, attrs=attrs)
+            attrs['placeholder'] = self.select_placeholder
+            return super().render(name, value, attrs=attrs)
 
 
 class RestrictedSelectWidget(RestrictedSelectWidgetMixin, forms.Select):
 
     select_class_name = 'fulltext-search'
-    select_class_placeholder = _('Search...')
+    select_placeholder = _('Search...')
+    input_placeholder = _('Insert primary key')
 
     def format_resticted_value(self, value):
         return None if value is None else str(value)
@@ -423,10 +426,11 @@ class RestrictedSelectWidget(RestrictedSelectWidgetMixin, forms.Select):
 class RestrictedSelectMultipleWidget(RestrictedSelectWidgetMixin, forms.SelectMultiple):
 
     select_class_name = 'fulltext-search-multiple'
-    select_class_placeholder = _('Search...')
+    select_placeholder = _('Search...')
+    input_placeholder = _('Insert primary keys separated by comma')
 
     def __init__(self, attrs=None, separator=','):
-        super(RestrictedSelectMultipleWidget, self).__init__(attrs)
+        super().__init__(attrs)
         self.separator = separator
 
     def value_from_datadict(self, data, files, name):

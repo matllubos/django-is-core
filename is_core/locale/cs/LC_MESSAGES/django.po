@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-25 20:59+0200\n"
+"POT-Creation-Date: 2019-11-20 16:16+0100\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -57,15 +57,15 @@ msgstr "staženo"
 msgid "download"
 msgstr "stáhnout"
 
-#: contrib/background_export/models.py:125
+#: contrib/background_export/models.py:116
 msgid "expiration"
 msgstr "expirace"
 
-#: contrib/background_export/models.py:136
+#: contrib/background_export/models.py:127
 msgid "exported file"
 msgstr "exportovaný soubor"
 
-#: contrib/background_export/models.py:137
+#: contrib/background_export/models.py:128
 msgid "exported files"
 msgstr "exportované soubory"
 
@@ -122,10 +122,18 @@ msgstr "Služba je dočasně nedostupná"
 msgid "Readonly field can not be validated"
 msgstr "Pole pro čtení nemůže být validováno"
 
-#: forms/widgets.py:61 forms/widgets.py:67 forms/widgets.py:417
-#: forms/widgets.py:426
+#: forms/widgets.py:61 forms/widgets.py:67 forms/widgets.py:419
+#: forms/widgets.py:429
 msgid "Search..."
 msgstr "Hledat..."
+
+#: forms/widgets.py:420
+msgid "Insert primary key"
+msgstr "Vložte primární klíč"
+
+#: forms/widgets.py:430
+msgid "Insert primary keys separated by comma"
+msgstr "Vložtě primární klíče oddělené čárkou"
 
 #: generic_views/__init__.py:202 main.py:354
 msgid "Home"
@@ -223,25 +231,25 @@ msgstr "Pouze %s objektů může být změněno v jednom požadavku"
 msgid "Internal Server Error (500)"
 msgstr "Interní chyba serveru (500)"
 
-#: templates/is_core/base.html:36 templates/is_core/logged_out.html:4
+#: templates/is_core/base.html:37 templates/is_core/logged_out.html:4
 #: templates/is_core/logged_out.html:13
 msgid "Logout"
 msgstr "Odhlásit"
 
-#: templates/is_core/base.html:36
+#: templates/is_core/base.html:37
 msgid "back to"
 msgstr "zpět"
 
-#: templates/is_core/base.html:73
+#: templates/is_core/base.html:69
 #, python-format
 msgid "Attention! You are connected as %(real_user)s."
 msgstr "Pozor! Jste přihlášeni jako uživatel %(real_user)s."
 
-#: templates/is_core/base.html:124
+#: templates/is_core/base.html:120
 msgid "Internal error occurred. Service is unavailable, sorry."
 msgstr "Interní chyba. Služba je dočasně nedostupná."
 
-#: templates/is_core/base.html:124
+#: templates/is_core/base.html:120
 msgid "Loading..."
 msgstr "Načítám..."
 
