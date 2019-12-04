@@ -1,7 +1,6 @@
 from copy import deepcopy
 
-from django.core.exceptions import ImproperlyConfigured
-from django.forms.models import fields_for_model
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.http.response import HttpResponseRedirect, Http404
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -17,7 +16,6 @@ from is_core.auth.permissions import (
     PermissionsSet, CoreReadAllowed, CoreUpdateAllowed, CoreCreateAllowed, CoreAllowed, DEFAULT_PERMISSION
 )
 from is_core.auth.views import FieldPermissionViewMixin
-from is_core.exceptions import PersistenceException
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import (
     flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets,
@@ -148,7 +146,7 @@ class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
             else:
                 obj = self.save_form(form, **kwargs)
             return self.success_render_to_response(obj, msg, msg_level)
-        except PersistenceException as ex:
+        except ValidationError as ex:
             return self.form_invalid(form, msg=force_text(ex.message), **kwargs)
 
     def form_invalid(self, form, msg=None, msg_level=None, **kwargs):
