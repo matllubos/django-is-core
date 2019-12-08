@@ -57,7 +57,7 @@ class BackgroundSerializationTask(LoggedTask):
     abstract = True
 
     def get_exported_file(self):
-        return ExportedFile.objects.get(task=self.task_log)
+        return ExportedFile.objects.get(task=self.task_run_log.get_task_log())
 
     def on_apply_task(self, task_log, args, kwargs, options):
         super().on_apply_task(task_log, args, kwargs, options)
@@ -69,8 +69,8 @@ class BackgroundSerializationTask(LoggedTask):
         exported_file.generate_slug()
         exported_file.save()
 
-    def on_success_task(self, task_log, args, kwargs, retval):
-        super().on_success_task(task_log, args, kwargs, retval)
+    def on_success_task(self, task_run_log, args, kwargs, retval):
+        super().on_success_task(task_run_log, args, kwargs, retval)
         exported_file = self.get_exported_file()
         export_success.send(sender=self.__class__, exported_file=exported_file)
 
