@@ -95,7 +95,7 @@ class ExportedFile(SmartModel):
 
         return (
             resolve_url('pyston-download-export', slug=self.slug)
-            if self.file and self.task and self.task.state == CeleryTaskLogState.SUCCEEDED
+            if self.file and self.task and self.task.get_state() == CeleryTaskLogState.SUCCEEDED
             else ''
         )
 
