@@ -35,15 +35,16 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
     read_all_permission = IsSuperuser()
 
     all_ui_list_fields = (
-        'changed_at', 'created_at', 'created_by', 'downloaded_by', 'expiration', 'download_link', 'task__state',
-        'task__start', 'task__stop'
+        'changed_at', 'created_at', 'created_by', 'downloaded_by', 'expiration', 'download_link', 'task__get_state',
+        'task__get_start', 'task__get_stop'
     )
     own_ui_list_fields = (
-        'changed_at', 'created_at', 'expiration', 'download_link', 'task__state', 'task__start', 'task__stop'
+        'changed_at', 'created_at', 'expiration', 'download_link', 'task__get_state', 'task__get_start',
+        'task__get_stop'
     )
     form_fields = (
         'changed_at', 'created_at', 'created_by', 'downloaded_by', 'content_type', 'download_link', 'expiration',
-        'task', 'task__state', 'task__start', 'task__stop'
+        'task', 'task__get_state', 'task__get_start', 'task__get_stop'
     )
 
     def _init_permission(self, permission):
