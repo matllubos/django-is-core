@@ -356,9 +356,9 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
                 })
             ] + [
                 (
-                    inline_view.model._meta.verbose_name_plural if (
-                        isinstance(inline_view, InlineFormView) and (not inline_view.max_num or inline_view.max_num > 1)
-                    ) else inline_view.model._meta.verbose_name,
+                    inline_view.model._meta.verbose_name if (
+                        isinstance(inline_view, InlineFormView) and inline_view.max_num and inline_view.max_num <= 1
+                    ) else inline_view.model._meta.verbose_name_plural,
                     {'inline_view': inline_view}
                 )
                 for inline_view in self.get_inline_views() or ()
