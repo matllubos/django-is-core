@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-20 16:16+0100\n"
+"POT-Creation-Date: 2020-03-23 22:50+0100\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -33,47 +33,47 @@ msgstr "Ne"
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
 
-#: contrib/background_export/models.py:51
-msgid "state"
-msgstr "stav"
+#: contrib/background_export/cores.py:73
+msgid "celery task log"
+msgstr "log celery úlohy"
 
-#: contrib/background_export/models.py:57
+#: contrib/background_export/models.py:54
 msgid "slug"
 msgstr "slug"
 
-#: contrib/background_export/models.py:64
+#: contrib/background_export/models.py:62
 msgid "file"
 msgstr "soubor"
 
-#: contrib/background_export/models.py:73
+#: contrib/background_export/models.py:71
 msgid "created by"
 msgstr "vytvořil"
 
-#: contrib/background_export/models.py:81
+#: contrib/background_export/models.py:79
 msgid "downloaded by"
 msgstr "staženo"
 
-#: contrib/background_export/models.py:102
+#: contrib/background_export/models.py:99
 msgid "download"
 msgstr "stáhnout"
 
-#: contrib/background_export/models.py:116
+#: contrib/background_export/models.py:113
 msgid "expiration"
 msgstr "expirace"
 
-#: contrib/background_export/models.py:127
+#: contrib/background_export/models.py:124
 msgid "exported file"
 msgstr "exportovaný soubor"
 
-#: contrib/background_export/models.py:128
+#: contrib/background_export/models.py:125
 msgid "exported files"
 msgstr "exportované soubory"
 
-#: contrib/background_export/resource.py:31
+#: contrib/background_export/resource.py:54
 msgid "Too much data, please use filter or pagination to reduce its amount."
 msgstr "Příliš mnoho dat, prosím použijte filtrování nebo stránkování."
 
-#: contrib/background_export/resource.py:36
+#: contrib/background_export/resource.py:59
 msgid "User doesn't have permissions to export"
 msgstr "Uživatel nemá právo exportovat data"
 
@@ -139,49 +139,49 @@ msgstr "Vložtě primární klíče oddělené čárkou"
 msgid "Home"
 msgstr "Home"
 
-#: generic_views/form_views.py:61
+#: generic_views/form_views.py:59
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:62 generic_views/form_views.py:650
-#: generic_views/form_views.py:672
+#: generic_views/form_views.py:60 generic_views/form_views.py:648
+#: generic_views/form_views.py:670
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:66
+#: generic_views/form_views.py:64
 msgid "Save"
 msgstr "Uložit"
 
-#: generic_views/form_views.py:70
+#: generic_views/form_views.py:68
 msgid "Back"
 msgstr "Zpět"
 
-#: generic_views/form_views.py:260 generic_views/form_views.py:491
+#: generic_views/form_views.py:258 generic_views/form_views.py:489
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
-#: generic_views/form_views.py:544
+#: generic_views/form_views.py:542
 msgid "Save and navigate to the list"
 msgstr "Uložit a vrátit se zpět do tabulky záznamů"
 
-#: generic_views/form_views.py:546
+#: generic_views/form_views.py:544
 msgid "Save and stay on the same page"
 msgstr "Uložit a pokračovat v úpravách"
 
-#: generic_views/form_views.py:547
+#: generic_views/form_views.py:545
 msgid "Save and continue"
 msgstr "Uložit a pokračovat"
 
-#: generic_views/form_views.py:550
+#: generic_views/form_views.py:548
 msgid "Do not save and go back to the list"
 msgstr "Neukládat a vrátit se na seznam"
 
-#: generic_views/form_views.py:649
+#: generic_views/form_views.py:647
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:671
+#: generic_views/form_views.py:669
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."

@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.query import QuerySet
 from django.shortcuts import render
 from django.utils import translation
@@ -9,6 +10,7 @@ from is_core.rest.resource import RESTResource, UIRESTModelResource
 
 from security.tasks import obj_to_string
 
+from .models import ExportedFile
 from .tasks import background_serialization
 
 
@@ -17,6 +19,27 @@ class ErrorResponseData(dict):
     def __init__(self, msg, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self['messages'] = {'error': force_text(msg)}
+
+
+def apply_background_export(user, queryset, rest_context, fieldset, serialization_format, filename):
+    exported_file = ExportedFile.objects.create(
+        created_by=user,
+        content_type=ContentType.objects.get_for_model(queryset.model)
+    )
+
+    background_serialization.apply_async_on_commit(
+        args=(
+            exported_file.pk,
+            rest_context,
+            translation.get_language(),
+            fieldset,
+            serialization_format,
+            filename,
+            obj_to_string(queryset.query),
+        ),
+        queue=settings.BACKGROUND_EXPORT_TASK_QUEUE,
+        related_objects=[exported_file]
+    )
 
 
 class CeleryResourceMixin:
@@ -37,17 +60,13 @@ class CeleryResourceMixin:
         ), http_headers, 403, False
 
     def _serialize_data_in_background(self, result):
-        background_serialization.apply_async_on_commit(
-            args=(
-                self.request.user.pk,
-                self.request._rest_context,
-                translation.get_language(),
-                force_text(self._get_requested_fieldset(result)),
-                self._get_serialization_format(),
-                self._get_filename(),
-                obj_to_string(result.query),
-            ),
-            queue=settings.BACKGROUND_EXPORT_TASK_QUEUE
+        apply_background_export(
+            self.request.user,
+            result,
+            self.request._rest_context,
+            force_text(self._get_requested_fieldset(result)),
+            self._get_serialization_format(),
+            self._get_filename(),
         )
 
     def _get_filename(self):

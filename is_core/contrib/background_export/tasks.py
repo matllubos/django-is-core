@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.http.request import HttpRequest
 from django.utils import translation
+from django.db.transaction import atomic
 
 from pyston.converters import get_converter_from_request
 from pyston.serializer import get_serializer, get_resource_or_none
@@ -56,22 +57,12 @@ class BackgroundSerializationTask(LoggedTask):
 
     abstract = True
 
-    def get_exported_file(self):
-        return ExportedFile.objects.get(task=self.task_run_log.get_task_log())
-
-    def on_apply_task(self, task_log, args, kwargs, options):
-        super().on_apply_task(task_log, args, kwargs, options)
-        exported_file = ExportedFile(
-            task=task_log,
-            created_by_id=args[0],
-            content_type=ContentType.objects.get_for_model(string_to_obj(args[-1]).model)
-        )
-        exported_file.generate_slug()
-        exported_file.save()
+    def get_exported_file(self, pk):
+        return ExportedFile.objects.get(pk=pk)
 
     def on_success_task(self, task_run_log, args, kwargs, retval):
         super().on_success_task(task_run_log, args, kwargs, retval)
-        exported_file = self.get_exported_file()
+        exported_file = self.get_exported_file(args[0])
         export_success.send(sender=self.__class__, exported_file=exported_file)
 
 
@@ -80,7 +71,8 @@ class BackgroundSerializationTask(LoggedTask):
              time_limit=settings.BACKGROUND_EXPORT_TASK_TIME_LIMIT_MINUTES * 60,
              soft_time_limit=settings.BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT_MINUTES * 60,
              bind=True)
-def background_serialization(self, user_pk, rest_context, language, requested_fieldset, serialization_format,
+@atomic
+def background_serialization(self, exported_file_pk, rest_context, language, requested_fieldset, serialization_format,
                              filename, query):
     # Must be here, because handlers is not registered
     import_string(django_settings.ROOT_URLCONF)
@@ -88,7 +80,7 @@ def background_serialization(self, user_pk, rest_context, language, requested_fi
     prev_language = translation.get_language()
     translation.activate(language)
     try:
-        exported_file = self.get_exported_file()
+        exported_file = self.get_exported_file(exported_file_pk)
         exported_file.file.save(filename, ContentFile(''))
         request = get_rest_request(exported_file.created_by, rest_context)
         if settings.BACKGROUND_EXPORT_TASK_UPDATE_REQUEST_FUNCTION:
