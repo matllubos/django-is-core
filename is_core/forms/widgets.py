@@ -151,7 +151,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         else:
             return value
 
-    def _get_value_display(self, value):
+    def _get_value_display(self, value, request=None):
         from is_core.utils import display_for_value
 
         value = self._get_value(value)
@@ -159,17 +159,17 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         if value in EMPTY_VALUES:
             value = EMPTY_VALUE
 
-        return display_for_value(value)
+        return display_for_value(value, request=request)
 
-    def _render(self, name, value, attrs=None, choices=()):
+    def _render(self, name, value, attrs=None, choices=(), request=None):
         if isinstance(value, (list, tuple)):
-            out = ', '.join([self._get_value_display(val) for val in value])
+            out = ', '.join([self._get_value_display(val, request) for val in value])
         else:
-            out = self._get_value_display(value)
+            out = self._get_value_display(value, request)
         return format_html('<p>{}</p>', out)
 
     def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
-        return self._render(name, value, attrs, choices)
+        return self._render(name, value, attrs, choices, request)
 
     def _render_readonly_value(self, readonly_value):
         return mark_safe('<p><span title="%s">%s</span></p>' % (conditional_escape(force_text(readonly_value.value)),

@@ -1,5 +1,8 @@
+from django.utils.translation import ugettext_lazy as _
+
 from is_core.auth.permissions import PermissionsSet, SelfPermission, IsSuperuser
 from is_core.main import UIRESTModelISCore, UIRESTISCore
+from is_core.utils.decorators import short_description
 
 from .models import ExportedFile
 from .resource import CeleryRESTModelResource, CeleryRESTResource
@@ -35,16 +38,14 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
     read_all_permission = IsSuperuser()
 
     all_ui_list_fields = (
-        'changed_at', 'created_at', 'created_by', 'downloaded_by', 'expiration', 'download_link', 'task__get_state',
-        'task__get_start', 'task__get_stop'
+        'changed_at', 'created_at', 'created_by', 'downloaded_by', 'expiration', 'download_link', 'celery_task_log'
     )
     own_ui_list_fields = (
-        'changed_at', 'created_at', 'expiration', 'download_link', 'task__get_state', 'task__get_start',
-        'task__get_stop'
+        'changed_at', 'created_at', 'expiration', 'download_link'
     )
     form_fields = (
         'changed_at', 'created_at', 'created_by', 'downloaded_by', 'content_type', 'download_link', 'expiration',
-        'task', 'task__get_state', 'task__get_start', 'task__get_stop'
+        'celery_task_log'
     )
 
     def _init_permission(self, permission):
@@ -68,3 +69,9 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
             return qs.filter(created_by=request.user)
         else:
             return qs.none()
+
+    @short_description(_('celery task log'))
+    def celery_task_log(self, obj):
+        from security.models import CeleryTaskLog
+
+        return CeleryTaskLog.objects.filter_related_with_object(obj).first()

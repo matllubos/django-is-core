@@ -42,23 +42,21 @@ class ExportedFileManager(models.QuerySet):
 storage = import_string(is_core_settings.BACKGROUND_EXPORT_STORAGE_CLASS)()
 
 
+def generate_slug():
+    return uuid().hex
+
+
 class ExportedFile(SmartModel):
 
     objects = ExportedFileManager.as_manager()
 
-    task = models.OneToOneField(
-        'security.CeleryTaskLog',
-        verbose_name=_('state'),
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
     slug = models.SlugField(
         verbose_name=_('slug'),
         null=False,
         blank=False,
         primary_key=True,
-        max_length=32
+        max_length=32,
+        default=generate_slug
     )
     file = FileField(
         verbose_name=_('file'),
@@ -95,8 +93,7 @@ class ExportedFile(SmartModel):
 
         return (
             resolve_url('pyston-download-export', slug=self.slug)
-            if self.file and self.task and self.task.get_state() == CeleryTaskLogState.SUCCEEDED
-            else ''
+            if self.file else ''
         )
 
     @short_description(_('download'))

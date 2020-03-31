@@ -2,12 +2,12 @@ import re
 import inspect
 
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
-from django.db.models import Model
+from django.db.models import Model, QuerySet
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 
 from chamber.utils import get_class_method, call_method_with_unknown_input
 
@@ -275,6 +275,8 @@ def display_for_value(value, request=None):
 
     if request and isinstance(value, Model):
         return render_model_object_with_link(request, value)
+    if request and isinstance(value, QuerySet):
+        return render_model_objects_with_link(request, value)
     else:
         return (
             (value and ugettext('Yes') or ugettext('No')) if isinstance(value, bool) else admin_display_for_value(value)
@@ -314,6 +316,10 @@ def render_model_object_with_link(request, obj, display_value=None):
     obj_url = get_obj_url(request, obj)
     display_value = force_text(obj) if display_value is None else display_value
     return format_html('<a href="{}">{}</a>', obj_url, display_value) if obj_url else display_value
+
+
+def render_model_objects_with_link(request, objs):
+    return format_html_join(', ', '{}', ((render_model_object_with_link(request, obj),) for obj in objs))
 
 
 def header_name_to_django(header_name):
