@@ -14,6 +14,7 @@ from django.http.response import Http404
 from django.core.exceptions import ValidationError
 from django.forms.models import _get_foreign_key
 from django.utils.functional import cached_property
+from django.urls import reverse
 
 from is_core.auth.permissions import FieldsSetPermission
 from is_core.config import settings
@@ -22,8 +23,7 @@ from is_core.generic_views.form_views import AddModelFormView, DetailModelFormVi
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RESTModelResource, UIRESTModelResource
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
-from is_core.utils import flatten_fieldsets, str_to_class, GetMethodFieldMixin
-from is_core.utils.compatibility import urls_wrapper, get_model_name, reverse
+from is_core.utils import flatten_fieldsets, str_to_class, GetMethodFieldMixin, get_model_name
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
@@ -101,7 +101,7 @@ class ISCore(metaclass=ISCoreBase):
             if url:
                 urls.append(url)
 
-        return urls_wrapper(*urls)
+        return urls
 
     def get_urls(self):
         return ()

@@ -2,11 +2,12 @@ from django.http.response import HttpResponseRedirect, HttpResponse, Http404
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
+from django.urls import resolve
 from django.conf import settings
 
 from is_core.exceptions import ResponseException
 from is_core.exceptions.response import response_exception_factory
-from is_core.utils.compatibility import resolve, MiddlewareMixin
+from is_core.utils.compatibility import MiddlewareMixin
 
 
 class RequestKwargsMiddleware(MiddlewareMixin):

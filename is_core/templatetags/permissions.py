@@ -1,9 +1,9 @@
 from django.template.base import Node, TemplateSyntaxError, NodeList, kwarg_re
 from django.utils.encoding import force_text
 from django.utils.functional import SimpleLazyObject
+from django.template import Library
 
 from is_core.utils import get_link_or_none
-from is_core.utils.compatibility import Library
 
 
 register = Library()

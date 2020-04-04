@@ -3,6 +3,7 @@ from django.http.response import Http404
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext
 from django.utils.encoding import force_text
+from django.urls import NoReverseMatch
 
 from pyston.conf import settings as pyston_settings
 from pyston.forms import rest_modelform_factory
@@ -27,7 +28,6 @@ from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUn
                                          HTTPForbiddenResponseException)
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
-from is_core.utils.compatibility import NoReverseMatch
 
 
 class RESTPermissionsMixin:

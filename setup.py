@@ -1,11 +1,20 @@
+import os
+
 from setuptools import setup, find_packages
 
 from is_core.version import get_version
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 setup(
     name='django-is-core',
     version=get_version(),
     description="Information systems core.",
+    long_description=read('README.md'),
+    long_description_content_type='text/x-rst',
     keywords='django, admin, information systems, REST',
     author='Lubos Matl',
     author_email='matllubos@gmail.com',
@@ -24,7 +33,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     install_requires=[
-        'django>=1.11',
+        'django>=2.2',
         'django-pyston~=2.10.0',
         'django-block-snippets==2.0.1',
         'django-chamber~=0.5.12',

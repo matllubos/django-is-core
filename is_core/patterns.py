@@ -4,9 +4,9 @@ import logging
 from collections import OrderedDict
 
 from django.conf.urls import url
+from django.urls import reverse, resolve
 
 from is_core.utils import get_new_class_name
-from is_core.utils.compatibility import reverse, resolve
 
 
 logger = logging.getLogger('is-core')

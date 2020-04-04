@@ -5,7 +5,6 @@ from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
 
 from is_core.config import settings
-from is_core.utils.compatibility import urls_wrapper
 
 from .utils import str_to_class
 from .loading import get_cores
@@ -65,20 +64,20 @@ class ISSite:
         for item in items:
             urls = item.get_urls()
             if urls:
-                urlpatterns += urls_wrapper(url(r'^', include(urls)))
+                urlpatterns += [url(r'^', include(urls))]
 
     def get_urls(self):
-        urlpatterns = urls_wrapper()
+        urlpatterns = []
         if settings.AUTH_LOGIN_VIEW:
-            urlpatterns += urls_wrapper(
+            urlpatterns.append(
                 url(r'^{}$'.format(settings.LOGIN_URL[1:]), str_to_class(settings.AUTH_LOGIN_VIEW).as_view(
-                    form_class=str_to_class(settings.AUTH_FORM_CLASS)), name='login'),
+                    form_class=str_to_class(settings.AUTH_FORM_CLASS)), name='login')
             )
 
         if settings.AUTH_LOGOUT_VIEW:
-            urlpatterns += urls_wrapper(
+            urlpatterns.append(
                 url(r'^{}$'.format(settings.LOGOUT_URL[1:]),
-                    str_to_class(settings.AUTH_LOGOUT_VIEW).as_view(), name='logout'),
+                    str_to_class(settings.AUTH_LOGOUT_VIEW).as_view(), name='logout')
             )
 
         if settings.AUTH_RESOURCE_CLASS:
@@ -86,16 +85,16 @@ class ISSite:
             auth_resource_class.form_class = str_to_class(settings.AUTH_FORM_CLASS)
             pattern = RESTPattern('api-login', self.name, settings.LOGIN_API_URL[1:],
                                   auth_resource_class)
-            urlpatterns += urls_wrapper(pattern.get_url())
+            urlpatterns.append(pattern.get_url())
 
         if settings.AUTH_LOGIN_CODE_VERIFICATION_VIEW:
-            urlpatterns += urls_wrapper(
+            urlpatterns.append(
                 url(r'^{}$'.format(settings.CODE_VERIFICATION_URL[1:]),
-                    str_to_class(settings.AUTH_LOGIN_CODE_VERIFICATION_VIEW).as_view(), name='code-verification-login'),
+                    str_to_class(settings.AUTH_LOGIN_CODE_VERIFICATION_VIEW).as_view(), name='code-verification-login')
             )
 
         pattern = RESTPattern('api', self.name, r'api/', EntryPointResource)
-        urlpatterns += urls_wrapper(pattern.get_url())
+        urlpatterns.append(pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)
         return urlpatterns
