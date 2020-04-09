@@ -14,7 +14,7 @@ setup(
     version=get_version(),
     description="Information systems core.",
     long_description=read('README.md'),
-    long_description_content_type='text/x-rst',
+    long_description_content_type='text/markdown',
     keywords='django, admin, information systems, REST',
     author='Lubos Matl',
     author_email='matllubos@gmail.com',
