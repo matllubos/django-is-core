@@ -4,14 +4,13 @@ python:
   - "3.6"
 
 env:
-  - DJANGO_VERSION=1.11
-  - DJANGO_VERSION=2.0
+  - DJANGO_VERSION=2.2
 
 install:
   - cd example
-  - pip install -q Django==$DJANGO_VERSION
   - pip install -r requirements/dependency_base.txt
   - pip install -r requirements/base.txt
+  - pip install -q Django==$DJANGO_VERSION
   - ln -sf $(pwd)/../is_core/ $(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
 
 # command to run tests

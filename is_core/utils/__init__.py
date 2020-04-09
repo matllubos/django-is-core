@@ -2,6 +2,7 @@ import re
 import inspect
 
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.contrib.admin.utils import display_for_value as admin_display_for_value
 from django.db.models import Model, QuerySet
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
@@ -271,7 +272,6 @@ def display_for_value(value, request=None):
         objects ==> object display name with link if current user has permissions to see the object
         datetime ==> in localized format
     """
-    from is_core.utils.compatibility import admin_display_for_value
 
     if request and isinstance(value, Model):
         return render_model_object_with_link(request, value)
@@ -279,7 +279,8 @@ def display_for_value(value, request=None):
         return render_model_objects_with_link(request, value)
     else:
         return (
-            (value and ugettext('Yes') or ugettext('No')) if isinstance(value, bool) else admin_display_for_value(value)
+            (value and ugettext('Yes') or ugettext('No')) if isinstance(value, bool)
+            else admin_display_for_value(value, '-')
         )
 
 
@@ -379,3 +380,7 @@ class GetMethodFieldMixin:
         """
         method = getattr(self, field_name, None)
         return method if method and callable(method) else None
+
+
+def get_model_name(model):
+    return str(model._meta.model_name)

@@ -1,5 +1,4 @@
 import os
-from distutils.version import StrictVersion
 from itertools import chain
 
 import django
@@ -16,7 +15,6 @@ from django.utils.html import conditional_escape, format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from is_core.config import settings
-from is_core.utils.compatibility import CompatibilityWidgetMixin
 
 from .utils import ReadonlyValue, add_class_name
 
@@ -41,7 +39,7 @@ class WrapperWidget(forms.Widget):
         return self.widget.attrs
 
     def build_attrs(self, *args, **kwargs):
-        "Helper function for building an attribute dictionary."
+        """Helper function for building an attribute dictionary."""
         self.attrs = self.widget.build_attrs(*args, **kwargs)
         return self.attrs
 
@@ -51,8 +49,8 @@ class WrapperWidget(forms.Widget):
     def id_for_label(self, id_):
         return self.widget.id_for_label(id_)
 
-    def render(self, name, value, attrs=None):
-        return self.widget.render(name, value, attrs)
+    def render(self, name, value, attrs=None, renderer=None):
+        return self.widget.render(name, value, attrs, renderer)
 
 
 class FulltextSelect(forms.Select):
@@ -69,34 +67,6 @@ class FulltextSelectMultiple(forms.SelectMultiple):
 
 class ClearableFileInput(forms.ClearableFileInput):
 
-    def render(self, name, value, attrs=None):
-        if StrictVersion(django.get_version()) >= StrictVersion('1.8'):
-            return super(ClearableFileInput, self).render(name, value, attrs)
-        else:
-            substitutions = {
-                'initial_text': self.initial_text,
-                'input_text': self.input_text,
-                'clear_template': '',
-                'clear_checkbox_label': self.clear_checkbox_label,
-            }
-            template = '%(input)s'
-            substitutions['input'] = super(forms.ClearableFileInput, self).render(name, value, attrs)
-
-            if value and hasattr(value, "url"):
-                template = self.template_with_initial
-                substitutions['initial'] = format_html(self.url_markup_template,
-                                                       value.url,
-                                                       os.path.basename(force_text(value)))
-                if not self.is_required:
-                    checkbox_name = self.clear_checkbox_name(name)
-                    checkbox_id = self.clear_checkbox_id(checkbox_name)
-                    substitutions['clear_checkbox_name'] = conditional_escape(checkbox_name)
-                    substitutions['clear_checkbox_id'] = conditional_escape(checkbox_id)
-                    substitutions['clear'] = forms.CheckboxInput().render(checkbox_name, False, attrs={'id': checkbox_id})
-                    substitutions['clear_template'] = self.template_with_clear % substitutions
-
-            return mark_safe(template % substitutions)
-
     def get_template_substitution_values(self, value):
         """
         Return value-related substitutions.
@@ -112,7 +82,8 @@ class DragAndDropFileInput(ClearableFileInput):
     def _render_value(self, value):
         return '<a href="%s">%s</a>' % (value.url, os.path.basename(value.name))
 
-    def render(self, name, value, attrs={}):
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs = attrs or {}
         output = ['<div class="drag-and-drop-wrapper">']
         output.append('<div class="drag-and-drop-placeholder"%s></div>' % (id and 'data-for="%s"' % id or ''))
         output.append('<div class="thumbnail-wrapper">')
@@ -126,8 +97,8 @@ class DragAndDropFileInput(ClearableFileInput):
 
 class SmartWidgetMixin:
 
-    def smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
-        return self.render(name, value, *args, **kwargs)
+    def smart_render(self, request, name, value, initial_value, form, attrs=None, renderer=None):
+        return self.render(name, value, attrs=attrs, renderer=renderer)
 
 
 class ReadonlyWidget(SmartWidgetMixin, Widget):
@@ -161,30 +132,34 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
 
         return display_for_value(value, request=request)
 
-    def _render(self, name, value, attrs=None, choices=(), request=None):
+    def _render_readonly(self, name, value, attrs=None, renderer=None):
+        if isinstance(value, (list, tuple)):
+            out = ', '.join([self._get_value_display(val) for val in value])
+        else:
+            out = self._get_value_display(value)
+        return format_html('<p>{}</p>', out)
+
+    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
         if isinstance(value, (list, tuple)):
             out = ', '.join([self._get_value_display(val, request) for val in value])
         else:
             out = self._get_value_display(value, request)
         return format_html('<p>{}</p>', out)
 
-    def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
-        return self._render(name, value, attrs, choices, request)
-
     def _render_readonly_value(self, readonly_value):
         return mark_safe('<p><span title="%s">%s</span></p>' % (conditional_escape(force_text(readonly_value.value)),
                                                                 conditional_escape(readonly_value.humanized_value)))
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, renderer=None):
         if isinstance(value, ReadonlyValue):
             return self._render_readonly_value(value)
         else:
-            return self._render(name, value, attrs, choices)
+            return self._render_readonly(name, value, attrs, renderer)
 
-    def smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
+    def smart_render(self, request, name, value, initial_value, form, attrs=None, renderer=None):
         return (
             self._render_readonly_value(value) if isinstance(value, ReadonlyValue)
-            else self._smart_render(request, name, value, initial_value, form, attrs, choices)
+            else self._smart_render_readonly(request, name, value, initial_value, form, attrs, renderer)
         )
 
     def _has_changed(self, initial, data):
@@ -198,11 +173,11 @@ class ModelObjectReadonlyWidget(ReadonlyWidget):
 
         return render_model_object_with_link(request, obj, display_value)
 
-    def _smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
+    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
         if value and isinstance(value, Model):
             return format_html('<p>{}</p>', self._render_object(request, value))
         else:
-            return super()._smart_render(request, name, value, initial_value, form, *args, **kwargs)
+            return super()._smart_render_readonly(request, name, value, initial_value, form, attrs, renderer)
 
 
 class NullBooleanReadonlyWidget(ReadonlyWidget):
@@ -220,12 +195,11 @@ class NullBooleanReadonlyWidget(ReadonlyWidget):
 
 class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
 
-    def _smart_render(self, request, name, value, initial_value, form, *args, **kwargs):
+    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
         if value and isinstance(value, (list, tuple)):
             return format_html_join(', ', '{}', ((self._render_object(request, obj),) for obj in value))
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, value, initial_value, form,
-                                                                        *args, **kwargs)
+            return super()._smart_render_readonly(request, name, value, initial_value, form, attrs, renderer)
 
 
 class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
@@ -235,55 +209,56 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
         if hasattr(widget, 'choices'):
             return widget.choices.get_choice_from_value(value)
 
-    def _smart_render(self, request, name, value, initial_value, form, attrs=None, choices=()):
+    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
         choice = self._choice(value)
 
         if choice:
-            value = self._render_object(request, choice.obj, force_text(choice[1]))
+            rendered_value = self._render_object(request, choice.obj, force_text(choice[1]))
         elif value in EMPTY_VALUES:
-            value = EMPTY_VALUE
+            rendered_value = EMPTY_VALUE
 
-        return format_html('<p>{}</p>', value)
+        return format_html('<p>{}</p>', rendered_value)
 
 
 class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
 
-    def _smart_render(self, request, name, values, initial_values, form, *args, **kwargs):
-        if values and isinstance(values, (list, tuple)):
+    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
+        if value and isinstance(value, (list, tuple)):
             rendered_values = []
-            for value in values:
-                choice = self._choice(value)
+            for value_item in value:
+                choice = self._choice(value_item)
                 if choice:
-                    value = force_text(choice[1])
+                    value_item = force_text(choice[1])
                     if choice.obj:
-                        rendered_values.append(self._render_object(request, choice.obj, value))
+                        rendered_values.append(self._render_object(request, choice.obj, value_item))
                     else:
-                        rendered_values.append(value)
+                        rendered_values.append(value_item)
             return format_html(
                 '<p>{}</p>',
                 format_html_join(', ', '{}', ((v,) for v in rendered_values)) if rendered_values else EMPTY_VALUE
             )
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render(request, name, values, initial_values, form,
-                                                                        *args, **kwargs)
+            return super(ModelObjectReadonlyWidget, self)._smart_render_readonly(
+                request, name, value, initial_value, form, attrs, renderer
+            )
 
 
 class URLReadonlyWidget(ReadonlyWidget):
 
-    def _render(self, name, value, *args, **kwargs):
+    def _render_readonly(self, name, value, attrs=None, renderer=None):
         if value:
             return format_html('<a href="{}">{}</a>', value, value)
         else:
-            return super(URLReadonlyWidget, self)._render(name, value, *args, **kwargs)
+            return super()._render_readonly(name, value, attrs, renderers)
 
 
 class FileReadonlyWidget(ReadonlyWidget):
 
-    def _render(self, name, value, *args, **kwargs):
+    def _render_readonly(self, name, value, attrs=None, renderer=None):
         if value and isinstance(value, FieldFile):
             return format_html('<a href="{}">{}</a>', value.url, os.path.basename(value.name))
         else:
-            return super()._render(name, value, *args, **kwargs)
+            return super()._render_readonly(name, value, attrs, renderers)
 
 
 class EmptyWidget(ReadonlyWidget):
@@ -295,18 +270,18 @@ class EmptyWidget(ReadonlyWidget):
         return ''
 
 
-class ButtonWidget(CompatibilityWidgetMixin, ReadonlyWidget):
+class ButtonWidget(ReadonlyWidget):
 
-    def _render(self, name, value, attrs=None, *args, **kwargs):
+    def _render_readonly(self, name, value, attrs=None, renderer=None):
         final_attrs = self.build_attrs(self.attrs, attrs, name=name)
 
         return format_html('<button %(attrs)s>%(value)s</button>' %
                            {'value': value, 'attrs': flatatt(final_attrs)})
 
 
-class DivButtonWidget(CompatibilityWidgetMixin, ReadonlyWidget):
+class DivButtonWidget(ReadonlyWidget):
 
-    def _render(self, name, value, attrs=None, *args, **kwargs):
+    def _render_readonly(self, name, value, attrs=None, renderer=None):
         final_attrs = self.build_attrs(self.attrs, attrs)
         class_name = final_attrs.pop('class', '')
         return format_html('<div class="%(class_name)s btn btn-primary btn-small" '
@@ -320,11 +295,11 @@ class MultipleTextInput(forms.TextInput):
         super().__init__(attrs)
         self.separator = separator
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if isinstance(value, str):
             value = [value]
         return super().render(
-            name, '{} '.format(self.separator).join(map(force_text, value)) if value else value, attrs
+            name, '{} '.format(self.separator).join(map(force_text, value)) if value else value, attrs, renderer
         )
 
     def value_from_datadict(self, data, files, name):
@@ -364,12 +339,12 @@ class DateTimeRangeWidget(AbstractDateRangeWidget):
 
 class FilterDateRangeWidgetMixin:
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if attrs and 'data-filter' in attrs:
             filter_term = attrs.pop('data-filter')
             for widget, operator in zip(self.widgets, ('gte', 'lt')):
                 widget.attrs['data-filter'] = '{}__{}'.format(filter_term.rsplit('__', 1)[0], operator)
-        return super().render(name, value, attrs)
+        return super().render(name, value, attrs, renderer)
 
 
 class DateRangeFilterWidget(FilterDateRangeWidgetMixin, DateRangeWidget):
@@ -380,7 +355,7 @@ class DateTimeRangeFilterWidget(FilterDateRangeWidgetMixin, DateTimeRangeWidget)
     pass
 
 
-class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
+class RestrictedSelectWidgetMixin:
 
     select_class_name = None
     select_placeholder = None
@@ -397,7 +372,7 @@ class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
             self.choices.queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES
         )
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if self.is_restricted:
             if value is None:
                 value = ''
@@ -410,7 +385,7 @@ class RestrictedSelectWidgetMixin(CompatibilityWidgetMixin):
         else:
             attrs = add_class_name(attrs, self.select_class_name)
             attrs['placeholder'] = self.select_placeholder
-            return super().render(name, value, attrs=attrs)
+            return super().render(name, value, attrs, renderer)
 
 
 class RestrictedSelectWidget(RestrictedSelectWidgetMixin, forms.Select):

@@ -19,9 +19,8 @@ from is_core.auth.views import FieldPermissionViewMixin
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.utils import (
     flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets,
-    get_export_types_with_content_type, GetMethodFieldMixin
+    get_export_types_with_content_type, GetMethodFieldMixin, get_model_name
 )
-from is_core.utils.compatibility import get_model_name
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
 from is_core.response import JsonHttpResponse

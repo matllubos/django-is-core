@@ -1,4 +1,4 @@
-Pillow==3.0.0
+Pillow>=6.2.2
 XlsxWriter==0.7.7
 python-mimeparse==0.1.4
 pep8==1.6.2

@@ -2,6 +2,7 @@ from django import forms
 from django.db.models.fields import FieldDoesNotExist
 from django.forms.forms import pretty_name
 from django.views.generic.base import TemplateView
+from django.urls import reverse
 
 from pyston.filters.default_filters import OPERATORS
 
@@ -11,7 +12,6 @@ from is_core.filters import UIFilterMixin, FilterChoiceIterator
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
 from is_core.utils import pretty_class_name, get_export_types_with_content_type
-from is_core.utils.compatibility import reverse
 
 from chamber.utils import get_class_method
 from chamber.utils.http import query_string_from_dict
