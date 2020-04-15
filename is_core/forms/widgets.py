@@ -132,18 +132,11 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
 
         return display_for_value(value, request=request)
 
-    def _render_readonly(self, name, value, attrs=None, renderer=None):
-        if isinstance(value, (list, tuple)):
-            out = ', '.join([self._get_value_display(val) for val in value])
-        else:
-            out = self._get_value_display(value)
-        return format_html('<p>{}</p>', out)
-
-    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
         if isinstance(value, (list, tuple)):
             out = ', '.join([self._get_value_display(val, request) for val in value])
         else:
-            out = self._get_value_display(value, request)
+            out = self._get_value_display(value)
         return format_html('<p>{}</p>', out)
 
     def _render_readonly_value(self, readonly_value):
@@ -159,7 +152,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
     def smart_render(self, request, name, value, initial_value, form, attrs=None, renderer=None):
         return (
             self._render_readonly_value(value) if isinstance(value, ReadonlyValue)
-            else self._smart_render_readonly(request, name, value, initial_value, form, attrs, renderer)
+            else self._render_readonly(name, value, attrs, renderer, request, form, initial_value)
         )
 
     def _has_changed(self, initial, data):
@@ -173,11 +166,11 @@ class ModelObjectReadonlyWidget(ReadonlyWidget):
 
         return render_model_object_with_link(request, obj, display_value)
 
-    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
-        if value and isinstance(value, Model):
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
+        if request and value and isinstance(value, Model):
             return format_html('<p>{}</p>', self._render_object(request, value))
         else:
-            return super()._smart_render_readonly(request, name, value, initial_value, form, attrs, renderer)
+            return super()._render_readonly(name, value, attrs, renderer, request, form, initial_value)
 
 
 class NullBooleanReadonlyWidget(ReadonlyWidget):
@@ -195,11 +188,11 @@ class NullBooleanReadonlyWidget(ReadonlyWidget):
 
 class ManyToManyReadonlyWidget(ModelObjectReadonlyWidget):
 
-    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
-        if value and isinstance(value, (list, tuple)):
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
+        if request and value and isinstance(value, (list, tuple)):
             return format_html_join(', ', '{}', ((self._render_object(request, obj),) for obj in value))
         else:
-            return super()._smart_render_readonly(request, name, value, initial_value, form, attrs, renderer)
+            return super()._render_readonly(name, value, attrs, renderer, request, form, initial_value)
 
 
 class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
@@ -209,21 +202,23 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
         if hasattr(widget, 'choices'):
             return widget.choices.get_choice_from_value(value)
 
-    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
-        choice = self._choice(value)
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
+        if request:
+            choice = self._choice(value)
+            if choice:
+                rendered_value = self._render_object(request, choice.obj, force_text(choice[1]))
+            elif value in EMPTY_VALUES:
+                rendered_value = EMPTY_VALUE
 
-        if choice:
-            rendered_value = self._render_object(request, choice.obj, force_text(choice[1]))
-        elif value in EMPTY_VALUES:
-            rendered_value = EMPTY_VALUE
-
-        return format_html('<p>{}</p>', rendered_value)
+            return format_html('<p>{}</p>', rendered_value)
+        else:
+            return super()._render_readonly(name, value, attrs, renderer, request, form, initial_value)
 
 
 class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
 
-    def _smart_render_readonly(self, request, name, value, initial_value, form, attrs=None, renderer=None):
-        if value and isinstance(value, (list, tuple)):
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
+        if request and value and isinstance(value, (list, tuple)):
             rendered_values = []
             for value_item in value:
                 choice = self._choice(value_item)
@@ -238,27 +233,27 @@ class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
                 format_html_join(', ', '{}', ((v,) for v in rendered_values)) if rendered_values else EMPTY_VALUE
             )
         else:
-            return super(ModelObjectReadonlyWidget, self)._smart_render_readonly(
-                request, name, value, initial_value, form, attrs, renderer
+            return super(ModelObjectReadonlyWidget, self)._render_readonly(
+                name, value, attrs, renderer, request, form, initial_value
             )
 
 
 class URLReadonlyWidget(ReadonlyWidget):
 
-    def _render_readonly(self, name, value, attrs=None, renderer=None):
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
         if value:
             return format_html('<a href="{}">{}</a>', value, value)
         else:
-            return super()._render_readonly(name, value, attrs, renderers)
+            return super()._render_readonly(name, value, attrs, renderer, request, form, initial_value)
 
 
 class FileReadonlyWidget(ReadonlyWidget):
 
-    def _render_readonly(self, name, value, attrs=None, renderer=None):
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
         if value and isinstance(value, FieldFile):
             return format_html('<a href="{}">{}</a>', value.url, os.path.basename(value.name))
         else:
-            return super()._render_readonly(name, value, attrs, renderers)
+            return super()._render_readonly(name, value, attrs, renderer, request, form, initial_value)
 
 
 class EmptyWidget(ReadonlyWidget):
@@ -272,7 +267,7 @@ class EmptyWidget(ReadonlyWidget):
 
 class ButtonWidget(ReadonlyWidget):
 
-    def _render_readonly(self, name, value, attrs=None, renderer=None):
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
         final_attrs = self.build_attrs(self.attrs, attrs, name=name)
 
         return format_html('<button %(attrs)s>%(value)s</button>' %
@@ -281,7 +276,7 @@ class ButtonWidget(ReadonlyWidget):
 
 class DivButtonWidget(ReadonlyWidget):
 
-    def _render_readonly(self, name, value, attrs=None, renderer=None):
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
         final_attrs = self.build_attrs(self.attrs, attrs)
         class_name = final_attrs.pop('class', '')
         return format_html('<div class="%(class_name)s btn btn-primary btn-small" '
