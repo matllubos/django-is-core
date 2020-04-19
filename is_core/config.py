@@ -40,7 +40,7 @@ DEFAULTS = {
     'LOGOUT_URL': '/logout/',
     'LOGIN_API_URL': lambda s: '/api{}'.format(s.LOGIN_URL),
     'EXPORT_TYPES': '',
-    'FOREIGN_KEY_MAX_SELECBOX_ENTRIES': 500,
+    'FOREIGN_KEY_MAX_SELECTBOX_ENTRIES': 500,
     'LIST_PER_PAGE': 20,
     'REST_DEFAULT_FIELDS_EXTENSION': ('_rest_links',),
     'RESPONSE_EXCEPTION_FACTORY': 'is_core.exceptions.response.ui_rest_response_exception_factory',

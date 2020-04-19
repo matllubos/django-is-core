@@ -364,7 +364,9 @@ class RestrictedSelectWidgetMixin:
         """
         return (
             not hasattr(self.choices, 'queryset') or
-            self.choices.queryset.count() > settings.FOREIGN_KEY_MAX_SELECBOX_ENTRIES
+            settings.FOREIGN_KEY_MAX_SELECTBOX_ENTRIES == 0 or
+            self.choices.queryset.values('pk')[:settings.FOREIGN_KEY_MAX_SELECTBOX_ENTRIES + 1].count()
+            > settings.FOREIGN_KEY_MAX_SELECTBOX_ENTRIES
         )
 
     def render(self, name, value, attrs=None, renderer=None):
