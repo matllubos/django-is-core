@@ -142,7 +142,7 @@ class SmartModelFormMetaclass(RESTFormMetaclass):
             has_all_fields = hasattr(opts, 'all_fields')
             required_fields = getattr(opts, 'required_fields', None) or ()
 
-            for field_name, field in new_class.base_fields.items():
+            for field_name, field in list(new_class.base_fields.items()):
                 if field_name in exclude_fields:
                     del new_class.base_fields[field_name]
                 elif ((field_name in readonly_fields or readonly or field.is_readonly) and
