@@ -136,7 +136,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         if isinstance(value, (list, tuple)):
             out = ', '.join([self._get_value_display(val, request) for val in value])
         else:
-            out = self._get_value_display(value)
+            out = self._get_value_display(value, request)
         return format_html('<p>{}</p>', out)
 
     def _render_readonly_value(self, readonly_value):
