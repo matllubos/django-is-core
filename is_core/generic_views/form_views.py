@@ -527,7 +527,6 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
         context_data = super().get_context_data(form=form, inline_form_views=inline_form_views, **kwargs)
 
         show_buttons = self.get_show_buttons()
-        print(show_buttons)
         context_data.update({
             'module_name': get_model_name(self.model),
             'cancel_url': self.get_cancel_url() if show_buttons else None,
