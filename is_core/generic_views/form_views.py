@@ -308,6 +308,7 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
     field_labels = None
     inline_views = None
     form_template = 'is_core/forms/model_default_form.html'
+    show_buttons = True
 
     def _get_field_labels(self):
         return self.field_labels
@@ -443,6 +444,9 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
 
         return False
 
+    def get_show_buttons(self):
+        return self.show_buttons
+
     def get_cancel_url(self):
         return None
 
@@ -521,10 +525,13 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
 
     def get_context_data(self, form=None, inline_form_views=None, **kwargs):
         context_data = super().get_context_data(form=form, inline_form_views=inline_form_views, **kwargs)
+
+        show_buttons = self.get_show_buttons()
+        print(show_buttons)
         context_data.update({
             'module_name': get_model_name(self.model),
-            'cancel_url': self.get_cancel_url(),
-            'show_save_button': self.has_save_button()
+            'cancel_url': self.get_cancel_url() if show_buttons else None,
+            'show_save_button': show_buttons and self.has_save_button()
         })
         return context_data
 
@@ -745,6 +752,9 @@ class ReadonlyDetailModelFormView(DetailModelFormView):
             DEFAULT_PERMISSION: CoreAllowed(),
         }
     )
+
+    def is_readonly(self):
+        return True
 
 
 class BulkChangeFormView(DefaultModelFormView):
