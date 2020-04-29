@@ -102,7 +102,7 @@ def _val_to_readonly_value(value, field_or_method, obj, **kwargs):
 
 
 def _get_method_value(method, field_name, inst, fun_kwargs):
-    method_kwargs_names = inspect.getargspec(method)[0][1:]
+    method_kwargs_names = inspect.getfullargspec(method)[0][1:]
     method_kwargs = {arg_name: fun_kwargs[arg_name]  for arg_name in method_kwargs_names if arg_name in fun_kwargs}
     if len(method_kwargs_names) == len(method_kwargs):
         return _val_to_readonly_value(method(**method_kwargs), method, inst,
