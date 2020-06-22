@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-23 22:50+0100\n"
+"POT-Creation-Date: 2020-06-23 00:07+0200\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -19,12 +19,14 @@ msgstr ""
 "X-Generator: Poedit 1.8.1\n"
 
 #: actions.py:47 templates/is_core/forms/inline_table.html:52
-#: templates/is_core/generic_views/base_table.html:88 utils/__init__.py:280
+#: templates/is_core/generic_views/base_table.html:88
+#: utils/__init__.py:282
 msgid "Yes"
 msgstr "Ano"
 
 #: actions.py:48 templates/is_core/forms/inline_table.html:52
-#: templates/is_core/generic_views/base_table.html:88 utils/__init__.py:280
+#: templates/is_core/generic_views/base_table.html:88
+#: utils/__init__.py:282
 msgid "No"
 msgstr "Ne"
 
@@ -122,16 +124,16 @@ msgstr "Služba je dočasně nedostupná"
 msgid "Readonly field can not be validated"
 msgstr "Pole pro čtení nemůže být validováno"
 
-#: forms/widgets.py:61 forms/widgets.py:67 forms/widgets.py:419
-#: forms/widgets.py:429
+#: forms/widgets.py:59 forms/widgets.py:65
+#: forms/widgets.py:391 forms/widgets.py:401
 msgid "Search..."
 msgstr "Hledat..."
 
-#: forms/widgets.py:420
+#: forms/widgets.py:392
 msgid "Insert primary key"
 msgstr "Vložte primární klíč"
 
-#: forms/widgets.py:430
+#: forms/widgets.py:402
 msgid "Insert primary keys separated by comma"
 msgstr "Vložtě primární klíče oddělené čárkou"
 
@@ -139,49 +141,51 @@ msgstr "Vložtě primární klíče oddělené čárkou"
 msgid "Home"
 msgstr "Home"
 
-#: generic_views/form_views.py:59
+#: generic_views/form_views.py:58
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:60 generic_views/form_views.py:648
-#: generic_views/form_views.py:670
+#: generic_views/form_views.py:59
+#: generic_views/form_views.py:653
+#: generic_views/form_views.py:675
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
 
-#: generic_views/form_views.py:64
+#: generic_views/form_views.py:63
 msgid "Save"
 msgstr "Uložit"
 
-#: generic_views/form_views.py:68
+#: generic_views/form_views.py:67
 msgid "Back"
 msgstr "Zpět"
 
-#: generic_views/form_views.py:258 generic_views/form_views.py:489
+#: generic_views/form_views.py:257
+#: generic_views/form_views.py:492
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
-#: generic_views/form_views.py:542
+#: generic_views/form_views.py:547
 msgid "Save and navigate to the list"
 msgstr "Uložit a vrátit se zpět do tabulky záznamů"
 
-#: generic_views/form_views.py:544
+#: generic_views/form_views.py:549
 msgid "Save and stay on the same page"
 msgstr "Uložit a pokračovat v úpravách"
 
-#: generic_views/form_views.py:545
+#: generic_views/form_views.py:550
 msgid "Save and continue"
 msgstr "Uložit a pokračovat"
 
-#: generic_views/form_views.py:548
+#: generic_views/form_views.py:553
 msgid "Do not save and go back to the list"
 msgstr "Neukládat a vrátit se na seznam"
 
-#: generic_views/form_views.py:647
+#: generic_views/form_views.py:652
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was added successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně přidána."
 
-#: generic_views/form_views.py:669
+#: generic_views/form_views.py:674
 #, python-format
 msgid "The %(name)s \"%(obj)s\" was changed successfully."
 msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
@@ -209,15 +213,16 @@ msgstr "Záznam \"%s\" byl smazán"
 msgid "Detail"
 msgstr "Detail"
 
-#: middleware/__init__.py:25
+#: middleware/__init__.py:26
 msgid "Unprocessable Entity"
 msgstr "Nezpracovatelná entita"
 
-#: middleware/__init__.py:27
+#: middleware/__init__.py:28
 msgid "Not Found"
 msgstr "Nenalezeno"
 
-#: models/patch.py:24 models/patch.py:25 models/patch.py:26
+#: models/patch.py:24 models/patch.py:25
+#: models/patch.py:26
 #, python-format
 msgid "add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
@@ -231,7 +236,8 @@ msgstr "Pouze %s objektů může být změněno v jednom požadavku"
 msgid "Internal Server Error (500)"
 msgstr "Interní chyba serveru (500)"
 
-#: templates/is_core/base.html:37 templates/is_core/logged_out.html:4
+#: templates/is_core/base.html:37
+#: templates/is_core/logged_out.html:4
 #: templates/is_core/logged_out.html:13
 msgid "Logout"
 msgstr "Odhlásit"
@@ -314,7 +320,8 @@ msgstr "Akce"
 msgid "There are no items."
 msgstr "Žádné položky"
 
-#: templates/is_core/forms/login_form.html:5 templates/is_core/login.html:4
+#: templates/is_core/forms/login_form.html:5
+#: templates/is_core/login.html:4
 msgid "Login"
 msgstr "Login"
 
@@ -354,6 +361,10 @@ msgstr "Vyplňte své přihlašovací údaje"
 #: templates/is_core/views/bulk-change-view.html:6
 msgid "Affected rows"
 msgstr "Počet záznamů ke změně"
+
+#: utils/__init__.py:318
+msgid "missing object"
+msgstr "chybějící objekt"
 
 #: views/csrf.py:7
 msgid "Csrf Token expired"
