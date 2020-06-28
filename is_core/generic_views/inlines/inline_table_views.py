@@ -12,7 +12,7 @@ class InlineTableView(TableViewMixin, RelatedInlineView):
     def _get_field_labels(self):
         return (
             self.field_labels if self.field_labels is not None or not self.related_core
-            else self.related_core.get_ui_list_field_labels(self.request)
+            else self.related_core.get_ui_field_labels(self.request)
         )
 
     def _get_fields(self):
@@ -28,7 +28,7 @@ class InlineTableView(TableViewMixin, RelatedInlineView):
         return self.related_core.get_menu_group_pattern_name()
 
     def _get_list_filter(self):
-        list_filter = super(InlineTableView, self)._get_list_filter()
+        list_filter = super()._get_list_filter()
         fk_name = _get_foreign_key(self.parent_instance.__class__, self.model, fk_name=self.fk_name).name
         list_filter['filter'] = filter = list_filter.get('filter', {})
         if 'filter' in list_filter:

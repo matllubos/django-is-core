@@ -1,6 +1,8 @@
 from django.utils.functional import cached_property
 from django.http import Http404
 
+from chamber.shortcuts import get_object_or_404
+
 from is_core.patterns import reverse_pattern
 
 from .exceptions import GenericViewException
@@ -13,11 +15,14 @@ class ListParentMixin:
 
         list_pattern = self.core.ui_patterns.get('list')
         list_view = list_pattern.get_view(self.request)
-        return LinkMenuItem(self.model._ui_meta.list_verbose_name %
-                            {'verbose_name': list_view.model._meta.verbose_name,
-                             'verbose_name_plural': list_view.model._meta.verbose_name_plural},
-                             list_pattern.get_url_string(self.request),
-                             active=not self.add_current_to_breadcrumbs)
+        return LinkMenuItem(
+            list_view.list_verbose_name % {
+                'verbose_name': list_view.verbose_name,
+                'verbose_name_plural': list_view.verbose_name_plural
+            },
+            list_pattern.get_url_string(self.request),
+            active=not self.add_current_to_breadcrumbs
+        )
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = []
@@ -40,17 +45,17 @@ class DetailParentMixin(ListParentMixin):
         if not isinstance(parent_obj, detail_view.model):
             raise GenericViewException('Parent obj must be instance of edit view model')
 
-        return LinkMenuItem(self.model._ui_meta.detail_verbose_name %
-                            {'verbose_name': detail_view.model._meta.verbose_name,
-                             'verbose_name_plural': detail_view.model._meta.verbose_name_plural,
+        return LinkMenuItem(detail_view.detail_verbose_name %
+                            {'verbose_name': detail_view.verbose_name,
+                             'verbose_name_plural': detail_view.verbose_name_plural,
                              'obj': parent_obj},
                             detail_pattern.get_url_string(self.request, view_kwargs={'pk': parent_obj.pk}),
-                             active=not self.add_current_to_breadcrumbs)
+                            active=not self.add_current_to_breadcrumbs)
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = super().parent_bread_crumbs_menu_items()
         if ('detail' in self.core.ui_patterns and
-              self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=self.get_obj())):
+                self.core.ui_patterns.get('detail').has_permission('get', self.request, obj=self.get_obj())):
             menu_items.append(self.edit_bread_crumbs_menu_item())
         return menu_items
 
@@ -136,12 +141,11 @@ class GetCoreObjViewMixin:
         obj = obj or self.get_obj()
         return super()._has_permission(name, obj=obj)
 
-    # TODO: should contains own implementation (not use get_obj from main)
     _obj = None
     def get_obj(self, cached=True):
         if cached and self._obj:
             return self._obj
-        obj = self.core.get_obj(self.request, **self.get_obj_filters())
+        obj = get_object_or_404(self.core.get_queryset(self.request), **self.get_obj_filters())
         if cached and not self._obj:
             self._obj = obj
         return obj

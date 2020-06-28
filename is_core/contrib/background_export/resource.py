@@ -6,7 +6,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 
 from is_core.config import settings
-from is_core.rest.resource import RESTResource, UIRESTModelResource
+from is_core.rest.resource import RESTResource, RESTModelResource
 
 from security.tasks import obj_to_string
 
@@ -109,7 +109,7 @@ class CeleryResourceMixin:
         return force_text(obj).replace(' ', '-') if obj else super()._get_name()
 
 
-class CeleryRESTModelResource(CeleryResourceMixin, UIRESTModelResource):
+class CeleryRESTModelResource(CeleryResourceMixin, RESTModelResource):
     pass
 
 
