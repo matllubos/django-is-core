@@ -314,6 +314,9 @@ def get_obj_url(request, obj):
 
 
 def render_model_object_with_link(request, obj, display_value=None):
+    if obj is None:
+        return '[{}]'.format(ugettext('missing object'))
+
     obj_url = get_obj_url(request, obj)
     display_value = force_text(obj) if display_value is None else display_value
     return format_html('<a href="{}">{}</a>', obj_url, display_value) if obj_url else display_value
