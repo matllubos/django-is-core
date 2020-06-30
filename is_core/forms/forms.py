@@ -123,7 +123,7 @@ class SmartFormMixin:
 
     def _register_readonly_field(self, field_name):
         if field_name not in self.readonly_fields:
-            self.readonly_fields.append(field_name)
+            self.readonly_fields.add(field_name)
 
     def _unregister_readonly_field(self, field_name):
         if field_name in self.readonly_fields:
