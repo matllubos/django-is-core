@@ -1,5 +1,6 @@
 import re
 import inspect
+import types
 
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.contrib.admin.utils import display_for_value as admin_display_for_value
@@ -271,17 +272,36 @@ def display_for_value(value, request=None):
         boolean True/Talse ==> Yes/No
         objects ==> object display name with link if current user has permissions to see the object
         datetime ==> in localized format
+        list ==> values separated with ","
+        dict ==> string formatted with HTML ul/li tags
     """
 
     if request and isinstance(value, Model):
         return render_model_object_with_link(request, value)
-    if request and isinstance(value, QuerySet):
-        return render_model_objects_with_link(request, value)
-    else:
-        return (
-            (value and ugettext('Yes') or ugettext('No')) if isinstance(value, bool)
-            else admin_display_for_value(value, '-')
+    elif isinstance(value, (QuerySet, list, tuple, set, types.GeneratorType)):
+        return format_html_join(', ', '{}', ((display_for_value(v, request),) for v in value))
+    elif isinstance(value, dict):
+        return format_html(
+            '<ul class="field-dict">{}</ul>',
+            format_html_join(
+                '\n',
+                '{}{}',
+                (
+                    (
+                        format_html('<li>{}</li>', k),
+                        (
+                            display_for_value(v, request) if isinstance(v, dict)
+                            else format_html('<ul class="field-dict"><li>{}</li></ul>', display_for_value(v, request))
+                        )
+                    )
+                    for k, v in value.items()
+                )
+            )
         )
+    elif isinstance(value, bool):
+        return ugettext('Yes') if value else ugettext('No')
+    else:
+        return admin_display_for_value(value, '-')
 
 
 def get_url_from_model_core(request, obj):
