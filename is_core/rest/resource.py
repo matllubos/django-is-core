@@ -311,29 +311,6 @@ class RESTModelResource(FieldPermissionViewMixin, RESTModelCoreMixin, RESTResour
             if self.default_fields_extension is None else self.default_fields_extension
         )
 
-    def _rest_links(self, obj):
-        rest_links = {}
-        for pattern in self.core.rest_patterns.values():
-            if pattern.send_in_rest:
-                url = pattern.get_url_string(self.request, obj=obj)
-                if url:
-                    allowed_methods = pattern.get_allowed_methods(self.request, obj)
-                    if allowed_methods:
-                        rest_links[pattern.name] = {
-                            'url': url,
-                            'methods': [method.upper() for method in allowed_methods]
-                        }
-        return rest_links
-
-    def _default_action(self, obj):
-        return self.core.get_default_action(self.request, obj=obj)
-
-    def _actions(self, obj):
-        return self.core.get_list_actions(self.request, obj)
-
-    def _class_names(self, obj):
-        return self.core.get_rest_obj_class_names(self.request, obj)
-
     def get_queryset(self):
         return self.core.get_queryset(self.request)
 
@@ -407,9 +384,6 @@ class RESTModelResource(FieldPermissionViewMixin, RESTModelCoreMixin, RESTResour
     def patch(self):
         return super(RESTModelResource, self).patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
-    def _get_queryset(self):
-        return self.core.get_queryset(self.request)
-
     @transaction.atomic
     def update_bulk(self):
         qs = self._filter_queryset(self._get_queryset())
@@ -449,18 +423,3 @@ class RESTModelResource(FieldPermissionViewMixin, RESTModelCoreMixin, RESTResour
             'errors': {k: mark_safe(force_text(v)) for k, v in ex.errors.items()} if hasattr(ex, 'errors') else {},
             '_obj_name': force_text(obj),
         }
-
-
-class UIRESTModelResource(RESTModelResource):
-
-    def _web_links(self, obj):
-        web_links = {}
-        for pattern in self.core.web_link_patterns(self.request):
-            if pattern.send_in_rest:
-                url = pattern.get_url_string(self.request, obj=obj)
-                if url and pattern.has_permission('get', self.request, obj=obj):
-                    web_links[pattern.name] = url
-        return web_links
-
-    def _class_names(self, obj):
-        return self.core.get_rest_obj_class_names(self.request, obj)

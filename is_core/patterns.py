@@ -177,9 +177,11 @@ class RESTPattern(ViewPattern):
         return self.resource_class.as_view(allowed_methods=self.methods)
 
     def get_allowed_methods(self, request, obj):
-        return self._call_view_method_with_request('check_permissions_and_get_allowed_methods', request,
-                                                   method_kwargs={'restricted_methods': self.methods, 'obj': obj},
-                                                   obj=obj)
+        return self._call_view_method_with_request(
+            'check_permissions_and_get_allowed_methods', request,
+            method_kwargs={'restricted_methods': self.methods, 'obj': obj},
+            obj=obj
+        )
 
 
 class HiddenPatternMixin:

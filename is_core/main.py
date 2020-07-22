@@ -8,7 +8,6 @@ from copy import deepcopy
 
 from collections import OrderedDict
 
-from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.http.response import Http404
 from django.core.exceptions import ValidationError
@@ -21,7 +20,7 @@ from is_core.config import settings
 from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, DetailModelFormView, BulkChangeFormView
 from is_core.generic_views.table_views import TableView
-from is_core.rest.resource import RESTModelResource, UIRESTModelResource
+from is_core.rest.resource import RESTModelResource
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class, GetMethodFieldMixin, get_model_name
 from is_core.menu import LinkMenuItem
@@ -65,6 +64,7 @@ class ISCore(metaclass=ISCoreBase):
     can_create = False
     can_read = True
     can_update = False
+    can_delete = False
     can_delete = False
 
     default_permission = IsAdminUser()
@@ -148,6 +148,14 @@ class ModelISCore(GetMethodFieldMixin, ISCore):
     can_update = True
     can_delete = True
 
+    @property
+    def verbose_name(self):
+        return self.model._meta.verbose_name
+
+    @property
+    def verbose_name_plural(self):
+        return self.model._meta.verbose_name_plural
+
     def get_form_class(self, request, obj=None):
         return self.form_class
 
@@ -185,23 +193,8 @@ class ModelISCore(GetMethodFieldMixin, ISCore):
         pass
 
     @property
-    def verbose_name(self):
-        return self.model._meta.verbose_name
-
-    @property
-    def verbose_name_plural(self):
-        return self.model._meta.verbose_name_plural
-
-    @property
     def menu_group(self):
         return get_model_name(self.model)
-
-    # TODO: remove this function
-    def get_obj(self, request, **filters):
-        try:
-            return get_object_or_404(self.get_queryset(request), **filters)
-        except (ValidationError, ValueError):
-            raise Http404
 
     def get_default_ordering(self):
         return self.default_ordering if self.default_ordering is not None else (self.model._meta.ordering or ('pk',))
@@ -356,7 +349,7 @@ class HomeUIISCore(UIISCore):
     abstract = settings.HOME_CORE != 'is_core.main.HomeUIISCore'
 
     def get_view_classes(self):
-        view_classes = super(HomeUIISCore, self).get_view_classes()
+        view_classes = super().get_view_classes()
         view_classes.append(('index', r'', str_to_class(settings.HOME_VIEW)))
         return view_classes
 
@@ -386,8 +379,6 @@ class UIModelISCore(ModelISCore, UIISCore):
 
     ui_form_add_class = None
     ui_form_edit_class = None
-    ui_form_field_labels = None
-    ui_list_field_labels = None
     ui_list_fields = ('_obj_name',)
     ui_export_fields = ()
     ui_list_export_fields = None
@@ -398,6 +389,7 @@ class UIModelISCore(ModelISCore, UIISCore):
     ui_add_view = AddModelFormView
     ui_detail_view = DetailModelFormView
     ui_list_view = TableView
+    ui_field_labels = None
 
     ui_bulk_change_url_name = None
     ui_bulk_change_fields = ()
@@ -514,11 +506,8 @@ class UIModelISCore(ModelISCore, UIISCore):
     def get_add_url(self, request):
         return self.ui_patterns.get('add').get_url_string(request) if 'add' in self.ui_patterns else None
 
-    def get_ui_form_field_labels(self, request):
-        return self.ui_form_field_labels if self.ui_form_field_labels is not None else self.get_field_labels(request)
-
-    def get_ui_list_field_labels(self, request):
-        return self.ui_list_field_labels if self.ui_list_field_labels is not None else self.get_field_labels(request)
+    def get_ui_field_labels(self, request):
+        return self.ui_field_labels if self.ui_field_labels is not None else self.get_field_labels(request)
 
     def get_detail_export_types(self):
         return self.detail_export_types
@@ -665,6 +654,28 @@ class RESTModelISCore(RESTISCore, ModelISCore):
                                                   class_name='delete', success_text=_('Record "%s" was deleted') % obj))
         return list_actions
 
+    # Resource extra fields
+
+    def _rest_links(self, obj, request):
+        rest_links = {}
+        for pattern in self.rest_patterns.values():
+            if pattern.send_in_rest:
+                url = pattern.get_url_string(request, obj=obj)
+                if url:
+                    allowed_methods = pattern.get_allowed_methods(request, obj)
+                    if allowed_methods:
+                        rest_links[pattern.name] = {
+                            'url': url,
+                            'methods': [method.upper() for method in allowed_methods]
+                        }
+        return rest_links
+
+    def _actions(self, obj, request):
+        return self.get_list_actions(request, obj)
+
+    def _default_action(self, obj, request):
+        return self.get_default_action(request, obj=obj)
+
 
 class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
     """
@@ -674,7 +685,6 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
 
     abstract = True
     ui_rest_extra_fields = ('_web_links', '_rest_links', '_default_action', '_actions', '_class_names', '_obj_name')
-    rest_resource_class = UIRESTModelResource
     rest_obj_class_names = ()
 
     def get_rest_extra_fields(self, request, obj=None):
@@ -716,3 +726,20 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
 
     def get_rest_obj_class_names(self, request, obj):
         return list(self.rest_obj_class_names)
+
+    # Resource extra fields
+
+    def _web_links(self, obj, request):
+        web_links = {}
+        for pattern in self.web_link_patterns(request):
+            if pattern.send_in_rest:
+                url = pattern.get_url_string(request, obj=obj)
+                if url and pattern.has_permission('get', request, obj=obj):
+                    web_links[pattern.name] = url
+        return web_links
+
+    def _obj_name(self, obj):
+        return str(obj)
+
+    def _class_names(self, obj, request):
+        return self.get_rest_obj_class_names(request, obj)

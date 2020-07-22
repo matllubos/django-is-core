@@ -595,7 +595,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
                 self.core.get_form_inline_views(self.request, self.get_obj(True)))
 
     def _get_field_labels(self):
-        return self.field_labels if self.field_labels is not None else self.core.get_ui_form_field_labels(self.request)
+        return self.field_labels if self.field_labels is not None else self.core.get_ui_field_labels(self.request)
 
     def get_form_class_base(self):
         obj = self.get_obj(True)
@@ -683,9 +683,13 @@ class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
         }
     )
 
+    @property
+    def detail_verbose_name(self):
+        return self.model._ui_meta.detail_verbose_name
+
     def get_title(self):
         return (self.title or
-                self.model._ui_meta.detail_verbose_name % {
+                self.detail_verbose_name % {
                     'verbose_name': self.model._meta.verbose_name,
                     'verbose_name_plural': self.model._meta.verbose_name_plural,
                     'obj': self.get_obj(True)

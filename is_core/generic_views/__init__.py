@@ -131,7 +131,7 @@ class DefaultViewMixin(PermissionsViewMixin, JSONSnippetTemplateResponseMixin):
 class DefaultCoreViewMixin(DefaultViewMixin):
 
     core = None
-    view_name = None
+    view_type = None
     title = None
     permission = PermissionsSet(
         get=CoreReadAllowed(),
@@ -155,7 +155,7 @@ class DefaultCoreViewMixin(DefaultViewMixin):
         return super(DefaultCoreViewMixin, self).dispatch(request, *args, **kwargs)
 
     def get_title(self):
-        return self.title or self.model._meta.verbose_name
+        return self.title
 
     @property
     def view_name(self):
@@ -176,8 +176,13 @@ class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
 
     model = None
 
-    def __init__(self):
-        super(DefaultModelCoreViewMixin, self).__init__()
+    @property
+    def verbose_name(self):
+        return self.core.verbose_name
+
+    @property
+    def verbose_name_plural(self):
+        return self.core.verbose_name_plural
 
     @classmethod
     def __init_core__(cls, core, pattern):
@@ -191,6 +196,9 @@ class DefaultModelCoreViewMixin(DefaultCoreViewMixin):
         }
         extra_context_data.update(context_data)
         return extra_context_data
+
+    def get_title(self):
+        return self.title or self.verbose_name
 
 
 class HomeView(DefaultCoreViewMixin, TemplateView):

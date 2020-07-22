@@ -41,7 +41,6 @@ setup(
         'pytz~=2019.2',
         'Unidecode~=1.1.1',
         'python-mimeparse~=1.6.0',
-        'django-ipware~=2.1.0',
         'import_string>=0.1.0',
     ],
     zip_safe=False

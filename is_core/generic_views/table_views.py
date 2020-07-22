@@ -50,6 +50,22 @@ class TableViewMixin(FieldPermissionViewMixin):
     enable_columns_manager = False
     field_labels = None
 
+    @property
+    def list_verbose_name(self):
+        return self.model._ui_meta.list_verbose_name
+
+    @property
+    def verbose_name(self):
+        return self.model._meta.verbose_name
+
+    @property
+    def verbose_name_plural(self):
+        return self.model._meta.verbose_name_plural
+
+    @property
+    def model_name(self):
+        return str(self.model._meta.model_name)
+
     def _get_allowed_fields(self):
         return [
             field for field in self._get_fields() if field not in self._get_disallowed_fields_from_permissions()
@@ -66,9 +82,9 @@ class TableViewMixin(FieldPermissionViewMixin):
         ]
 
     def get_title(self):
-        return self.model._ui_meta.list_verbose_name % {
-            'verbose_name': self.model._meta.verbose_name,
-            'verbose_name_plural': self.model._meta.verbose_name_plural
+        return self.list_verbose_name % {
+            'verbose_name': self.verbose_name,
+            'verbose_name_plural': self.verbose_name_plural
         }
 
     def _get_field_filter_widget(self, filter_obj, full_field_name, field):
@@ -273,7 +289,7 @@ class TableViewMixin(FieldPermissionViewMixin):
     def get_context_data(self, **kwargs):
         context_data = super(TableViewMixin, self).get_context_data(**kwargs)
 
-        module_name = str(self.model._meta.model_name)
+        module_name = self.model_name
 
         context_data.update({
             'headers': self._get_headers(),
@@ -300,7 +316,7 @@ class TableViewMixin(FieldPermissionViewMixin):
         return get_resource_or_none(self.request, model or self.model)
 
 
-class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
+class TableView(DefaultModelCoreViewMixin, TableViewMixin, TemplateView):
 
     template_name = 'is_core/generic_views/table.html'
     view_type = 'list'
@@ -308,14 +324,18 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
     export_fields = None
     add_button_verbose_name = None
 
+    @property
+    def add_button_verbose_name(self):
+        return self.model._ui_meta.add_button_verbose_name
+
     def _get_add_button_verbose_name(self):
-        return self.add_button_verbose_name or self.core.model._ui_meta.add_button_verbose_name % {
-            'verbose_name': self.core.model._meta.verbose_name,
-            'verbose_name_plural': self.core.model._meta.verbose_name_plural
+        return self.add_button_verbose_name % {
+            'verbose_name': self.verbose_name,
+            'verbose_name_plural': self.verbose_name_plural
         }
 
     def _get_field_labels(self):
-        return self.field_labels if self.field_labels is not None else self.core.get_ui_list_field_labels(self.request)
+        return self.field_labels if self.field_labels is not None else self.core.get_ui_field_labels(self.request)
 
     def _get_fields(self):
         return self.core.get_ui_list_fields(self.request) if self.fields is None else self.fields
@@ -370,11 +390,11 @@ class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
         return context_data
 
     def get_bulk_change_snippet_name(self):
-        return '-'.join(('default', self.model._meta.object_name.lower(), 'form'))
+        return '-'.join(('default', self.core.menu_group, 'form'))
 
     def get_bulk_change_form_url(self):
         return (reverse(
-            ''.join(('IS:', self.core.get_ui_bulk_change_url_name(), '-', self.model._meta.object_name.lower())))
+            ''.join(('IS:', self.core.get_ui_bulk_change_url_name(), '-', self.core.menu_group)))
             if self.is_bulk_change_enabled() else None)
 
     def _get_menu_group_pattern_name(self):

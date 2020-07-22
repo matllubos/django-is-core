@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.db.models import Model
 from django.conf.urls import url, include
 from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
@@ -50,7 +51,7 @@ class ISSite:
         return out
 
     def register(self, generic_core):
-        if (hasattr(generic_core, 'model')):
+        if hasattr(generic_core, 'model') and issubclass(generic_core.model, Model):
             model_label = lower('%s.%s' % (generic_core.model._meta.app_label, generic_core.model._meta.object_name))
             registered_model_cores[model_label] = generic_core
         registered_cores.append(generic_core)
