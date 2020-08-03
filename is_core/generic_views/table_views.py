@@ -176,6 +176,13 @@ class TableViewMixin(FieldPermissionViewMixin):
         else:
             return None
 
+    def _get_paginator_type(self):
+        resource = self.get_resource(self.model)
+        if resource and resource.paginator:
+            return resource.paginator.type
+        else:
+            return None
+
     def _get_field_or_method_label(self, model, field_name):
         resource_label = self._get_resource_label(model, field_name)
         if resource_label is not None:
@@ -303,6 +310,7 @@ class TableViewMixin(FieldPermissionViewMixin):
             'enable_columns_manager': self.is_columns_manager_enabled(),
             'table_slug': self.get_table_slug(),
             'list_per_page': self._get_list_per_page(),
+            'paginator_type': self._get_paginator_type(),
         })
         return context_data
 
