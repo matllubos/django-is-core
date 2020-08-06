@@ -21,6 +21,7 @@ from is_core.actions import WebAction, ConfirmRESTAction
 from is_core.generic_views.form_views import AddModelFormView, DetailModelFormView, BulkChangeFormView
 from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RESTModelResource
+from is_core.rest.paginators import OffsetBasedPaginator
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
 from is_core.utils import flatten_fieldsets, str_to_class, GetMethodFieldMixin, get_model_name
 from is_core.menu import LinkMenuItem
@@ -540,7 +541,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
 
     rest_resource_class = RESTModelResource
     rest_field_labels = None
-    rest_paginator = None
+    rest_paginator = OffsetBasedPaginator
 
     def get_rest_allowed_methods(self):
         rest_allowed_methods = ['options']
@@ -634,8 +635,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
 
     def get_rest_class(self):
         resource_kwargs = {}
-        if self.rest_paginator:
-            resource_kwargs['paginator'] = self.rest_paginator
+        resource_kwargs['paginator'] = self.rest_paginator
         return modelrest_factory(self.model, self.rest_resource_class, resource_kwargs=resource_kwargs)
 
     def get_rest_patterns(self):

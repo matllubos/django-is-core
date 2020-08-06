@@ -43,6 +43,7 @@ DEFAULTS = {
     'FOREIGN_KEY_MAX_SELECTBOX_ENTRIES': 500,
     'LIST_PER_PAGE': 20,
     'REST_DEFAULT_FIELDS_EXTENSION': ('_rest_links',),
+    'REST_PAGINATOR_MAX_TOTAL': 10000,
     'RESPONSE_EXCEPTION_FACTORY': 'is_core.exceptions.response.ui_rest_response_exception_factory',
     'DEFAULT_FIELDSET_TEMPLATE': 'is_core/forms/default_fieldset.html',
     'HEADER_IMAGE': None,
