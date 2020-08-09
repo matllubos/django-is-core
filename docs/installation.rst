@@ -23,7 +23,7 @@ Python/Django versions
 Libraries
 ^^^^^^^^^
 
- * **django-class-based-auth-views** - Login/Logkout views as generic view structure
+ * **django-class-based-auth-views** - Login/Logout views as generic view structure
  * **django-piston** - not original pistion library, but improved. You can find it here https://github.com/matllubos/django-piston
  * **django-block-snippets** - library providing block snippets of html code for easier development webpages with ajax. You can find it here https://github.com/matllubos/django-block-snippets
  * **django-chamber** - several helpers removing code duplication. You can find it here https://github.com/matllubos/django-chamber
@@ -82,7 +82,7 @@ Next add two middlewares to end of ``MIDDLEWARE_CLASSES`` variable::
     MIDDLEWARE_CLASSES = (
         ...
         'is_core.middleware.RequestKwargsMiddleware',
-        'is_core.middleware.HttpExceptionsMiddleware',
+        'is_core.middleware.HTTPExceptionsMiddleware',
     )
 
 Setup
