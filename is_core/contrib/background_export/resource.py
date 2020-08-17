@@ -8,7 +8,7 @@ from django.utils.translation import ugettext
 from is_core.config import settings
 from is_core.rest.resource import RESTResource, RESTModelResource
 
-from security.tasks import obj_to_string
+from django_celery_extensions.task import obj_to_string
 
 from .models import ExportedFile
 from .tasks import background_serialization
