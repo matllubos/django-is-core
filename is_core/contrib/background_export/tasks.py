@@ -14,7 +14,9 @@ from pyston.utils.helpers import QuerysetIteratorHelper
 
 from is_core.config import settings
 
-from security.tasks import LoggedTask, string_to_obj
+from django_celery_extensions.task import string_to_obj
+
+from security.task import LoggedTask
 
 from celery import shared_task
 

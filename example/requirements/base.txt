@@ -10,5 +10,5 @@ pytz
 django-apptemplates
 https://github.com/lukasrychtecky/django-project-info/tarball/0.2.4#egg=django-project-info-0.2.4
 django-ipware>=1.0.0
-django-pyston==2.10.0
+django-pyston==2.12.5
 factory_boy>=2.11.1
