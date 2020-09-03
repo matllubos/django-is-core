@@ -324,7 +324,7 @@ class TableViewMixin(FieldPermissionViewMixin):
         return get_resource_or_none(self.request, model or self.model)
 
 
-class TableView(DefaultModelCoreViewMixin, TableViewMixin, TemplateView):
+class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
 
     template_name = 'is_core/generic_views/table.html'
     view_type = 'list'
