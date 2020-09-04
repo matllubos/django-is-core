@@ -183,7 +183,7 @@ def _get_model_field_data(field, model):
             None if isinstance(model, type)
             else _val_to_readonly_value(
                 getattr(model, field.name) if hasattr(model, field.name) else None, field, model
-            ), field.verbose_name, ReadonlyWidget
+            ), getattr(field, 'verbose_name', pretty_name(field.name)), ReadonlyWidget
         )
 
 
