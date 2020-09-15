@@ -324,13 +324,19 @@ class TableViewMixin(FieldPermissionViewMixin):
         return get_resource_or_none(self.request, model or self.model)
 
 
-class TableView(TableViewMixin, DefaultModelCoreViewMixin, TemplateView):
+class TableView(DefaultModelCoreViewMixin, TableViewMixin, TemplateView):
 
     template_name = 'is_core/generic_views/table.html'
     view_type = 'list'
     export_types = None
     export_fields = None
     add_button_verbose_name = None
+
+    def get_title(self):
+        return self.list_verbose_name % {
+            'verbose_name': self.verbose_name,
+            'verbose_name_plural': self.verbose_name_plural
+        }
 
     @property
     def add_button_verbose_name(self):
