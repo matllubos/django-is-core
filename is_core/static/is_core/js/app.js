@@ -1,4 +1,4 @@
-n.if(typeof Math.imul == "undefined" || (Math.imul(0xffffffff,5) == 0)) {
+if(typeof Math.imul == "undefined" || (Math.imul(0xffffffff,5) == 0)) {
     Math.imul = function (a, b) {
         var ah  = (a >>> 16) & 0xffff;
         var al = a & 0xffff;
