@@ -279,7 +279,13 @@ def display_for_value(value, request=None):
     if request and isinstance(value, Model):
         return render_model_object_with_link(request, value)
     elif isinstance(value, (QuerySet, list, tuple, set, types.GeneratorType)):
-        return format_html_join(', ', '{}', ((display_for_value(v, request),) for v in value))
+        return format_html_join(
+            ', ',
+            '{}',
+            (
+                (display_for_value(v, request),) for v in value
+            )
+        )
     elif isinstance(value, dict):
         return format_html(
             '<ul class="field-dict">{}</ul>',
@@ -291,7 +297,10 @@ def display_for_value(value, request=None):
                         format_html('<li>{}</li>', k),
                         (
                             display_for_value(v, request) if isinstance(v, dict)
-                            else format_html('<ul class="field-dict"><li>{}</li></ul>', display_for_value(v, request))
+                            else format_html(
+                                '<ul class="field-dict"><li>{}</li></ul>',
+                                display_for_value(v, request)
+                            )
                         )
                     )
                     for k, v in value.items()
@@ -338,7 +347,8 @@ def render_model_object_with_link(request, obj, display_value=None):
         return '[{}]'.format(ugettext('missing object'))
 
     obj_url = get_obj_url(request, obj)
-    display_value = force_text(obj) if display_value is None else display_value
+    display_value = str(obj) if display_value is None else str(display_value)
+
     return format_html('<a href="{}">{}</a>', obj_url, display_value) if obj_url else display_value
 
 
