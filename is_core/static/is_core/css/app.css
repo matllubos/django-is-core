@@ -6318,8 +6318,6 @@ form {
     font-size: 80%; }
   form .btn {
     margin-top: 15px; }
-  form .field-value:first-letter {
-    text-transform: uppercase; }
   form .field-value a {
     line-height: 40px; }
   form .field-value a.btn {
@@ -6558,8 +6556,6 @@ input[type=submit][disabled] {
 
 .grid td {
   padding: 10px; }
-  .grid td a:first-letter {
-    text-transform: uppercase; }
   .grid td.id {
     width: 7%;
     color: #9a9a9a; }
