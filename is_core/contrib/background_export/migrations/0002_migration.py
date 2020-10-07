@@ -13,13 +13,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='exportedfile',
-            name='task',
-        ),
         migrations.AlterField(
             model_name='exportedfile',
             name='slug',
-            field=models.SlugField(default=is_core.contrib.background_export.models.generate_slug, max_length=32, primary_key=True, serialize=False, verbose_name='slug'),
+            field=models.SlugField(default=is_core.contrib.background_export.models.generate_slug, max_length=32,
+                                   primary_key=True, serialize=False, verbose_name='slug'),
         ),
     ]
