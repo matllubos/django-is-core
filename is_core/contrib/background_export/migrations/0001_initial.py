@@ -18,7 +18,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('security', '0001_migration'),
     ]
 
     operations = [
@@ -39,8 +38,6 @@ class Migration(migrations.Migration):
                                    to=settings.AUTH_USER_MODEL, verbose_name='created by')),
                 ('downloaded_by', models.ManyToManyField(blank=True, related_name='downloaded_exported_files',
                                                          to=settings.AUTH_USER_MODEL, verbose_name='downloaded by')),
-                ('task', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
-                                              to='security.CeleryTaskLog', verbose_name='state')),
             ],
             options={
                 'verbose_name': 'exported file',
