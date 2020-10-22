@@ -46,7 +46,7 @@
                 {% block export-menu %}
                 {% if export_types %}
                 <li>
-                    <div class="dropdown pull-right">
+                    <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Exports' %}<span class="caret"></span></button>
                         <ul class="dropdown-menu" role="menu">
                             {% for title, type, serialization_format, content_type in export_types %}
