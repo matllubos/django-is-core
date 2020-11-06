@@ -6337,7 +6337,7 @@ img {
     height: 30px;
     text-indent: -1000em;
     border: none;
-    background-image: url("../img/select-arrow.png");
+    background-image: url("../images/select-arrow.png");
     background-repeat: no-repeat;
     background-position: 4px center; }
   .ac-item .ac-highlighted, .ac-buttons .ac-highlighted {
@@ -6530,7 +6530,7 @@ legend {
 input[type=text].datetime, input[type=text].date {
   padding-left: 36px;
   position: relative;
-  background: #fbfbfb url("../img/cal.png") 10px center no-repeat; }
+  background: #fbfbfb url("../images/cal.png") 10px center no-repeat; }
 
 select, select.form-control {
   border: 1px solid #ccc;
@@ -6551,7 +6551,7 @@ select, select.form-control {
   cursor: pointer;
   height: 40px;
   -webkit-appearance: button;
-  background-image: url("../img/select-arrow.png");
+  background-image: url("../images/select-arrow.png");
   background-position: center right;
   background-repeat: no-repeat;
   margin: 0;
@@ -7189,7 +7189,7 @@ form .errorlist {
     content: '';
     height: 7px;
     width: 7px;
-    background: url("../img/arrow.png") no-repeat center center;
+    background: url("../images/arrow.png") no-repeat center center;
     position: absolute;
     right: -15px;
     top: 50%;
@@ -7295,7 +7295,6 @@ form .errorlist {
     font-weight: bold; }
 
 .navbar-brand {
-  background: url("../img/mallpay/mallpay-logo.png") no-repeat center;
   background-size: 120px;
   text-indent: -9999px;
   width: 140px;
