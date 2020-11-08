@@ -71,7 +71,7 @@ class UserISCore(UIRESTModelISCore):
     def get_rest_patterns(self):
         rest_patterns = super().get_rest_patterns()
         rest_patterns['api-user-issue'] = self.default_rest_pattern_class(
-            'api-number-issues', self.site_name, r'(?P<pk>[-\w]+)/issue-number/', NumberOfUserIssuesResource, self
+            'api-number-issues', self.site_name, r'(?P<pk>[^/]+)/issue-number/', NumberOfUserIssuesResource, self
         )
         return rest_patterns
 

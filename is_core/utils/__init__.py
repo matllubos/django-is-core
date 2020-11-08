@@ -16,6 +16,9 @@ from chamber.utils import get_class_method, call_method_with_unknown_input
 from pyston.converters import get_converter
 
 
+PK_PATTERN = r'(?P<pk>[^/]+)'
+NUMBER_PK_PATTERN = '(?P<pk>\d+)'
+
 EMPTY_VALUE = '---'
 
 

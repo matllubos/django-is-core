@@ -2,7 +2,8 @@ from django.conf import settings as django_settings
 
 
 def _get_auth_login_view():
-    if 'auth_token' in django_settings.INSTALLED_APPS and django_settings.AUTH_TOKEN_TWO_FACTOR_ENABLED:
+    if ('auth_token' in django_settings.INSTALLED_APPS
+            and getattr(django_settings, 'AUTH_TOKEN_TWO_FACTOR_ENABLED', False)):
         return 'auth_token.contrib.is_core_auth.views.TwoFactorLoginView'
     elif 'auth_token' in django_settings.INSTALLED_APPS:
         return 'auth_token.contrib.is_core_auth.views.LoginView'
@@ -13,7 +14,8 @@ def _get_auth_login_view():
 DEFAULTS = {
     'AUTH_LOGIN_CODE_VERIFICATION_VIEW': (
         'auth_token.contrib.is_core_auth.views.LoginCodeVerificationView'
-        if 'auth_token' in django_settings.INSTALLED_APPS and django_settings.AUTH_TOKEN_TWO_FACTOR_ENABLED
+        if ('auth_token' in django_settings.INSTALLED_APPS
+            and getattr(django_settings, 'AUTH_TOKEN_TWO_FACTOR_ENABLED', False))
         else None
     ),
     'AUTH_FORM_CLASS': (

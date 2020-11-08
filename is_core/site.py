@@ -29,8 +29,7 @@ def get_model_core(model):
     """
     Return core view of given model or None
     """
-    model_label = lower('%s.%s' % (model._meta.app_label, model._meta.object_name))
-    return registered_model_cores.get(model_label)
+    return registered_model_cores.get(model)
 
 
 class ISSite:
@@ -51,9 +50,8 @@ class ISSite:
         return out
 
     def register(self, generic_core):
-        if hasattr(generic_core, 'model') and issubclass(generic_core.model, Model):
-            model_label = lower('%s.%s' % (generic_core.model._meta.app_label, generic_core.model._meta.object_name))
-            registered_model_cores[model_label] = generic_core
+        if getattr(generic_core, 'register_model', False):
+            registered_model_cores[generic_core.model] = generic_core
         registered_cores.append(generic_core)
         return generic_core
 

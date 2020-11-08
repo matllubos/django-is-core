@@ -6,7 +6,7 @@ from collections import OrderedDict
 from django.conf.urls import url
 from django.urls import reverse, resolve
 
-from is_core.utils import get_new_class_name
+from is_core.utils import get_new_class_name, PK_PATTERN, NUMBER_PK_PATTERN
 
 
 logger = logging.getLogger('is-core')
@@ -68,7 +68,7 @@ class ViewPattern(Pattern):
         return '%s:%s' % (self.site_name, self.name)
 
     def _get_try_kwargs(self, request, obj):
-        if obj and ('(?P<pk>[-\w]+)' in self.url_pattern or '(?P<pk>\d+)' in self.url_pattern):
+        if obj and (PK_PATTERN in self.url_pattern or NUMBER_PK_PATTERN in self.url_pattern):
             return {'pk': obj.pk}
         return {}
 
@@ -215,13 +215,14 @@ class DoubleRESTPattern:
         result = OrderedDict()
         if detail_resource_methods:
             result['api-resource'] = self.pattern_class(
-                'api-resource-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'^(?P<pk>[-\w]+)/$',
-                self.resource_class, self.core, detail_resource_methods, clone_view_class=False
+                'api-resource-{}'.format(self.core.get_menu_group_pattern_name()), self.core.site_name,
+                r'^{}/$'.format(PK_PATTERN), self.resource_class, self.core, detail_resource_methods,
+                clone_view_class=False
             )
         if list_resource_methods:
             result['api'] = self.pattern_class(
-                'api-%s' % self.core.get_menu_group_pattern_name(), self.core.site_name, r'$', self.resource_class,
-                self.core, list_resource_methods, clone_view_class=False
+                'api-{}'.format(self.core.get_menu_group_pattern_name()), self.core.site_name, r'$',
+                self.resource_class, self.core, list_resource_methods, clone_view_class=False
             )
         return result
 

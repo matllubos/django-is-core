@@ -34,13 +34,12 @@ setup(
     ],
     install_requires=[
         'django>=2.2',
-        'django-pyston>=2.12.11',
+        'django-pyston>=2.12.13',
         'django-block-snippets>=2.0.1',
-        'django-chamber>=0.5.25',
+        'django-chamber>=0.5.26',
         'python-dateutil>=2.8.1',
         'pytz',
         'Unidecode',
-        'python-mimeparse~=1.6.0',
         'import_string>=0.1.0',
     ],
     zip_safe=False
