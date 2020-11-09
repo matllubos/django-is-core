@@ -17,13 +17,13 @@ class OffsetBasedPaginator(OffsetBasedPaginatorMixin, OriginOffsetBasedPaginator
     type = 'offset-based-paginator'
 
     def _get_total(self):
-        if isinstance(self.qs, QuerySet):
-            if self.qs[:settings.REST_PAGINATOR_MAX_TOTAL+1].count() > settings.REST_PAGINATOR_MAX_TOTAL:
-                return None
-            else:
+        if self.request._rest_context.get('request_count', False):
+            if isinstance(self.qs, QuerySet):
                 return self.qs.count()
+            else:
+                return len(self.qs)
         else:
-            return len(self.qs)
+            return None
 
 
 class OffsetBasedPaginatorWithoutTotal(OffsetBasedPaginatorMixin, OriginOffsetBasedPaginatorWithoutTotal):
