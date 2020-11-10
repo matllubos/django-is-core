@@ -9580,7 +9580,7 @@ img {
     border: 1px solid #d2d2d2;
     text-align: center;
     display: inline-block;
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Free';
     font-style: normal;
     font-weight: normal;
     line-height: 1;
@@ -9628,7 +9628,7 @@ img {
     text-overflow: ellipsis;
     line-height: 32px; }
   .breadcrumb > li + li:before {
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Free';
     content: "\f105";
     font-size: 13px;
     vertical-align: middle;
@@ -9913,8 +9913,9 @@ input[type=submit][disabled] {
       min-width: 0;
       border-color: transparent;
       color: #888;
-      font-family: FontAwesome;
+      font-family: 'Font Awesome 5 Free';
       font-size: 20px;
+      font-weight: 900;
       background-color: transparent; }
       .grid td.actions .btn:hover {
         color: #000;
@@ -9926,13 +9927,13 @@ input[type=submit][disabled] {
       .grid td.actions .btn.activate:before, .grid td.actions .btn.deactivate:before {
         content: "\f011"; }
       .grid td.actions .btn.edit:before {
-        content: "\f040"; }
+        content: "\f044"; }
       .grid td.actions .btn.detail:before {
         content: "\f129"; }
       .grid td.actions .btn:before {
-        font-family: FontAwesome; }
+        font-family: 'Font Awesome 5 Free'; }
       .grid td.actions .btn.download:before {
-        content: "\f0ed"; }
+        content: "\f019"; }
       .grid td.actions .btn span {
         display: none; }
 
@@ -10122,7 +10123,7 @@ td.goog-date-picker-selected {
     border: 1px solid #d2d2d2;
     text-align: center;
     display: inline-block;
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Free';
     font-style: normal;
     font-weight: normal;
     line-height: 1;
@@ -10142,7 +10143,7 @@ td.goog-date-picker-selected {
     margin-left: 10px;
     color: #ed3535; }
     .tag .goog-icon-remove:before {
-      font-family: FontAwesome;
+      font-family: 'Font Awesome 5 Free';
       content: "\f00d"; }
 
 html, body, div, span, p, a, del, em, img, ol, ul, li, fieldset, form, label, h1, h2, h3, h4, h5 {
@@ -10441,7 +10442,7 @@ form .errorlist {
 
 .columns-dropdown .is-filtered:after {
   content: "\f0b0";
-  font-family: FontAwesome;
+  font-family: 'Font Awesome 5 Free';
   margin-left: .3em; }
 
 .columns-dropdown {
@@ -13947,7 +13948,7 @@ body {
     width: 15px; }
     .goog-date-picker-head td .goog-date-picker-previousMonth:after, .goog-date-picker-head td .goog-date-picker-previousYear:after {
       content: "\f104";
-      font-family: "FontAwesome";
+      font-family: 'Font Awesome 5 Free';
       font-size: 18px;
       padding: 0 2px;
       position: absolute;
@@ -13962,7 +13963,7 @@ body {
     width: 15px; }
     .goog-date-picker-head td .goog-date-picker-nextMonth:after, .goog-date-picker-head td .goog-date-picker-nextYear:after {
       content: "\f105";
-      font-family: "FontAwesome";
+      font-family: 'Font Awesome 5 Free';
       font-size: 18px;
       padding: 0 2px;
       position: absolute;
@@ -14183,16 +14184,16 @@ body:not(.club-layout) {
 tr.warning {
   background-color: #f39c11; }
 
-.inline-list {
-  padding: 0; }
-  .inline-list > li {
-    display: inline-block;
-    margin: 0 1em 1em 0;
-    list-style-type: none; }
-
 .row-md-cleaner {
   margin-left: -15px;
   margin-right: -15px; }
+
+.app-backend .table-responsive .inline-list {
+  padding: 0; }
+  .app-backend .table-responsive .inline-list > li {
+    display: inline-block;
+    margin: 0 1em 1em 0;
+    list-style-type: none; }
 
 .app-backend .table-responsive .inline-list-left {
   float: left; }
@@ -14203,6 +14204,12 @@ tr.warning {
 .app-backend th.select-all {
   padding-bottom: 0;
   margin-bottom: 0; }
+
+.app-backend tr.row-selected > td {
+  background-color: #ddd !important; }
+
+.app-dashboard .header-buttons .btn {
+  margin-top: 40px; }
 
 .w-month-year {
   width: 128px;
