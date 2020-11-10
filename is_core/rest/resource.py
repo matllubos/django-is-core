@@ -252,6 +252,11 @@ class RESTModelResource(FieldPermissionViewMixin, RESTModelCoreMixin, RESTResour
     filters = {}
     default_fields_extension = None
 
+    DEFAULT_REST_CONTEXT_MAPPING = {
+        **BaseResource.DEFAULT_REST_CONTEXT_MAPPING,
+        'request_count': ('HTTP_X_REQUEST_COUNT', '_request_count'),
+    }
+
     def get_allowed_fields_rfs(self, obj=None):
         return super().get_allowed_fields_rfs().subtract(self._get_disallowed_fields_from_permissions(obj=obj))
 

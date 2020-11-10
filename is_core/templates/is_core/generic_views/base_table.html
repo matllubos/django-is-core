@@ -41,13 +41,13 @@
             {% endblock %}
 
             {% block table-buttons %}
-            <ul class="inline-list table-buttons">
-                {% if add_url %}{% has_permission 'create' %}<li><a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value|capfirst }}"><span>{{ add_button_value|capfirst }}</span></a></li>{% endhas_permission %}{% endif %}
+            <ul class="inline-list inline-list-left table-buttons">
+                {% if add_url %}{% has_permission 'create' %}<li><a class="{% block add-btn-classes %}btn btn-primary{% endblock %}" href="{{ add_url }}" title="{{ add_button_value|capfirst }}"><span><i class="fa fa-plus"></i> {{ add_button_value|capfirst }}</span></a></li>{% endhas_permission %}{% endif %}
                 {% block export-menu %}
                 {% if export_types %}
                 <li>
                     <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Exports' %}<span class="caret"></span></button>
+                        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" title="{% trans 'Export files in selected format' %}"><i class="fa fa-file-export"></i><span class="caret"></span></button>
                         <ul class="dropdown-menu" role="menu">
                             {% for title, type, serialization_format, content_type in export_types %}
                             <li>
@@ -64,17 +64,23 @@
                     {% if enable_columns_manager %}
                     <li>
                         <div class="dropdown columns-dropdown">
-                            <span class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                                {% trans "Columns" %}<span class="caret"></span>
+                            <span class="btn btn-primary dropdown-toggle" data-toggle="dropdown" title="{% trans 'Display/hide columns' %}">
+                                <i class="fa fa-columns"></i> <span class="caret"></span>
                             </span>
                             <div class="dropdown-menu columns-manager" id="columns-manager-{{ table_slug }}"></div>
                         </div>
                     </li>
                     {% endif %}
                 {% endblock %}
-
                 {% block rest-table-buttons %}{% endblock %}
             </ul>
+            <ul class="inline-list inline-list-right table-buttons">
+                <li><button class="btn btn-secondary reset-filters" title="{% trans 'Clear filters' %}"><i class="fa fa-ban"></i></button></li>
+                <li><button class="btn btn-secondary reload" title="{% trans 'Reload data' %}"><i class="fa fa-sync"></i></button></li>
+                <li><button class="btn btn-secondary reload-count" title="{% trans 'Reload data and total number of rows' %}"><b>&#8721;</b></button></li>
+            </ul>
+
+
                 {% if enable_columns_manager %}
                 <div class="alert alert-info columns-filtering-text" id="columns-filtering-text-table-{{ table_slug }}" style="display: none">
                     {% blocktrans with '%(columns)s' as columns %}There are some filters on hidden fields: <span class="columns">{{ columns }}</span>. Do you want to <span class="delete-filtering">delete filtering</span>?{% endblocktrans%}
@@ -90,7 +96,8 @@
                       data-form-url="{{ bulk_change_form_url }}"
                       data-api-url="{{ api_url }}"
                       data-bulk-error-message="{% trans 'Please fix errors for following objects: %s' %}"
-                      >{% trans 'Bulk change' %}</span>
+                      title="{% trans 'Update selected rows' %}"
+                      ><i class="fa fa-stream"></i> {% trans 'Bulk change' %}</span>
                 {% endif %}
             {% endblock %}
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-23 00:07+0200\n"
+"POT-Creation-Date: 2020-11-09 14:39+0100\n"
 "PO-Revision-Date: 2016-01-14 15:22+0100\n"
 "Last-Translator: FULL NAME <matllubos@gmail.com>\n"
 "Language-Team: \n"
@@ -19,19 +19,17 @@ msgstr ""
 "X-Generator: Poedit 1.8.1\n"
 
 #: actions.py:47 templates/is_core/forms/inline_table.html:52
-#: templates/is_core/generic_views/base_table.html:88
-#: utils/__init__.py:282
+#: templates/is_core/generic_views/base_table.html:105 utils/__init__.py:311
 msgid "Yes"
 msgstr "Ano"
 
 #: actions.py:48 templates/is_core/forms/inline_table.html:52
-#: templates/is_core/generic_views/base_table.html:88
-#: utils/__init__.py:282
+#: templates/is_core/generic_views/base_table.html:105 utils/__init__.py:311
 msgid "No"
 msgstr "Ne"
 
 #: actions.py:49 templates/is_core/forms/inline_table.html:52
-#: templates/is_core/generic_views/base_table.html:88
+#: templates/is_core/generic_views/base_table.html:105
 msgid "Are you sure?"
 msgstr "Jste si jisti?"
 
@@ -88,9 +86,9 @@ msgid "You will be notified after export completion"
 msgstr "Po dokončení exportu budete notifikován"
 
 #: contrib/background_export/templates/is_core/generic_views/table.html:12
-#: templates/is_core/generic_views/detail_form.html:12
-msgid "Export"
-msgstr "Export"
+#: templates/is_core/generic_views/base_table.html:50
+msgid "Export files in selected format"
+msgstr "Exportovat soubory ve vybraném formátu"
 
 #: exceptions/response.py:88
 msgid "Bad Request"
@@ -124,8 +122,8 @@ msgstr "Služba je dočasně nedostupná"
 msgid "Readonly field can not be validated"
 msgstr "Pole pro čtení nemůže být validováno"
 
-#: forms/widgets.py:59 forms/widgets.py:65
-#: forms/widgets.py:391 forms/widgets.py:401
+#: forms/widgets.py:59 forms/widgets.py:65 forms/widgets.py:391
+#: forms/widgets.py:401
 msgid "Search..."
 msgstr "Hledat..."
 
@@ -137,7 +135,7 @@ msgstr "Vložte primární klíč"
 msgid "Insert primary keys separated by comma"
 msgstr "Vložtě primární klíče oddělené čárkou"
 
-#: generic_views/__init__.py:202 main.py:354
+#: generic_views/__init__.py:210 main.py:348
 msgid "Home"
 msgstr "Home"
 
@@ -145,8 +143,7 @@ msgstr "Home"
 msgid "Object was saved successfully."
 msgstr "Položka byla úspěšně uložena."
 
-#: generic_views/form_views.py:59
-#: generic_views/form_views.py:653
+#: generic_views/form_views.py:59 generic_views/form_views.py:653
 #: generic_views/form_views.py:675
 msgid "Please correct the error below."
 msgstr "Prosím opravte níže uvedené chyby."
@@ -159,8 +156,7 @@ msgstr "Uložit"
 msgid "Back"
 msgstr "Zpět"
 
-#: generic_views/form_views.py:257
-#: generic_views/form_views.py:492
+#: generic_views/form_views.py:257 generic_views/form_views.py:492
 msgid "No changes have been submitted."
 msgstr "Nebyly odeslány žádné změny."
 
@@ -195,21 +191,21 @@ msgstr "Položka \"%(obj)s\" typu %(name)s byla úspěšně upravena."
 msgid "There are no items"
 msgstr "Žádné položky"
 
-#: main.py:662
+#: main.py:651
 #, python-format
 msgid "Do you really want to delete \"%s\""
 msgstr "Opravdu chcete odstranit položku \"%s\""
 
-#: main.py:664
+#: main.py:653
 msgid "Delete"
 msgstr "Smazat"
 
-#: main.py:665
+#: main.py:654
 #, python-format
 msgid "Record \"%s\" was deleted"
 msgstr "Záznam \"%s\" byl smazán"
 
-#: main.py:704
+#: main.py:714
 msgid "Detail"
 msgstr "Detail"
 
@@ -221,13 +217,12 @@ msgstr "Nezpracovatelná entita"
 msgid "Not Found"
 msgstr "Nenalezeno"
 
-#: models/patch.py:24 models/patch.py:25
-#: models/patch.py:26
+#: models/patch.py:24 models/patch.py:25 models/patch.py:26
 #, python-format
 msgid "add %(verbose_name)s"
 msgstr "Přidat %(verbose_name)s"
 
-#: rest/resource.py:419
+#: rest/resource.py:398
 #, python-format
 msgid "Only %s objects can be changed by one request"
 msgstr "Pouze %s objektů může být změněno v jednom požadavku"
@@ -236,8 +231,7 @@ msgstr "Pouze %s objektů může být změněno v jednom požadavku"
 msgid "Internal Server Error (500)"
 msgstr "Interní chyba serveru (500)"
 
-#: templates/is_core/base.html:37
-#: templates/is_core/logged_out.html:4
+#: templates/is_core/base.html:37 templates/is_core/logged_out.html:4
 #: templates/is_core/logged_out.html:13
 msgid "Logout"
 msgstr "Odhlásit"
@@ -279,22 +273,22 @@ msgid "of"
 msgstr "z"
 
 #: templates/is_core/forms/inline_table.html:18
-#: templates/is_core/generic_views/base_table.html:24
+#: templates/is_core/generic_views/base_table.html:22
 msgid "Previous"
 msgstr "Předchozí"
 
 #: templates/is_core/forms/inline_table.html:19
-#: templates/is_core/generic_views/base_table.html:25
+#: templates/is_core/generic_views/base_table.html:23
+#: templates/is_core/generic_views/base_table.html:34
 msgid "Next"
 msgstr "Následující"
 
 #: templates/is_core/forms/inline_table.html:34
-#: templates/is_core/generic_views/base_table.html:58
 msgid "Columns"
 msgstr "Sloupce"
 
 #: templates/is_core/forms/inline_table.html:46
-#: templates/is_core/generic_views/base_table.html:70
+#: templates/is_core/generic_views/base_table.html:86
 #, python-format
 msgid ""
 "There are some filters on hidden fields: <span class=\"columns\">"
@@ -306,37 +300,56 @@ msgstr ""
 "\">odstranit filtrování </span>?"
 
 #: templates/is_core/forms/inline_table.html:52
-#: templates/is_core/generic_views/base_table.html:88
+#: templates/is_core/generic_views/base_table.html:105
 msgid "Do you really want to delete &#37;s?"
 msgstr "Opravdu chcete odstranit položku &#37;s?"
 
 #: templates/is_core/forms/inline_table.html:63
-#: templates/is_core/generic_views/base_table.html:100
+#: templates/is_core/generic_views/base_table.html:117
 msgid "Actions"
 msgstr "Akce"
 
 #: templates/is_core/forms/inline_table.html:74
-#: templates/is_core/generic_views/base_table.html:111
+#: templates/is_core/generic_views/base_table.html:128
 msgid "There are no items."
 msgstr "Žádné položky"
 
-#: templates/is_core/forms/login_form.html:5
-#: templates/is_core/login.html:4
+#: templates/is_core/forms/login_form.html:5 templates/is_core/login.html:4
 msgid "Login"
 msgstr "Login"
 
-#: templates/is_core/generic_views/base_table.html:40
-msgid "Exports"
-msgstr "Export"
+#: templates/is_core/generic_views/base_table.html:67
+msgid "Display/hide columns"
+msgstr "Zobrazit/skrýt sloupce"
 
-#: templates/is_core/generic_views/base_table.html:82
+#: templates/is_core/generic_views/base_table.html:78
+msgid "Clear filters"
+msgstr "Vymazat filtrování"
+
+#: templates/is_core/generic_views/base_table.html:79
+msgid "Reload data"
+msgstr "Znovu načíst data"
+
+#: templates/is_core/generic_views/base_table.html:80
+msgid "Reload data and total number of rows"
+msgstr "Znovu načít data a zobrazit celkový počet řádků"
+
+#: templates/is_core/generic_views/base_table.html:98
 #, python-format
 msgid "Please fix errors for following objects: %%s"
 msgstr "Prosím opravte chyby následujících objektů: %%s"
 
-#: templates/is_core/generic_views/base_table.html:83
+#: templates/is_core/generic_views/base_table.html:99
+msgid "Update selected rows"
+msgstr "Upravit vybrané řádky"
+
+#: templates/is_core/generic_views/base_table.html:100
 msgid "Bulk change"
 msgstr "Hromadná změna"
+
+#: templates/is_core/generic_views/detail_form.html:12
+msgid "Export"
+msgstr "Export"
 
 #: templates/is_core/home.html:4
 msgid "Welcome"
@@ -362,7 +375,7 @@ msgstr "Vyplňte své přihlašovací údaje"
 msgid "Affected rows"
 msgstr "Počet záznamů ke změně"
 
-#: utils/__init__.py:318
+#: utils/__init__.py:347
 msgid "missing object"
 msgstr "chybějící objekt"
 
