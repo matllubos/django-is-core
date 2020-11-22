@@ -332,7 +332,7 @@ msgstr "Znovu načíst data"
 
 #: templates/is_core/generic_views/base_table.html:80
 msgid "Reload data and total number of rows"
-msgstr "Znovu načít data a zobrazit celkový počet řádků"
+msgstr "Znovu načíst data a zobrazit celkový počet řádků"
 
 #: templates/is_core/generic_views/base_table.html:98
 #, python-format

@@ -16,6 +16,9 @@ from chamber.utils import get_class_method, call_method_with_unknown_input
 from pyston.converters import get_converter
 
 
+EMPTY_VALUE = '---'
+
+
 def is_callable(val):
     return hasattr(val, '__call__')
 
@@ -279,11 +282,14 @@ def display_for_value(value, request=None):
     if request and isinstance(value, Model):
         return render_model_object_with_link(request, value)
     elif isinstance(value, (QuerySet, list, tuple, set, types.GeneratorType)):
-        return format_html_join(
-            ', ',
-            '{}',
-            (
-                (display_for_value(v, request),) for v in value
+        return format_html(
+            '<ol class="field-list">{}</ol>',
+            format_html_join(
+                '\n',
+                '<li>{}</li>',
+                (
+                    (display_for_value(v, request),) for v in value
+                )
             )
         )
     elif isinstance(value, dict):
@@ -310,7 +316,7 @@ def display_for_value(value, request=None):
     elif isinstance(value, bool):
         return ugettext('Yes') if value else ugettext('No')
     else:
-        return admin_display_for_value(value, '-')
+        return admin_display_for_value(value, EMPTY_VALUE)
 
 
 def get_url_from_model_core(request, obj):

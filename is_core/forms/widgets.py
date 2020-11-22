@@ -14,11 +14,11 @@ from django.utils.functional import cached_property
 from django.utils.html import conditional_escape, format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+
 from is_core.config import settings
+from is_core.utils import EMPTY_VALUE
 
 from .utils import ReadonlyValue, add_class_name
-
-EMPTY_VALUE = '---'
 
 
 def flat_data_attrs(attrs):
@@ -133,11 +133,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         return display_for_value(value, request=request)
 
     def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
-        if isinstance(value, (list, tuple)):
-            out = ', '.join([self._get_value_display(val, request) for val in value])
-        else:
-            out = self._get_value_display(value, request)
-        return format_html('<p>{}</p>', out)
+        return format_html('<p>{}</p>', self._get_value_display(value, request))
 
     def _render_readonly_value(self, readonly_value):
         return mark_safe('<p><span title="%s">%s</span></p>' % (conditional_escape(force_text(readonly_value.value)),
