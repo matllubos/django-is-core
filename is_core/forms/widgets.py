@@ -214,7 +214,7 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
 class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
 
     def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
-        if request and value and isinstance(value, (list, tuple)):
+        if request and isinstance(value, (list, tuple)):
             rendered_values = []
             for value_item in value:
                 choice = self._choice(value_item)
