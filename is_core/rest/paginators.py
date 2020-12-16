@@ -16,20 +16,11 @@ class OffsetBasedPaginator(OffsetBasedPaginatorMixin, OriginOffsetBasedPaginator
 
     type = 'offset-based-paginator'
 
-    def _get_total(self):
-        if self.request._rest_context.get('request_count', False):
-            if isinstance(self.qs, QuerySet):
-                return self.qs.count()
-            else:
-                return len(self.qs)
+    def _get_total(self, qs, request):
+        if request._rest_context.get('request_count', False):
+            return super()._get_total(qs, request)
         else:
             return None
-
-
-class OffsetBasedPaginatorWithoutTotal(OffsetBasedPaginatorMixin, OriginOffsetBasedPaginatorWithoutTotal):
-
-    def _get_total(self):
-        return None
 
 
 class CursorBasedPaginator(OriginCursorBasedPaginator):

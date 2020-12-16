@@ -49,11 +49,6 @@ class CeleryResourceMixin:
             'messages': {'error': force_text(message)}
         }
 
-    def _get_too_large_response_data(self, http_headers):
-        return ErrorResponseData(
-            ugettext('Too much data, please use filter or pagination to reduce its amount.')
-        ), http_headers, 430, False
-
     def _get_no_background_permissions_response_data(self, http_headers):
         return ErrorResponseData(
             ugettext('User doesn\'t have permissions to export')
@@ -83,18 +78,13 @@ class CeleryResourceMixin:
             response = render(self.request, 'is_core/background_serialization.html')
             return response, response['Content-Type'], 200, False
 
-    def _is_excluded_serialization_limit(self, result):
-        return (
-            'background_serialization' not in self.request._rest_context and
-            isinstance(result, QuerySet) and
-            result.count() > settings.BACKGROUND_EXPORT_SERIALIZATION_LIMIT
-        )
+    def _get_paginator(self):
+        # For background serialization paginator is not used
+        return None if 'background_serialization' in self.request._rest_context else self.paginator
 
     def _get_response_data(self):
         result, http_headers, status_code, fieldset = super()._get_response_data()
-        if self._is_excluded_serialization_limit(result):
-            return self._get_too_large_response_data(http_headers)
-        elif 'background_serialization' in self.request._rest_context:
+        if 'background_serialization' in self.request._rest_context:
             return self._get_background_serialization_response_data(result, http_headers)
         else:
             return result, http_headers, status_code, fieldset
