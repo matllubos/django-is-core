@@ -5,8 +5,8 @@ import types
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.contrib.admin.utils import display_for_value as admin_display_for_value
 from django.db.models import Model, QuerySet
-from django.db.models.fields import FieldDoesNotExist
-from django.forms.forms import pretty_name
+from django.core.exceptions import FieldDoesNotExist
+from django.forms.utils import pretty_name
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 from django.utils.html import format_html, format_html_join

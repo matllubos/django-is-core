@@ -1,6 +1,6 @@
 from django import forms
-from django.db.models.fields import FieldDoesNotExist
-from django.forms.forms import pretty_name
+from django.core.exceptions import FieldDoesNotExist
+from django.forms.utils import pretty_name
 from django.views.generic.base import TemplateView
 from django.urls import reverse
 

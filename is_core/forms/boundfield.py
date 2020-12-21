@@ -1,4 +1,4 @@
-from django.forms.forms import BoundField
+from django.forms.boundfield import BoundField
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 
