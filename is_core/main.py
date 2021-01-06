@@ -23,7 +23,7 @@ from is_core.generic_views.table_views import TableView
 from is_core.rest.resource import RESTModelResource
 from is_core.rest.paginators import OffsetBasedPaginator
 from is_core.patterns import UIPattern, RESTPattern, DoubleRESTPattern, HiddenRESTPattern
-from is_core.utils import flatten_fieldsets, str_to_class, GetMethodFieldMixin, get_model_name
+from is_core.utils import flatten_fieldsets, str_to_class, GetMethodFieldMixin, get_model_name, PK_PATTERN
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
@@ -132,6 +132,8 @@ class ModelISCore(GetMethodFieldMixin, ISCore):
     abstract = True
 
     list_actions = ()
+
+    register_model = True
 
     # form params
     form_fields = None
@@ -406,7 +408,7 @@ class UIModelISCore(ModelISCore, UIISCore):
         if self.can_create and add_view:
             default_model_view_classes.append(('add', r'add/', add_view))
         if (self.can_read or self.can_update) and detail_view:
-            default_model_view_classes.append(('detail', r'(?P<pk>[-\w]+)/', detail_view))
+            default_model_view_classes.append(('detail', r'{}/'.format(PK_PATTERN), detail_view))
         if self.can_read and list_view:
             default_model_view_classes.append(('list', r'', list_view))
         return default_model_view_classes
@@ -533,6 +535,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     rest_extra_filter_fields = None
     rest_order_fields = None
     rest_extra_order_fields = None
+    rest_register = True
 
     rest_default_fields_extension = settings.REST_DEFAULT_FIELDS_EXTENSION
 
@@ -636,7 +639,8 @@ class RESTModelISCore(RESTISCore, ModelISCore):
     def get_rest_class(self):
         resource_kwargs = {}
         resource_kwargs['paginator'] = self.rest_paginator
-        return modelrest_factory(self.model, self.rest_resource_class, resource_kwargs=resource_kwargs)
+        return modelrest_factory(self.model, self.rest_resource_class, resource_kwargs=resource_kwargs,
+                                 register=self.rest_register)
 
     def get_rest_patterns(self):
         rest_patterns = super(RESTModelISCore, self).get_rest_patterns()
