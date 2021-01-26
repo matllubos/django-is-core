@@ -139,11 +139,7 @@ def get_model_method_or_property_data(field_name, model, fun_kwargs):
     )
 
     if method:
-        if hasattr(method, 'field'):
-            # Generic relation
-            label = getattr(method.field, 'verbose_name', pretty_name(field_name))
-        else:
-            label = getattr(method, 'short_description', pretty_name(field_name))
+        label = getattr(method, 'short_description', pretty_name(field_name))
         try:
             return (
                 (None, label, ReadonlyWidget) if isinstance(model, type)
@@ -151,75 +147,98 @@ def get_model_method_or_property_data(field_name, model, fun_kwargs):
             )
         except InvalidMethodArguments:
             return None
-    elif hasattr(model, field_name):
+    elif class_method:
+        # Property
         return (
-            getattr(model, field_name), pretty_name(field_name), ReadonlyWidget
+            getattr(model, field_name),
+            getattr(class_method, 'short_description', pretty_name(field_name)),
+            ReadonlyWidget
         )
     else:
         return None
 
 
+def _get_model_field_label(field):
+    if field.auto_created and field.is_relation:
+        return field.field.reverse_verbose_name
+    else:
+        return field.verbose_name
+
+
 def _get_model_field_data(field, model):
     from is_core.forms.widgets import ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget
 
+    label = _get_model_field_label(field)
+
     if field.auto_created and (field.one_to_many or field.many_to_many):
         return (
-             None if isinstance(model, type) else [obj for obj in getattr(model, field.name).all()], (
-                getattr(field.field, 'reverse_verbose_name', None)
-                if getattr(field.field, 'reverse_verbose_name', None) is not None
-                else field.related_model._meta.verbose_name_plural
-            ), ManyToManyReadonlyWidget
+            None if isinstance(model, type) else [obj for obj in getattr(model, field.name).all()],
+            label,
+            ManyToManyReadonlyWidget
         )
     elif field.auto_created and field.one_to_one:
         return (
             None if isinstance(model, type) or not hasattr(model, field.name)
-            else getattr(model, field.name), (
-                getattr(field.field, 'reverse_verbose_name', None)
-                if getattr(field.field, 'reverse_verbose_name', None) is not None
-                else field.related_model._meta.verbose_name
-            ),  ModelObjectReadonlyWidget
+            else getattr(model, field.name),
+            label,
+            ModelObjectReadonlyWidget
         )
     elif field.many_to_many:
         return (
             None if isinstance(model, type) else [obj for obj in getattr(model, field.name).all()],
-            field.verbose_name, ManyToManyReadonlyWidget
+            label,
+            ManyToManyReadonlyWidget
         )
     else:
         return (
-            None if isinstance(model, type)
-            else _val_to_readonly_value(
+            None if isinstance(model, type) else _val_to_readonly_value(
                 getattr(model, field.name) if hasattr(model, field.name) else None, field, model
-            ), getattr(field, 'verbose_name', pretty_name(field.name)), ReadonlyWidget
+            ),
+            label,
+            ReadonlyWidget
         )
 
 
-def _get_model_readonly_data(field_name, model, fun_kwargs):
+def _get_model_readonly_data(field_name, model, fun_kwargs, field_labels=None):
+    field_labels = {} if field_labels is None else field_labels
+
     if '__' in field_name:
         current_field_name, next_field_name = field_name.split('__', 1)
         field = get_field_from_model_or_none(model, current_field_name)
-        if hasattr(model, current_field_name) and getattr(model, current_field_name):
-            return _get_model_readonly_data(next_field_name, getattr(model, current_field_name), fun_kwargs)
-        elif model and field and hasattr(field, 'related_model'):
-            return _get_model_readonly_data(next_field_name, field.related_model, fun_kwargs)
-        else:
+        if not field or not hasattr(field, 'related_model'):
             return None
+
+        value, label, widget = _get_model_readonly_data(
+            next_field_name,
+            (
+                getattr(model, current_field_name)
+                if hasattr(model, current_field_name) and getattr(model, current_field_name)
+                else field.related_model
+            ),
+            fun_kwargs,
+            field_labels
+        )
+        return value, field_labels.get(field_name, '{} - {}'.format(_get_model_field_label(field), label)), widget
     else:
         field = get_field_from_model_or_none(model, field_name)
-        return (
+        value, label, widget = (
             _get_model_field_data(field, model) if field
             else get_model_method_or_property_data(field_name, model, fun_kwargs)
         )
+        return value, field_labels.get(field_name, label), widget
 
 
-def _get_view_readonly_data(field_name, view, fun_kwargs):
+def _get_view_readonly_data(field_name, view, fun_kwargs, field_labels=None):
     from is_core.forms.widgets import ReadonlyWidget
+
+    field_labels = {} if field_labels is None else field_labels
 
     method_field = view.get_method_returning_field_value(field_name)
     if method_field:
         try:
             return (
                 _get_method_value(method_field, field_name, view, fun_kwargs),
-                getattr(method_field, 'short_description', pretty_name(field_name)),
+                field_labels.get(field_name, getattr(method_field, 'short_description', pretty_name(field_name))),
                 ReadonlyWidget
             )
         except InvalidMethodArguments:
@@ -228,7 +247,7 @@ def _get_view_readonly_data(field_name, view, fun_kwargs):
         return None
 
 
-def get_readonly_field_data(field_name, instance, view=None, fun_kwargs=None):
+def get_readonly_field_data(field_name, instance, view=None, fun_kwargs=None, field_labels=None):
     """
     Returns field humanized value, label and widget which are used to display of instance or view readonly data.
     Args:
@@ -243,11 +262,11 @@ def get_readonly_field_data(field_name, instance, view=None, fun_kwargs=None):
     fun_kwargs = fun_kwargs or {}
 
     if view:
-        view_readonly_data = _get_view_readonly_data(field_name, view, fun_kwargs)
+        view_readonly_data = _get_view_readonly_data(field_name, view, fun_kwargs, field_labels)
         if view_readonly_data is not None:
             return view_readonly_data
 
-    field_data = _get_model_readonly_data(field_name, instance, fun_kwargs)
+    field_data = _get_model_readonly_data(field_name, instance, fun_kwargs, field_labels)
     if field_data is not None:
         return field_data
 
