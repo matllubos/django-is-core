@@ -104,7 +104,7 @@ class SmartWidgetMixin:
 class ReadonlyWidget(SmartWidgetMixin, Widget):
 
     def __init__(self, widget=None, attrs=None):
-        super(ReadonlyWidget, self).__init__(attrs)
+        super().__init__(attrs)
         self.widget = widget
 
     def _get_widget(self):

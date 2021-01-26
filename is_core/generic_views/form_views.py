@@ -430,7 +430,8 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
                 name,
                 instance,
                 view=self,
-                fun_kwargs={'request': self.request, 'obj': instance}
+                fun_kwargs={'request': self.request, 'obj': instance},
+                field_labels=self._get_field_labels()
             )
         return SmartReadonlyField(_get_readonly_field_data)
 
