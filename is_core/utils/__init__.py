@@ -205,7 +205,7 @@ def _get_model_readonly_data(field_name, model, fun_kwargs, field_labels=None):
     if '__' in field_name:
         current_field_name, next_field_name = field_name.split('__', 1)
         field = get_field_from_model_or_none(model, current_field_name)
-        if not field or not hasattr(field, 'related_model'):
+        if (not field or not hasattr(field, 'related_model')) and not hasattr(model, current_field_name):
             return None
 
         value, label, widget = _get_model_readonly_data(
@@ -218,7 +218,10 @@ def _get_model_readonly_data(field_name, model, fun_kwargs, field_labels=None):
             fun_kwargs,
             field_labels
         )
-        return value, field_labels.get(field_name, '{} - {}'.format(_get_model_field_label(field), label)), widget
+        field_label = field_labels.get(
+            field_name, '{} - {}'.format(_get_model_field_label(field), label)
+        ) if field else label
+        return value, field_label, widget
     else:
         field = get_field_from_model_or_none(model, field_name)
         value, label, widget = (
