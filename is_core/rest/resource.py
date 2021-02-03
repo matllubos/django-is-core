@@ -35,47 +35,50 @@ class RESTPermissionsMixin:
     permission = IsAuthenticated()
     csrf_exempt = False
 
+    def _get_permission(self):
+        return self.permission
+
     def has_get_permission(self, **kwargs):
         return (
-            self.permission.has_permission('get', self.request, self, obj=kwargs.get('obj')) and
+            self._get_permission().has_permission('get', self.request, self, obj=kwargs.get('obj')) and
             super().has_get_permission(**kwargs)
         )
 
     def has_post_permission(self, **kwargs):
         return (
-            self.permission.has_permission('post', self.request, self, obj=kwargs.get('obj')) and
+            self._get_permission().has_permission('post', self.request, self, obj=kwargs.get('obj')) and
             super().has_post_permission(**kwargs)
         )
 
     def has_put_permission(self, **kwargs):
         return (
-            self.permission.has_permission('put', self.request, self, obj=kwargs.get('obj')) and
+            self._get_permission().has_permission('put', self.request, self, obj=kwargs.get('obj')) and
             super().has_put_permission(**kwargs)
         )
 
     def has_patch_permission(self, **kwargs):
         return (
-            self.permission.has_permission('patch', self.request, self, obj=kwargs.get('obj')) and
+            self._get_permission().has_permission('patch', self.request, self, obj=kwargs.get('obj')) and
             super().has_patch_permission(**kwargs)
         )
 
     def has_delete_permission(self, **kwargs):
         return (
-            self.permission.has_permission('delete', self.request, self, obj=kwargs.get('obj')) and
+            self._get_permission().has_permission('delete', self.request, self, obj=kwargs.get('obj')) and
             super().has_delete_permission(**kwargs)
         )
 
     def has_options_permission(self, **kwargs):
         return (
             self._is_cors_options_request() or (
-                self.permission.has_permission('options', self.request, self, obj=kwargs.get('obj')) and
+                self._get_permission().has_permission('options', self.request, self, obj=kwargs.get('obj')) and
                 super().has_options_permission(**kwargs)
             )
         )
 
     def has_head_permission(self, **kwargs):
         return (
-            self.permission.has_permission('head', self.request, self, obj=kwargs.get('obj')) and
+            self._get_permission().has_permission('head', self.request, self, obj=kwargs.get('obj')) and
             super().has_head_permission(**kwargs)
         )
 
@@ -98,25 +101,25 @@ class RESTObjectPermissionsMixin(RESTPermissionsMixin):
 
     def has_create_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permission.has_permission('create_obj', self.request, self, obj=obj) and
+            self._get_permission().has_permission('create_obj', self.request, self, obj=obj) and
             super().has_create_obj_permission(obj=obj, **kwargs)
         )
 
     def has_read_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permission.has_permission('read_obj', self.request, self, obj=obj) and
+            self._get_permission().has_permission('read_obj', self.request, self, obj=obj) and
             super().has_read_obj_permission(obj=obj, **kwargs)
         )
 
     def has_update_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permission.has_permission('update_obj', self.request, self, obj=obj) and
+            self._get_permission().has_permission('update_obj', self.request, self, obj=obj) and
             super().has_update_obj_permission(obj=obj, **kwargs)
         )
 
     def has_delete_obj_permission(self, obj=None, **kwargs):
         return (
-            self.permission.has_permission('delete_obj', self.request, self, obj=obj) and
+            self._get_permission().has_permission('delete_obj', self.request, self, obj=obj) and
             super().has_delete_obj_permission(obj=obj, **kwargs)
         )
 
