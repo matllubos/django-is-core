@@ -21,6 +21,8 @@ NUMBER_PK_PATTERN = '(?P<pk>\d+)'
 
 EMPTY_VALUE = '---'
 
+LOOKUP_SEP = '__'
+
 
 def is_callable(val):
     return hasattr(val, '__call__')
@@ -34,13 +36,8 @@ class InvalidMethodArguments(Exception):
     pass
 
 
-def str_to_class(class_string):
-    module_name, class_name = class_string.rsplit('.', 1)
-    # load the module, will raise ImportError if module cannot be loaded
-    m = __import__(module_name, globals(), locals(), str(class_name))
-    # get the class, will raise AttributeError if class cannot be found
-    c = getattr(m, class_name)
-    return c
+class FieldIsNotRelation(Exception):
+    pass
 
 
 def get_new_class_name(prefix, klass):
@@ -104,6 +101,7 @@ def _get_verbose_value(raw, field_or_method, obj, **kwargs):
 
 def _val_to_readonly_value(value, field_or_method, obj, **kwargs):
     from is_core.forms.utils import ReadonlyValue
+
     verbose_value = _get_verbose_value(value, field_or_method, obj, **kwargs)
     return ReadonlyValue(value, verbose_value) if value != verbose_value else value
 
@@ -118,44 +116,26 @@ def _get_method_value(method, field_name, inst, fun_kwargs):
         raise(InvalidMethodArguments('Method {} arguments has not subset of fun kwargs'.format(field_name)))
 
 
-def _get_method_or_property_value(class_method, field_name, inst, fun_kwargs):
-    method_or_property = getattr(inst, field_name)
-
+def _get_method_or_property_value(class_method, field_name, instance, fun_kwargs):
+    method_or_property = getattr(instance, field_name)
     return (
-        _get_method_value(method_or_property, field_name, inst, fun_kwargs) if is_callable(method_or_property)
-        else _val_to_readonly_value(method_or_property, class_method, inst)
+        _get_method_value(method_or_property, field_name, instance, fun_kwargs) if is_callable(method_or_property)
+        else _val_to_readonly_value(method_or_property, class_method, instance)
     )
 
 
-def get_model_method_or_property_data(field_name, model, fun_kwargs):
+def get_model_method_or_property_data(field_name, instance, model, fun_kwargs):
     from is_core.forms.widgets import ReadonlyWidget
 
-    class_method = get_class_method(model, field_name)
+    class_methods = get_class_method(model, field_name)
 
-    method = (
-        getattr(model, field_name)
-        if hasattr(model, field_name) and not class_method and is_callable(getattr(model, field_name))
-        else class_method
-    )
-
-    if method:
-        label = getattr(method, 'short_description', pretty_name(field_name))
-        try:
-            return (
-                (None, label, ReadonlyWidget) if isinstance(model, type)
-                else (_get_method_or_property_value(method, field_name, model, fun_kwargs), label, ReadonlyWidget)
-            )
-        except InvalidMethodArguments:
-            return None
-    elif class_method:
-        # Property
+    if class_methods:
         return (
-            getattr(model, field_name),
-            getattr(class_method, 'short_description', pretty_name(field_name)),
-            ReadonlyWidget
+            (None, ReadonlyWidget) if not instance
+            else (_get_method_or_property_value(class_methods, field_name, instance, fun_kwargs), ReadonlyWidget)
         )
     else:
-        return None
+        raise FieldOrMethodDoesNotExist('Model ("{}") field with name "{}" was not found'.format(model, field_name))
 
 
 def _get_model_field_label(field):
@@ -165,67 +145,116 @@ def _get_model_field_label(field):
         return field.verbose_name
 
 
-def _get_model_field_data(field, model):
-    from is_core.forms.widgets import ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget
+def _get_method_label(method, field_name):
+    return getattr(method, 'short_description', pretty_name(field_name))
 
-    label = _get_model_field_label(field)
+
+def _get_model_field_data(field, instance):
+    from is_core.forms.widgets import ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget
 
     if field.auto_created and (field.one_to_many or field.many_to_many):
         return (
-            None if isinstance(model, type) else [obj for obj in getattr(model, field.name).all()],
-            label,
+            None if instance is None else [obj for obj in getattr(instance, field.name).all()],
             ManyToManyReadonlyWidget
         )
     elif field.auto_created and field.one_to_one:
         return (
-            None if isinstance(model, type) or not hasattr(model, field.name)
-            else getattr(model, field.name),
-            label,
+            None if instance is None or not hasattr(instance, field.name)
+            else getattr(instance, field.name),
             ModelObjectReadonlyWidget
         )
     elif field.many_to_many:
         return (
-            None if isinstance(model, type) else [obj for obj in getattr(model, field.name).all()],
-            label,
+            None if instance is None else [obj for obj in getattr(instance, field.name).all()],
             ManyToManyReadonlyWidget
         )
     else:
         return (
-            None if isinstance(model, type) else _val_to_readonly_value(
-                getattr(model, field.name) if hasattr(model, field.name) else None, field, model
+            None if instance is None else _val_to_readonly_value(
+                getattr(instance, field.name) if hasattr(instance, field.name) else None, field, instance
             ),
-            label,
             ReadonlyWidget
         )
 
 
-def _get_model_readonly_data(field_name, model, fun_kwargs, field_labels=None):
+def _get_field_or_method_label(model, field_name):
+    field = get_field_from_model_or_none(model, field_name)
+    if field:
+        return _get_model_field_label(field)
+
+    method = get_class_method(model, field_name)
+    if method:
+        return _get_method_label(method, field_name)
+
+    raise FieldOrMethodDoesNotExist('Model ("{}") field with name "{}" was not found'.format(model, field_name))
+
+
+def get_field_label(model, full_field_name, field_name, field_labels=None, current_label=None, is_relation=False):
+    if is_relation and full_field_name + LOOKUP_SEP in field_labels:
+        return field_labels.get(full_field_name + LOOKUP_SEP)
+    elif field_labels and full_field_name in field_labels:
+        return field_labels.get(full_field_name)
+    else:
+        field_or_method_label = _get_field_or_method_label(model, field_name)
+        return '{} - {}'.format(current_label, field_or_method_label) if current_label else field_or_method_label
+
+
+def get_model_field_or_method(model, field_name):
+    field = get_field_from_model_or_none(model, field_name)
+    if field:
+        return field
+    method = get_class_method(model, field_name)
+    if method:
+        return method
+
+    raise FieldOrMethodDoesNotExist('Model ("{}") field with name "{}" was not found'.format(model, field_name))
+
+
+def get_related_model(model, field_name):
+    field_or_method = get_model_field_or_method(model, field_name)
+    related_model = getattr(field_or_method, 'related_model', None)
+    if related_model:
+        return related_model
+    else:
+        raise FieldIsNotRelation('Model ("{}") field ("{}") with name "{}" is not relation'.format(
+            model, field_or_method, field_name
+        ))
+
+
+def _get_model_readonly_data(full_field_name, model, instance, fun_kwargs, field_name=None, field_labels=None,
+                             current_label=None):
     field_labels = {} if field_labels is None else field_labels
 
-    if '__' in field_name:
-        current_field_name, next_field_name = field_name.split('__', 1)
-        field = get_field_from_model_or_none(model, current_field_name)
-        if not field or not hasattr(field, 'related_model'):
-            return None
+    field_name = full_field_name if field_name is None else field_name
 
-        value, label, widget = _get_model_readonly_data(
-            next_field_name,
-            (
-                getattr(model, current_field_name)
-                if hasattr(model, current_field_name) and getattr(model, current_field_name)
-                else field.related_model
-            ),
+    if LOOKUP_SEP in field_name:
+        current_field_name, next_field_name = field_name.split(LOOKUP_SEP, 1)
+
+        related_model = get_related_model(model, current_field_name)
+
+        label = get_field_label(
+            model, full_field_name[:-(len(next_field_name) + 2)], current_field_name, field_labels, current_label, True
+        )
+
+        return _get_model_readonly_data(
+            full_field_name,
+            related_model,
+            getattr(instance, current_field_name, None),
             fun_kwargs,
-            field_labels
+            next_field_name,
+            field_labels,
+            label
         )
-        return value, field_labels.get(field_name, '{} - {}'.format(_get_model_field_label(field), label)), widget
     else:
-        field = get_field_from_model_or_none(model, field_name)
-        value, label, widget = (
-            _get_model_field_data(field, model) if field
-            else get_model_method_or_property_data(field_name, model, fun_kwargs)
+        label = get_field_label(
+            model, full_field_name[:-(len(field_name) + 2)], field_name, field_labels, current_label
         )
-        return value, field_labels.get(field_name, label), widget
+        field = get_field_from_model_or_none(model, field_name)
+        value, widget = (
+            _get_model_field_data(field, instance) if field
+            else get_model_method_or_property_data(field_name, instance, model, fun_kwargs)
+        )
+        return value, label, widget
 
 
 def _get_view_readonly_data(field_name, view, fun_kwargs, field_labels=None):
@@ -235,14 +264,11 @@ def _get_view_readonly_data(field_name, view, fun_kwargs, field_labels=None):
 
     method_field = view.get_method_returning_field_value(field_name)
     if method_field:
-        try:
-            return (
-                _get_method_value(method_field, field_name, view, fun_kwargs),
-                field_labels.get(field_name, getattr(method_field, 'short_description', pretty_name(field_name))),
-                ReadonlyWidget
-            )
-        except InvalidMethodArguments:
-            return None
+        return (
+            _get_method_value(method_field, field_name, view, fun_kwargs),
+            field_labels.get(field_name, getattr(method_field, 'short_description', pretty_name(field_name))),
+            ReadonlyWidget
+        )
     else:
         return None
 
@@ -266,7 +292,8 @@ def get_readonly_field_data(field_name, instance, view=None, fun_kwargs=None, fi
         if view_readonly_data is not None:
             return view_readonly_data
 
-    field_data = _get_model_readonly_data(field_name, instance, fun_kwargs, field_labels)
+    field_data = _get_model_readonly_data(field_name, instance.__class__, instance, fun_kwargs,
+                                          field_labels=field_labels)
     if field_data is not None:
         return field_data
 

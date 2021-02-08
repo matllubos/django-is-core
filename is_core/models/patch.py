@@ -51,11 +51,11 @@ def rel_field_init(self, *args, **kwargs):
 
 
 def get_reverse_verbose_name_plural(self):
-    return self._reverse_verbose_name or self.related_model._meta.verbose_name_plural
+    return self._reverse_verbose_name or self.model._meta.verbose_name_plural
 
 
 def get_reverse_verbose_name(self):
-    return self._reverse_verbose_name or self.related_model._meta.verbose_name
+    return self._reverse_verbose_name or self.model._meta.verbose_name
 
 
 ForeignKey._is_core_formfield_tmp = ForeignKey.formfield

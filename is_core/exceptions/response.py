@@ -5,8 +5,9 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
+import import_string
+
 from pyston.utils import set_rest_context_to_request
-from pyston.utils.helpers import str_to_class
 from pyston.converters import (
     get_converter, get_supported_mime_types, get_converter_name_from_request, get_default_converters
 )
@@ -14,7 +15,6 @@ from pyston.resource import BaseResource
 from pyston.conf import settings as pyston_settings
 
 from is_core.config import settings
-from is_core.utils import str_to_class
 
 
 def ui_response_exception_factory(request, response_code, title, message, response_class=HttpResponse):
@@ -43,7 +43,7 @@ def rest_response_exception_factory(request, response_code, title, message, resp
     converter = get_converter(converter_name)
     response = response_class(status=response_code, content_type=converter.content_type)
 
-    rest_error_response_class = rest_error_response_class or str_to_class(pyston_settings.ERROR_RESPONSE_CLASS)
+    rest_error_response_class = rest_error_response_class or import_string(pyston_settings.ERROR_RESPONSE_CLASS)
 
     converter.encode_to_stream(response, rest_error_response_class(msg=message, code=response_code).result)
     return response
@@ -62,7 +62,7 @@ def ui_rest_response_exception_factory(request, response_code, title, message, r
 
 
 def response_exception_factory(request, response_code, title, message, response_class=HttpResponse):
-    return str_to_class(settings.RESPONSE_EXCEPTION_FACTORY)(request, response_code, title, message, response_class)
+    return import_string(settings.RESPONSE_EXCEPTION_FACTORY)(request, response_code, title, message, response_class)
 
 
 class ResponseException(Exception):
