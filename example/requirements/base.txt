@@ -5,5 +5,5 @@ django-germanium==2.1.0
 coverage==5.3.1
 django-project-info==1.0.2
 django-ipware>=1.0.0
-django-pyston==2.12.13
 factory_boy>=2.11.1
+django-pyston==2.14.0
