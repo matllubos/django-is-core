@@ -544,7 +544,7 @@ class RESTModelISCore(RESTISCore, ModelISCore):
 
     rest_resource_class = RESTModelResource
     rest_field_labels = None
-    rest_paginator = OffsetBasedPaginator
+    rest_paginator = OffsetBasedPaginator()
 
     def get_rest_allowed_methods(self):
         rest_allowed_methods = ['options']
