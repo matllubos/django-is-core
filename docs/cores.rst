@@ -468,13 +468,13 @@ For the ``UIModelISCore`` default views are **add**, **detail** and **list**::
 
 The ``api_url_name`` is required attribute. The value is pattern name of REST resource.
 
-.. attribute:: UIModelISCore.list_display
+.. attribute:: UIModelISCore.ui_list_fields
 
-Set ``list_display`` to control which fields are displayed on the list page.
+Set ``ui_list_fields`` to control which fields are displayed on the list page.
 
 .. attribute:: UIModelISCore.export_display
 
-Set ``export_display`` to control which fields are displayed inside exports (e.g. PDF, CSV, XLSX).
+Set ``ui_export_fields`` to control which fields are displayed inside exports (e.g. PDF, CSV, XLSX).
 
 .. attribute:: UIModelISCore.export_types
 
@@ -503,6 +503,43 @@ If you want to set ``export_types`` for all cores you can use ``EXPORT_TYPES`` a
     EXPORT_TYPES = (
         ('export to csv', 'csv', 'text/csv'),
     )
+
+
+.. attribute:: UIModelISCore.field_labels
+
+Framework by default generates labels for field names from django model fields verbose name, short description of model, view or resource method, but you can change this behaviour with field names::
+
+    class UIRESTUserISCore(UIRESTISCore):
+
+        form_fields = ('first_name', 'last_name', 'watching_issues__name', 'leading_issue__name', 'solving_issue__name', 'watching_issues', 'leading_issue')
+
+        field_labels = {
+            'first_name': 'first name changed label',
+            'watching_issues': 'watching issues changed label',
+            'leading_issue__': 'leading issues changed label',
+            'solving_issue__name': 'solving issue name label',
+        }
+
+The result of form field labels will be:
+* 'first_name' => 'first name changed label'
+* 'last_name' => '{generated value}'
+* 'watching_issues__name' => 'watching issues changed label - {generated value}'
+* 'leading_issue__name' => 'leading issues changed label - {generated value}'
+* 'solving_issue__name' => 'solving issue name label'
+* 'watching_issues' => 'watching issues changed label'
+* 'leading_issue' => '{generated value}'  # because overriden was value leading_issue__
+
+If you want to remove some label generated from relation prefix, you can use ``None`` as field label value::
+
+    class UIRESTUserISCore(UIRESTISCore):
+
+        form_fields = (''watching_issues__name',)
+
+        field_labels = {
+            'watching_issues__': None,
+        }
+
+The result will be only generated value from ``name`` field.
 
 .. attribute:: UIModelISCore.default_list_filter
 

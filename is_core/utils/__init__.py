@@ -11,9 +11,10 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 from django.utils.html import format_html, format_html_join
 
-from chamber.utils import get_class_method, call_method_with_unknown_input
+from chamber.utils import call_function_with_unknown_input
 
 from pyston.converters import get_converter
+from pyston.serializer import get_resource_class_or_none
 
 
 PK_PATTERN = r'(?P<pk>[^/]+)'
@@ -26,18 +27,6 @@ LOOKUP_SEP = '__'
 
 def is_callable(val):
     return hasattr(val, '__call__')
-
-
-class FieldOrMethodDoesNotExist(Exception):
-    pass
-
-
-class InvalidMethodArguments(Exception):
-    pass
-
-
-class FieldIsNotRelation(Exception):
-    pass
 
 
 def get_new_class_name(prefix, klass):
@@ -84,236 +73,119 @@ def get_inline_views_opts_from_fieldsets(fieldsets):
 
 
 def get_field_from_model_or_none(model, field_name):
+    """
+    Return field from model. If field doesn't exists null is returned instead of exception.
+    """
     try:
         return model._meta.get_field(field_name)
     except (FieldDoesNotExist, AttributeError):
         return None
 
 
-def _get_verbose_value(raw, field_or_method, obj, **kwargs):
-    if hasattr(field_or_method, 'humanized') and field_or_method.humanized:
-        return field_or_method.humanized(raw, obj, **kwargs)
-    elif hasattr(field_or_method, 'attname') and hasattr(obj, 'get_{}_display'.format(field_or_method.attname)):
-        return getattr(obj, 'get_{}_display'.format(field_or_method.attname))()
-    else:
-        return raw
+def get_field_label_from_path(model, field_path, view=None, field_labels=None):
+    """
+    Return field label of model class for input field path. For every field name in the field path is firstly get the
+    right label and these labels are joined with " - " separator to one string.
 
+    field_label input parameter can affect the result value. Example:
 
-def _val_to_readonly_value(value, field_or_method, obj, **kwargs):
-    from is_core.forms.utils import ReadonlyValue
+    * field_path='user__email', field_labels={} => 'user email'  # default values get from fields
+    * field_path='user__email', field_labels={'user__email': 'e-mail'} => 'e-mail'  # full value is replaced
+    * field_path='user__email', field_labels={'user': 'customer'} => 'customer - email'  # related field prefix is changed
+    * field_path='user', field_labels={'user': 'customer'} => 'customer'  # full value is replaced
+    * field_path='user', field_labels={'user__': 'customer'} => 'user'  # has no effect
+    * field_path='user__email', field_labels={'user__': 'customer'} => 'customer email'  # related field prefix is changed
+    * field_path='user__email', field_labels={'user__': None} => 'email'  # related field prefix is ignored
+    * field_path='user__email', field_labels={'email': 'e-mail'} => 'user email'  # has no effect
 
-    verbose_value = _get_verbose_value(value, field_or_method, obj, **kwargs)
-    return ReadonlyValue(value, verbose_value) if value != verbose_value else value
-
-
-def _get_method_value(method, field_name, inst, fun_kwargs):
-    method_kwargs_names = inspect.getfullargspec(method)[0][1:]
-    method_kwargs = {arg_name: fun_kwargs[arg_name]  for arg_name in method_kwargs_names if arg_name in fun_kwargs}
-    if len(method_kwargs_names) == len(method_kwargs):
-        return _val_to_readonly_value(method(**method_kwargs), method, inst,
-                                     **{k: v for k, v in method_kwargs.items() if k != 'obj'})
-    else:
-        raise(InvalidMethodArguments('Method {} arguments has not subset of fun kwargs'.format(field_name)))
-
-
-def _get_method_or_property_value(class_method, field_name, instance, fun_kwargs):
-    method_or_property = getattr(instance, field_name)
-    return (
-        _get_method_value(method_or_property, field_name, instance, fun_kwargs) if is_callable(method_or_property)
-        else _val_to_readonly_value(method_or_property, class_method, instance)
-    )
-
-
-def get_model_method_or_property_data(field_name, instance, model, fun_kwargs):
-    from is_core.forms.widgets import ReadonlyWidget
-
-    class_methods = get_class_method(model, field_name)
-
-    if class_methods:
-        return (
-            (None, ReadonlyWidget) if not instance
-            else (_get_method_or_property_value(class_methods, field_name, instance, fun_kwargs), ReadonlyWidget)
-        )
-    else:
-        raise FieldOrMethodDoesNotExist('Model ("{}") field with name "{}" was not found'.format(model, field_name))
-
-
-def _get_model_field_label(field):
-    if field.auto_created and field.is_relation:
-        return field.field.reverse_verbose_name
-    else:
-        return field.verbose_name
-
-
-def _get_method_label(method, field_name):
-    return getattr(method, 'short_description', pretty_name(field_name))
-
-
-def _get_model_field_data(field, instance):
-    from is_core.forms.widgets import ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget
-
-    if field.auto_created and (field.one_to_many or field.many_to_many):
-        return (
-            None if instance is None else [obj for obj in getattr(instance, field.name).all()],
-            ManyToManyReadonlyWidget
-        )
-    elif field.auto_created and field.one_to_one:
-        return (
-            None if instance is None or not hasattr(instance, field.name)
-            else getattr(instance, field.name),
-            ModelObjectReadonlyWidget
-        )
-    elif field.many_to_many:
-        return (
-            None if instance is None else [obj for obj in getattr(instance, field.name).all()],
-            ManyToManyReadonlyWidget
-        )
-    else:
-        return (
-            None if instance is None else _val_to_readonly_value(
-                getattr(instance, field.name) if hasattr(instance, field.name) else None, field, instance
-            ),
-            ReadonlyWidget
-        )
-
-
-def _get_field_or_method_label(model, field_name):
-    field = get_field_from_model_or_none(model, field_name)
-    if field:
-        return _get_model_field_label(field)
-
-    method = get_class_method(model, field_name)
-    if method:
-        return _get_method_label(method, field_name)
-
-    raise FieldOrMethodDoesNotExist('Model ("{}") field with name "{}" was not found'.format(model, field_name))
-
-
-def get_field_label(model, full_field_name, field_name, field_labels=None, current_label=None, is_relation=False):
-    if is_relation and full_field_name + LOOKUP_SEP in field_labels:
-        return field_labels.get(full_field_name + LOOKUP_SEP)
-    elif field_labels and full_field_name in field_labels:
-        return field_labels.get(full_field_name)
-    else:
-        field_or_method_label = _get_field_or_method_label(model, field_name)
-        return '{} - {}'.format(current_label, field_or_method_label) if current_label else field_or_method_label
-
-
-def get_model_field_or_method(model, field_name):
-    field = get_field_from_model_or_none(model, field_name)
-    if field:
-        return field
-    method = get_class_method(model, field_name)
-    if method:
-        return method
-
-    raise FieldOrMethodDoesNotExist('Model ("{}") field with name "{}" was not found'.format(model, field_name))
-
-
-def get_related_model(model, field_name):
-    field_or_method = get_model_field_or_method(model, field_name)
-    related_model = getattr(field_or_method, 'related_model', None)
-    if related_model:
-        return related_model
-    else:
-        raise FieldIsNotRelation('Model ("{}") field ("{}") with name "{}" is not relation'.format(
-            model, field_or_method, field_name
-        ))
-
-
-def _get_model_readonly_data(full_field_name, model, instance, fun_kwargs, field_name=None, field_labels=None,
-                             current_label=None):
-    field_labels = {} if field_labels is None else field_labels
-
-    field_name = full_field_name if field_name is None else field_name
-
-    if LOOKUP_SEP in field_name:
-        current_field_name, next_field_name = field_name.split(LOOKUP_SEP, 1)
-
-        related_model = get_related_model(model, current_field_name)
-
-        label = get_field_label(
-            model, full_field_name[:-(len(next_field_name) + 2)], current_field_name, field_labels, current_label, True
-        )
-
-        return _get_model_readonly_data(
-            full_field_name,
-            related_model,
-            getattr(instance, current_field_name, None),
-            fun_kwargs,
-            next_field_name,
-            field_labels,
-            label
-        )
-    else:
-        label = get_field_label(
-            model, full_field_name[:-(len(field_name) + 2)], field_name, field_labels, current_label
-        )
-        field = get_field_from_model_or_none(model, field_name)
-        value, widget = (
-            _get_model_field_data(field, instance) if field
-            else get_model_method_or_property_data(field_name, instance, model, fun_kwargs)
-        )
-        return value, label, widget
-
-
-def _get_view_readonly_data(field_name, view, fun_kwargs, field_labels=None):
-    from is_core.forms.widgets import ReadonlyWidget
+    :param model: Django model class
+    :param field_path: field names separated with "__"
+    :param view: view instance
+    :param field_labels: dict of field labels which can override result field name
+    :return: field label
+    """
+    from .field_api import get_field_descriptors_from_path
 
     field_labels = {} if field_labels is None else field_labels
 
-    method_field = view.get_method_returning_field_value(field_name)
-    if method_field:
-        return (
-            _get_method_value(method_field, field_name, view, fun_kwargs),
-            field_labels.get(field_name, getattr(method_field, 'short_description', pretty_name(field_name))),
-            ReadonlyWidget
-        )
-    else:
-        return None
+    field_descriptors = get_field_descriptors_from_path(model, field_path, view)
+
+    used_field_names = []
+    field_descriptor_labels = []
+
+    for field_descriptor in field_descriptors:
+        field_path_prefix = LOOKUP_SEP.join(used_field_names)
+        current_field_path = LOOKUP_SEP.join(used_field_names + [field_descriptor.field_name])
+
+        if field_descriptor_labels and field_path_prefix + LOOKUP_SEP in field_labels:
+            if field_labels[field_path_prefix + LOOKUP_SEP] is not None:
+                field_descriptor_labels = [field_labels[field_path_prefix + LOOKUP_SEP]]
+            else:
+                field_descriptor_labels = []
+
+        if current_field_path in field_labels:
+            if field_labels[current_field_path] is not None:
+                field_descriptor_labels = [field_labels[current_field_path]]
+            else:
+                field_descriptor_labels = []
+        elif field_descriptor.field_name != '_obj_name' or not field_descriptor_labels:
+            if field_descriptor.get_label() is not None:
+                field_descriptor_labels.append(field_descriptor.get_label())
+
+        used_field_names.append(field_descriptor.field_name)
+
+    return ' - '.join([str(label) for label in field_descriptor_labels if label is not None])
 
 
-def get_readonly_field_data(field_name, instance, view=None, fun_kwargs=None, field_labels=None):
+def get_field_widget_from_path(model, field_path, view=None):
+    """
+    Return form widget to show value get from model instance and field_path
+    """
+    from .field_api import get_field_descriptors_from_path
+
+    return get_field_descriptors_from_path(model, field_path, view)[-1].get_widget()
+
+
+def get_readonly_field_value_from_path(instance, field_path, request=None, view=None):
+    """
+    Return ReadonlyValue instance which contains value and humanized value get from model instance and field_path
+    """
+
+    from .field_api import get_field_value_from_path
+
+    return get_field_value_from_path(instance, field_path, request, view, return_readonly_value=True)
+
+
+def get_readonly_field_data(instance, field_name, request, view=None, field_labels=None):
     """
     Returns field humanized value, label and widget which are used to display of instance or view readonly data.
     Args:
         field_name: name of the field which will be displayed
         instance: model instance
         view: view instance
-        fun_kwargs: kwargs that can be used inside method call
+        field_labels: dict of field labels which rewrites the generated field label
 
     Returns:
         field humanized value, label and widget which are used to display readonly data
     """
-    fun_kwargs = fun_kwargs or {}
-
-    if view:
-        view_readonly_data = _get_view_readonly_data(field_name, view, fun_kwargs, field_labels)
-        if view_readonly_data is not None:
-            return view_readonly_data
-
-    field_data = _get_model_readonly_data(field_name, instance.__class__, instance, fun_kwargs,
-                                          field_labels=field_labels)
-    if field_data is not None:
-        return field_data
-
-    raise FieldOrMethodDoesNotExist('Field or method with name {} not found'.format(field_name))
+    return (
+        get_readonly_field_value_from_path(instance, field_name, request, view),
+        get_field_label_from_path(instance.__class__, field_name, view, field_labels),
+        get_field_widget_from_path(instance.__class__, field_name, view)
+    )
 
 
-def display_object_data(obj, field_name, request=None):
+def display_object_data(obj, field_name, request):
     """
     Returns humanized value of model object that can be rendered to HTML or returned as part of REST
 
     examples:
-       boolean True/Talse ==> Yes/No
+       boolean True/False ==> Yes/No
        objects ==> object display name with link if current user has permissions to see the object
        field with choices ==> string value of choice
        field with humanize function ==> result of humanize function
     """
-    from is_core.forms.utils import ReadonlyValue
-
-    value, _, _ = get_readonly_field_data(field_name, obj)
-    return display_for_value(value.humanized_value if isinstance(value, ReadonlyValue) else value, request=request)
+    return display_for_value(get_readonly_field_value_from_path(obj, field_name, request), request=request)
 
 
 def display_for_value(value, request=None):
@@ -321,12 +193,16 @@ def display_for_value(value, request=None):
     Converts humanized value
 
     examples:
-        boolean True/Talse ==> Yes/No
+        boolean True/False ==> Yes/No
         objects ==> object display name with link if current user has permissions to see the object
         datetime ==> in localized format
         list ==> values separated with ","
         dict ==> string formatted with HTML ul/li tags
     """
+    from is_core.forms.utils import ReadonlyValue
+
+    if isinstance(value, ReadonlyValue):
+        value = value.value
 
     if request and isinstance(value, Model):
         return render_model_object_with_link(request, value)
@@ -392,7 +268,7 @@ def get_obj_url(request, obj):
     if (is_callable(getattr(obj, 'get_absolute_url', None)) and
             (not hasattr(obj, 'can_see_edit_link') or
              (is_callable(getattr(obj, 'can_see_edit_link', None)) and obj.can_see_edit_link(request)))):
-        return call_method_with_unknown_input(obj.get_absolute_url, request=request)
+        return call_function_with_unknown_input(obj.get_absolute_url, request=request)
     else:
         return get_url_from_model_core(request, obj)
 
@@ -457,7 +333,8 @@ def get_link_or_none(pattern_name, request, view_kwargs=None):
 
 class GetMethodFieldMixin:
 
-    def get_method_returning_field_value(self, field_name):
+    @classmethod
+    def get_method_returning_field_value(cls, field_name):
         """
         Method should return object method that can be used to get field value.
         Args:
@@ -466,7 +343,7 @@ class GetMethodFieldMixin:
         Returns: method for obtaining a field value
 
         """
-        method = getattr(self, field_name, None)
+        method = getattr(cls, field_name, None)
         return method if method and callable(method) else None
 
 

@@ -8,15 +8,6 @@ from is_core.site import get_site_by_name
 register = template.Library()
 
 
-class MenuItemPattern:
-
-    def __init__(self, title, pattern, show_in_menu=True, submenu_items=None, pattern_kwargs={}):
-        self.title = title
-        self.pattern = pattern
-        self.show_in_menu = show_in_menu
-        self.pattern_kwargs = {} if pattern_kwargs is None else pattern_kwargs
-
-
 @register.inclusion_tag('is_core/menu/sub_menu.html', takes_context=True)
 def submenu(context, menu_items):
     return {'menu_items': menu_items}

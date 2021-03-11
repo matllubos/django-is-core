@@ -4,11 +4,13 @@ from is_core.main import UIRESTModelISCore
 from is_core.auth.permissions import (
     BasePermission, IsSuperuser, IsAdminUser, PermissionsSet, SelfPermission, FieldsListPermission, FieldsSetPermission
 )
+from is_core.utils.decorators import short_description
 
 from issue_tracker.models import Issue
 from issue_tracker.forms import UserForm
 
-from .resources import NumberOfUserIssuesResource
+from .resources import NumberOfUserIssuesResource, UserModelResource
+from .views import UserDetailView
 
 
 class IsNoObject(BasePermission):
@@ -62,6 +64,9 @@ class UserISCore(UIRESTModelISCore):
         )
     )
 
+    ui_detail_view = UserDetailView
+    rest_resource_class = UserModelResource
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if not request.user.is_superuser:
@@ -75,6 +80,7 @@ class UserISCore(UIRESTModelISCore):
         )
         return rest_patterns
 
+    @short_description('created issues count')
     def created_issues_count(self, obj):
         return obj.created_issues.count()
 

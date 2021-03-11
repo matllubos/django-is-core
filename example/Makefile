@@ -14,7 +14,7 @@ SETTINGS = settings
 DJANGO_SETTINGS_MODULE = $(DJANGO_DIR).settings.$(SETTINGS)
 DJANGO_POSTFIX = --settings=$(DJANGO_SETTINGS_MODULE) --pythonpath=$(PYTHONPATH)
 PYTHON_BIN = $(VIRTUAL_ENV)/bin
-PYTHON_VERSION_MAJOR = 3.7
+PYTHON_VERSION_MAJOR = 3
 PYTHON = python$(PYTHON_VERSION_MAJOR)
 TYPE = dev
 OS = $(shell uname)
@@ -43,9 +43,7 @@ pip:
 	$(PYTHON_BIN)/pip install -r requirements/base.txt
 
 initvirtualenv:
-	virtualenv -p $(PYTHON) --no-site-packages $(VIRTUAL_ENV)
-	$(PYTHON_BIN)/pip install --upgrade pip==1.5
-	$(PYTHON_BIN)/pip install setuptools --no-use-wheel --upgrade
+	virtualenv -p $(PYTHON) $(VIRTUAL_ENV)
 
 bootstrap: initvirtualenv pip
 
@@ -107,12 +105,9 @@ endif
 datamigration:
 	$(PYTHON_BIN)/python manage.py datamigration $(app) $(name) $(DJANGO_POSTFIX)
 
-install: cleanvar bootstrap linklibrary initlog initdb syncdb initdata initenv
+install: cleanvar bootstrap initlog initdb syncdb initdata initenv
 
 update: clean cleanvirtualenv bootstrap syncdb initenv
 
 include build/Makefile.$(OS)
-
-linklibrary:
-	ln -sf $(LOCALPATH)/../is_core/ $(LOCALPATH)/var/ve/lib/$(PYTHON)/site-packages/;
 

@@ -1,4 +1,4 @@
-from is_core.rest.resource import RESTResource, RESTModelCoreMixin
+from is_core.rest.resource import RESTResource, RESTModelCoreMixin, RESTModelResource
 
 
 class NumberOfUserIssuesResource(RESTModelCoreMixin, RESTResource):
@@ -12,3 +12,10 @@ class NumberOfUserIssuesResource(RESTModelCoreMixin, RESTResource):
             'created': user.created_issues.count(),
             'watching': user.watching_issues.count(),
         }
+
+
+class UserModelResource(RESTModelResource):
+
+    def watching_issues_count(self, obj):
+        return obj.watching_issues.count()
+    watching_issues_count.short_description = 'watching count'

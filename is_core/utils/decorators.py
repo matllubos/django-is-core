@@ -18,6 +18,10 @@ def short_description(description):
 
 
 def relation(to):
+    """
+    Add relation to the method. Now method can be used in the core field path as a relation.
+    :param to: model class or string path to the model class
+    """
     def decorator(func):
         if isinstance(func, property):
             func = func.fget

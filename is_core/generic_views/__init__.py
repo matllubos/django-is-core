@@ -140,15 +140,12 @@ class DefaultCoreViewMixin(DefaultViewMixin):
         }
     )
 
-    def __init__(self):
-        super(DefaultCoreViewMixin, self).__init__()
-        self.site_name = self.core.site_name
-        self.menu_groups = self.core.get_menu_groups()
-
     @classmethod
     def __init_core__(cls, core, pattern):
         cls.core = core
         cls.pattern = pattern
+        cls.site_name = core.site_name
+        cls.menu_groups = core.get_menu_groups()
 
     def dispatch(self, request, *args, **kwargs):
         self.core.init_ui_request(request)

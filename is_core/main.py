@@ -30,6 +30,7 @@ from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory
 from is_core.forms.models import SmartModelForm
+from is_core.utils.decorators import short_description
 
 from .auth.permissions import PermissionsSet, IsAdminUser
 
@@ -108,9 +109,6 @@ class ISCore(metaclass=ISCoreBase):
 
     def get_urls(self):
         return ()
-
-    def get_views(self):
-        return {}
 
     def get_menu_groups(self):
         menu_groups = list(self.menu_parent_groups)
@@ -744,6 +742,7 @@ class UIRESTModelISCore(UIRESTISCoreMixin, RESTModelISCore, UIModelISCore):
                     web_links[pattern.name] = url
         return web_links
 
+    @short_description(_('object name'))
     def _obj_name(self, obj):
         return str(obj)
 

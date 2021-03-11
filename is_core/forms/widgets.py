@@ -136,8 +136,7 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
         return format_html('<p>{}</p>', self._get_value_display(value, request))
 
     def _render_readonly_value(self, readonly_value):
-        return mark_safe('<p><span title="%s">%s</span></p>' % (conditional_escape(force_text(readonly_value.value)),
-                                                                conditional_escape(readonly_value.humanized_value)))
+        return readonly_value.render()
 
     def render(self, name, value, attrs=None, renderer=None):
         if isinstance(value, ReadonlyValue):
@@ -199,7 +198,7 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
             return widget.choices.get_choice_from_value(value)
 
     def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
-        if request:
+        if request and self._get_widget():
             choice = self._choice(value)
             if choice:
                 rendered_value = self._render_object(request, choice.obj, force_text(choice[1]))
@@ -214,7 +213,7 @@ class ModelChoiceReadonlyWidget(ModelObjectReadonlyWidget):
 class ModelMultipleReadonlyWidget(ModelChoiceReadonlyWidget):
 
     def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
-        if request and isinstance(value, (list, tuple)):
+        if request and isinstance(value, (list, tuple)) and self._get_widget():
             rendered_values = []
             for value_item in value:
                 choice = self._choice(value_item)
