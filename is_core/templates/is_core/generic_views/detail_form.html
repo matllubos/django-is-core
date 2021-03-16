@@ -6,21 +6,22 @@
 {% block content %}
     {% has_permission 'export' %}
     {% if export_types %}
-    <ul class="inline-list">
-    <li>
-        <div class="dropdown columns-dropdown">
-            <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cloud-download"></i> {% trans 'Export' %}<span class="caret"></span></button>
-            <ul class="dropdown-menu" role="menu">
-                {% for title, type, serialization_format, accept in export_types %}
-                <li>
-                    <a href="{{ api_url }}?_accept={{accept}}&_serialization_format={{ serialization_format }}&_fields={{ rest_detail_export_fieldset|urlencode }}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
-                </li>
-                {% endfor %}
-                {% block export-menu-value-extra %}{% endblock %}
-            </ul>
-        </div>
-    </li>
-    </ul>
+    <div class="clearfix">
+        <ul class="inline-list inline-list-left table-buttons">
+            <li>
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" title="{% trans 'Export files in selected format' %}"><i class="fa fa-file-export"></i> <span class="caret"></span></button>
+                    <ul class="dropdown-menu" role="menu">
+                        {% for title, type, serialization_format, accept in export_types %}
+                        <li>
+                            <a href="{{ api_url }}?_accept={{accept}}&_serialization_format={{ serialization_format }}&_fields={{ rest_detail_export_fieldset|urlencode }}" target="_blank" class="export" data-type="{{ type }}">{{ title }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
     {% endif %}
     {% endhas_permission %}
     {{ block.super }}

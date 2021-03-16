@@ -47,7 +47,7 @@
                 {% if export_types %}
                 <li>
                     <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" title="{% trans 'Export files in selected format' %}"><i class="fa fa-file-export"></i><span class="caret"></span></button>
+                        <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" title="{% trans 'Export files in selected format' %}"><i class="fa fa-file-export"></i> <span class="caret"></span></button>
                         <ul class="dropdown-menu" role="menu">
                             {% for title, type, serialization_format, content_type in export_types %}
                             <li>

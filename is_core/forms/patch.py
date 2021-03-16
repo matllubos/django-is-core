@@ -1,12 +1,15 @@
 import django
 
 from django.forms.widgets import DateInput, DateTimeInput, TimeInput, Widget
-from django.forms.fields import (ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField,
-                                 NullBooleanField)
+from django.forms.fields import (
+    ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField, NullBooleanField, JSONField
+)
 
 from is_core.forms.utils import add_class_name
-from is_core.forms.widgets import (DragAndDropFileInput, ReadonlyWidget, URLReadonlyWidget,
-                                   FileReadonlyWidget, FulltextSelectMultiple, NullBooleanReadonlyWidget)
+from is_core.forms.widgets import (
+    DragAndDropFileInput, ReadonlyWidget, URLReadonlyWidget, FileReadonlyWidget, FulltextSelectMultiple,
+    NullBooleanReadonlyWidget, JSONReadonlyWidget
+)
 
 
 def build_attrs(self, base_attrs, extra_attrs=None, **kwargs):
@@ -38,3 +41,4 @@ Field.readonly_widget = ReadonlyWidget
 URLField.readonly_widget = URLReadonlyWidget
 FileField.readonly_widget = FileReadonlyWidget
 NullBooleanField.readonly_widget = NullBooleanReadonlyWidget
+JSONField.readonly_widget = JSONReadonlyWidget
