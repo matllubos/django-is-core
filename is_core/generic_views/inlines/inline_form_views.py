@@ -138,12 +138,7 @@ class InlineFormView(GetMethodFieldMixin, RelatedInlineView):
 
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
-            return get_readonly_field_data(
-                name,
-                instance,
-                view=self,
-                fun_kwargs={'request': self.request, 'obj': instance}
-            )
+            return get_readonly_field_data(instance, name, self.request, view=self)
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_form_class(self):

@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.conf import settings
 from django.http.response import Http404
 from django.utils.safestring import mark_safe
@@ -28,6 +30,7 @@ from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUn
                                          HTTPForbiddenResponseException)
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
+from is_core.utils import get_field_label_from_path
 
 
 class RESTPermissionsMixin:
@@ -155,14 +158,25 @@ class RESTResourceMixin:
             raise response_exception
         return super(RESTResourceMixin, self)._get_error_response(exception)
 
-    def get_method_returning_field_value(self, field_name):
+    @classmethod
+    def get_method_returning_field_value(cls, field_name):
         """
         Field values can be obtained from resource or core.
         """
-        return (
-            super().get_method_returning_field_value(field_name)
-            or self.core.get_method_returning_field_value(field_name)
-        )
+
+        method =  super().get_method_returning_field_value(field_name)
+
+        if method:
+            return method
+
+        core_method = cls.core.get_method_returning_field_value(field_name)
+        if core_method:
+            @wraps(core_method)
+            def core_method_wrapper(self, **kwargs):
+                return core_method(self.core, **kwargs)
+            return core_method_wrapper
+
+        return None
 
 
 class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
@@ -263,6 +277,11 @@ class RESTModelResource(FieldPermissionViewMixin, RESTModelCoreMixin, RESTResour
     def get_field_labels(self):
         return (
             self.field_labels if self.field_labels is not None else self.core.get_rest_field_labels(self.request)
+        )
+
+    def get_field_label(self, field_name):
+        return get_field_label_from_path(
+            self.model, field_name, field_labels=self.get_field_labels()
         )
 
     def get_fields(self, obj=None):

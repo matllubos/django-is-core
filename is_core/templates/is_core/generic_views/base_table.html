@@ -11,33 +11,56 @@
             {% block tabs-menu-wrapper %}{% endblock %}
             {% block table-paginator %}
                 {% if paginator_type == 'offset-based-paginator' %}
-                    <div class="row paginator {{ paginator_type }}" style="visibility: hidden" data-base="{{ list_per_page }}" data-paging="simple">
-                        <div class="col-sm-4">
-                            <span class="result-displayed"><span class="result-caption">{% trans 'Displayed' %}</span><span class="result-number">{% trans '&#37;d to &#37;d' %}</span></span>
-                            <span class="result-total"><span class="result-caption">{% trans 'of' %}</span><span class="result-number">%d</span></span>
-                        </div>
-                        <div class="col-sm-8">
-                            <div class="paging">
-                                <ul class="pagination">
-                                    <li class="previous" title="{% trans 'Previous' %}"><span><i class="fa fa-angle-left"></i><span class="caption">{% trans 'Previous' %}</span></span></li>
-                                    <li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><i class="fa fa-angle-right"></i></span></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-                {% if paginator_type == 'cursor-based-paginator' %}
-                    <div class="row paginator {{ paginator_type }}" style="visibility: hidden" data-base="{{ list_per_page }}" data-paging="simple">
-                        <div class="col-sm-8">
-                            <div class="paging">
-                                <ul class="pagination">
-                                    <li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><i class="fa fa-angle-right"></i></span></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-
+				<div class="row paginator {{ paginator_type }}"
+					 style="visibility: hidden"
+					 data-base="{{ list_per_page }}"
+					 data-paging="simple"
+					 data-base-type="custom"
+					 data-base-range="[1, 100]"
+					 data-custom-base-label="{% trans 'Display number of row' %}"
+					 data-custom-base-error-message="{% trans 'Row number has to be between %s and %s' %}">
+					<div class="col-sm-4">
+						<span class="result-displayed">
+							<span class="result-caption">{% trans 'Displayed' %}</span>
+							<span class="result-number">{% trans '&#37;d to &#37;d' %}</span>
+						</span>
+						<span class="result-total">
+							<span class="result-caption">{% trans 'of' %}</span>
+							<span class="result-number">%d</span>
+						</span>
+					</div>
+					<div class="col-sm-8">
+						<div class="paging">
+							<ul class="pagination">
+								<li class="previous" title="{% trans 'Previous' %}"><span><i class="fa fa-angle-left"></i><span class="caption">{% trans 'Previous' %}</span></span></li>
+								<li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><i class="fa fa-angle-right"></i></span></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			{% endif %}
+			{% if paginator_type == 'cursor-based-paginator' %}
+				<div class="row paginator {{ paginator_type }}"
+					 style="visibility: hidden"
+					 data-base="{{ list_per_page }}"
+					 data-paging="simple"
+					 data-base-type="custom"
+					 data-base-range="[1, 100]"
+					 data-custom-base-label="{% trans 'Display number of row' %}"
+					 data-custom-base-error-message="{% trans 'Row number has to be between %s and %s' %}">
+					<div class="col-sm-4">
+						<span class="result-displayed">
+						</span>
+					</div>
+					<div class="col-sm-8">
+						<div class="paging">
+							<ul class="pagination">
+								<li class="next" title="{% trans 'Next' %}"><span><span class="caption">{% trans 'Next' %}</span><i class="fa fa-angle-right"></i></span></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			{% endif %}
             {% endblock %}
 
             {% block table-buttons %}

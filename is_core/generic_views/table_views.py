@@ -11,7 +11,9 @@ from is_core.config import settings
 from is_core.filters import UIFilterMixin, FilterChoiceIterator
 from is_core.generic_views import DefaultModelCoreViewMixin
 from is_core.rest.datastructures import ModelFlatRESTFields, ModelRESTFieldset
-from is_core.utils import pretty_class_name, get_export_types_with_content_type
+from is_core.utils import (
+    pretty_class_name, get_export_types_with_content_type, LOOKUP_SEP, get_field_label_from_path
+)
 
 from chamber.utils import get_class_method
 from chamber.utils.http import query_string_from_dict
@@ -134,32 +136,36 @@ class TableViewMixin(FieldPermissionViewMixin):
         else:
             return allowed_operators[0].lower()
 
-    def _get_filter(self, full_field_name):
+    def _get_filter(self, field_name):
         resource = self.get_resource()
         if resource:
             try:
-                filter_obj = resource.filter_manager.get_filter(full_field_name.split('__'), resource, self.request)
+                filter_obj = resource.filter_manager.get_filter(
+                    field_name.split(LOOKUP_SEP), resource, self.request
+                )
                 if (not filter_obj.identifiers_suffix and filter_obj.field and filter_obj.field.is_relation and
                         filter_obj.field.related_model and
                         filter_obj.field.related_model._ui_meta.default_ui_filter_by):
                     return self._get_filter('{}__{}'.format(
-                        full_field_name, filter_obj.field.related_model._ui_meta.default_ui_filter_by)
+                        field_name, filter_obj.field.related_model._ui_meta.default_ui_filter_by)
                     )
-                widget = self._get_filter_widget(filter_obj, full_field_name)
+                widget = self._get_filter_widget(filter_obj, field_name)
                 operator = self._get_filter_operator_string(filter_obj, widget)
-                filter_term = '{}__{}'.format(full_field_name, operator)
+                filter_term = '{}__{}'.format(field_name, operator)
                 name = 'filter__{}'.format(filter_term)
                 return widget.render(name, None, attrs={'data-filter': filter_term})
             except FilterIdentifierError:
                 pass
         return ''
 
-    def _get_header_order_by(self, model, full_field_name):
+    def _get_header_order_by(self, field_name):
         resource = self.get_resource()
         if resource:
             try:
-                resource.order_manager.get_sorter(full_field_name.split('__'), DIRECTION.ASC, resource, self.request)
-                return full_field_name
+                resource.order_manager.get_sorter(
+                    field_name.split(LOOKUP_SEP), DIRECTION.ASC, resource, self.request
+                )
+                return field_name
             except OrderIdentifierError:
                 return False
         else:
@@ -168,14 +174,6 @@ class TableViewMixin(FieldPermissionViewMixin):
     def _get_field_labels(self):
         return self.field_labels
 
-    def _get_resource_label(self, model, field_name):
-        resource = self.get_resource(model)
-        if resource:
-            method_field = resource.get_method_returning_field_value(field_name)
-            return getattr(method_field, 'short_description', pretty_name(field_name)) if method_field else None
-        else:
-            return None
-
     def _get_paginator_type(self):
         resource = self.get_resource(self.model)
         if resource and resource.paginator:
@@ -183,62 +181,15 @@ class TableViewMixin(FieldPermissionViewMixin):
         else:
             return None
 
-    def _get_field_or_method_label(self, model, field_name):
-        resource_label = self._get_resource_label(model, field_name)
-        if resource_label is not None:
-            return resource_label
-        else:
-            try:
-                field = model._meta.get_field(field_name)
-                if field.auto_created and (field.one_to_many or field.many_to_many):
-                    return (
-                        getattr(field.field, 'reverse_verbose_name', None) or
-                        field.related_model._meta.verbose_name_plural
-                    )
-                elif field.auto_created and field.one_to_one:
-                    return (
-                        getattr(field.field, 'reverse_verbose_name', None) or
-                        field.related_model._meta.verbose_name
-                    )
-                else:
-                    return field.verbose_name
-            except FieldDoesNotExist:
-                method = get_class_method(model, field_name)
-                return getattr(method, 'short_description', pretty_name(field_name))
+    def _get_header_label(self, field_name):
+        return get_field_label_from_path(
+            self.model, field_name, field_labels=self._get_field_labels()
+        )
 
-    def _get_header_label(self, model, full_field_name, field_name, current_label=None):
-        field_labels = self._get_field_labels()
-
-        if field_labels and full_field_name in field_labels:
-            return field_labels.get(full_field_name)
-        else:
-            field_or_method_label = self._get_field_or_method_label(model, field_name)
-            return '{} - {}'.format(current_label, field_or_method_label) if current_label else field_or_method_label
-
-    def _get_header(self, full_field_name, field_name=None, model=None, current_label=None):
-        if not model:
-            model = self.model
-
-        if not field_name:
-            field_name = full_field_name
-
-        if field_name == '_obj_name':
-            return Header(full_field_name, model._meta.verbose_name, False)
-
-        if '__' in field_name:
-            current_field_name, next_field_name = field_name.split('__', 1)
-            related_model = model._meta.get_field(current_field_name).related_model
-            label = self._get_header_label(
-                related_model, full_field_name[:-(len(next_field_name) + 2)], current_field_name, current_label
-            )
-            return self._get_header(
-                full_field_name, next_field_name, model._meta.get_field(current_field_name).related_model,
-                label
-            )
-
+    def _get_header(self, field_name):
         return Header(
-            full_field_name, self._get_header_label(model, full_field_name, field_name, current_label),
-            self._get_header_order_by(model, full_field_name), self._get_filter(full_field_name)
+            field_name, self._get_header_label(field_name), self._get_header_order_by(field_name),
+            self._get_filter(field_name)
         )
 
     def _get_fields(self):

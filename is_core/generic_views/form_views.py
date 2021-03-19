@@ -290,15 +290,6 @@ class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
                 extra_content['messages'] = extra_content_messages
         return super().render_to_response(context, **response_kwargs)
 
-    def get_method_returning_field_value(self, field_name):
-        """
-        Field values can be obtained from view or core.
-        """
-        return (
-            super().get_method_returning_field_value(field_name)
-            or self.core.get_method_returning_field_value(field_name)
-        )
-
 
 class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
 
@@ -427,10 +418,7 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
             return get_readonly_field_data(
-                name,
-                instance,
-                view=self,
-                fun_kwargs={'request': self.request, 'obj': instance}
+                instance, name, self.request, view=self, field_labels=self._get_field_labels()
             )
         return SmartReadonlyField(_get_readonly_field_data)
 
