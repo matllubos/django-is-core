@@ -16,7 +16,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from is_core.config import settings
-from is_core.utils import EMPTY_VALUE
+from is_core.utils import EMPTY_VALUE, display_json
 
 from .utils import ReadonlyValue, add_class_name
 
@@ -153,6 +153,12 @@ class ReadonlyWidget(SmartWidgetMixin, Widget):
 
     def _has_changed(self, initial, data):
         return False
+
+
+class JSONReadonlyWidget(ReadonlyWidget):
+
+    def _render_readonly(self, name, value, attrs=None, renderer=None, request=None, form=None, initial_value=None):
+        return display_json(value)
 
 
 class ModelObjectReadonlyWidget(ReadonlyWidget):

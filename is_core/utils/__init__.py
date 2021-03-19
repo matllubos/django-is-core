@@ -1,9 +1,11 @@
 import re
+import json
 import inspect
 import types
 
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.contrib.admin.utils import display_for_value as admin_display_for_value
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Model, QuerySet
 from django.core.exceptions import FieldDoesNotExist
 from django.forms.utils import pretty_name
@@ -268,6 +270,25 @@ def display_object_data(obj, field_name, request=None):
 
     value, _, _ = get_readonly_field_data(field_name, obj)
     return display_for_value(value.humanized_value if isinstance(value, ReadonlyValue) else value, request=request)
+
+
+def display_code(value):
+    """
+    Display input value as a code.
+    """
+    return format_html(
+        '<pre style="overflow:scroll;">{}</pre>',
+        value
+    ) if value else display_for_value(value)
+
+
+def display_json(value):
+    """
+    Display input JSON as a code
+    """
+    if isinstance(value, str):
+        value = json.loads(value)
+    return display_code(json.dumps(value, indent=2, ensure_ascii=False, cls=DjangoJSONEncoder))
 
 
 def display_for_value(value, request=None):
