@@ -204,6 +204,8 @@ def display_json(value):
     """
     Display input JSON as a code
     """
+    if value is None:
+        return display_for_value(value)
     if isinstance(value, str):
         value = json.loads(value)
     return display_code(json.dumps(value, indent=2, ensure_ascii=False, cls=DjangoJSONEncoder))

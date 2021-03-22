@@ -3,6 +3,8 @@ from django.utils.encoding import force_text
 from pyston.utils import RESTFieldset, RESTField
 from pyston.utils.compatibility import get_model_from_relation_or_none
 
+from is_core.utils.field_api import get_field_descriptors_from_path, FieldIsNotRelation
+
 
 def generate_subfield(submodel, subfield_name, field_class):
     if subfield_name and submodel:
@@ -19,7 +21,11 @@ class ModelRESTFieldMixin:
         if '__' in full_field_name:
             full_field_name, subfield_name = full_field_name.split('__', 1)
 
-        submodel = get_model_from_relation_or_none(model, full_field_name)
+        try:
+            submodel = get_field_descriptors_from_path(model, full_field_name)[-1].get_related_model()
+        except FieldIsNotRelation:
+            submodel = None
+
         return cls(full_field_name, generate_subfield(submodel, subfield_name, cls))
 
 
