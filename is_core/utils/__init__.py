@@ -195,7 +195,7 @@ def display_code(value):
     Display input value as a code.
     """
     return format_html(
-        '<pre style="overflow:scroll;">{}</pre>',
+        '<pre>{}</pre>',
         value
     ) if value else display_for_value(value)
 
