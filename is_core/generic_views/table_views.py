@@ -312,10 +312,8 @@ class TableView(DefaultModelCoreViewMixin, TableViewMixin, TemplateView):
         return self.core.get_ui_list_export_types(self.request) if self.export_types is None else self.export_types
 
     def _get_list_per_page(self):
-        return (
-            self.core.get_list_per_page(self.request) or settings.LIST_PER_PAGE
-            if self.list_per_page is None else self.list_per_page
-        )
+        list_per_page = self.core.get_list_per_page(self.request)
+        return list_per_page if list_per_page is not None else super()._get_list_per_page()
 
     def _get_api_url(self):
         return self.core.get_api_url(self.request) if self.api_url is None else self.api_url
