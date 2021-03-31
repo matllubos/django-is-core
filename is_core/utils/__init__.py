@@ -177,7 +177,7 @@ def get_readonly_field_data(instance, field_name, request, view=None, field_labe
     )
 
 
-def display_object_data(obj, field_name, request):
+def display_object_data(obj, field_name, request, view=None):
     """
     Returns humanized value of model object that can be rendered to HTML or returned as part of REST
 
@@ -187,7 +187,7 @@ def display_object_data(obj, field_name, request):
        field with choices ==> string value of choice
        field with humanize function ==> result of humanize function
     """
-    return display_for_value(get_readonly_field_value_from_path(obj, field_name, request), request=request)
+    return display_for_value(get_readonly_field_value_from_path(obj, field_name, request, view), request=request)
 
 
 def display_code(value):
