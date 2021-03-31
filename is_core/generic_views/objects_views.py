@@ -2,7 +2,7 @@ from django.db.models import Model
 from django.views.generic.base import TemplateView
 from django.utils.translation import ugettext_lazy as _
 
-from is_core.utils import display_object_data, display_for_value
+from is_core.utils import display_object_data, display_for_value, GetMethodFieldMixin
 from is_core.generic_views import DefaultCoreViewMixin
 
 
@@ -13,7 +13,7 @@ class DataRow(list):
         self.class_names = class_names
 
 
-class ObjectsViewMixin:
+class ObjectsViewMixin(GetMethodFieldMixin):
     """
     This class behaves and displays like table bud data are reaonly. No need of any form or queryset.
     Implement method 'get_objects' and define a list of fields in the attribute 'fields'.
@@ -56,7 +56,7 @@ class ObjectsViewMixin:
 
     def get_data_object(self, field_name, obj):
         if isinstance(obj, Model):
-            return display_object_data(obj, field_name, request=self.request)
+            return display_object_data(obj, field_name, request=self.request, view=self)
         elif isinstance(obj, dict):
             return display_for_value(obj.get(field_name), request=self.request)
         else:
