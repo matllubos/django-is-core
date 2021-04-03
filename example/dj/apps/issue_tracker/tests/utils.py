@@ -13,12 +13,16 @@ from is_core.utils.field_api import (
     GetFieldDescriptorException, get_field_value_from_path, GetFieldDescriptorValueError,
     get_field_descriptors_from_path
 )
-from is_core.forms.widgets import ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget
+from is_core.forms.widgets import (
+    ReadonlyWidget, ManyToManyReadonlyWidget, ModelObjectReadonlyWidget, ModelMultipleReadonlyWidget,
+    ModelChoiceReadonlyWidget
+)
 
 from issue_tracker.cores.views import UserDetailView
 from issue_tracker.models import Issue
 
 from .factories import IssueFactory, UserFactory
+
 
 __all__ =(
     'UtilsTestCase',
@@ -45,7 +49,7 @@ class UtilsTestCase(GermaniumTestCase):
     def test_get_field_label_from_path_should_return_right_field_label(self):
         assert_equal(get_field_label_from_path(Issue, 'name'), 'Name')
         assert_equal(get_field_label_from_path(Issue, 'name', field_labels={'name': 'another name'}), 'another name')
-        assert_equal(get_field_label_from_path(User, 'created_issues_count'), 'count created issues')
+        assert_equal(get_field_label_from_path(User, 'created_issues_count'), 'created issues count')
         assert_equal(get_field_label_from_path(Issue, '_obj_name'), 'object name')
         assert_equal(get_field_label_from_path(Issue, 'solver___obj_name'), 'Solver')
         assert_equal(
@@ -81,10 +85,11 @@ class UtilsTestCase(GermaniumTestCase):
     def test_get_field_widget_from_path_should_return_right_wiget(self):
         assert_equal(get_field_widget_from_path(Issue, 'name'), ReadonlyWidget)
         assert_equal(get_field_widget_from_path(User, 'created_issues'), ManyToManyReadonlyWidget)
-        assert_equal(get_field_widget_from_path(Issue, 'watched_by'), ManyToManyReadonlyWidget)
-        assert_equal(get_field_widget_from_path(Issue, 'solver'), ModelObjectReadonlyWidget)
+        assert_equal(get_field_widget_from_path(Issue, 'watched_by'), ModelMultipleReadonlyWidget)
+        assert_equal(get_field_widget_from_path(Issue, 'solver'), ModelChoiceReadonlyWidget)
         assert_equal(get_field_widget_from_path(User, 'solving_issue'), ModelObjectReadonlyWidget)
         assert_equal(get_field_widget_from_path(User, 'solving_issue__name'), ReadonlyWidget)
+        assert_equal(get_field_widget_from_path(Issue, 'related_object'), ReadonlyWidget)
 
     def test_get_field_widget_from_path_should_raise_exception_for_invalid_field_name(self):
         with assert_raises(GetFieldDescriptorException):
@@ -137,20 +142,21 @@ class UtilsTestCase(GermaniumTestCase):
     def test_get_readonly_field_value_from_path_should_return_right_value_from_model_instance(self):
         solver = UserFactory()
         leader = UserFactory()
-        issue = IssueFactory(solver=solver, leader=leader, created_by=leader)
+        issue = IssueFactory(solver=solver, leader=leader, created_by=leader, related_object=solver)
         issue.watched_by.add(solver, leader)
-        assert_equal(get_readonly_field_value_from_path(issue, 'name').value, issue.name, None)
-        assert_equal(get_readonly_field_value_from_path(issue, 'is_issue').value, True)
+        assert_equal(get_readonly_field_value_from_path(issue, 'name'), issue.name, None)
+        assert_equal(get_readonly_field_value_from_path(issue, 'is_issue'), True)
         assert_equal(
-            get_readonly_field_value_from_path(issue, 'watched_by_string').value,
+            get_readonly_field_value_from_path(issue, 'watched_by_string'),
             ', '.join([str(u) for u in (solver, leader)])
         )
-        assert_equal(get_readonly_field_value_from_path(issue, 'created_by__first_name').value, leader.first_name)
+        assert_equal(get_readonly_field_value_from_path(issue, 'created_by__first_name'), leader.first_name)
         assert_equal(
-            [
-                readonly_value.value for readonly_value in get_readonly_field_value_from_path(
+            list(
+                get_readonly_field_value_from_path(
                     issue, 'watched_by_method__first_name'
                 )
-            ],
+            ),
             [solver.first_name, leader.first_name]
         )
+        assert_equal(get_readonly_field_value_from_path(issue, 'related_object'), solver, None)

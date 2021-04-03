@@ -2,7 +2,7 @@ import django
 
 from django.forms.widgets import DateInput, DateTimeInput, TimeInput, Widget
 from django.forms.fields import (
-    ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField, NullBooleanField, JSONField
+    ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField, NullBooleanField
 )
 
 from is_core.forms.utils import add_class_name
@@ -41,4 +41,10 @@ Field.readonly_widget = ReadonlyWidget
 URLField.readonly_widget = URLReadonlyWidget
 FileField.readonly_widget = FileReadonlyWidget
 NullBooleanField.readonly_widget = NullBooleanReadonlyWidget
-JSONField.readonly_widget = JSONReadonlyWidget
+
+try:
+    # Django<=3.0 compatibility
+    from django.forms.fields import JSONField
+    JSONField.readonly_widget = JSONReadonlyWidget
+except ImportError:
+    pass

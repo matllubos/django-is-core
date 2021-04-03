@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 from is_core.utils.decorators import relation
 
@@ -19,6 +21,10 @@ class Issue(models.Model):
                                   related_name='solving_issue', on_delete=models.CASCADE)
     leader = models.OneToOneField(AUTH_USER_MODEL, verbose_name='Leader', null=False, blank=False,
                                   related_name='leading_issue', on_delete=models.CASCADE)
+
+    related_object_ct = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.CASCADE)
+    related_object_id = models.PositiveIntegerField(null=True, blank=True)
+    related_object = GenericForeignKey('related_object_ct', 'related_object_id')
 
     is_issue = True
 

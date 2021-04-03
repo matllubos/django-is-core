@@ -1,6 +1,6 @@
 import types
 
-from django.db.models import Model, QuerySet
+from django.db.models import Model, QuerySet, Field
 
 from chamber.utils import get_class_method, call_function_with_unknown_input, InvalidFunctionArguments
 
@@ -95,9 +95,12 @@ class ModelFieldDescriptor(FieldDescriptor):
             return ManyToManyReadonlyWidget
         elif field.auto_created and field.one_to_one:
             return ModelObjectReadonlyWidget
-        else:
+        elif isinstance(field, Field):
             form_field =  field.formfield()
             return form_field.readonly_widget if form_field else ReadonlyWidget
+        else:
+            # GenericForeignKey is model field without formfield method
+            return ReadonlyWidget
 
     def get_value(self, instance, request=None):
         field = self.model_field_or_method
