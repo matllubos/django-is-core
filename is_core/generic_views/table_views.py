@@ -42,6 +42,7 @@ class Header:
 class TableViewMixin(FieldPermissionViewMixin):
 
     fields = None
+    export_fields = None
     extra_fields = ('_obj_name', '_rest_links', '_actions', '_class_names', '_web_links', '_default_action')
     list_filter = None
     list_per_page = None
@@ -195,6 +196,9 @@ class TableViewMixin(FieldPermissionViewMixin):
     def _get_fields(self):
         return () if self.fields is None else self.fields
 
+    def _get_export_fields(self):
+        return () if self.export_fields is None else self.export_fields
+
     def _get_extra_fields(self):
         return list(self.extra_fields)
 
@@ -280,7 +284,6 @@ class TableView(DefaultModelCoreViewMixin, TableViewMixin, TemplateView):
     template_name = 'is_core/generic_views/table.html'
     view_type = 'list'
     export_types = None
-    export_fields = None
     add_button_verbose_name = None
 
     def get_title(self):
