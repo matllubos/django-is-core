@@ -26,6 +26,8 @@ EMPTY_VALUE = '---'
 
 LOOKUP_SEP = '__'
 
+METHOD_OBJ_STR_NAME = '_obj_name'
+
 
 def is_callable(val):
     return hasattr(val, '__call__')
@@ -130,7 +132,7 @@ def get_field_label_from_path(model, field_path, view=None, field_labels=None):
                 field_descriptor_labels = [field_labels[current_field_path]]
             else:
                 field_descriptor_labels = []
-        elif field_descriptor.field_name != '_obj_name' or not field_descriptor_labels:
+        elif field_descriptor.field_name != METHOD_OBJ_STR_NAME or not field_descriptor_labels:
             if field_descriptor.get_label() is not None:
                 field_descriptor_labels.append(field_descriptor.get_label())
 

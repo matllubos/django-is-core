@@ -30,7 +30,7 @@ from is_core.exceptions.response import (HTTPBadRequestResponseException, HTTPUn
                                          HTTPForbiddenResponseException)
 from is_core.forms.models import smartmodelform_factory
 from is_core.patterns import RESTPattern, patterns
-from is_core.utils import get_field_label_from_path
+from is_core.utils import get_field_label_from_path, METHOD_OBJ_STR_NAME, LOOKUP_SEP
 
 
 class RESTPermissionsMixin:
@@ -281,7 +281,13 @@ class RESTModelResource(FieldPermissionViewMixin, RESTModelCoreMixin, RESTResour
 
     def get_field_label(self, field_name):
         return get_field_label_from_path(
-            self.model, field_name, field_labels=self.get_field_labels()
+            self.model,
+            (
+                field_name[:-len(LOOKUP_SEP + METHOD_OBJ_STR_NAME)]
+                if field_name.endswith(LOOKUP_SEP + METHOD_OBJ_STR_NAME)
+                else field_name
+            ),
+            field_labels=self.get_field_labels()
         )
 
     def get_fields(self, obj=None):
