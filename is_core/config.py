@@ -23,10 +23,7 @@ DEFAULTS = {
         if 'auth_token' in django_settings.INSTALLED_APPS
         else 'django.contrib.auth.forms.AuthenticationForm'
     ),
-    'AUTH_RESOURCE_CLASS': (
-        'auth_token.contrib.is_core_auth.resource.AuthResource' if 'auth_token' in django_settings.INSTALLED_APPS
-        else None
-    ),
+    'AUTH_RESOURCE_CLASS': None,
     'AUTH_LOGIN_VIEW': _get_auth_login_view(),
     'AUTH_LOGOUT_VIEW': (
         'auth_token.contrib.is_core_auth.views.LogoutView' if 'auth_token' in django_settings.INSTALLED_APPS
