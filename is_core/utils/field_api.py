@@ -85,8 +85,10 @@ class ModelFieldDescriptor(FieldDescriptor):
     def get_label(self):
         if self.model_field_or_method.auto_created and self.model_field_or_method.is_relation:
             return self.model_field_or_method.field.reverse_verbose_name
-        else:
+        elif hasattr(self.model_field_or_method, 'verbose_name'):
             return self.model_field_or_method.verbose_name
+        else:
+            return pretty_name(self.field_name)
 
     def get_widget(self):
         field = self.model_field_or_method

@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
+from django.utils.functional import cached_property
 
 from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
@@ -23,6 +24,7 @@ from is_core.utils import (
 )
 from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
+from is_core.generic_views.inlines.inline_table_views import InlineTableView
 from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
@@ -793,3 +795,17 @@ class BulkChangeFormView(DefaultModelFormView):
 
     def get_is_bulk(self):
         return True
+
+
+class RelatedCoreTableView(ReadonlyDetailModelFormView):
+
+    table_model = None
+
+    @cached_property
+    def inline_table_view(self):
+        return type(self.__class__.__name__ + 'InlineTableView', (InlineTableView,), {'model': self.table_model})
+
+    def get_fieldsets(self):
+        return (
+            (None, {'inline_view': self.inline_table_view}),
+        )
