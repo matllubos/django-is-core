@@ -89,8 +89,6 @@ class ExportedFile(SmartModel):
 
     @property
     def download_url(self):
-        from security.enums import CeleryTaskLogState
-
         return (
             resolve_url('pyston-download-export', slug=self.slug)
             if self.file else ''
