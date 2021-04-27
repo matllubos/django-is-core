@@ -72,6 +72,6 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
 
     @short_description(_('celery task log'))
     def celery_task_log(self, obj):
-        from security.models import CeleryTaskLog
+        from security.models import CeleryTaskInvocationLog
 
-        return CeleryTaskLog.objects.filter_related_with_object(obj).first()
+        return CeleryTaskInvocationLog.objects.filter_related_with_object(obj).first()
