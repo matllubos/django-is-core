@@ -499,15 +499,27 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
         return kwargs
 
     def save_form(self, form, inline_form_views=None, **kwargs):
+        inline_form_views = () if inline_form_views is None else inline_form_views
+        pre_save_inline_form_views = [
+            inline_form_view for inline_form_view in inline_form_views if inline_form_view.save_before_parent
+        ]
+        post_save_inline_form_views = [
+            inline_form_view for inline_form_view in inline_form_views if not inline_form_view.save_before_parent
+        ]
+
         obj = form.save(commit=False)
         change = obj.pk is not None
 
         self.pre_save_obj(obj, form, change)
+
+        for inline_form_view in pre_save_inline_form_views:
+            inline_form_view.form_valid(self.request)
+
         self.save_obj(obj, form, change)
         if hasattr(form, 'save_m2m'):
             form.save_m2m()
 
-        for inline_form_view in {} if inline_form_views is None else inline_form_views:
+        for inline_form_view in post_save_inline_form_views:
             inline_form_view.form_valid(self.request)
 
         self.post_save_obj(obj, form, change)

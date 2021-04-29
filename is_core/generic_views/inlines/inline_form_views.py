@@ -34,6 +34,7 @@ class InlineFormView(GetMethodFieldMixin, RelatedInlineView):
     no_items_text = _('There are no items')
     class_names = ['inline-js']
     add_inline_button_verbose_name = None
+    save_before_parent = False
 
     def __init__(self, request, parent_view, parent_instance):
         super().__init__(request, parent_view, parent_instance)
