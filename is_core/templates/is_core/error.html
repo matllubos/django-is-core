@@ -1,7 +1,7 @@
 {% extends 'is_core/base.html' %}
 {% load i18n %}
 
-{% block content %}
+{% block base %}
 	<h2 class="error-403">{{ title|capfirst }} ({{ response_code }})</h2>
 	{% if message %}<p>{{ message }}</p>{% endif %}
 {% endblock %}

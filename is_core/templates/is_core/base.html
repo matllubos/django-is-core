@@ -45,19 +45,19 @@
             {% endblock %}
 
             {% block sidebar %}
-                <div class="navbar-default navbar-static-side" role="navigation">
-                    <div class="sidebar-collapse">
-                        {% block menu %}
-                            {% if request.user.is_authenticated %}
+                {% if request.user.is_authenticated %}
+                    <div class="navbar-default navbar-static-side" role="navigation">
+                        <div class="sidebar-collapse">
+                            {% block menu %}
                                 {% block left-menu %}
                                     {% menu 'IS' %}
                                 {% endblock %}
-                            {% endif %}
-                        {% endblock %}
+                            {% endblock %}
+                        </div>
+                        {% block footer %}{{ block.super }}{% endblock %}
+                        <!-- /.sidebar-collapse -->
                     </div>
-                    {% block footer %}{{ block.super }}{% endblock %}
-                    <!-- /.sidebar-collapse -->
-                </div>
+                {% endif %}
             {% endblock %}
             <!-- /.navbar-static-side -->
 
