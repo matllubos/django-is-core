@@ -620,7 +620,8 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         return (
             'list' in self.core.ui_patterns and not self.has_snippet() and
             self.core.ui_patterns.get('list').has_permission('get', self.request) and
-            self.show_save_and_continue
+            self.show_save_and_continue and
+            not self.is_readonly()
         )
 
     def has_save_button(self):

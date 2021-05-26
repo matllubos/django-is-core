@@ -2,7 +2,7 @@ from django.http.response import HttpResponseRedirect, HttpResponse, Http404
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
-from django.urls import resolve
+from django.urls import resolve, Resolver404
 from django.conf import settings
 
 from is_core.exceptions import ResponseException
@@ -10,10 +10,17 @@ from is_core.exceptions.response import response_exception_factory
 from is_core.utils.compatibility import MiddlewareMixin
 
 
+def get_request_kwargs(request):
+    try:
+        return resolve(request.path).kwargs
+    except Resolver404:
+        return {}
+
+
 class RequestKwargsMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
-        request.kwargs = resolve(request.path).kwargs
+        request.kwargs = get_request_kwargs(request)
 
 
 # Not working with pyston exceptions
