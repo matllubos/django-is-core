@@ -38,14 +38,13 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
     read_all_permission = IsSuperuser()
 
     all_ui_list_fields = (
-        'changed_at', 'created_at', 'created_by', 'downloaded_by', 'expiration', 'download_link', 'celery_task_log'
+        'changed_at', 'created_at', 'created_by', 'downloaded_by', 'expiration', 'download_link'
     )
     own_ui_list_fields = (
         'changed_at', 'created_at', 'expiration', 'download_link'
     )
     form_fields = (
-        'changed_at', 'created_at', 'created_by', 'downloaded_by', 'content_type', 'download_link', 'expiration',
-        'celery_task_log'
+        'changed_at', 'created_at', 'created_by', 'downloaded_by', 'content_type', 'download_link', 'expiration'
     )
 
     def _init_permission(self, permission):
@@ -70,8 +69,3 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
         else:
             return qs.none()
 
-    @short_description(_('celery task log'))
-    def celery_task_log(self, obj):
-        from security.models import CeleryTaskInvocationLog
-
-        return CeleryTaskInvocationLog.objects.filter_related_with_object(obj).first()
