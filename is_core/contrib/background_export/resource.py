@@ -37,7 +37,6 @@ def apply_background_export(user, queryset, rest_context, fieldset, serializatio
             filename,
             obj_to_string(queryset.query),
         ),
-        queue=settings.BACKGROUND_EXPORT_TASK_QUEUE,
         related_objects=[exported_file]
     )
 
