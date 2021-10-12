@@ -70,6 +70,7 @@ class BackgroundSerializationTask(LoggedTask):
 
 @shared_task(base=BackgroundSerializationTask,
              name='background_export.serializer.serialization',
+             queue=settings.BACKGROUND_EXPORT_TASK_QUEUE,
              time_limit=settings.BACKGROUND_EXPORT_TASK_TIME_LIMIT_MINUTES * 60,
              soft_time_limit=settings.BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT_MINUTES * 60,
              bind=True)
