@@ -62,17 +62,17 @@ class BackgroundSerializationTask(LoggedTask):
     def get_exported_file(self, pk):
         return ExportedFile.objects.get(pk=pk)
 
-    def on_task_success_log(self, task_run_log, retval):
-        super().on_task_success_log(task_run_log, retval)
-        exported_file = self.get_exported_file(task_run_log.task_args[0])
+    def on_task_success(self, task_id, args, kwargs, retval):
+        super().on_task_success(task_id, args, kwargs, retval)
+        exported_file = self.get_exported_file(args[0])
         export_success.send(sender=self.__class__, exported_file=exported_file)
 
 
 @shared_task(base=BackgroundSerializationTask,
              name='background_export.serializer.serialization',
              queue=settings.BACKGROUND_EXPORT_TASK_QUEUE,
-             time_limit=settings.BACKGROUND_EXPORT_TASK_TIME_LIMIT_MINUTES * 60,
-             soft_time_limit=settings.BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT_MINUTES * 60,
+             time_limit=settings.BACKGROUND_EXPORT_TASK_TIME_LIMIT,
+             soft_time_limit=settings.BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT,
              bind=True)
 @atomic
 def background_serialization(self, exported_file_pk, rest_context, language, requested_fieldset, serialization_format,

@@ -3,7 +3,6 @@ import json
 from django.utils.encoding import force_text
 
 from germanium.tools import assert_true, assert_not_equal
-from germanium.test_cases.client import ClientTestCase
 from germanium.decorators import login
 from germanium.crawler import Crawler, LinkExtractor
 from germanium.crawler import HTMLLinkExtractor as OriginalHTMLLinkExtractor
@@ -85,7 +84,7 @@ class TextPlainSnippetsExtractor(LinkExtractor):
         return links
 
 
-class CrawlerTestCase(ClientTestCase):
+class CrawlerTestCase:
 
     REST_BASE = None
     exclude_urls = ()
