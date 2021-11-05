@@ -1,5 +1,5 @@
 from is_core.generic_views.objects_views import ObjectsViewMixin
-from is_core.generic_views.inlines import InlineView
+from is_core.generic_views.inlines.base import InlineView
 
 
 class InlineObjectsView(ObjectsViewMixin, InlineView):

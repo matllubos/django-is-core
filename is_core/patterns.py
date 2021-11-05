@@ -1,4 +1,3 @@
-import re
 import logging
 
 from collections import OrderedDict
@@ -16,7 +15,7 @@ patterns = {}
 
 def reverse_ui_view(name, request):
     pattern = patterns.get(name)
-    if isinstance(pattern, UIPattern):
+    if isinstance(pattern, UiPattern):
         return pattern.get_view(request)
 
 
@@ -44,7 +43,7 @@ class Pattern:
             patterns[self.name] = self
 
     def get_url_string(self, request, obj=None, view_kwargs=None):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_url(self):
         return None
@@ -127,10 +126,10 @@ class ViewPattern(Pattern):
         )
 
 
-class UIPattern(ViewPattern):
+class UiPattern(ViewPattern):
 
     def __init__(self, name, site_name, url_pattern, view_class, core=None):
-        super(UIPattern, self).__init__(name, site_name, url_pattern, core)
+        super().__init__(name, site_name, url_pattern, core)
         self.view_class = type(str(get_new_class_name(name, view_class)), (view_class,), {})
         if core:
             self.view_class.__init_core__(core, self)
@@ -148,10 +147,10 @@ class UIPattern(ViewPattern):
         return self.view_class.as_view()
 
 
-class RESTPattern(ViewPattern):
+class RestPattern(ViewPattern):
 
     def __init__(self, name, site_name, url_pattern, resource_class, core=None, methods=None, clone_view_class=True):
-        super(RESTPattern, self).__init__(name, site_name, url_pattern, core)
+        super(RestPattern, self).__init__(name, site_name, url_pattern, core)
         if clone_view_class:
             self.resource_class = type(str(get_new_class_name(name, resource_class)), (resource_class,), {})
         else:
@@ -161,7 +160,7 @@ class RESTPattern(ViewPattern):
             self.resource_class.__init_core__(core, self)
 
     def get_url_prefix(self):
-        url_prefix = super(RESTPattern, self).get_url_prefix()
+        url_prefix = super(RestPattern, self).get_url_prefix()
         if url_prefix:
             return 'api/{}'.format(url_prefix)
 
@@ -188,15 +187,15 @@ class HiddenPatternMixin:
     send_in_rest = False
 
 
-class HiddenRESTPattern(HiddenPatternMixin, RESTPattern):
+class HiddenRestPattern(HiddenPatternMixin, RestPattern):
     pass
 
 
-class HiddenUIPattern(HiddenPatternMixin, UIPattern):
+class HiddenUiPattern(HiddenPatternMixin, UiPattern):
     pass
 
 
-class DoubleRESTPattern:
+class DoubleRestPattern:
 
     def __init__(self, resource_class, pattern_class, core, methods=None):
         self.resource_class = resource_class

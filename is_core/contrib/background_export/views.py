@@ -5,7 +5,7 @@ from django.views.generic.base import RedirectView
 
 from chamber.shortcuts import get_object_or_404
 
-from is_core.exceptions import HTTPForbiddenResponseException
+from is_core.exceptions import HttpForbiddenResponseException
 from is_core.site import get_model_core
 
 from .models import ExportedFile
@@ -25,7 +25,7 @@ class DownloadExportedDataView(RedirectView):
             exported_file.downloaded_by.add(self.request.user)
             return exported_file.file.url
         else:
-            raise HTTPForbiddenResponseException
+            raise HttpForbiddenResponseException
 
 
 def static_pyston():

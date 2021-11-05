@@ -1,7 +1,6 @@
 from django.utils.encoding import force_text
 
-from pyston.utils import RESTFieldset, RESTField
-from pyston.utils.compatibility import get_model_from_relation_or_none
+from pyston.utils import RestFieldset, RestField
 
 from is_core.utils.field_api import get_field_descriptors_from_path, FieldIsNotRelation
 
@@ -13,7 +12,7 @@ def generate_subfield(submodel, subfield_name, field_class):
         return field_class('_obj_name')
 
 
-class ModelRESTFieldMixin:
+class ModelRestFieldMixin:
 
     @classmethod
     def create_from_string(cls, full_field_name, model):
@@ -29,19 +28,19 @@ class ModelRESTFieldMixin:
         return cls(full_field_name, generate_subfield(submodel, subfield_name, cls))
 
 
-class ModelRESTField(ModelRESTFieldMixin, RESTField):
+class ModelRestField(ModelRestFieldMixin, RestField):
 
     def __init__(self, name, subfield=None):
         if isinstance(subfield, type(self)):
-            subfield = ModelRESTFieldset(subfield)
-        super(ModelRESTField, self).__init__(name, subfield)
+            subfield = ModelRestFieldset(subfield)
+        super().__init__(name, subfield)
 
 
-class ModelRESTFlatField(ModelRESTFieldMixin):
+class ModelRestFlatField(ModelRestFieldMixin):
 
     def __init__(self, name, subfield=None):
         assert isinstance(name, str)
-        assert subfield is None or isinstance(subfield, ModelRESTFlatField)
+        assert subfield is None or isinstance(subfield, ModelRestFlatField)
 
         self.name = name
         self.subfield = subfield
@@ -52,7 +51,7 @@ class ModelRESTFlatField(ModelRESTFieldMixin):
         return '%s' % self.name
 
 
-class ModelFlatRESTFieldsMixin:
+class ModelFlatRestFieldsMixin:
 
     @classmethod
     def create_from_flat_list(cls, fields_list, model):
@@ -60,9 +59,9 @@ class ModelFlatRESTFieldsMixin:
                      for full_field_name in fields_list])
 
 
-class ModelFlatRESTFields(ModelFlatRESTFieldsMixin):
+class ModelFlatRestFields(ModelFlatRestFieldsMixin):
 
-    fields_class = ModelRESTFlatField
+    fields_class = ModelRestFlatField
 
     def __init__(self, *fields):
         self.fields = fields
@@ -71,6 +70,6 @@ class ModelFlatRESTFields(ModelFlatRESTFieldsMixin):
         return ','.join(map(force_text, self.fields))
 
 
-class ModelRESTFieldset(RESTFieldset, ModelFlatRESTFieldsMixin):
+class ModelRestFieldset(RestFieldset, ModelFlatRestFieldsMixin):
 
-    fields_class = ModelRESTField
+    fields_class = ModelRestField

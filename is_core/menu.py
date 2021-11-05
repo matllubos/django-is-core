@@ -38,10 +38,10 @@ class MenuGenerator:
         self.active_groups = active_groups
 
     def get_core(self, core_name):
-        from .main import UIISCore
+        from .main import UiCore
 
         core = self.site._registry.get(core_name)
-        return core if isinstance(core, UIISCore) else None
+        return core if isinstance(core, UiCore) else None
 
     def get_menu_item(self, core_name, group=None):
         core = self.get_core(core_name)

@@ -1,8 +1,6 @@
-import django
-
 from django.forms.widgets import DateInput, DateTimeInput, TimeInput, Widget
 from django.forms.fields import (
-    ImageField, FileField, Field, URLField, MultipleChoiceField, ChoiceField, NullBooleanField
+    ImageField, FileField, Field, URLField, MultipleChoiceField, NullBooleanField
 )
 
 from is_core.forms.utils import add_class_name

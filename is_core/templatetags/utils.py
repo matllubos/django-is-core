@@ -1,8 +1,6 @@
 import json as serializer
 import os
 
-from django.utils.safestring import mark_safe
-from django.utils.html import escape
 from django.template import Library
 
 from is_core.utils import display_object_data as utils_display_object_data

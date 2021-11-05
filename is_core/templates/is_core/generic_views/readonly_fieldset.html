@@ -1,0 +1,24 @@
+<fieldset class="{% if fieldset.title %}with-title{% else %}without-title{% endif %}{% if fieldset.class %} {{ fieldset.class }}{% endif %}">
+    {% if fieldset.title %}<legend>{{ fieldset.title|capfirst }}</legend>{% endif %}
+    {% if fieldset.fields %}
+        <div class="container-fluid">
+            {% for field_name, field_label, field_value, class_names in fieldset.fields %}
+                <div class="form-group {{ field_name }}">
+                    <div class="field {{ field_name }} readonly">
+                         <label for="{{ field_name }}">{{ field_label|capfirst }}</label>
+                         <div id="{{ field_name }}" class="field-value {{ field_name }} {{ class_names }}"><p>{{ field_value }}</p></div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="form-group"></div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if fieldset.fieldsets %}
+        {% for sub_fieldset in fieldset.fieldsets %}
+            {% include "is_core/generic_views/readonly_fieldset.html" with fieldset=sub_fieldset %}
+        {% endfor %}
+    {% endif %}
+    {% if fieldset.rendered_inline_view %}{{ fieldset.rendered_inline_view }}{% endif %}
+</fieldset>
+

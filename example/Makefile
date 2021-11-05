@@ -82,6 +82,13 @@ initenv:
 	echo -e '\nDJANGO_SETTINGS_MODULE="$(DJANGO_SETTINGS_MODULE)"' >> $(VIRTUAL_ENV)/bin/activate
 	echo -e 'export DJANGO_SETTINGS_MODULE' >> $(VIRTUAL_ENV)/bin/activate
 
+runservices:
+	docker run --name=is-core-dynamodb -d -p 8000:8000 amazon/dynamodb-local
+	docker run --name=is-core-elasticsearch -d -e "discovery.type=single-node" -e "xpack.security.enabled=false" -p 9200:9200 docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+
+stopservices:
+	docker rm $$(docker stop $$(docker ps -a -q --filter="name=is-core-dynamodb"))
+	docker rm $$(docker stop $$(docker ps -a -q --filter="name=is-core-elasticsearch"))
 
 callcommand:
 	@$(PYTHON_BIN)/python manage.py $(command) $(DJANGO_POSTFIX)
@@ -90,7 +97,7 @@ showurls:
 	$(PYTHON_BIN)/python manage.py show_urls $(DJANGO_POSTFIX)
 
 runserver:
-	$(PYTHON_BIN)/python manage.py runserver --insecure $(DJANGO_POSTFIX)
+	$(PYTHON_BIN)/python manage.py runserver 0.0.0.0:8080 --insecure $(DJANGO_POSTFIX)
 
 schemamigration:
 ifeq ($(force), 1)

@@ -17,17 +17,17 @@ class Action(JsonObj):
 class WebAction(Action):
 
     def __init__(self, name, verbose_name, class_name=None, target=None, rel=None):
-        super(WebAction, self).__init__(name, verbose_name, 'web', class_name)
+        super().__init__(name, verbose_name, 'web', class_name)
         if target:
             self.target = target
         if rel:
             self.rel = rel
 
 
-class RESTAction(Action):
+class RestAction(Action):
 
     def __init__(self, name, verbose_name, method, data=None, class_name=None, success_text=None):
-        super(RESTAction, self).__init__(name, verbose_name, 'rest', class_name)
+        super().__init__(name, verbose_name, 'rest', class_name)
         self.method = method
         if data:
             self.data = data
@@ -35,10 +35,10 @@ class RESTAction(Action):
             self.success_text = success_text
 
 
-class ConfirmRESTAction(RESTAction):
+class ConfirmRestAction(RestAction):
 
     def __init__(self, name, verbose_name, method, data=None, class_name=None, confirm_dialog=None, success_text=None):
-        super(ConfirmRESTAction, self).__init__(name, verbose_name, method, data, class_name, success_text)
+        super(ConfirmRestAction, self).__init__(name, verbose_name, method, data, class_name, success_text)
         self.confirm = confirm_dialog
 
     class ConfirmDialog(JsonObj):

@@ -1,18 +1,8 @@
-from django.db.models.query import QuerySet
-
-from pyston.paginator import OffsetBasedPaginator as OriginOffsetBasedPaginator
-from pyston.paginator import OffsetBasedPaginatorWithoutTotal as OriginOffsetBasedPaginatorWithoutTotal
-from pyston.paginator import CursorBasedPaginator as OriginCursorBasedPaginator
-
-from is_core.config import settings
+from pyston.paginator import DjangoOffsetBasedPaginator as OriginDjangoOffsetBasedPaginator
+from pyston.paginator import DjangoCursorBasedPaginator as OriginDjangoCursorBasedPaginator
 
 
-class OffsetBasedPaginatorMixin:
-
-    type = 'offset-based-paginator'
-
-
-class OffsetBasedPaginator(OffsetBasedPaginatorMixin, OriginOffsetBasedPaginator):
+class DjangoOffsetBasedPaginator(OriginDjangoOffsetBasedPaginator):
 
     type = 'offset-based-paginator'
 
@@ -23,6 +13,6 @@ class OffsetBasedPaginator(OffsetBasedPaginatorMixin, OriginOffsetBasedPaginator
             return None
 
 
-class CursorBasedPaginator(OriginCursorBasedPaginator):
+class DjangoCursorBasedPaginator(OriginDjangoCursorBasedPaginator):
 
     type = 'cursor-based-paginator'

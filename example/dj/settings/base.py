@@ -102,7 +102,7 @@ MIDDLEWARE = MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'is_core.middleware.RequestKwargsMiddleware',
-    'is_core.middleware.HTTPExceptionsMiddleware',
+    'is_core.middleware.HttpExceptionsMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

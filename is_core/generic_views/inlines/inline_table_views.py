@@ -1,30 +1,28 @@
 from django.forms.models import _get_foreign_key
 
-from is_core.config import settings
-from is_core.generic_views.table_views import TableViewMixin
-from is_core.generic_views.inlines import RelatedInlineView
+from is_core.generic_views.table_views import DjangoTableViewMixin, BaseModelTableViewMixin
+from is_core.generic_views.inlines.base import RelatedInlineView
 
 
-class InlineTableView(TableViewMixin, RelatedInlineView):
+class BaseModelInlineTableViewMixin:
 
     template_name = 'is_core/forms/inline_table.html'
-    fk_name = None
 
     def _get_field_labels(self):
         return (
             self.field_labels if self.field_labels is not None or not self.related_core
-            else self.related_core.get_ui_field_labels(self.request)
+            else self.related_core.get_field_labels(self.request)
         )
 
     def _get_fields(self):
         return (
-            self.related_core.get_ui_list_fields(self.request) if self.related_core and self.fields is None
+            self.related_core.get_list_fields(self.request) if self.related_core and self.fields is None
             else self.fields
         )
 
     def _get_export_fields(self):
         return (
-            self.related_core.get_ui_export_fields(self.request) if self.related_core and self.export_fields is None
+            self.related_core.get_export_fields(self.request) if self.related_core and self.export_fields is None
             else self.export_fields
         )
 
@@ -37,6 +35,15 @@ class InlineTableView(TableViewMixin, RelatedInlineView):
 
     def _get_menu_group_pattern_name(self):
         return self.related_core.get_menu_group_pattern_name()
+
+
+class BaseModelInlineTableView(BaseModelInlineTableViewMixin, BaseModelTableViewMixin, RelatedInlineView):
+    pass
+
+
+class DjangoInlineTableView(BaseModelInlineTableViewMixin, DjangoTableViewMixin, RelatedInlineView):
+
+    fk_name = None
 
     def _get_list_filter(self):
         list_filter = super()._get_list_filter()

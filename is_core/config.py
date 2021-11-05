@@ -30,8 +30,8 @@ DEFAULTS = {
         else 'is_core.views.auth.LogoutView'
     ),
     'CODE_VERIFICATION_URL': '/login/login-code-verification/',
-    'HOME_CORE': 'is_core.main.HomeUIISCore',
-    'HOME_VIEW': 'is_core.generic_views.HomeView',
+    'HOME_CORE': 'is_core.main.HomeUiCore',
+    'HOME_VIEW': 'is_core.generic_views.base.HomeView',
     'MENU_GENERATOR': 'is_core.menu.MenuGenerator',
     'USERNAME': 'username',
     'PASSWORD': 'password',
@@ -41,7 +41,6 @@ DEFAULTS = {
     'EXPORT_TYPES': '',
     'FOREIGN_KEY_MAX_SELECTBOX_ENTRIES': 500,
     'LIST_PER_PAGE': 20,
-    'REST_DEFAULT_FIELDS_EXTENSION': ('_rest_links',),
     'REST_PAGINATOR_MAX_TOTAL': 10000,
     'RESPONSE_EXCEPTION_FACTORY': 'is_core.exceptions.response.ui_rest_response_exception_factory',
     'DEFAULT_FIELDSET_TEMPLATE': 'is_core/forms/default_fieldset.html',

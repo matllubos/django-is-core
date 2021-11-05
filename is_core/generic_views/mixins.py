@@ -1,7 +1,7 @@
 from django.utils.functional import cached_property
 from django.http import Http404
 
-from chamber.shortcuts import get_object_or_404
+from chamber.shortcuts import get_object_or_none
 
 from is_core.patterns import reverse_pattern
 
@@ -16,9 +16,9 @@ class ListParentMixin:
         list_pattern = self.core.ui_patterns.get('list')
         list_view = list_pattern.get_view(self.request)
         return LinkMenuItem(
-            list_view.list_verbose_name % {
-                'verbose_name': list_view.verbose_name,
-                'verbose_name_plural': list_view.verbose_name_plural
+            list_view.get_list_verbose_name() % {
+                'verbose_name': list_view.get_verbose_name(),
+                'verbose_name_plural': list_view.get_verbose_name_plural()
             },
             list_pattern.get_url_string(self.request),
             active=not self.add_current_to_breadcrumbs
@@ -31,7 +31,7 @@ class ListParentMixin:
         return menu_items
 
     def bread_crumbs_menu_items(self):
-        return self.parent_bread_crumbs_menu_items() + super(ListParentMixin, self).bread_crumbs_menu_items()
+        return self.parent_bread_crumbs_menu_items() + super().bread_crumbs_menu_items()
 
 
 class DetailParentMixin(ListParentMixin):
@@ -45,12 +45,15 @@ class DetailParentMixin(ListParentMixin):
         if not isinstance(parent_obj, detail_view.model):
             raise GenericViewException('Parent obj must be instance of edit view model')
 
-        return LinkMenuItem(detail_view.detail_verbose_name %
-                            {'verbose_name': detail_view.verbose_name,
-                             'verbose_name_plural': detail_view.verbose_name_plural,
-                             'obj': parent_obj},
-                            detail_pattern.get_url_string(self.request, view_kwargs={'pk': parent_obj.pk}),
-                            active=not self.add_current_to_breadcrumbs)
+        return LinkMenuItem(
+            detail_view.detail_verbose_name % {
+                'verbose_name': detail_view.get_verbose_name(),
+                'verbose_name_plural': detail_view.get_verbose_name_plural(),
+                'obj': parent_obj
+            },
+            detail_pattern.get_url_string(self.request, view_kwargs={'pk': parent_obj.pk}),
+            active=not self.add_current_to_breadcrumbs
+        )
 
     def parent_bread_crumbs_menu_items(self):
         menu_items = super().parent_bread_crumbs_menu_items()
@@ -122,14 +125,44 @@ class TabsViewMixin:
         return [tab.get_menu_link_item_or_none(self) for tab in self.get_tabs() if tab.can_show(self)]
 
     def get_context_data(self, **kwargs):
-        context_data = super(TabsViewMixin, self).get_context_data(**kwargs)
+        context_data = super().get_context_data(**kwargs)
         context_data.update({
             'tabs': self.get_tab_menu_items(),
         })
         return context_data
 
 
-class GetCoreObjViewMixin:
+class GetModelObjectCoreViewMixin:
+
+    def _has_permission(self, name, obj=None):
+        obj = obj or self.get_obj()
+        return super()._has_permission(name, obj=obj)
+
+    def get_obj(self, cached=True):
+        obj = self.get_obj_or_none()
+        if not obj:
+            raise Http404
+        return obj
+
+    def _get_obj_or_none(self):
+        raise NotImplementedError
+
+    def get_obj_or_none(self, cached=True):
+        if cached and hasattr(self, '_obj'):
+            return self._obj
+        obj = self._get_obj_or_none()
+        if cached and not hasattr(self, '_obj'):
+            self._obj = obj
+        return obj
+
+    def _get_disallowed_fields_from_permissions(self, obj=None):
+        return super()._get_disallowed_fields_from_permissions(obj=obj or self.get_obj())
+
+    def _get_readonly_fields_from_permissions(self, obj=None):
+        return super()._get_readonly_fields_from_permissions(obj=obj or self.get_obj())
+
+
+class GetDjangoObjectCoreViewMixin(GetModelObjectCoreViewMixin):
 
     pk_name = 'pk'
 
@@ -137,27 +170,8 @@ class GetCoreObjViewMixin:
         filters = {'pk': self.kwargs.get(self.pk_name)}
         return filters
 
-    def _has_permission(self, name, obj=None):
-        obj = obj or self.get_obj()
-        return super()._has_permission(name, obj=obj)
+    def get_queryset(self):
+        return self.core.get_queryset(self.request)
 
-    _obj = None
-    def get_obj(self, cached=True):
-        if cached and self._obj:
-            return self._obj
-        obj = get_object_or_404(self.core.get_queryset(self.request), **self.get_obj_filters())
-        if cached and not self._obj:
-            self._obj = obj
-        return obj
-
-    def get_obj_or_none(self, cached=True):
-        try:
-            return self.get_obj(cached=cached)
-        except Http404:
-            return None
-
-    def _get_disallowed_fields_from_permissions(self, obj=None):
-        return super()._get_disallowed_fields_from_permissions(obj=obj or self.get_obj())
-
-    def _get_readonly_fields_from_permissions(self, obj=None):
-        return super()._get_readonly_fields_from_permissions(obj=obj or self.get_obj())
+    def _get_obj_or_none(self):
+        return get_object_or_none(self.get_queryset(), **self.get_obj_filters())
