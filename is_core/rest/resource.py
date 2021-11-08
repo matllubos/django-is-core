@@ -414,7 +414,7 @@ class RESTModelResource(FieldPermissionViewMixin, RESTModelCoreMixin, RESTResour
     def patch(self):
         return super(RESTModelResource, self).patch() if self.kwargs.get(self.pk_name) else self.update_bulk()
 
-    @transaction.atomic
+    @transaction.smart_atomic
     def update_bulk(self):
         qs = self._filter_queryset(self._get_queryset())
         BULK_CHANGE_LIMIT = getattr(settings, 'BULK_CHANGE_LIMIT', 200)
