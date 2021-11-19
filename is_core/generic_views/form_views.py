@@ -136,7 +136,7 @@ class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
             form.save_m2m()
         return obj
 
-    @transaction.atomic_with_signals
+    @transaction.smart_atomic
     def _atomic_save_form(self, *args, **kwargs):
         return self.save_form(*args, **kwargs)
 
