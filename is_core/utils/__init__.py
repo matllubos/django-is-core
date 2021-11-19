@@ -2,6 +2,7 @@ import re
 import json
 import inspect
 import types
+import datetime
 
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.contrib.admin.utils import display_for_value as admin_display_for_value
@@ -12,6 +13,7 @@ from django.forms.utils import pretty_name
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 from django.utils.html import format_html, format_html_join
+from django.utils.formats import get_format, date_format
 
 from chamber.utils import call_function_with_unknown_input
 
@@ -265,6 +267,16 @@ def display_for_value(value, request=None):
         )
     elif isinstance(value, bool):
         return ugettext('Yes') if value else ugettext('No')
+    elif isinstance(value, datetime.datetime):
+        return date_format(value, (
+             'DATETIME_FORMAT' if get_format('IS_CORE_VIEW_DATETIME_FORMAT') == 'IS_CORE_VIEW_DATETIME_FORMAT'
+             else 'IS_CORE_VIEW_DATETIME_FORMAT'
+         ))
+    elif isinstance(value, datetime.date):
+        return date_format(value, (
+            'DATE_FORMAT' if get_format('IS_CORE_VIEW_DATE_FORMAT') == 'IS_CORE_VIEW_DATE_FORMAT'
+            else 'IS_CORE_VIEW_DATE_FORMAT'
+        ))
     else:
         return admin_display_for_value(value, EMPTY_VALUE)
 
