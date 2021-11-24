@@ -14,6 +14,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 from django.utils.html import format_html, format_html_join
 from django.utils.formats import get_format, date_format
+from django.utils.timezone import template_localtime
 
 from chamber.utils import call_function_with_unknown_input
 
@@ -268,7 +269,7 @@ def display_for_value(value, request=None):
     elif isinstance(value, bool):
         return ugettext('Yes') if value else ugettext('No')
     elif isinstance(value, datetime.datetime):
-        return date_format(value, (
+        return date_format(template_localtime(value), (
              'DATETIME_FORMAT' if get_format('IS_CORE_VIEW_DATETIME_FORMAT') == 'IS_CORE_VIEW_DATETIME_FORMAT'
              else 'IS_CORE_VIEW_DATETIME_FORMAT'
          ))
