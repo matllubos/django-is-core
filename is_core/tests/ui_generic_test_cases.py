@@ -23,14 +23,14 @@ class ModelUITestCaseMiddleware(DataGeneratorTestCase):
     @classmethod
     def set_up_main_views(cls):
         from is_core.site import registered_model_cores
-        from is_core.main import UIRESTModelISCore
+        from is_core.main import UIRESTModelCore
 
         # Must be here, because hanlers is not registered
         get_resolver().url_patterns
 
         ui_main_views = []
         for main_view in [model_view for model_view in registered_model_cores.values()
-                          if isinstance(model_view, UIRESTModelISCore)]:
+                          if isinstance(model_view, UIRESTModelCore)]:
             model = main_view.model
             if cls.get_model_label(model) in cls.factories:
                 ui_main_views.append((main_view, model))

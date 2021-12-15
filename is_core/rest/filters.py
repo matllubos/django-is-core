@@ -1,15 +1,67 @@
 from django import forms
+from django.db.models.fields import DateField, DateTimeField
+from django.db.models.fields.related import ForeignKey, ManyToManyField, ForeignObjectRel
 
-from pyston.filters.default_filters import (
-    DateFilter, ManyToManyFieldFilter, OPERATORS, ForeignKeyFilter, ForeignObjectRelFilter
+from pyston.filters.filters import OPERATORS, NONE_LABEL
+from pyston.filters.managers import DjangoFilterManager
+from pyston.filters.django_filters import (
+    DateFieldFilter, ManyToManyFieldFilter, ForeignKeyFieldFilter, ForeignObjectRelFilter
 )
 
 from is_core.forms.widgets import DateRangeFilterWidget, DateTimeRangeFilterWidget, RestrictedSelectWidget
 
-from . import UIFilterMixin, FilterChoiceIterator
+
+class FilterChoiceIterator:
+    """
+    Filter iterator surrounds default model iterator, removes blank values and adds possibilities
+    to remove filtered value (blank) and filter according to "None" value.
+    """
+
+    def __init__(self, choices, field=None):
+        self.choices = choices
+        self.field = field
+
+    def __iter__(self):
+        yield ('', '')
+
+        if self.field and (self.field.null or self.field.blank):
+            yield ('__none__', NONE_LABEL)
+
+        for k, v in self.choices:
+            if k is not None and k != '':
+                yield (k, v)
+
+    def __len__(self):
+        return len(self.choices)
+
+    def __getattr__(self, name):
+        return getattr(self.choices, name)
 
 
-class DateRangeFilter(UIFilterMixin, DateFilter):
+class UIFilterMixin:
+    """
+    Special mixin for improve Pyston filters. There can be defined UI appearance (widget) and used operator.
+    """
+
+    widget = None
+
+    def get_widget(self, request):
+        """
+        Returns concrete widget that will be used for rendering table filter.
+        """
+        widget = self.widget
+        if isinstance(widget, type):
+            widget = widget()
+        return widget
+
+    def get_operator(self, widget):
+        """
+        Returns operator used for filtering. By default it is first operator defined in Pyston filter.
+        """
+        return self.get_allowed_operators()[0]
+
+
+class DateRangeFieldFilter(UIFilterMixin, DateFieldFilter):
     """
     UI filter for date field that provides possibility to filter date from/to
     """
@@ -17,7 +69,7 @@ class DateRangeFilter(UIFilterMixin, DateFilter):
     widget = DateRangeFilterWidget
 
 
-class DateTimeRangeFilter(UIFilterMixin, DateFilter):
+class DateTimeRangeFieldFilter(UIFilterMixin, DateFieldFilter):
     """
     UI filter for datetime field that provides possibility to filter date from/to
     """
@@ -51,7 +103,7 @@ class RelatedUIFilter(UIFilterMixin):
         return OPERATORS.CONTAINS if widget.is_restricted else OPERATORS.EQ
 
 
-class UIForeignKeyFilter(RelatedUIFilter, ForeignKeyFilter):
+class UIForeignKeyFieldFilter(RelatedUIFilter, ForeignKeyFieldFilter):
 
     def get_widget(self, request):
         """
@@ -85,3 +137,14 @@ class UIForeignObjectRelFilter(RelatedUIFilter, ForeignObjectRelFilter):
                 widget=RestrictedSelectWidget, queryset=self.field.related_model._default_manager.all()
             ).widget
         )
+
+
+class CoreDjangoFilterManager(DjangoFilterManager):
+
+    model_field_filters = {
+        DateField: DateRangeFieldFilter,
+        DateTimeField: DateTimeRangeFieldFilter,
+        ManyToManyField: UIManyToManyFieldFilter,
+        ForeignKey: UIForeignKeyFieldFilter,
+        ForeignObjectRel: UIForeignObjectRelFilter,
+    }

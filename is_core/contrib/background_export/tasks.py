@@ -1,7 +1,6 @@
 import import_string
 
 from django.conf import settings as django_settings
-from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.http.request import HttpRequest
 from django.utils import translation
@@ -10,7 +9,7 @@ from django.db.transaction import atomic
 from pyston.converters import get_converter_from_request
 from pyston.serializer import get_serializer, get_resource_or_none
 from pyston.utils import RFS
-from pyston.utils.helpers import QuerysetIteratorHelper
+from pyston.utils.helpers import ModelIterableIteratorHelper
 
 from is_core.config import settings
 
@@ -41,7 +40,8 @@ class FileBackgroundExportGenerator:
     def generate(self, exported_file, request, queryset, requested_fieldset, serialization_format):
         converter = get_converter_from_request(request)
         converted_dict = get_serializer(queryset, request=request).serialize(
-            QuerysetIteratorHelper(queryset), serialization_format, requested_fieldset=requested_fieldset,
+            ModelIterableIteratorHelper(queryset, queryset.model),
+            serialization_format, requested_fieldset=requested_fieldset,
             lazy=True, allow_tags=converter.allow_tags
         )
         django_file = exported_file.file

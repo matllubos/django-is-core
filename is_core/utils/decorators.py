@@ -1,6 +1,3 @@
-from django.db.models import Model
-from django.utils.functional import lazy
-
 from django.apps import apps
 from django.db.models.utils import make_model_tuple
 

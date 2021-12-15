@@ -1,7 +1,7 @@
 {% load i18n utils permissions %}
 
 {% block inline-table %}
-	<div class="table-responsive">
+	<div class="table-inline-responsive">
 		{% block tabs-menu-wrapper %}{% endblock %}
 		{% block table-paginator %}
 			{% if paginator_type == 'offset-based-paginator' %}
@@ -58,27 +58,31 @@
 		{% endblock %}
 
         {% block inline-table-buttons %}
-        <ul class="inline-list">
+			<ul class="inline-list">
+				{% block column-manager %}
+					{% if enable_columns_manager %}
+					<li>
+						<div class="dropdown columns-dropdown">
+							<span class="btn btn-primary dropdown-toggle" data-toggle="dropdown">{% trans "Columns" %}<span class="caret"></span></span>
+							<div class="dropdown-menu columns-manager" id="columns-manager-{{ table_slug }}"></div>
+						</div>
+					</li>
+					{% endif %}
+				{% endblock %}
 
-            {% block column-manager %}
-                {% if enable_columns_manager %}
-                <li>
-                    <div class="dropdown columns-dropdown">
-                        <span class="btn btn-primary dropdown-toggle" data-toggle="dropdown">{% trans "Columns" %}<span class="caret"></span></span>
-                        <div class="dropdown-menu columns-manager" id="columns-manager-{{ table_slug }}"></div>
-                    </div>
-                </li>
-                {% endif %}
-            {% endblock %}
+				{% block inline-table-rest-buttons %}{% endblock %}
+			</ul>
+			<ul class="inline-list inline-list-right table-buttons">
+				<li><button type="button" class="btn btn-secondary dynamic reset-filters" title="{% trans 'Clear filters' %}"><i class="fa fa-ban"></i></button></li>
+				<li><button type="button" class="btn btn-secondary dynamic reload" title="{% trans 'Reload data' %}"><i class="fa fa-sync"></i></button></li>
+				<li><button type="button" class="btn btn-secondary dynamic reload-count" title="{% trans 'Reload data and total number of rows' %}"><b>&#8721;</b></button></li>
+			</ul>
 
-            {% block inline-table-rest-buttons %}{% endblock %}
-        </ul>
-
-            {% if enable_columns_manager %}
-            <div class="alert alert-info columns-filtering-text" id="columns-filtering-text-table-{{ table_slug }}" style="display: none">
-                {% blocktrans with '%(columns)s' as columns %}There are some filters on hidden fields: <span class="columns">{{ columns }}</span>. Do you want to <span class="delete-filtering">delete filtering</span>?{% endblocktrans%}
-            </div>
-            {% endif %}
+			{% if enable_columns_manager %}
+				<div class="alert alert-info columns-filtering-text" id="columns-filtering-text-table-{{ table_slug }}" style="display: none">
+					{% blocktrans with '%(columns)s' as columns %}There are some filters on hidden fields: <span class="columns">{{ columns }}</span>. Do you want to <span class="delete-filtering">delete filtering</span>?{% endblocktrans%}
+				</div>
+			{% endif %}
         {% endblock %}
 
 		{% block table %}

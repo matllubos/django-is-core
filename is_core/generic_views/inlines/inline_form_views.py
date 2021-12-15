@@ -5,7 +5,7 @@ from django.utils.functional import cached_property
 from chamber.utils.forms import formset_has_file_field
 
 from is_core.forms.models import BaseInlineFormSet, smartinlineformset_factory, SmartModelForm
-from is_core.generic_views.inlines import RelatedInlineView
+from is_core.generic_views.inlines.base import RelatedInlineView
 from is_core.forms.fields import SmartReadonlyField, EmptyReadonlyField
 from is_core.utils import get_readonly_field_data, GetMethodFieldMixin
 
@@ -67,7 +67,7 @@ class InlineFormView(GetMethodFieldMixin, RelatedInlineView):
         context_data = super().get_context_data(**kwargs)
         context_data.update({
             'formset': formset,
-            'fields': self.get_fromset_fields(formset),
+            'fields': self.get_formset_fields(formset),
             'name': self.get_name(),
             'button_value': self.get_button_value(),
             'class_names': self.get_class_names(formset, **kwargs),
@@ -128,7 +128,7 @@ class InlineFormView(GetMethodFieldMixin, RelatedInlineView):
     def get_prefix(self):
         return '-'.join((self.parent_view.get_prefix(), 'inline', self.__class__.__name__)).lower()
 
-    def get_fromset_fields(self, formset):
+    def get_formset_fields(self, formset):
         fields = list(self.generate_fields() or formset.form.base_fields.keys())
         if formset.can_delete:
             fields.append(DELETION_FIELD_NAME)
@@ -139,7 +139,9 @@ class InlineFormView(GetMethodFieldMixin, RelatedInlineView):
 
     def formfield_for_readonlyfield(self, name, **kwargs):
         def _get_readonly_field_data(instance):
-            return get_readonly_field_data(instance, name, self.request, view=self)
+            return get_readonly_field_data(
+                instance, name, self.request, view=self, field_labels=self._get_field_labels()
+            )
         return SmartReadonlyField(_get_readonly_field_data)
 
     def get_form_class(self):

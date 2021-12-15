@@ -1,16 +1,13 @@
-from django.utils.translation import ugettext_lazy as _
-
 from is_core.auth.permissions import PermissionsSet, SelfPermission, IsSuperuser
-from is_core.main import UIRESTModelISCore, UIRESTISCore
-from is_core.utils.decorators import short_description
+from is_core.main import DjangoUiRestCore
 
 from .models import ExportedFile
-from .resource import CeleryRESTModelResource, CeleryRESTResource
+from .resource import CeleryDjangoCoreResource
 
 
-class BackgroundExportISCoreMixin:
+class BackgroundExportCoreMixin:
 
-    rest_resource_class = CeleryRESTModelResource
+    rest_resource_class = CeleryDjangoCoreResource
     export_permission = IsSuperuser()
 
     def _get_export_permission(self):
@@ -22,12 +19,12 @@ class BackgroundExportISCoreMixin:
         return permission
 
 
-class BackgroundExportUIRESTModelISCore(BackgroundExportISCoreMixin, UIRESTModelISCore):
+class DjangoBackgroundExportUiRestCore(BackgroundExportCoreMixin, DjangoUiRestCore):
 
     abstract = True
 
 
-class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
+class BaseExportedFileCore(DjangoBackgroundExportUiRestCore):
 
     abstract = True
     model = ExportedFile
@@ -37,10 +34,10 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
     read_own_permission = IsSuperuser()
     read_all_permission = IsSuperuser()
 
-    all_ui_list_fields = (
+    all_list_fields = (
         'changed_at', 'created_at', 'created_by', 'downloaded_by', 'expiration', 'download_link'
     )
-    own_ui_list_fields = (
+    own_list_fields = (
         'changed_at', 'created_at', 'expiration', 'download_link'
     )
     form_fields = (
@@ -54,10 +51,10 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
             read_all=self.read_all_permission,
         )
 
-    def get_ui_list_fields(self, request):
+    def get_list_fields(self, request):
         return (
-            list(self.all_ui_list_fields) if self.permission.has_permission('read_all', request, self)
-            else list(self.own_ui_list_fields)
+            list(self.all_list_fields) if self.permission.has_permission('read_all', request, self)
+            else list(self.own_list_fields)
         )
 
     def get_queryset(self, request):
@@ -68,4 +65,3 @@ class BaseExportedFileISCore(BackgroundExportUIRESTModelISCore):
             return qs.filter(created_by=request.user)
         else:
             return qs.none()
-

@@ -1,0 +1,15 @@
+{% extends 'is_core/base.html' %}
+{% load forms i18n snippets %}
+
+{% block header-content %}
+	{{ block.super }}
+	{% block header-btns %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+	<div class="clearfix page-view">
+        {% for fieldset in fieldsets %}
+            {% include "is_core/generic_views/readonly_fieldset.html" with fieldset=fieldset %}
+        {% endfor %}
+	</div>
+{% endblock %}

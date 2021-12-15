@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 
-from is_core.main import UIRESTModelISCore
+from is_core.main import DjangoUiRestCore
 from is_core.auth.permissions import (
     BasePermission, IsSuperuser, IsAdminUser, PermissionsSet, SelfPermission, FieldsListPermission, FieldsSetPermission
 )
@@ -8,6 +8,8 @@ from is_core.utils.decorators import short_description
 
 from issue_tracker.models import Issue
 from issue_tracker.forms import UserForm
+from issue_tracker.elasticsearch.core import ElasticsearchCommentCore
+from issue_tracker.dynamo.core import DynamoCommentCore
 
 from .resources import NumberOfUserIssuesResource, UserModelResource
 from .views import UserDetailView
@@ -31,11 +33,12 @@ class IsObjectSuperuser(BasePermission):
         return obj and obj.is_superuser
 
 
-class UserISCore(UIRESTModelISCore):
+class UserCore(DjangoUiRestCore):
 
     model = User
     form_class = UserForm
-    ui_list_fields = ('id', 'created_issues_count', '_obj_name', 'username', 'is_superuser')
+    list_fields = ('id', 'created_issues_count', '_obj_name', 'username', 'is_superuser')
+    fields = ('username', 'first_name', 'last_name', 'is_superuser')
     permission = PermissionsSet(
         is_superuser=IsSuperuser(),
         create=SelfPermission('is_superuser'),
@@ -85,10 +88,10 @@ class UserISCore(UIRESTModelISCore):
         return obj.created_issues.count()
 
 
-class IssueISCore(UIRESTModelISCore):
+class IssueCore(DjangoUiRestCore):
 
     model = Issue
-    ui_list_fields = ('id', '_obj_name', 'watched_by_string', 'leader__email', 'leader__last_name')
+    list_fields = ('id', '_obj_name', 'watched_by_string', 'leader__email', 'leader__last_name')
 
     can_create = False
     can_delete = False

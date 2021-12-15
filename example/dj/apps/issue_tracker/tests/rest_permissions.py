@@ -1,5 +1,5 @@
 from germanium.decorators import login
-from germanium.test_cases.rest import RESTTestCase
+from germanium.test_cases.rest import RestTestCase
 from germanium.tools import assert_equal, assert_false
 from germanium.tools.http import (assert_http_forbidden, assert_http_unauthorized, assert_http_accepted,
                                   assert_http_not_found, assert_http_method_not_allowed)
@@ -16,7 +16,7 @@ __all__ =(
 )
 
 
-class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
+class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RestTestCase):
 
     USER_API_URL = '/api/user/'
     ISSUE_API_URL = '/api/issue/'
@@ -38,8 +38,7 @@ class RESTPermissionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase)
     @login(is_superuser=False)
     def test_user_can_read_all_user_data(self):
         [self.get_user_obj() for _ in range(5)]
-
-        resp = self.get(self.USER_API_URL)
+        resp = self.get(f'{self.USER_API_URL}?_fields=id')
         assert_valid_JSON_response(resp)
         output = self.deserialize(resp)
         assert_equal(len(output), 1)

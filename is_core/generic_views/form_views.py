@@ -7,29 +7,23 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.edit import FormView
 from django.contrib.messages.api import get_messages, add_message
 from django.contrib.messages import constants
-from django.utils.functional import cached_property
 
-from chamber.shortcuts import get_object_or_none
 from chamber.utils.forms import formset_has_file_field
 from chamber.utils import transaction
 
-from is_core.auth.permissions import (
-    PermissionsSet, CoreReadAllowed, CoreUpdateAllowed, CoreCreateAllowed, CoreAllowed, DEFAULT_PERMISSION
-)
+from is_core.auth.permissions import PermissionsSet, CoreUpdateAllowed, CoreAllowed, DEFAULT_PERMISSION
 from is_core.auth.views import FieldPermissionViewMixin
-from is_core.generic_views import DefaultModelCoreViewMixin
+from is_core.generic_views.base import DefaultModelCoreViewMixin
 from is_core.utils import (
     flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets,
-    get_export_types_with_content_type, GetMethodFieldMixin, get_model_name
+    GetMethodFieldMixin, get_model_name
 )
-from is_core.generic_views.mixins import ListParentMixin, GetCoreObjViewMixin
+from is_core.generic_views.mixins import ListParentMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
-from is_core.generic_views.inlines.inline_table_views import InlineTableView
 from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms import SmartModelForm
-from is_core.rest.datastructures import ModelFlatRESTFields
 
 
 def get_fieldsets_without_disallowed_fields(request, fieldsets, disallowed_fields):
@@ -50,10 +44,11 @@ def get_fieldsets_without_disallowed_fields(request, fieldsets, disallowed_field
     return generated_fieldsets
 
 
-class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
+class BaseFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
 
     view_type = 'default'
     fieldsets = None
+    fields = None
     form_template = 'is_core/forms/default_form.html'
     template_name = 'is_core/generic_views/default_form.html'
     messages = {
@@ -93,7 +88,6 @@ class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
 
         for field_name, field in form.fields.items():
             self.form_field(form, field_name, field)
-
         return form
 
     def get_form_action(self):
@@ -182,7 +176,7 @@ class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
         return class_names
 
     def get_prefix(self):
-        return '-'.join((self.view_type, self.site_name, self.core.get_menu_group_pattern_name())).lower()
+        return '-'.join((self.view_type, self.site_name)).lower()
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
@@ -223,12 +217,18 @@ class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
             }
         }
 
-    def generate_fieldsets(self, **kwargs):
+    def get_fields(self):
         fieldsets = self.get_fieldsets()
-        return [(None, {'fields': list(self.get_form_class().base_fields.keys())})] if fieldsets is None else fieldsets
+        return flatten_fieldsets(fieldsets) if fieldsets is None else self.fields
 
     def get_fieldsets(self):
         return self.fieldsets
+
+    def generate_fieldsets(self, form):
+        fieldsets = self.get_fieldsets()
+        return [
+            (None, {'fields': self.get_fields() or list(form.base_fields.keys())})
+        ] if fieldsets is None else fieldsets
 
     def get_initial(self):
         initial = super().get_initial()
@@ -241,12 +241,12 @@ class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
 
     def get(self, request, *args, **kwargs):
         form = self.get_form()
-        fieldsets = self.generate_fieldsets()
+        fieldsets = self.generate_fieldsets(form)
         return self.render_to_response(self.get_context_data(form=form, fieldsets=fieldsets))
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        fieldsets = self.generate_fieldsets()
+        fieldsets = self.generate_fieldsets(form)
 
         is_valid = form.is_valid()
         is_changed = self.is_changed(form)
@@ -293,11 +293,10 @@ class DefaultFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
         return super().render_to_response(context, **response_kwargs)
 
 
-class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
+class DjangoBaseFormView(FieldPermissionViewMixin, BaseFormView):
 
     model = None
-    fields = None
-    exclude = None
+    exclude = ()
     field_labels = None
     inline_views = None
     form_template = 'is_core/forms/model_default_form.html'
@@ -323,7 +322,7 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
         return {'obj': force_text(obj), 'name': force_text(obj._meta.verbose_name)}
 
     def get_exclude(self):
-        return () if self.exclude is None else self.exclude
+        return self.exclude
 
     def generate_readonly_fields(self):
         return list(self.get_readonly_fields()) + list(self._get_readonly_fields_from_permissions())
@@ -334,7 +333,7 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
     def _filter_inline_form_views(self, inline_views):
         return [view for view in inline_views if isinstance(view, InlineFormView)]
 
-    def generate_fieldsets(self, **kwargs):
+    def generate_fieldsets(self, form):
         fieldsets = deepcopy(self.get_fieldsets())
 
         if fieldsets and self.get_inline_views():
@@ -343,9 +342,7 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
         if not fieldsets:
             fieldsets = [
                 (None, {
-                    'fields': (
-                        self.get_fields() or list(self.generate_form_class().base_fields.keys())
-                    )
+                    'fields': self.get_fields() or form.base_fields.keys()
                 })
             ] + [
                 (
@@ -360,8 +357,8 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
             self.request, fieldsets, self._get_disallowed_fields_from_permissions() | set(self.get_exclude())
         )
 
-    def generate_fieldsets_with_inline_view_instances(self, instance, **kwargs):
-        fieldsets = self.generate_fieldsets()
+    def generate_fieldsets_with_inline_view_instances(self, form, instance):
+        fieldsets = self.generate_fieldsets(form)
         inline_view_opts = get_inline_views_opts_from_fieldsets(fieldsets)
         for inline_view_opt in inline_view_opts:
             inline_view = inline_view_opt['inline_view']
@@ -375,14 +372,8 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
             self.request, fieldsets, self._get_disallowed_fields_from_permissions()
         )
 
-    def get_fields(self):
-        return self.fields
-
-    def generate_fields(self):
-        return flatten_fieldsets(self.generate_fieldsets())
-
     def get_form_class(self):
-        fields = self.generate_fields()
+        fields = self.get_fields()
         readonly_fields = self.generate_readonly_fields()
         return self.generate_form_class(fields, readonly_fields)
 
@@ -451,7 +442,7 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
 
     def get(self, request, *args, **kwargs):
         form = self.get_form()
-        fieldsets = self.generate_fieldsets_with_inline_view_instances(form.instance)
+        fieldsets = self.generate_fieldsets_with_inline_view_instances(form, form.instance)
         inline_views = get_inline_views_from_fieldsets(fieldsets)
         inline_form_views = self._filter_inline_form_views(inline_views)
         return self.render_to_response(self.get_context_data(form=form, inline_views=inline_views,
@@ -460,7 +451,7 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        fieldsets = self.generate_fieldsets_with_inline_view_instances(form.instance)
+        fieldsets = self.generate_fieldsets_with_inline_view_instances(form, form.instance)
         inline_views = get_inline_views_from_fieldsets(fieldsets)
         inline_form_views = self._filter_inline_form_views(inline_views)
 
@@ -542,7 +533,7 @@ class DefaultModelFormView(FieldPermissionViewMixin, DefaultFormView):
         return {'_obj_name': force_text(obj), 'pk': obj.pk, '_model': '%s.%s' % (app_label, model_name)}
 
 
-class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
+class DjangoCoreFormView(ListParentMixin, DjangoBaseFormView):
 
     show_save_and_continue = True
 
@@ -555,6 +546,9 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
     cancel_button_title = _('Do not save and go back to the list')
 
     export_types = None
+
+    def get_prefix(self):
+        return '-'.join((self.view_type, self.site_name, self.core.get_menu_group_pattern_name())).lower()
 
     def get_buttons_dict(self):
         buttons_dict = super().get_buttons_dict()
@@ -576,37 +570,45 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
     def post_save_obj(self, obj, form, change):
         self.core.post_save_model(self.request, obj, form, change)
 
-    def get_exclude(self):
-        return (self.exclude is not None and self.exclude or
-                self.core.get_ui_form_exclude(self.request, self.get_obj(True)))
-
     def get_readonly_fields(self):
-        return (self.readonly_fields is not None and self.readonly_fields or
-                self.core.get_form_readonly_fields(self.request, self.get_obj(True)))
+        if self.readonly_fields is not None:
+            return self.readonly_fields
+
+        readonly_fields = self.core.get_readonly_fields(self.request, self.get_obj(True))
+        return () if readonly_fields is None else readonly_fields
 
     def get_fieldsets(self):
-        return (self.fieldsets is not None and self.fieldsets or
-                self.core.get_form_fieldsets(self.request, self.get_obj(True)))
+        if self.fieldsets is not None or self.fields is not None:
+            return self.fieldsets
+
+        return self.core.get_fieldsets(self.request, self.get_obj(True))
 
     def get_fields(self):
-        return (self.fields is not None and self.fields or
-                self.core.get_ui_form_fields(self.request, self.get_obj(True)))
+        fieldsets = self.get_fieldsets()
+        if fieldsets is not None:
+            return flatten_fieldsets(fieldsets)
+        elif self.fields is not None:
+            return self.fields
+        else:
+            return self.core.get_fields(self.request, self.get_obj(True))
 
     def get_inline_views(self):
-        return (self.inline_views is not None and self.inline_views or
-                self.core.get_form_inline_views(self.request, self.get_obj(True)))
+        if self.inline_views is not None:
+            return self.inline_views
+
+        return self.core.get_inline_views(self.request, self.get_obj(True))
 
     def _get_field_labels(self):
-        return self.field_labels if self.field_labels is not None else self.core.get_ui_field_labels(self.request)
+        return self.field_labels if self.field_labels is not None else self.core.get_field_labels(self.request)
 
     def get_form_class_base(self):
         obj = self.get_obj(True)
         return (
             self.form_class or
             (
-                self.core.get_ui_form_edit_class(self.request, obj)
+                self.core.get_form_edit_class(self.request, obj)
                 if obj
-                else self.core.get_ui_form_add_class(self.request, obj)
+                else self.core.get_form_add_class(self.request, obj)
             )
         )
 
@@ -647,123 +649,7 @@ class DefaultCoreModelFormView(ListParentMixin, DefaultModelFormView):
         return context_data
 
 
-class AddModelFormView(DefaultCoreModelFormView):
-
-    template_name = 'is_core/generic_views/add_form.html'
-    form_template = 'is_core/forms/model_add_form.html'
-    view_type = 'add'
-    messages = {'success': _('The %(name)s "%(obj)s" was added successfully.'),
-                'error': _('Please correct the error below.')}
-
-    permission = PermissionsSet(
-        get=CoreCreateAllowed(),
-        post=CoreCreateAllowed(),
-        **{
-            DEFAULT_PERMISSION: CoreAllowed(),
-        }
-    )
-
-    def get_title(self):
-        return (self.title or
-                self.model._ui_meta.add_verbose_name % {'verbose_name': self.model._meta.verbose_name,
-                                                        'verbose_name_plural': self.model._meta.verbose_name_plural})
-
-
-class DetailModelFormView(GetCoreObjViewMixin, DefaultCoreModelFormView):
-
-    template_name = 'is_core/generic_views/detail_form.html'
-    form_template = 'is_core/forms/model_detail_form.html'
-    view_type = 'detail'
-    messages = {'success': _('The %(name)s "%(obj)s" was changed successfully.'),
-                'error': _('Please correct the error below.')}
-    pk_name = 'pk'
-
-    permission = PermissionsSet(
-        get=CoreReadAllowed() | CoreUpdateAllowed(),
-        post=CoreUpdateAllowed(),
-        **{
-            DEFAULT_PERMISSION: CoreAllowed(),
-        }
-    )
-
-    @property
-    def detail_verbose_name(self):
-        return self.model._ui_meta.detail_verbose_name
-
-    def get_title(self):
-        return (self.title or
-                self.detail_verbose_name % {
-                    'verbose_name': self.model._meta.verbose_name,
-                    'verbose_name_plural': self.model._meta.verbose_name_plural,
-                    'obj': self.get_obj(True)
-                })
-
-    def is_readonly(self):
-        return not self.has_permission('post')
-
-    def link(self, arguments=None, **kwargs):
-        if arguments is None:
-            arguments = (self.kwargs[self.pk_name],)
-        return super().link(arguments=arguments, **kwargs)
-
-    # TODO: get_obj should not be inside core get_obj and _get_perm_obj_or_404 should have same implementation
-    def _get_perm_obj_or_404(self, pk=None):
-        """
-        If is send parameter pk is returned object according this pk,
-        else is returned object from get_obj method, but it search only inside filtered values for current user,
-        finally if object is still None is returned according the input key from all objects.
-
-        If object does not exist is raised Http404
-        """
-        if pk:
-            obj = get_object_or_none(self.core.model, pk=pk)
-        else:
-            try:
-                obj = self.get_obj(False)
-            except Http404:
-                obj = get_object_or_none(self.core.model, **self.get_obj_filters())
-        if not obj:
-            raise Http404
-        return obj
-
-    def _get_export_types(self):
-        return self.core.get_ui_detail_export_types(self.request) if self.export_types is None else self.export_types
-
-    def _get_export_fields(self):
-        return list(self.core.get_ui_detail_export_fields(self.request, self.get_obj(True)))
-
-    def _generate_rest_detail_export_fieldset(self):
-        return ModelFlatRESTFields.create_from_flat_list(self._get_export_fields(), self.model)
-
-    def get_context_data(self, form=None, inline_form_views=None, **kwargs):
-        context_data = super().get_context_data(
-            form=form, inline_form_views=inline_form_views, **kwargs
-        )
-        if self._get_export_types() and self._get_export_fields():
-            context_data.update({
-                'export_types': get_export_types_with_content_type(self._get_export_types()),
-                'rest_detail_export_fieldset': self._generate_rest_detail_export_fieldset(),
-                'api_url': self.core.get_api_detail_url(self.request, self.get_obj(True))
-            })
-        return context_data
-
-
-class ReadonlyDetailModelFormView(DetailModelFormView):
-
-    show_save_and_continue = False
-
-    permission = PermissionsSet(
-        get=CoreReadAllowed(),
-        **{
-            DEFAULT_PERMISSION: CoreAllowed(),
-        }
-    )
-
-    def is_readonly(self):
-        return True
-
-
-class BulkChangeFormView(DefaultModelFormView):
+class BulkChangeFormView(DjangoBaseFormView):
 
     form_template = 'is_core/views/bulk-change-view.html'
     is_ajax_form = False
@@ -776,6 +662,9 @@ class BulkChangeFormView(DefaultModelFormView):
         }
     )
 
+    def get_prefix(self):
+        return '-'.join((self.view_type, self.site_name, self.core.get_menu_group_pattern_name())).lower()
+
     def get_form_class_base(self):
         return self.form_class or self.core.get_rest_form_edit_class(self.request)
 
@@ -785,14 +674,14 @@ class BulkChangeFormView(DefaultModelFormView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_fields(self):
-        return self.core.get_ui_bulk_change_fields(self.request) if self.fields is None else self.fields
+        return self.core.get_bulk_change_fields(self.request) if self.fields is None else self.fields
 
     def get_fieldsets(self):
         return (
             (None, {'fields': self.get_fields()}),
         )
 
-    def generate_fieldsets(self, **kwargs):
+    def generate_fieldsets(self, form):
         return get_fieldsets_without_disallowed_fields(
             self.request,
             self.get_fieldsets(),
@@ -808,17 +697,3 @@ class BulkChangeFormView(DefaultModelFormView):
 
     def get_is_bulk(self):
         return True
-
-
-class RelatedCoreTableView(ReadonlyDetailModelFormView):
-
-    table_model = None
-
-    @cached_property
-    def inline_table_view(self):
-        return type(self.__class__.__name__ + 'InlineTableView', (InlineTableView,), {'model': self.table_model})
-
-    def get_fieldsets(self):
-        return (
-            (None, {'inline_view': self.inline_table_view}),
-        )

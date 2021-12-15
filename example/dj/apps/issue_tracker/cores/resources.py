@@ -1,20 +1,21 @@
-from is_core.rest.resource import RESTResource, RESTModelCoreMixin, RESTModelResource
+from django.contrib.auth.models import User
+
+from chamber.shortcuts import get_object_or_404
+
+from is_core.rest.resource import CoreResource, DjangoCoreResource
 
 
-class NumberOfUserIssuesResource(RESTModelCoreMixin, RESTResource):
-
-    def _get_pk(self):
-        return self.kwargs.get(self.pk_name)
+class NumberOfUserIssuesResource(CoreResource,):
 
     def get(self):
-        user = self._get_obj_or_404()
+        user = get_object_or_404(self.core.get_queryset(self.request), pk=self.kwargs.get('pk'))
         return {
             'created': user.created_issues.count(),
             'watching': user.watching_issues.count(),
         }
 
 
-class UserModelResource(RESTModelResource):
+class UserModelResource(DjangoCoreResource):
 
     def watching_issues_count(self, obj):
         return obj.watching_issues.count()

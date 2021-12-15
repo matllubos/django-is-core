@@ -1,7 +1,7 @@
-from is_core.rest.resource import RESTModelResource
+from is_core.rest.resource import DjangoCoreResource
 
 
-def modelrest_factory(model, resource_class=RESTModelResource, register=True, resource_kwargs=None):
+def modelrest_factory(model, resource_class=DjangoCoreResource, register=True, resource_kwargs=None):
     resource_kwargs = resource_kwargs or {}
     resource_kwargs.update({
         'model': model,

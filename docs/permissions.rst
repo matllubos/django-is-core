@@ -104,9 +104,9 @@ As an example of how to define core permissions we use model core of User object
     from django.contrib.auth.models import User
 
     from is_core.auth.permissions import IsSuperuser
-    from is_core.main import UIRESTModelISCore
+    from is_core.main import DjangoUiRestCore
 
-    class UserISCore(UIRESTModelISCore):
+    class UserISCore(DjangoUiRestCore):
 
         model = User
         permission = IsSuperuser()
@@ -117,9 +117,9 @@ Now only a superuser has access to the User core. But this solution is a little 
     from django.contrib.auth.models import User
 
     from is_core.auth.permissions import PermissionsSet, IsSuperuser
-    from is_core.main import UIRESTModelISCore
+    from is_core.main import DjangoUiRestCore
 
-    class UserISCore(UIRESTModelISCore):
+    class UserISCore(DjangoUiRestCore):
 
         model = User
         permission = PermissionsSet(
@@ -134,9 +134,9 @@ Because writing too much code can lead to typos you can use ``default_permission
     from django.contrib.auth.models import User
 
     from is_core.auth.permissions import IsSuperuser
-    from is_core.main import UIRESTModelISCore
+    from is_core.main import DjangoUiRestCore
 
-    class UserISCore(UIRESTModelISCore):
+    class UserISCore(DjangoUiRestCore):
 
         model = User
         default_permission = IsSuperuser()
@@ -146,9 +146,9 @@ But if you want to disable for example deleting model instances the delete permi
     from django.contrib.auth.models import User
 
     from is_core.auth.permissions import IsSuperuser
-    from is_core.main import UIRESTModelISCore
+    from is_core.main import DjangoUiRestCore
 
-    class UserISCore(UIRESTModelISCore):
+    class UserISCore(DjangoUiRestCore):
 
         model = User
         default_permission = IsSuperuser()
@@ -169,9 +169,9 @@ You can use operator joining for using more permission types::
     from django.contrib.auth.models import User
 
     from is_core.auth.permissions import IsSuperuser, IsAdminUser
-    from is_core.main import UIRESTModelISCore
+    from is_core.main import DjangoUiRestCore
 
-    class UserISCore(UIRESTModelISCore):
+    class UserISCore(DjangoUiRestCore):
 
         model = User
         default_permission = IsSuperuser() & IsAdminUser()
@@ -179,7 +179,7 @@ You can use operator joining for using more permission types::
 For some cases is necessary update permissions in a class mixin for this purpose you can use method ``_init_permission(permission)`::
 
     from is_core.auth.permissions import IsSuperuser, IsAdminUser
-    from is_core.main import UIRESTModelISCore
+    from is_core.main import DjangoUiRestCore
 
 
     class HistoryISCoreMixin:
@@ -189,7 +189,7 @@ For some cases is necessary update permissions in a class mixin for this purpose
             permission.set('history', IsSuperuser())
             return permission
 
-    class UserISCore(UIRESTModelISCore):
+    class UserISCore(DjangoUiRestCore):
 
         model = User
         permission = PermissionsSet(
@@ -255,9 +255,9 @@ REST permissions
 
 For the REST classes permissions you can use the same rules. The only difference is that there are more types of permissions because REST resource fulfills two functions - serializer and view (HTTP requests)::
 
-    from is_core.rest.resource import RESTObjectPermissionsMixin
+    from is_core.rest.resource import PermissionsModelResourceMixin
 
-    class RESTModelCoreResourcePermissionsMixin(RESTObjectPermissionsMixin):
+    class PermissionsModelISCoreResourceMixin(PermissionsModelResourceMixin):
 
         permission = PermissionsSet(
             # HTTP permissions
@@ -299,7 +299,7 @@ Core
 Sometimes you need to check permission in the core. But there is no view instance and you will have to create it. For better usability you can check permissions via view patterns, as an example we can use method ``get_list_actions`` which return edit action only if user has permission to update an object::
 
     def get_list_actions(self, request, obj):
-        list_actions = super(UIRESTModelISCore, self).get_list_actions(request, obj)
+        list_actions = super(DjangoUiRestCore, self).get_list_actions(request, obj)
         detail_pattern = self.ui_patterns.get('detail')
         if detail_pattern and detail_pattern.has_permission('get', request, obj=obj):
             return [
@@ -325,7 +325,7 @@ Field permissions
 
 Fields can be restricted with permissions too. You can define readonly or editable fields according to defined permissions. For example::
 
-    class UserISCore(UIRESTModelISCore):
+    class UserISCore(DjangoUiRestCore):
 
         model = User
         field_permissions = FieldsSetPermission(

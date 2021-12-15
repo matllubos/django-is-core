@@ -1,10 +1,10 @@
-from pyston.forms import RESTModelForm
+from pyston.forms import RestModelForm
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 
-class UserForm(RESTModelForm):
+class UserForm(RestModelForm):
 
     password = forms.CharField(label=_('Password'), widget=forms.PasswordInput)
 

@@ -82,7 +82,7 @@ Next add two middlewares to end of ``MIDDLEWARE_CLASSES`` variable::
     MIDDLEWARE_CLASSES = (
         ...
         'is_core.middleware.RequestKwargsMiddleware',
-        'is_core.middleware.HTTPExceptionsMiddleware',
+        'is_core.middleware.HttpExceptionsMiddleware',
     )
 
 Setup

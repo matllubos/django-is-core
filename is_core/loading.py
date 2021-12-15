@@ -2,7 +2,6 @@ from collections import OrderedDict
 
 from importlib import import_module
 
-from django.conf import settings
 from django.utils.encoding import force_text
 from django.apps import apps
 
@@ -43,6 +42,7 @@ class CoresLoader:
         for app in self.apps.values():
             for core in app.cores:
                 yield core
+
 
 loader = CoresLoader()
 register_core = loader.register_core

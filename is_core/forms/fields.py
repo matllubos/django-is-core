@@ -1,11 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.db.models.base import Model
 from django.utils.translation import ugettext
 
-from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, DivButtonWidget, ModelObjectReadonlyWidget
-
-from .boundfield import ReadonlyBoundField
+from is_core.forms.widgets import ReadonlyWidget, EmptyWidget, DivButtonWidget
 
 
 class ReadonlyField(forms.Field):
@@ -18,8 +15,7 @@ class ReadonlyField(forms.Field):
     def __init__(self, required=True, widget=None, label=None, initial=None,
                  help_text='', error_messages=None, show_hidden_initial=False,
                  validators=None, localize=False):
-        super().__init__(required=False, widget=widget, label=label, initial=initial,
-                                            help_text=help_text)
+        super().__init__(required=False, widget=widget, label=label, initial=initial, help_text=help_text)
 
     def _has_changed(self, initial, data):
         return self.has_changed(initial, data)

@@ -4,7 +4,7 @@ from django.db.models.fields.files import FieldFile
 from django.urls.resolvers import get_resolver
 from django.urils import reverse
 
-from germanium.test_cases.rest import RESTTestCase
+from germanium.test_cases.rest import RestTestCase
 from germanium.decorators import login_all, data_provider
 from germanium.tools.trivials import assert_equal
 from germanium.tools.http import assert_http_not_found, assert_http_accepted
@@ -14,12 +14,6 @@ from is_core.tests.data_generator_test_case import DataGeneratorTestCase
 from is_core.forms.boundfield import ReadonlyBoundField
 
 from pyston.utils import model_resources_to_dict
-
-try:
-    from auth_token.contrib.is_core.tests.auth_test_cases import RESTAuthMixin
-except ImportError:
-    class RESTAuthMixin:
-        pass
 
 
 def add_urls_to_resource(resource):
@@ -38,14 +32,14 @@ def add_urls_to_resource(resource):
 
 
 @login_all
-class TestRESTsAvailability(RESTAuthMixin, DataGeneratorTestCase, RESTTestCase):
+class TestRestAvailability(DataGeneratorTestCase, RestTestCase):
 
     iteration = 5
     ignore_warnings = False
 
     @classmethod
     def setUpClass(cls):
-        super(TestRESTsAvailability, cls).setUpClass()
+        super().setUpClass()
         cls.rest_resources = cls.set_up_rest_resources()
 
     @classmethod

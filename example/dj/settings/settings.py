@@ -16,6 +16,19 @@ DATABASES = {
     },
 }
 
+ELASTICSEARCH_DATABASE = dict(
+    hosts=[{'host': 'localhost', 'port': 9200}],
+)
+
+PYDJAMODB_DATABASE = {
+    'HOST': 'http://localhost:8000',
+    'AWS_ACCESS_KEY_ID': '_',
+    'AWS_SECRET_ACCESS_KEY': '_',
+    'AWS_REGION': None,
+    'TABLE_PREFIX': 'pyston',
+    'BILLING_MODE': 'PAY_PER_REQUEST',
+}
+
 STATIC_ROOT = ''
 
 # Additional locations of static files

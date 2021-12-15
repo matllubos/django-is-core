@@ -1,4 +1,4 @@
-from django.http.response import HttpResponseRedirect, HttpResponse, Http404
+from django.http.response import Http404
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
@@ -24,7 +24,7 @@ class RequestKwargsMiddleware(MiddlewareMixin):
 
 
 # Not working with pyston exceptions
-class HTTPExceptionsMiddleware(MiddlewareMixin):
+class HttpExceptionsMiddleware(MiddlewareMixin):
 
     def process_exception(self, request, exception):
         if isinstance(exception, ResponseException):

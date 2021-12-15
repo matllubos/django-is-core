@@ -1,12 +1,10 @@
 from django.contrib.contenttypes.models import ContentType
-from django.db.models.query import QuerySet
 from django.shortcuts import render
 from django.utils import translation
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 
-from is_core.config import settings
-from is_core.rest.resource import RESTResource, RESTModelResource
+from is_core.rest.resource import CoreResource, DjangoCoreResource
 
 from django_celery_extensions.task import obj_to_string
 
@@ -65,8 +63,9 @@ class CeleryResourceMixin:
 
     def _get_filename(self):
         parts = super()._get_filename().rsplit(sep='.', maxsplit=1)
-        return ('{}{}.{}'.format(parts[0], '_DUVERNE', parts[1]) if len(parts) == 2 else
-                '{}{}'.format(super()._get_filename(), '_DUVERNE')
+        return (
+            '{}{}.{}'.format(parts[0], '_DUVERNE', parts[1]) if len(parts) == 2
+            else '{}{}'.format(super()._get_filename(), '_DUVERNE')
         )
 
     def _get_background_serialization_response_data(self, result, http_headers):
@@ -98,9 +97,9 @@ class CeleryResourceMixin:
         return force_text(obj).replace(' ', '-') if obj else super()._get_name()
 
 
-class CeleryRESTModelResource(CeleryResourceMixin, RESTModelResource):
+class CeleryDjangoCoreResource(CeleryResourceMixin, DjangoCoreResource):
     pass
 
 
-class CeleryRESTResource(CeleryResourceMixin, RESTResource):
+class CeleryCoreResource(CeleryResourceMixin, CoreResource):
     pass

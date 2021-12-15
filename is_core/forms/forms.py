@@ -1,20 +1,10 @@
-import re
-import warnings
-import datetime
-
 from collections import OrderedDict
 
-import django
 from django.forms.forms import DeclarativeFieldsMetaclass, Form
-from django.forms.fields import FileField
-from django.core.exceptions import ValidationError
-from django.utils.encoding import force_text
 from django.utils.functional import cached_property
 
-from pyston.forms import RESTFormMixin
+from pyston.forms import RestFormMixin
 
-from .fields import SmartReadonlyField
-from .widgets import SmartWidgetMixin
 from .boundfield import ReadonlyBoundField, SmartBoundField
 
 
@@ -141,7 +131,7 @@ class SmartFormMixin:
         return changed_data
 
 
-class SmartForm(SmartFormMixin, RESTFormMixin, Form, metaclass=SmartFormMetaclass):
+class SmartForm(SmartFormMixin, RestFormMixin, Form, metaclass=SmartFormMetaclass):
     pass
 
 

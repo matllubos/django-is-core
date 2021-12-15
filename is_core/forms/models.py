@@ -4,9 +4,9 @@ import itertools
 from django import forms
 from django.forms import models
 from django.forms.fields import ChoiceField
-from django.forms.models import ModelForm, ModelFormMetaclass, _get_foreign_key, BaseModelFormSet
+from django.forms.models import ModelForm, _get_foreign_key, BaseModelFormSet
 
-from pyston.forms import RESTModelForm, RESTFormMetaclass
+from pyston.forms import RestModelForm, RestFormMetaclass
 
 from is_core.forms import widgets
 from is_core.utils.models import get_model_field_value
@@ -124,7 +124,7 @@ class ModelMultipleChoiceField(ModelChoiceFieldMixin, forms.ModelMultipleChoiceF
         return self.to_python([value])[0]
 
 
-class SmartModelFormMetaclass(RESTFormMetaclass):
+class SmartModelFormMetaclass(RestFormMetaclass):
 
     def __new__(cls, name, bases, attrs):
         new_class = super(SmartModelFormMetaclass, cls).__new__(cls, name, bases, attrs)
@@ -196,7 +196,7 @@ def humanized_model_to_dict(instance, readonly_fields, fields=None, exclude=None
     return data
 
 
-class SmartModelForm(SmartFormMixin, RESTModelForm, metaclass=SmartModelFormMetaclass):
+class SmartModelForm(SmartFormMixin, RestModelForm, metaclass=SmartModelFormMetaclass):
 
     def __init__(self, *args, **kwargs):
         # Set values must be omitted

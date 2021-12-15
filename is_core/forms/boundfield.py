@@ -1,5 +1,4 @@
 from django.forms.boundfield import BoundField
-from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 
 from .widgets import SmartWidgetMixin
@@ -40,8 +39,6 @@ class SmartBoundField(BoundField):
                 attrs=attrs,
                 renderer=self.form.renderer
             )
-
-
 
 
 class ReadonlyBoundField(SmartBoundField):

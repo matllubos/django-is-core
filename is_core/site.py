@@ -1,17 +1,13 @@
-from collections import OrderedDict
-
-from django.db.models import Model
 from django.conf.urls import url, include
-from django.template.defaultfilters import lower
 from django.core.exceptions import ImproperlyConfigured
 
 import import_string
 
 from is_core.config import settings
 
-from .loading import get_cores
-from .patterns import RESTPattern
+from .patterns import RestPattern
 from .rest.resource import EntryPointResource
+from .loading import get_cores as get_loaded_cores
 
 
 sites = {}
@@ -41,14 +37,14 @@ class ISSite:
         self._registry = self._init_items()
 
     def _init_items(self):
-        out = OrderedDict()
+        items = {}
 
-        for core in get_cores():
+        for core in get_loaded_cores():
             generic_core = self.register(core(self.name, []))
-            if generic_core.menu_group in out:
+            if generic_core.menu_group in items:
                 raise ImproperlyConfigured('Duplicate cores with group: "%s"' % generic_core.menu_group)
-            out[generic_core.menu_group] = generic_core
-        return out
+            items[generic_core.menu_group] = generic_core
+        return items
 
     def register(self, generic_core):
         if getattr(generic_core, 'register_model', False):
@@ -83,7 +79,7 @@ class ISSite:
         if settings.AUTH_RESOURCE_CLASS:
             auth_resource_class = import_string(settings.AUTH_RESOURCE_CLASS)
             auth_resource_class.form_class = import_string(settings.AUTH_FORM_CLASS)
-            pattern = RESTPattern('api-login', self.name, settings.LOGIN_API_URL[1:],
+            pattern = RestPattern('api-login', self.name, settings.LOGIN_API_URL[1:],
                                   auth_resource_class)
             urlpatterns.append(pattern.get_url())
 
@@ -93,7 +89,7 @@ class ISSite:
                     import_string(settings.AUTH_LOGIN_CODE_VERIFICATION_VIEW).as_view(), name='code-verification-login')
             )
 
-        pattern = RESTPattern('api', self.name, r'api/', EntryPointResource)
+        pattern = RestPattern('api', self.name, r'api/', EntryPointResource)
         urlpatterns.append(pattern.get_url())
 
         self._set_items_urls(self._registry.values(), urlpatterns)

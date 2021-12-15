@@ -49,3 +49,5 @@ Content
    filters
    auth
    utils
+   elasticsearch
+   dynamodb

@@ -1,16 +1,13 @@
 import re
 import json
-import inspect
 import types
 import datetime
 
-from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured
 from django.contrib.admin.utils import display_for_value as admin_display_for_value
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Model, QuerySet
+from django.db.models import QuerySet
 from django.core.exceptions import FieldDoesNotExist
-from django.forms.utils import pretty_name
-from django.utils.encoding import force_text
 from django.utils.translation import ugettext
 from django.utils.html import format_html, format_html_join
 from django.utils.formats import get_format, date_format
@@ -19,11 +16,10 @@ from django.utils.timezone import template_localtime
 from chamber.utils import call_function_with_unknown_input
 
 from pyston.converters import get_converter
-from pyston.serializer import get_resource_class_or_none
 
 
 PK_PATTERN = r'(?P<pk>[^/]+)'
-NUMBER_PK_PATTERN = '(?P<pk>\d+)'
+NUMBER_PK_PATTERN = r'(?P<pk>\d+)'
 
 EMPTY_VALUE = '---'
 
@@ -98,10 +94,12 @@ def get_field_label_from_path(model, field_path, view=None, field_labels=None):
 
     * field_path='user__email', field_labels={} => 'user email'  # default values get from fields
     * field_path='user__email', field_labels={'user__email': 'e-mail'} => 'e-mail'  # full value is replaced
-    * field_path='user__email', field_labels={'user': 'customer'} => 'customer - email'  # related field prefix is changed
+    * field_path='user__email', field_labels={'user': 'customer'} => 'customer - email'  # related field prefix is
+        changed
     * field_path='user', field_labels={'user': 'customer'} => 'customer'  # full value is replaced
     * field_path='user', field_labels={'user__': 'customer'} => 'user'  # has no effect
-    * field_path='user__email', field_labels={'user__': 'customer'} => 'customer email'  # related field prefix is changed
+    * field_path='user__email', field_labels={'user__': 'customer'} => 'customer email'  # related field prefix is
+        changed
     * field_path='user__email', field_labels={'user__': None} => 'email'  # related field prefix is ignored
     * field_path='user__email', field_labels={'email': 'e-mail'} => 'user email'  # has no effect
 
@@ -228,11 +226,12 @@ def display_for_value(value, request=None):
         dict ==> string formatted with HTML ul/li tags
     """
     from is_core.forms.utils import ReadonlyValue
+    from is_core.site import registered_model_cores
 
     if isinstance(value, ReadonlyValue):
         value = value.value
 
-    if request and isinstance(value, Model):
+    if request and value.__class__ in registered_model_cores:
         return render_model_object_with_link(request, value)
     elif isinstance(value, (QuerySet, list, tuple, set, types.GeneratorType)):
         return format_html(

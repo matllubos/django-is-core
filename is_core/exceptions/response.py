@@ -17,6 +17,19 @@ from pyston.conf import settings as pyston_settings
 from is_core.config import settings
 
 
+__all__ = (
+    'ResponseException',
+    'HttpRedirectResponseException',
+    'HttpBadRequestResponseException',
+    'HttpUnauthorizedResponseException',
+    'HttpForbiddenResponseException',
+    'HttpUnsupportedMediaTypeResponseException',
+    'HttpMethodNotAllowedResponseException',
+    'HttpDuplicateResponseException',
+    'HttpServiceUnavailableException',
+)
+
+
 def ui_response_exception_factory(request, response_code, title, message, response_class=HttpResponse):
     if isinstance(message, (list, tuple)):
         message = ', '.join(message)
@@ -74,7 +87,7 @@ class ResponseException(Exception):
         return response_exception_factory(request, self.status_code, self.title, self.message)
 
 
-class HTTPRedirectResponseException(ResponseException):
+class HttpRedirectResponseException(ResponseException):
 
     def __init__(self, url):
         self.url = url
@@ -83,43 +96,43 @@ class HTTPRedirectResponseException(ResponseException):
         return HttpResponseRedirect(self.url)
 
 
-class HTTPBadRequestResponseException(ResponseException):
+class HttpBadRequestResponseException(ResponseException):
 
     title = _('Bad Request')
     status_code = 400
 
 
-class HTTPUnauthorizedResponseException(ResponseException):
+class HttpUnauthorizedResponseException(ResponseException):
 
     title = _('Unauthorized')
     status_code = 401
 
 
-class HTTPForbiddenResponseException(ResponseException):
+class HttpForbiddenResponseException(ResponseException):
 
     title = _('Forbidden')
     status_code = 403
 
 
-class HTTPUnsupportedMediaTypeResponseException(ResponseException):
+class HttpUnsupportedMediaTypeResponseException(ResponseException):
 
     title = _('Unsupported Media Type')
     status_code = 415
 
 
-class HTTPMethodNotAllowedResponseException(ResponseException):
+class HttpMethodNotAllowedResponseException(ResponseException):
 
     title = _('Method Not Allowed')
     status_code = 405
 
 
-class HTTPDuplicateResponseException(ResponseException):
+class HttpDuplicateResponseException(ResponseException):
 
     title = _('Conflict/Duplicate')
     status_code = 409
 
 
-class HTTPServiceUnavailableException(ResponseException):
+class HttpServiceUnavailableException(ResponseException):
 
     title = _('Temporarily unavailable')
     status_code = 503

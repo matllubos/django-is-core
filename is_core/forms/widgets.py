@@ -1,9 +1,6 @@
 import os
-from itertools import chain
 
-import django
 from django import forms
-from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import EMPTY_VALUES
 from django.db.models.base import Model
 from django.db.models.fields.files import FieldFile
@@ -315,7 +312,7 @@ class AbstractDateRangeWidget(MultiWidget):
         )
 
     def get_range_classes(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def decompress(self, value):
         return []

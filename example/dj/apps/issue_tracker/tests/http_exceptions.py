@@ -1,5 +1,5 @@
 from germanium.decorators import login
-from germanium.test_cases.rest import RESTTestCase
+from germanium.test_cases.rest import RestTestCase
 from germanium.tools import assert_in
 from germanium.tools.http import assert_http_unauthorized, assert_http_forbidden, assert_http_not_found
 
@@ -11,7 +11,7 @@ __all__ =(
 )
 
 
-class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RESTTestCase):
+class HttpExceptionsTestCase(AsSuperuserTestCase, HelperTestCase, RestTestCase):
 
     ISSUE_API_URL = '/api/issue/'
     USER_API_URL = '/api/user/'
