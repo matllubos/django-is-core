@@ -37,13 +37,14 @@ class DjangoDetailFormView(GetDjangoObjectCoreViewMixin, DjangoCoreFormView):
         }
     )
 
-    @property
-    def detail_verbose_name(self):
-        return self.model._ui_meta.detail_verbose_name
+    detail_verbose_name = None
+
+    def get_detail_verbose_name(self):
+        return self.model._ui_meta.detail_verbose_name if self.detail_verbose_name is None else self.detail_verbose_name
 
     def get_title(self):
         return (self.title or
-                self.detail_verbose_name % {
+                self.get_detail_verbose_name() % {
                     'verbose_name': self.model._meta.verbose_name,
                     'verbose_name_plural': self.model._meta.verbose_name_plural,
                     'obj': self.get_obj(True)
@@ -115,6 +116,10 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, GetMethodFieldMixin,
     fieldsets = None
     field_labels = None
     view_type = 'readonly-detail'
+    detail_verbose_name = None
+
+    def get_detail_verbose_name(self):
+        return self.detail_verbose_name
 
     def get_prefix(self):
         return '-'.join((self.view_type, self.site_name, self.core.get_menu_group_pattern_name())).lower()
@@ -193,7 +198,9 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, GetMethodFieldMixin,
 
 
 class DjangoReadonlyDetailView(GetDjangoObjectCoreViewMixin, ModelReadonlyDetailView):
-    pass
+
+    def get_detail_verbose_name(self):
+        return self.model._ui_meta.detail_verbose_name if self.detail_verbose_name is None else self.detail_verbose_name
 
 
 class DjangoRelatedCoreTableView(DjangoReadonlyDetailView):

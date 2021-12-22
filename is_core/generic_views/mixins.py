@@ -46,7 +46,7 @@ class DetailParentMixin(ListParentMixin):
             raise GenericViewException('Parent obj must be instance of edit view model')
 
         return LinkMenuItem(
-            detail_view.detail_verbose_name % {
+            detail_view.get_detail_verbose_name() % {
                 'verbose_name': detail_view.get_verbose_name(),
                 'verbose_name_plural': detail_view.get_verbose_name_plural(),
                 'obj': parent_obj
