@@ -23,5 +23,7 @@ class DynamoTableView(DynamoTableViewMixin, BaseModelTableView):
 
 class DynamoDetailView(ModelReadonlyDetailView):
 
+    detail_verbose_name = '%(verbose_name)s'
+
     def _get_obj_or_none(self):
         return self.core.get_obj(self.request, self.kwargs['pk'])

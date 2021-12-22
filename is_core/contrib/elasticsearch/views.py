@@ -45,6 +45,8 @@ class ElasticsearchTableView(ElasticsearchTableViewMixin, BaseModelTableView):
 
 class ElasticsearchDetailView(ModelReadonlyDetailView):
 
+    detail_verbose_name = '%(verbose_name)s'
+
     def _get_obj_or_none(self):
         if not self.kwargs.get('pk'):
             return None
