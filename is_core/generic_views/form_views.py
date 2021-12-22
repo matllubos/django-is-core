@@ -219,7 +219,7 @@ class BaseFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):
 
     def get_fields(self):
         fieldsets = self.get_fieldsets()
-        return flatten_fieldsets(fieldsets) if fieldsets is None else self.fields
+        return self.fields if fieldsets is None else flatten_fieldsets(fieldsets)
 
     def get_fieldsets(self):
         return self.fieldsets
