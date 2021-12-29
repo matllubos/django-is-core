@@ -130,7 +130,7 @@ class BaseModelTableViewMixin(FieldPermissionViewMixin):
         if filter_obj:
             widget = self._get_filter_widget(filter_obj, field_name)
             operator = self._get_filter_operator_string(filter_obj, widget)
-            filter_term = '{}__{}'.format(field_name, operator)
+            filter_term = '{}__{}'.format(filter_obj.get_full_filter_key(), operator)
             name = 'filter__{}'.format(filter_term)
             return widget.render(name, None, attrs={'data-filter': filter_term})
         else:
