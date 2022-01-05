@@ -21,7 +21,7 @@ class DownloadExportedDataView(RedirectView):
 
         if (core.permission.has_permission('read_all', self.request, self, obj=exported_file)
                 or (core.permission.has_permission('read_own', self.request, self, obj=exported_file)
-                    and exported_file.created_by == self.request.user)):
+                    and exported_file.created_by.pk == self.request.user.pk)):
             exported_file.downloaded_by.add(self.request.user)
             return exported_file.file.url
         else:
