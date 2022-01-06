@@ -125,16 +125,14 @@ class BaseModelTableViewMixin(FieldPermissionViewMixin):
                 pass
         return None
 
+    def _render_filter_object(self, field_name, filter_obj):
+        widget = self._get_filter_widget(filter_obj, field_name)
+        filter_term = LOOKUP_SEP.join((field_name, self._get_filter_operator_string(filter_obj, widget)))
+        return widget.render('filter__{}'.format(filter_term), None, attrs={'data-filter': filter_term})
+
     def _render_filter(self, field_name):
         filter_obj = self._get_filter(field_name)
-        if filter_obj:
-            widget = self._get_filter_widget(filter_obj, field_name)
-            operator = self._get_filter_operator_string(filter_obj, widget)
-            filter_term = '{}__{}'.format(filter_obj.get_full_filter_key(), operator)
-            name = 'filter__{}'.format(filter_term)
-            return widget.render(name, None, attrs={'data-filter': filter_term})
-        else:
-            return ''
+        return self._render_filter_object(field_name, filter_obj) if filter_obj else ''
 
     def _get_header_order_by(self, field_name):
         resource = self.get_resource()
@@ -256,6 +254,15 @@ class BaseModelTableViewMixin(FieldPermissionViewMixin):
 
 class DjangoTableViewMixin(BaseModelTableViewMixin):
 
+    def _render_filter_object(self, field_name, filter_obj):
+        if (filter_obj and not filter_obj.identifiers_suffix and filter_obj.field and filter_obj.field.is_relation and
+                filter_obj.field.related_model and filter_obj.field.related_model._ui_meta.default_ui_filter_by):
+            return self._render_filter(LOOKUP_SEP.join((
+                field_name, filter_obj.field.related_model._ui_meta.default_ui_filter_by
+            )))
+        else:
+            return super()._render_filter_object(field_name, filter_obj)
+
     def _get_field_filter_widget(self, filter_obj, full_field_name, field):
         formfield = field.formfield() if hasattr(field, 'formfield') else None
         if formfield:
@@ -270,15 +277,6 @@ class DjangoTableViewMixin(BaseModelTableViewMixin):
 
     def get_model_name(self):
         return str(self.model._meta.model_name)
-
-    def _get_filter(self, field_name):
-        filter = super()._get_filter(field_name)
-        if (filter and not filter.identifiers_suffix and filter.field and filter.field.is_relation and
-                filter.field.related_model and filter.field.related_model._ui_meta.default_ui_filter_by):
-            return self._get_filter(LOOKUP_SEP.join((
-                field_name, filter.field.related_model._ui_meta.default_ui_filter_by
-            )))
-        return filter
 
     def get_list_verbose_name(self):
         list_verbose_name = super().get_list_verbose_name()
