@@ -84,7 +84,7 @@
                 {% endblock %}
 
                 {% block columns-manager %}
-                    {% if enable_columns_manager %}
+                    {% if enable_column_manager %}
                     <li>
                         <div class="dropdown columns-dropdown">
                             <span class="btn btn-primary dropdown-toggle" data-toggle="dropdown" title="{% trans 'Display/hide columns' %}">
@@ -104,7 +104,7 @@
             </ul>
 
 
-                {% if enable_columns_manager %}
+                {% if enable_column_manager %}
                 <div class="alert alert-info columns-filtering-text" id="columns-filtering-text-table-{{ table_slug }}" style="display: none">
                     {% blocktrans with '%(columns)s' as columns %}There are some filters on hidden fields: <span class="columns">{{ columns }}</span>. Do you want to <span class="delete-filtering">delete filtering</span>?{% endblocktrans%}
                 </div>
@@ -125,7 +125,7 @@
             {% endblock %}
 
             {% block table %}
-            <table class="{% block table-classes %}grid js-grid table table-striped extended-filters{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ fields|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}"{% if enable_columns_manager %} data-columns-manager="columns-manager-{{ table_slug }}"{% endif %}{% if enable_bulk_change %} data-bulk-change="bulk-change-{{ table_slug }}" data-row-selectable="true"{% endif %} id="table-{{ table_slug }}" {% block table-attributes %}{% endblock %}>
+            <table class="{% block table-classes %}grid js-grid table table-striped extended-filters{% endblock %}" data-resource="{{ api_url }}{% if query_string_filter %}?{{ query_string_filter }}{% endif %}" data-model="{{ module_name|capfirst }}" data-cols="{{ fields|join:',' }}" data-rest-fields="{{ rest_fieldset }}" data-confirm="{% trans 'Do you really want to delete &#37;s?' %}" data-btn-yes="{% trans 'Yes' %}" data-btn-no="{% trans 'No' %}" data-context="{{ menu_group_pattern_name }}" data-confirm-title="{% trans 'Are you sure?' %}"{% if enable_column_manager %} data-columns-manager="columns-manager-{{ table_slug }}"{% endif %}{% if enable_bulk_change %} data-bulk-change="bulk-change-{{ table_slug }}" data-row-selectable="true"{% endif %} id="table-{{ table_slug }}" {% block table-attributes %}{% endblock %}>
                 <thead>
                 {% block table-header %}
                     <tr>
