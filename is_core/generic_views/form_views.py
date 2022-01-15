@@ -16,7 +16,7 @@ from is_core.auth.views import FieldPermissionViewMixin
 from is_core.generic_views.base import DefaultModelCoreViewMixin
 from is_core.utils import (
     flatten_fieldsets, get_readonly_field_data, get_inline_views_from_fieldsets, get_inline_views_opts_from_fieldsets,
-    GetMethodFieldMixin, get_model_name
+    GetMethodFieldMixin, get_model_name, get_fieldsets_without_disallowed_fields
 )
 from is_core.generic_views.mixins import ListParentMixin
 from is_core.generic_views.inlines.inline_form_views import InlineFormView
@@ -24,24 +24,6 @@ from is_core.response import JsonHttpResponse
 from is_core.forms.models import smartmodelform_factory
 from is_core.forms.fields import SmartReadonlyField
 from is_core.forms import SmartModelForm
-
-
-def get_fieldsets_without_disallowed_fields(request, fieldsets, disallowed_fields):
-    generated_fieldsets = []
-
-    for title, fieldset_values in fieldsets:
-        fieldset_values = dict(fieldset_values)
-        if 'fields' in fieldset_values:
-            fieldset_values['fields'] = [
-                field for field in fieldset_values.pop('fields')
-                if field not in disallowed_fields
-            ]
-        if 'fieldsets' in fieldset_values:
-            fieldset_values['fieldsets'] = get_fieldsets_without_disallowed_fields(
-                request, fieldset_values.pop('fieldsets'), disallowed_fields
-            )
-        generated_fieldsets.append((title, fieldset_values))
-    return generated_fieldsets
 
 
 class BaseFormView(GetMethodFieldMixin, DefaultModelCoreViewMixin, FormView):

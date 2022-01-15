@@ -6,12 +6,14 @@ from django.template import RequestContext
 
 from chamber.shortcuts import get_object_or_none
 
+from is_core.auth.views import FieldPermissionViewMixin
 from is_core.auth.permissions import (
     PermissionsSet, CoreReadAllowed, CoreUpdateAllowed, CoreAllowed, DEFAULT_PERMISSION
 )
 from is_core.generic_views.base import DefaultModelCoreViewMixin
 from is_core.utils import (
-    get_readonly_field_data, get_export_types_with_content_type, GetMethodFieldMixin, display_for_value
+    get_readonly_field_data, get_export_types_with_content_type, GetMethodFieldMixin, display_for_value,
+    get_fieldsets_without_disallowed_fields
 )
 from is_core.generic_views.mixins import ListParentMixin, GetDjangoObjectCoreViewMixin, GetModelObjectCoreViewMixin
 from is_core.generic_views.inlines.inline_table_views import DjangoInlineTableView
@@ -100,7 +102,7 @@ class DjangoDetailFormView(GetDjangoObjectCoreViewMixin, DjangoCoreFormView):
         return context_data
 
 
-class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, GetMethodFieldMixin,
+class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, FieldPermissionViewMixin, GetMethodFieldMixin,
                               ListParentMixin, DefaultModelCoreViewMixin, TemplateView):
 
     template_name = 'is_core/generic_views/readonly_detail.html'
@@ -143,7 +145,10 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, GetMethodFieldMixin,
         fieldsets = self.get_fieldsets()
         if fieldsets is None:
             fieldsets = [(None, {'fields': self.get_fields() or ()})]
-        return fieldsets
+
+        return get_fieldsets_without_disallowed_fields(
+            self.request, fieldsets, self._get_disallowed_fields_from_permissions()
+        )
 
     def _get_field_labels(self):
         return (
@@ -172,7 +177,10 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, GetMethodFieldMixin,
             inline_view_inst = (
                 inline_view(self.request, self, obj)
             )
-            rendered_inline_view = inline_view_inst.render(RequestContext(self.request), fieldset_title)
+            rendered_inline_view = (
+                inline_view_inst.render(RequestContext(self.request), fieldset_title)
+                if inline_view_inst.can_render() else ''
+            )
 
         return {
             'title': fieldset_title,
