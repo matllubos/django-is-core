@@ -12,12 +12,16 @@ class InlineView(ContextMixin):
     template_name = None
 
     permission = AllowAny()
+    title = None
 
     def __init__(self, request, parent_view, parent_instance):
         self.request = request
         self.parent_view = parent_view
         self.parent_instance = parent_instance
         assert self.permission, 'Permissions must be set'
+
+    def get_title(self):
+        return self.title
 
     def can_render(self):
         return self.permission.has_permission('read', self.request, self)

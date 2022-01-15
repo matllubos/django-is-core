@@ -321,37 +321,37 @@ class DjangoBaseFormView(FieldPermissionViewMixin, BaseFormView):
         if fieldsets and self.get_inline_views():
             raise ImproperlyConfigured('You can define either inline views or fieldsets.')
 
-        if not fieldsets:
+        if fieldsets is None:
             fieldsets = [
                 (None, {
                     'fields': self.get_fields() or form.base_fields.keys()
                 })
-            ] + [
-                (
-                    inline_view.model._meta.verbose_name if (
-                        isinstance(inline_view, InlineFormView) and inline_view.max_num and inline_view.max_num <= 1
-                    ) else inline_view.model._meta.verbose_name_plural,
-                    {'inline_view': inline_view}
-                )
-                for inline_view in self.get_inline_views() or ()
             ]
+            for inline_view in self.get_inline_views() or ():
+                inline_view_inst = (
+                    inline_view(self.request, self, form.instance) if isinstance(inline_view, type) else inline_view
+                )
+                if inline_view_inst.can_render():
+                    # Only inline view that can be rendered is added to formset
+                    fieldsets.append((
+                        inline_view_inst.get_title(), {
+                            'inline_view': inline_view,
+                            'inline_view_inst': inline_view_inst
+                        }
+                    ))
+        else:
+            inline_view_opts = get_inline_views_opts_from_fieldsets(fieldsets)
+            for inline_view_opt in inline_view_opts:
+                inline_view = inline_view_opt['inline_view']
+                inline_view_inst = (
+                    inline_view(self.request, self, form.instance) if isinstance(inline_view, type) else inline_view
+                )
+                if inline_view_inst.can_render():
+                    # Only inline view that can be rendered is added to formset
+                    inline_view_opt['inline_view_inst'] = inline_view_inst
+
         return get_fieldsets_without_disallowed_fields(
             self.request, fieldsets, self._get_disallowed_fields_from_permissions() | set(self.get_exclude())
-        )
-
-    def generate_fieldsets_with_inline_view_instances(self, form, instance):
-        fieldsets = self.generate_fieldsets(form)
-        inline_view_opts = get_inline_views_opts_from_fieldsets(fieldsets)
-        for inline_view_opt in inline_view_opts:
-            inline_view = inline_view_opt['inline_view']
-            inline_view_inst = (
-                inline_view(self.request, self, instance) if isinstance(inline_view, type) else inline_view
-            )
-            if inline_view_inst.can_render():
-                # Only inline view that can be rendered is added to formset
-                inline_view_opt['inline_view_inst'] = inline_view_inst
-        return get_fieldsets_without_disallowed_fields(
-            self.request, fieldsets, self._get_disallowed_fields_from_permissions()
         )
 
     def get_form_class(self):
@@ -424,7 +424,7 @@ class DjangoBaseFormView(FieldPermissionViewMixin, BaseFormView):
 
     def get(self, request, *args, **kwargs):
         form = self.get_form()
-        fieldsets = self.generate_fieldsets_with_inline_view_instances(form, form.instance)
+        fieldsets = self.generate_fieldsets(form)
         inline_views = get_inline_views_from_fieldsets(fieldsets)
         inline_form_views = self._filter_inline_form_views(inline_views)
         return self.render_to_response(self.get_context_data(form=form, inline_views=inline_views,
@@ -433,7 +433,7 @@ class DjangoBaseFormView(FieldPermissionViewMixin, BaseFormView):
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        fieldsets = self.generate_fieldsets_with_inline_view_instances(form, form.instance)
+        fieldsets = self.generate_fieldsets(form)
         inline_views = get_inline_views_from_fieldsets(fieldsets)
         inline_form_views = self._filter_inline_form_views(inline_views)
 

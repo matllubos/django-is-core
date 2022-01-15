@@ -14,11 +14,13 @@
             {% endfor %}
         </div>
     {% endif %}
+
     {% if fieldset.fieldsets %}
         {% for sub_fieldset in fieldset.fieldsets %}
             {% include "is_core/generic_views/readonly_fieldset.html" with fieldset=sub_fieldset %}
         {% endfor %}
     {% endif %}
+
     {% if fieldset.rendered_inline_view %}{{ fieldset.rendered_inline_view }}{% endif %}
 </fieldset>
 

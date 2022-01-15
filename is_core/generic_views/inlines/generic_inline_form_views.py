@@ -21,6 +21,12 @@ class GenericInlineFormView(InlineFormView):
             can_delete=self.get_can_delete()
         )
 
+    def get_title(self):
+        return (
+            self.model._meta.verbose_name if self.max_num and self.max_num <= 1
+            else self.model._meta.verbose_name_plural
+        )
+
 
 class TabularGenericInlineFormView(GenericInlineFormView):
 

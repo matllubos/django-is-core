@@ -24,7 +24,7 @@ from is_core.generic_views.table_views import DjangoTableView
 from is_core.rest.resource import DjangoCoreResource
 from is_core.rest.paginators import DjangoOffsetBasedPaginator
 from is_core.patterns import UiPattern, RestPattern, DoubleRestPattern
-from is_core.utils import flatten_fieldsets,  GetMethodFieldMixin, get_model_name, PK_PATTERN
+from is_core.utils import flatten_fieldsets, GetMethodFieldMixin, get_model_name, PK_PATTERN
 from is_core.menu import LinkMenuItem
 from is_core.loading import register_core
 from is_core.rest.factory import modelrest_factory

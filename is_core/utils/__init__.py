@@ -64,10 +64,13 @@ def get_fieldsets_without_disallowed_fields(request, fieldsets, disallowed_field
                 if field not in disallowed_fields
             ]
         if 'fieldsets' in fieldset_values:
-            fieldset_values['fieldsets'] = get_fieldsets_without_disallowed_fields(
+            fieldsets = get_fieldsets_without_disallowed_fields(
                 request, fieldset_values.pop('fieldsets'), disallowed_fields
             )
-        generated_fieldsets.append((title, fieldset_values))
+            if fieldsets:
+                fieldset_values['fieldsets'] = fieldsets
+        if set(fieldset_values.keys()) & {'fields', 'fieldsets', 'inline_view_inst'}:
+            generated_fieldsets.append((title, fieldset_values))
     return generated_fieldsets
 
 

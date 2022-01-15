@@ -13,7 +13,7 @@ from is_core.auth.permissions import (
 from is_core.generic_views.base import DefaultModelCoreViewMixin
 from is_core.utils import (
     get_readonly_field_data, get_export_types_with_content_type, GetMethodFieldMixin, display_for_value,
-    get_fieldsets_without_disallowed_fields
+    get_fieldsets_without_disallowed_fields, get_inline_views_opts_from_fieldsets
 )
 from is_core.generic_views.mixins import ListParentMixin, GetDjangoObjectCoreViewMixin, GetModelObjectCoreViewMixin
 from is_core.generic_views.inlines.inline_table_views import DjangoInlineTableView
@@ -119,6 +119,10 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, FieldPermissionViewMi
     field_labels = None
     view_type = 'readonly-detail'
     detail_verbose_name = None
+    inline_views = None
+
+    def get_inline_views(self):
+        return self.inline_views
 
     def get_detail_verbose_name(self):
         return self.detail_verbose_name
@@ -141,10 +145,37 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, FieldPermissionViewMi
             self.core.get_fieldsets(self.request)
         )
 
-    def generate_fieldsets(self):
+    def generate_fieldsets(self, obj):
         fieldsets = self.get_fieldsets()
+
         if fieldsets is None:
-            fieldsets = [(None, {'fields': self.get_fields() or ()})]
+            fieldsets = [
+                (None, {
+                    'fields': self.get_fields() or []
+                })
+            ]
+            for inline_view in self.get_inline_views() or ():
+                inline_view_inst = (
+                    inline_view(self.request, self, obj) if isinstance(inline_view, type) else inline_view
+                )
+                if inline_view_inst.can_render():
+                    # Only inline view that can be rendered is added to formset
+                    fieldsets.append((
+                        inline_view_inst.get_title(), {
+                            'inline_view': inline_view,
+                            'inline_view_inst': inline_view_inst
+                        }
+                    ))
+        else:
+            inline_view_opts = get_inline_views_opts_from_fieldsets(fieldsets)
+            for inline_view_opt in inline_view_opts:
+                inline_view = inline_view_opt['inline_view']
+                inline_view_inst = (
+                    inline_view(self.request, self, obj) if isinstance(inline_view, type) else inline_view
+                )
+                if inline_view_inst.can_render():
+                    # Only inline view that can be rendered is added to formset
+                    inline_view_opt['inline_view_inst'] = inline_view_inst
 
         return get_fieldsets_without_disallowed_fields(
             self.request, fieldsets, self._get_disallowed_fields_from_permissions()
@@ -171,16 +202,8 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, FieldPermissionViewMi
             for sub_fieldset_title, sub_fieldset_data in fieldset_data.get('fieldsets', ())
         ]
 
-        inline_view = fieldset_data.get('inline_view')
-        rendered_inline_view = None
-        if inline_view:
-            inline_view_inst = (
-                inline_view(self.request, self, obj)
-            )
-            rendered_inline_view = (
-                inline_view_inst.render(RequestContext(self.request), fieldset_title)
-                if inline_view_inst.can_render() else ''
-            )
+        inline_view = fieldset_data.get('inline_view_inst')
+        rendered_inline_view = inline_view.render(RequestContext(self.request), fieldset_title) if inline_view else ''
 
         return {
             'title': fieldset_title,
@@ -194,7 +217,7 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, FieldPermissionViewMi
         obj = self.get_obj()
         return [
             self._get_fieldset_to_render(fieldset_title, fieldset_data, obj)
-            for fieldset_title, fieldset_data in self.generate_fieldsets()
+            for fieldset_title, fieldset_data in self.generate_fieldsets(obj)
         ]
 
     def get_context_data(self, **kwargs):

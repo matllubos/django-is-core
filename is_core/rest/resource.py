@@ -163,7 +163,6 @@ class CoreResourceMixin:
         """
         Field values can be obtained from resource or core.
         """
-
         method = super().get_method_returning_field_value(field_name)
 
         if method:

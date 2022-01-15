@@ -66,9 +66,7 @@ def fieldset_renderer(context, form, fieldset):
         'class': values.get('class'),
     })
 
-    rendered_inline_view = (
-        inline_view.render(context.new(context_dict), fieldset[0]) if inline_view else ''
-    )
+    rendered_inline_view = inline_view.render(context.new(context_dict), fieldset[0]) if inline_view else ''
 
     rendered_fieldsets = []
     for sub_fieldset in values.get('fieldsets', ()):
@@ -78,20 +76,17 @@ def fieldset_renderer(context, form, fieldset):
 
     fields = values.get('fields')
 
-    if fields or rendered_fieldsets or rendered_inline_view:
-        template = values.get('template') or settings.DEFAULT_FIELDSET_TEMPLATE
-        context_dict.update({
-            'fields': fields,
-            'form': form,
-            'title': fieldset[0],
-            'class': values.get('class'),
-            'fieldsets': values.get('fieldsets'),
-            'rendered_fieldsets': rendered_fieldsets,
-            'rendered_inline_view': rendered_inline_view,
-        })
-        return render_to_string(template, context_dict, request=request)
-    else:
-        return ''
+    template = values.get('template') or settings.DEFAULT_FIELDSET_TEMPLATE
+    context_dict.update({
+        'fields': fields,
+        'form': form,
+        'title': fieldset[0],
+        'class': values.get('class'),
+        'fieldsets': values.get('fieldsets'),
+        'rendered_fieldsets': rendered_fieldsets,
+        'rendered_inline_view': rendered_inline_view,
+    })
+    return render_to_string(template, context_dict, request=request)
 
 
 @register.simple_tag(takes_context=True)

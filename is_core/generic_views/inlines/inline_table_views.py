@@ -36,6 +36,12 @@ class BaseModelInlineTableViewMixin:
     def _get_menu_group_pattern_name(self):
         return self.related_core.get_menu_group_pattern_name()
 
+    def get_title(self):
+        return self.get_list_verbose_name() % {
+            'verbose_name': self.get_verbose_name(),
+            'verbose_name_plural': self.get_verbose_name_plural()
+        } if self.title is None else self.title
+
 
 class BaseModelInlineTableView(BaseModelInlineTableViewMixin, BaseModelTableViewMixin, RelatedInlineView):
     pass
