@@ -47,7 +47,7 @@ class BaseModelTableViewMixin(FieldPermissionViewMixin):
     api_url = None
     menu_group_pattern_name = None
     render_actions = True
-    enable_columns_manager = False
+    enable_column_manager = settings.COLUMN_MANAGER
     field_labels = None
 
     title = None
@@ -235,7 +235,7 @@ class BaseModelTableViewMixin(FieldPermissionViewMixin):
             'query_string_filter': self._get_query_string_filter(),
             'menu_group_pattern_name': self._get_menu_group_pattern_name(),
             'render_actions': self.render_actions,
-            'enable_columns_manager': self.is_columns_manager_enabled(),
+            'enable_column_manager': self.is_columns_manager_enabled(),
             'table_slug': self.get_table_slug(),
             'list_per_page': self._get_list_per_page(),
             'paginator_type': self._get_paginator_type(),
@@ -243,7 +243,7 @@ class BaseModelTableViewMixin(FieldPermissionViewMixin):
         return context_data
 
     def is_columns_manager_enabled(self):
-        return self.enable_columns_manager
+        return self.enable_column_manager
 
     def get_table_slug(self):
         return pretty_class_name(self.__class__.__name__)
