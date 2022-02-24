@@ -2,7 +2,8 @@ from django import forms
 from django.db.models.fields import DateField, DateTimeField
 from django.db.models.fields.related import ForeignKey, ManyToManyField, ForeignObjectRel
 
-from pyston.filters.filters import OPERATORS, NONE_LABEL
+from pyston.filters.filters import NONE_LABEL
+from pyston.filters.utils import OperatorSlug
 from pyston.filters.managers import DjangoFilterManager
 from pyston.filters.django_filters import (
     DateFieldFilter, ManyToManyFieldFilter, ForeignKeyFieldFilter, ForeignObjectRelFilter
@@ -100,7 +101,7 @@ class RelatedUIFilter(UIFilterMixin):
         :param widget: restricted widget
         :return: operator that will be used for filtering
         """
-        return OPERATORS.CONTAINS if widget.is_restricted else OPERATORS.EQ
+        return OperatorSlug.CONTAINS if widget.is_restricted else OperatorSlug.EQ
 
 
 class UIForeignKeyFieldFilter(RelatedUIFilter, ForeignKeyFieldFilter):

@@ -2,8 +2,6 @@ from django import forms
 from django.views.generic.base import TemplateView
 from django.urls import reverse
 
-from pyston.filters.filters import OPERATORS
-
 from is_core.auth.views import FieldPermissionViewMixin
 from is_core.config import settings
 from is_core.generic_views.base import DefaultModelCoreViewMixin
@@ -15,8 +13,9 @@ from is_core.utils import (
 
 from chamber.utils.http import query_string_from_dict
 
+from pyston.filters.utils import OperatorSlug
 from pyston.filters.exceptions import FilterIdentifierError
-from pyston.order.utils import DIRECTION
+from pyston.order.utils import DirectionSlug
 from pyston.order.exceptions import OrderIdentifierError
 from pyston.serializer import get_resource_or_none
 
@@ -109,8 +108,8 @@ class BaseModelTableViewMixin(FieldPermissionViewMixin):
 
         if isinstance(filter_obj, UIFilterMixin):
             return filter_obj.get_operator(widget).lower()
-        if hasattr(widget, 'choices') and OPERATORS.EQ in allowed_operators:
-            return OPERATORS.EQ
+        if hasattr(widget, 'choices') and OperatorSlug.EQ in allowed_operators:
+            return OperatorSlug.EQ
         else:
             return allowed_operators[0].lower()
 
@@ -139,7 +138,7 @@ class BaseModelTableViewMixin(FieldPermissionViewMixin):
         if resource:
             try:
                 resource.order_manager.get_sorter(
-                    field_name.split(LOOKUP_SEP), DIRECTION.ASC, resource, self.request
+                    field_name.split(LOOKUP_SEP), DirectionSlug.ASC, resource, self.request
                 )
                 return field_name
             except OrderIdentifierError:
