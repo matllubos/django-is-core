@@ -578,10 +578,10 @@ class ModelRestCore(RestCore, ModelCore):
         return self.rest_extra_filter_fields
 
     def get_rest_order_fields(self, request):
-        return list(self.rest_order_fields or ())
+        return self.rest_order_fields
 
     def get_rest_extra_order_fields(self, request):
-        return list(self.rest_extra_order_fields or ())
+        return self.rest_extra_order_fields
 
     def get_rest_class(self):
         resource_kwargs = {}
