@@ -66,7 +66,10 @@ def ui_rest_response_exception_factory(request, response_code, title, message, r
     rest_mime_types = list(get_supported_mime_types(get_default_converters()))
     ui_mime_types = ['text/html', 'application/xhtml+xml']
 
-    best_match = mimeparse.best_match(rest_mime_types + ui_mime_types, request.META.get('HTTP_ACCEPT', 'text/html'))
+    try:
+        best_match = mimeparse.best_match(rest_mime_types + ui_mime_types, request.META.get('HTTP_ACCEPT', 'text/html'))
+    except ValueError:
+        best_match = None
 
     if best_match in ui_mime_types:
         return ui_response_exception_factory(request, response_code, title, message, response_class)
