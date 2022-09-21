@@ -7,7 +7,7 @@
             <button disabled>{{ item.title|capfirst }}</button>
             <ul class="collapsible-content">
                 {% for submenu_item in item.submenu_items %}
-                    <li class="{{ submenu_item.css_classes }}">
+                    <li class="menu-item {{ submenu_item.css_classes }}">
                         <a href="{{ submenu_item.url }}">
                             {{ submenu_item.title|capfirst }}
                         </a>
