@@ -190,7 +190,8 @@ class ModelReadonlyDetailView(GetModelObjectCoreViewMixin, FieldPermissionViewMi
         value, label, widget = get_readonly_field_data(
             obj, field_name, self.request, view=self, field_labels=self._get_field_labels()
         )
-        return field_name, label, display_for_value(value, request=self.request), None
+        # field name, label, displayed value, class name, help text
+        return field_name, label, display_for_value(value, request=self.request), None, None
 
     def _get_fieldset_to_render(self, fieldset_title, fieldset_data, obj):
         fields = [
