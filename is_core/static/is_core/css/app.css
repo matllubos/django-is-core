@@ -9650,10 +9650,6 @@ form {
     color: #aeaeae;
     margin: 15px 0;
     clear: both; }
-  form .help {
-    color: #aeaeae;
-    margin: 2px 0;
-    font-size: 80%; }
   form .btn {
     margin-top: 15px; }
   form .field-value a {
@@ -9706,6 +9702,11 @@ form {
         vertical-align: bottom; }
   form .field.error input, form .field.error textarea, form .field.error select, form .field.error .ac-item input {
     border-color: #a94442; }
+
+.field .help {
+  color: #aeaeae;
+  margin: 2px 0;
+  font-size: 80%; }
 
 input[type=checkbox] {
   font-size: 20px; }
