@@ -12,7 +12,7 @@ from issue_tracker.elasticsearch.core import ElasticsearchCommentCore
 from issue_tracker.dynamo.core import DynamoCommentCore
 
 from .resources import NumberOfUserIssuesResource, UserModelResource
-from .views import UserDetailView
+from .views import UserDetailView, SubIssuesView
 
 
 class IsNoObject(BasePermission):
@@ -92,6 +92,10 @@ class IssueCore(DjangoUiRestCore):
 
     model = Issue
     list_fields = ('id', '_obj_name', 'watched_by_string', 'leader__email', 'leader__last_name')
+    fields = (
+        'id', 'name', 'watched_by', 'created_by', 'solver', 'leader'
+    )
+    inline_views = (SubIssuesView,)
 
     can_create = False
     can_delete = False

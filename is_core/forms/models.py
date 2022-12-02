@@ -2,6 +2,7 @@ import warnings
 import itertools
 
 from django import forms
+from django.core.exceptions import ImproperlyConfigured
 from django.forms import models
 from django.forms.fields import ChoiceField
 from django.forms.models import ModelForm, _get_foreign_key, BaseModelFormSet
@@ -227,8 +228,8 @@ def get_model_fields(model, fields):
 
 def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, readonly_fields=None, exclude=None,
                            formfield_callback=None, widgets=None, localized_fields=None, required_fields=None,
-                           labels=None, help_texts=None, error_messages=None, formreadonlyfield_callback=None,
-                           readonly=False, fields_to_clean=None, is_bulk=False):
+                           labels=None, help_texts=None, error_messages=None, field_classes=None,
+                           formreadonlyfield_callback=None, readonly=False, fields_to_clean=None, is_bulk=False):
     attrs = {'model': model}
     if fields is not None:
         model_fields = get_model_fields(model, fields)
@@ -247,6 +248,8 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
         attrs['help_texts'] = help_texts
     if error_messages is not None:
         attrs['error_messages'] = error_messages
+    if field_classes is not None:
+        attrs['field_classes'] = field_classes
     if readonly_fields is not None:
         attrs['readonly_fields'] = readonly_fields
     if required_fields is not None:
@@ -255,12 +258,12 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
         attrs['fields_to_clean'] = fields_to_clean
     attrs['readonly'] = readonly
     attrs['is_bulk'] = is_bulk
-    # If parent form class already has an inner Meta, the Meta we're
-    # creating needs to inherit from the parent's inner meta.
-    parent = (object,)
-    if hasattr(form, 'Meta'):
-        parent = (form.Meta, object)
-    Meta = type(str('Meta'), parent, attrs)
+
+    bases = (form.Meta,) if hasattr(form, 'Meta') else ()
+    Meta = type('Meta', bases, attrs)
+    if formfield_callback:
+        Meta.formfield_callback = staticmethod(formfield_callback)
+        Meta.formreadonlyfield_callback = staticmethod(formreadonlyfield_callback)
 
     class_name = model.__name__ + str('Form')
 
@@ -271,21 +274,23 @@ def smartmodelform_factory(model, request, form=SmartModelForm, fields=None, rea
         '_request': request,
     }
 
-    if getattr(Meta, 'fields', None) is None and getattr(Meta, 'exclude', None) is None:
-        warnings.warn("Calling modelform_factory without defining 'fields' or "
-                      "'exclude' explicitly is deprecated",
-                      PendingDeprecationWarning, stacklevel=2)
-    form_class = type(form)(class_name, (form,), form_class_attrs)
-    return form_class
+    if (getattr(Meta, 'fields', None) is None and
+            getattr(Meta, 'exclude', None) is None):
+        raise ImproperlyConfigured(
+            "Calling modelform_factory without defining 'fields' or "
+            "'exclude' explicitly is prohibited."
+        )
+    return type(form)(class_name, (form,), form_class_attrs)
 
 
 def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback=None,
                               formset=BaseModelFormSet, extra=1, can_delete=False,
-                              can_order=False, min_num=None, max_num=None, fields=None, exclude=None,
-                              widgets=None, validate_min=False, validate_max=False, localized_fields=None,
+                              can_order=False, max_num=None, fields=None, exclude=None,
+                              widgets=None, validate_max=False, localized_fields=None,
                               labels=None, help_texts=None, error_messages=None,
-                              formreadonlyfield_callback=None, readonly_fields=None,
-                              readonly=False):
+                              min_num=None, validate_min=False, field_classes=None,
+                              absolute_max=None, can_delete_extra=True, formreadonlyfield_callback=None,
+                              readonly_fields=None, readonly=False):
 
     meta = getattr(form, 'Meta', None)
     if meta is None:
@@ -299,11 +304,12 @@ def smartmodelformset_factory(model, request, form=ModelForm, formfield_callback
         model, request, form=form, fields=fields, exclude=exclude, formfield_callback=formfield_callback,
         widgets=widgets, localized_fields=localized_fields, labels=labels, help_texts=help_texts,
         error_messages=error_messages, formreadonlyfield_callback=formreadonlyfield_callback,
-        readonly_fields=readonly_fields, readonly=readonly
+        readonly_fields=readonly_fields, readonly=readonly, field_classes=field_classes
     )
     FormSet = smartformset_factory(
         form, formset, extra=extra, min_num=min_num, max_num=max_num, can_order=can_order, can_delete=can_delete,
-        validate_min=validate_min, validate_max=validate_max
+        validate_min=validate_min, validate_max=validate_max, absolute_max=absolute_max,
+        can_delete_extra=can_delete_extra
     )
     FormSet.model = model
     return FormSet

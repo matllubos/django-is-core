@@ -221,3 +221,5 @@ PYSTON_PARTIAL_PUT_UPDATE = True
 PYSTON_PARTIAL_RELATED_UPDATE = True
 
 LOGIN_URL = '/login/'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
