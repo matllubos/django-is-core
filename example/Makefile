@@ -102,11 +102,11 @@ runserver:
 schemamigration:
 ifeq ($(force), 1)
 	-rm -rf "dj/apps/$(app)/migrations"
-	$(PYTHON_BIN)/python manage.py schemamigration $(app) --initial $(DJANGO_POSTFIX)	
+	$(PYTHON_BIN)/python manage.py makemigrations $(app) $(DJANGO_POSTFIX)
 else ifneq ($(wildcard dj/apps/$(app)/migrations/0001_*),)
-	$(PYTHON_BIN)/python manage.py schemamigration $(app) --auto $(DJANGO_POSTFIX)
+	$(PYTHON_BIN)/python manage.py makemigrations $(app) --auto $(DJANGO_POSTFIX)
 else
-	$(PYTHON_BIN)/python manage.py schemamigration $(app) --initial $(DJANGO_POSTFIX)
+	$(PYTHON_BIN)/python manage.py makemigrations $(app) $(DJANGO_POSTFIX)
 endif
 
 datamigration:
