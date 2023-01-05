@@ -11,13 +11,25 @@
       <div class="col-md-4 col-md-offset-4">
         <div class="login-panel panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">{% trans 'Please Sign In' %}</h3>
+            <h3 class="panel-title">{% block form-title %}{% trans 'Please Sign In' %}{% endblock %}</h3>
           </div>
           <div class="panel-body">
-            <h4>{% trans 'Fill your credentials' %}</h4>
-            <br>
-            {% form_renderer form template="is_core/forms/login_form.html" class_attr='login-form' id_attr='login-form' %}
+            {% block above-form %}
+              <h4>{% trans 'Fill your credentials' %}</h4>
+              <br>
+            {% endblock %}
+            {% block form-block %}
+              {% form_renderer form template="is_core/forms/login_form.html" class_attr='login-form' id_attr='login-form' %}
+              {% if sso_login_methods %}
+                <div class="col-md-12 text-center" style="padding: 5px">{% trans "OR" %}</div>
+                {% for sso_method in sso_login_methods %}
+                  <button class="btn btn-block" onclick="location.href='{{ sso_method.url }}'">
+                    <i class="fab fa-{{ sso_method.name }}"></i> {{ sso_method.label }}
+                  </button>
+                {% endfor %}
+              {% endif %}
               {% block below-login-form %}{% endblock %}
+            {% endblock %}
           </div>
         </div>
       </div>

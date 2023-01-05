@@ -14225,3 +14225,8 @@ tr.warning {
 
 .w-year {
   margin-left: 5px; }
+
+.login-page fieldset .container-fluid {
+  margin: 0;
+  padding: 0;
+}
