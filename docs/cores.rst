@@ -31,24 +31,23 @@ There is no obligation for registration. Cores are registered automatically. The
 
 Table/List
 ^^^^^^^^^^
-image 1
+.. image:: .images/list-view.png
 
 
 Add
 ^^^
-image 2
+.. image:: .images/add-view.png
 
 
 Edit
 ^^^^
-image 3
+.. image:: .images/edit-view.png
 
 
 REST
 ^^^^
 But there is created REST resource too. By default on URLs ``/api/user/`` and ``/api/user/{obj_id}`` that returns
 object in asked format (HTTP header ``Content-type: application/json``).
-
 
 
 DjangoRestCore
@@ -89,13 +88,13 @@ You can specify URL manually::
         def get_api_url(self, request):
             return '/api/user/'
 
-Core hiearchy
--------------
+Core hierarchy
+--------------
 
 Now we provide detailed description of all Core objects. Firstly for better understanding you can see UML class
 diagram of core hierarchy.
 
-# TODO add diagram
+.. image:: .images/cores.png
 
 
 Core

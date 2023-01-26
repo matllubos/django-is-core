@@ -45,7 +45,7 @@ DEFAULTS = {
     'RESPONSE_EXCEPTION_FACTORY': 'is_core.exceptions.response.ui_rest_response_exception_factory',
     'DEFAULT_FIELDSET_TEMPLATE': 'is_core/forms/default_fieldset.html',
     'HEADER_IMAGE': None,
-    'ENVIRONMENT': None,
+    'ENVIRONMENT': '',
     'BACKGROUND_EXPORT_TASK_TIME_LIMIT': 60*60,
     'BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT': (60*60) - 5,
     'BACKGROUND_EXPORT_TASK_UPDATE_REQUEST_FUNCTION': None,
@@ -53,7 +53,7 @@ DEFAULTS = {
     'BACKGROUND_EXPORT_SERIALIZATION_LIMIT': 2000,
     'BACKGROUND_EXPORT_STORAGE_CLASS': 'django.core.files.storage.DefaultStorage',
     'BACKGROUND_EXPORT_EXPIRATION_DAYS': 30,
-    'COLUMN_MANAGER': False,
+    'COLUMN_MANAGER': True,
 }
 
 

@@ -7,8 +7,8 @@ from .resource import CeleryDjangoCoreResource
 
 class BackgroundExportCoreMixin:
 
-    rest_resource_class = CeleryDjangoCoreResource
     export_permission = IsSuperuser()
+    rest_resource_class = CeleryDjangoCoreResource
 
     def _get_export_permission(self):
         return self.export_permission
