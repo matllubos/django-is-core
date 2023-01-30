@@ -44,10 +44,9 @@ Content
    views
    rests
    permissions
-   models
    forms
    filters
-   auth
    utils
+   menu
    elasticsearch
    dynamodb

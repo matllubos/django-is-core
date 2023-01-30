@@ -9,30 +9,20 @@ Requirements
 Python/Django versions
 ^^^^^^^^^^^^^^^^^^^^^^
 
-+------------------+------------+-----------+
-| Modeltranslation | Python     | Django    |
-+==================+============+===========+
-| >=1.4            | 3.2 - 3.4  | 1.8 - 1.9 |
-|                  +------------+-----------+
-|                  | 2.7        | 1.8 - 1.9 |
-+------------------+------------+-----------+
-| <=1.3            | 2.7        | 1.6 - 1.8 |
-+------------------+------------+-----------+
++----------------------------+------------------+
+|  Python                    | Django           |
++============================+==================+
+| 3.5, 3.6, 3.9, 3.10, 3.11  | >=2.2 <4         |
++----------------------------+------------------+
 
 
 Libraries
 ^^^^^^^^^
 
  * **django-class-based-auth-views** - Login/Logout views as generic view structure
- * **django-piston** - not original pistion library, but improved. You can find it here https://github.com/matllubos/django-piston
- * **django-block-snippets** - library providing block snippets of html code for easier development webpages with ajax. You can find it here https://github.com/matllubos/django-block-snippets
- * **django-chamber** - several helpers removing code duplication. You can find it here https://github.com/matllubos/django-chamber
- * **python-dateutil** - provides powerful extensions to the datetime module available in the Python standard library
- * **django-apptemplates** - Django template loader that allows you to load a template from a specific application
- * **django-project-info** - small library getting project version to django context data
- * **pillow** - Python imaging library (optional)
- * **germanium** - framework for testing purposes (optional)
- * **factory-boy** - testing helper for creating model data for tests (optional)
+ * **django-pyston** - not original pistion library, but improved. You can find it here https://github.com/druids/django-pyston
+ * **django-block-snippets** - library providing block snippets of html code for easier development webpages with ajax. You can find it here https://github.com/druids/django-block-snippets
+ * **django-chamber** - several helpers removing code duplication. You can find it here https://github.com/druids/django-chamber
 
 All optional libraries is not instaled automatically. Other libraries are dependecies of django-is-core.
 
@@ -55,7 +45,7 @@ Because *django-is-core* is rapidly evolving framework the best way how to insta
 Configuration
 =============
 
-After instalation you must go throught these steps to use django-is-core:
+After installation you must go through these steps to use django-is-core:
 
 Required Settings
 -----------------
@@ -65,12 +55,13 @@ The following variables have to be added to or edited in the project's ``setting
 ``INSTALLED_APPS``
 ^^^^^^^^^^^^^^^^^^
 
-For using is-core you just add add ``is_core`` and ``block_snippets`` to ``INSTALLED_APPS`` variable::
+For using is-core you just add add ``is_core``, ``pyston`` and ``block_snippets`` to ``INSTALLED_APPS`` variable::
 
     INSTALLED_APPS = (
         ...
         'is_core',
         'block_snippets',
+        'pyston',
         ...
     )
 
@@ -90,42 +81,147 @@ Setup
 To finally setup the application please follow these steps:
 
 1. Collect static files from django-is-core with command ``python manage.py collectstatic``
-2. Sync database with command ``python manage.py syncdb`` or ``python manage.py migrate``
+2. Sync database with command ``python manage.py migrate``
 
-Advanced Settings
-=================
 
-Token authentification
-----------------------
+Settings
+========
 
-Because django-is-core provides simple way how to create Information Systems based on REST the standard django session authentification is not ideal for this purpose.
+These configuration you can use with django-is-core in your django settings file:
 
-Django-is-core provides token authentification. The advantages of this method are:
-1. You can use fat client that can not use cookies.
-2. Every token conains information about connected device. So you can watch user activity.
-3. You can lead connected users by expiration time or deactivate user token to logout authentificated user.
+.. attribute:: IS_CORE_AUTH_LOGIN_VIEW
 
-If you want to use token authentification follow these steps:
+  Path to the login view class. If library ``django-auth-token`` is installed its view are used otherwise ``is_core.views.auth.LoginView`` is selected as the view.
 
-``INSTALLED_APPS``
-^^^^^^^^^^^^^^^^^^
+.. attribute:: IS_CORE_AUTH_LOGIN_CODE_VERIFICATION_VIEW
 
-Add ``is_core.auth_token`` right after ``is_core`` inside ``INSTALLED_APPS`` variable::
+  Administration supports two factor login. If it is turned on and ``django-auth-token`` is installed the view from this library is used. Otherwise none is set.
 
-    INSTALLED_APPS = (
-        ...
-        'is_core',
-        'is_core.auth_token',
-        'block_snippets',
-        ...
+.. attribute:: IS_CORE_AUTH_FORM_CLASS
+
+  Django form class for the login view.
+
+.. attribute:: IS_CORE_AUTH_RESOURCE_CLASS
+
+  If you want to allow login view on the is-core REST you can implement and set the pyston resource login class. The REST login is turned off by default and the setting is set to ``None``.
+
+.. attribute:: IS_CORE_AUTH_LOGOUT_VIEW
+
+  Path to the logout view. If library ``django-auth-token`` is installed its view are used otherwise ``'is_core.views.auth.LogoutView'`` is set by default.
+
+.. attribute:: IS_CORE_CODE_VERIFICATION_URL
+
+  The URL path to the second factor. The default value is ``'/login/login-code-verification/'``.
+
+.. attribute:: IS_CORE_HOME_CORE
+
+  The core class for the administration home page. The default value is ``'is_core.main.HomeUiCore'``.
+
+.. attribute:: IS_CORE_HOME_VIEW
+
+  The view class for the administration home page. The default value is ``'is_core.generic_views.base.HomeView'``.
+
+.. attribute:: IS_CORE_MENU_GENERATOR
+
+  The path to the is-core menu generator. The default value is ``'is_core.menu.MenuGenerator'``.
+
+.. attribute:: IS_CORE_USERNAME
+
+  The admin user username field name. The default value is ``'username'``.
+
+.. attribute:: IS_CORE_PASSWORD
+
+  The admin user password field name. The default value is ``'password'``.
+
+.. attribute:: IS_CORE_LOGIN_URL
+
+  The login URL path. The default value is ``'/login/'``.
+
+.. attribute:: IS_CORE_LOGOUT_URL
+
+  The logout URL path. The default value is ``'/logout/'``.
+
+.. attribute:: IS_CORE_LOGIN_API_URL
+
+  The API login URL path. The default value is ``'/api/login/'``.
+
+.. attribute:: IS_CORE_EXPORT_TYPES
+
+  The list of the export types for the administration. The default value is ``None``::
+
+    IS_CORE_EXPORT_TYPES = (
+        ('XLSX', 'xlsx', 'VERBOSE'),
+        ('CSV', 'csv', 'VERBOSE'),
+        ('TXT', 'txt', 'VERBOSE'),
     )
 
-``MIDDLEWARE_CLASSES``
-^^^^^^^^^^^^^^^^^^^^^^
+.. attribute:: IS_CORE_FOREIGN_KEY_MAX_SELECTBOX_ENTRIES
 
-Replace ``django.contrib.auth.middleware.AuthenticationMiddleware`` with ``is_core.auth_token.middleware.TokenAuthenticationMiddlewares`` inside ``MIDDLEWARE_CLASSES``
+  Max entries int the foreign key select boxes. If there is more foreign key boxes the select box is replaced with HTML input. The default value is ``500``
 
-``Setup``
-^^^^^^^^^
+.. attribute:: IS_CORE_LIST_PER_PAGE
 
-Finally again sync database models, because auth_token adds new django models (``python manage.py syncdb`` or ``python manage.py migrate``)
+  The default number of elements returned in the table. The default value is ``20``.
+
+.. attribute:: IS_CORE_REST_PAGINATOR_MAX_TOTAL
+
+  The maximum elements which can be returned in one REST response. The default value is ``10000``.
+
+.. attribute:: IS_CORE_RESPONSE_EXCEPTION_FACTORY
+
+  The response generator if an expected exception is raised. The default value is ``'is_core.exceptions.response.ui_rest_response_exception_factory'``.
+
+.. attribute:: IS_CORE_DEFAULT_FIELDSET_TEMPLATE
+
+  The path to the form fieldset template. The default value is ``'is_core/forms/default_fieldset.html'``.
+
+.. attribute:: IS_CORE_HEADER_IMAGE
+
+  The path to the header image of the administration.
+
+.. attribute:: IS_CORE_ENVIRONMENT
+
+  The environment name which is printed in the administration.
+
+.. attribute:: IS_CORE_BACKGROUND_EXPORT_TASK_TIME_LIMIT
+
+  The maximal time of the export task. The default value is 1h.
+
+.. attribute:: IS_CORE_BACKGROUND_EXPORT_TASK_SOFT_TIME_LIMIT
+
+  The maximal soft time of the export task. The default value is 1h minus 5 minutes.
+
+.. attribute:: IS_CORE_BACKGROUND_EXPORT_TASK_UPDATE_REQUEST_FUNCTION
+
+  The path to the function which can be used to update request for the file export::
+
+    # Django settings
+    IS_CORE_BACKGROUND_EXPORT_TASK_UPDATE_REQUEST_FUNCTION = 'your.file.update_background_export_request'
+
+    # your/file.py
+    def update_background_export_request(request):
+        request.user = request.user.subclass
+        return request
+
+.. attribute:: IS_CORE_BACKGROUND_EXPORT_TASK_QUEUE
+
+  The celery queue name which will be used for the background export.
+
+.. attribute:: IS_CORE_BACKGROUND_EXPORT_SERIALIZATION_LIMIT
+
+  The maximal elements serialized in the background export. The default value is ``2000``.
+
+.. attribute:: IS_CORE_BACKGROUND_EXPORT_STORAGE_CLASS
+
+  The background export storage class where the file will be stored. The default value is ``'django.core.files.storage.DefaultStorage'``.
+
+.. attribute:: IS_CORE_BACKGROUND_EXPORT_EXPIRATION_DAYS
+
+  The background export expiration days for the exported files. The default value is 30 days.
+
+.. attribute:: IS_CORE_COLUMN_MANAGER
+
+  Allow administration column manager (table columns can be hidden with this function). The defalut value is ``False``.
+
+
+

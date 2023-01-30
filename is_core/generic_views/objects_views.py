@@ -1,6 +1,6 @@
 from django.db.models import Model
 from django.views.generic.base import TemplateView
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from is_core.utils import display_object_data, display_for_value, GetMethodFieldMixin
 from is_core.generic_views.base import DefaultCoreViewMixin
